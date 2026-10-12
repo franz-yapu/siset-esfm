@@ -45,7 +45,7 @@ export const rutaInicio = (rol: Rol): string => ROLES[rol].inicio;
 export const PERMISOS_RUTA: Record<string, Rol[]> = {
   ...Object.fromEntries(MENU.filter((m) => m.ruta).map((m) => [m.id, m.roles])),
   'detalle-hr': PERSONAL_FILES,
-  'caratula': ['SEC_DIR', 'SEC_COORD', 'KARDEX'],
+  'caratula': PERSONAL_FILES,
   'detalle-file': PERSONAL_FILES,
   'form-file': ['KARDEX'],
   'emitir-dictamen': ['COORDINADOR'],

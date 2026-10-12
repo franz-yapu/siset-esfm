@@ -17,3 +17,10 @@ body {
   body { background: white; }
   @page { size: letter; margin: 1.5cm; }
 }
+
+/* Impresión de documentos oficiales: solo se imprime la zona de impresión. */
+.zona-impresion { display: none; }
+@media print {
+  body:has(.zona-impresion) #root { display: none; }
+  .zona-impresion { display: block; }
+}

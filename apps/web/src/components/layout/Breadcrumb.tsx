@@ -17,7 +17,7 @@ export function Breadcrumb({ rol }: { rol: Rol }) {
   const partes = pathname.split('/').filter(Boolean);
   if (partes.length === 1 && INICIOS.includes(partes[0])) return null;
   const migas = partes.map((p, i) => ({
-    etiqueta: NOMBRES[p] ?? (p === 'nuevo' ? (partes[0] === 'files' ? 'Nuevo file' : 'Nuevo') : p === 'files' ? 'Files académicos' : decodeURIComponent(p)),
+    etiqueta: NOMBRES[p] ?? (p === 'nuevo' ? (partes[0] === 'files' ? 'Nuevo file' : 'Nuevo') : /^\d+$/.test(p) ? 'Detalle' : decodeURIComponent(p)),
     to: '/' + partes.slice(0, i + 1).join('/'),
   }));
   return (

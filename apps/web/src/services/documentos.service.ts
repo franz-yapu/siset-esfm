@@ -1,4 +1,4 @@
-import type { DocumentoEmitido, HojaRutaConTitular, TipoDocumento, Usuario } from '@/types';
+import type { DocumentoEmitido, FileAcademico, HojaRutaConTitular, TipoDocumento, Usuario } from '@/types';
 import { auditar, copia, db } from '@/mocks/db';
 import { tipoDocumento } from '@/mocks/hojasRuta';
 import { ahora, delay } from '@/lib/formato';
@@ -39,6 +39,14 @@ export const documentosService = {
     aplicarTransicion(nro, 'EMITIR', u, { obs: `${NOMBRE_DOCUMENTO[tipo]} · valorado ${nroValorado.trim()}` });
     const id = (db.documentos.at(-1)?.id ?? 0) + 1;
     db.documentos.push({ id, nro, tipo, nroValorado: nroValorado.trim(), usuario: u.nombre, fecha: ahora(), esReimpresion: false });
+  },
+
+  /** File del titular de un trámite (para imprimir la plantilla). */
+  async fileDe(nro: string): Promise<FileAcademico> {
+    const h = db.hojasRuta.find((x) => x.nro === nro);
+    const f = h && db.files.find((x) => x.id === h.fileId);
+    if (!f) throw new ErrorNegocio('Trámite no encontrado');
+    return copia(f);
   },
 
   /** RF-12 CA3: reimprimir exige motivo. */

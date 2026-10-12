@@ -16,7 +16,25 @@ import { InicioSecDir } from '@/pages/inicio/InicioSecDir';
 import { InicioSecCoord } from '@/pages/inicio/InicioSecCoord';
 import { InicioCoordinador } from '@/pages/inicio/InicioCoordinador';
 import { InicioKardex } from '@/pages/inicio/InicioKardex';
-import { EnConstruccion } from '@/pages/EnConstruccion';
+import { MiFile } from '@/pages/estudiante/MiFile';
+import { NuevaHojaRuta } from '@/pages/hojas-ruta/NuevaHojaRuta';
+import { HojasRuta } from '@/pages/hojas-ruta/HojasRuta';
+import { DetalleHojaRuta } from '@/pages/hojas-ruta/DetalleHojaRuta';
+import { Caratula } from '@/pages/hojas-ruta/Caratula';
+import { BandejaPases } from '@/pages/pases/BandejaPases';
+import { FirmaEntrega } from '@/pages/pases/FirmaEntrega';
+import { Files } from '@/pages/kardex/Files';
+import { DetalleFile } from '@/pages/kardex/DetalleFile';
+import { FormFile } from '@/pages/kardex/FormFile';
+import { Revision } from '@/pages/kardex/Revision';
+import { Emision } from '@/pages/kardex/Emision';
+import { CargaMasiva } from '@/pages/kardex/CargaMasiva';
+import { Usuarios } from '@/pages/kardex/Usuarios';
+import { Bitacora } from '@/pages/kardex/Bitacora';
+import { Dictamenes } from '@/pages/coordinador/Dictamenes';
+import { EmitirDictamen } from '@/pages/coordinador/EmitirDictamen';
+import { Reportes } from '@/pages/reportes/Reportes';
+import { MisTramites, MiTramite } from '@/pages/estudiante/MisTramites';
 
 /** Ruta protegida por el permiso de config/permisos.ts (si no lo tiene: P-04). */
 const P = (permiso: string, el: ReactNode) => <ProtectedRoute permiso={permiso}>{el}</ProtectedRoute>;
@@ -51,33 +69,33 @@ export function App() {
         <Route path="/kardex" element={<Inicio rol="KARDEX"><InicioKardex /></Inicio>} />
         <Route path="/perfil" element={<MiPerfil />} />
 
-        <Route path="/mi-file" element={P('mi-file', <EnConstruccion />)} />
-        <Route path="/mis-tramites" element={P('mis-tramites', <EnConstruccion />)} />
-        <Route path="/mis-tramites/:nro" element={P('mis-tramites', <EnConstruccion />)} />
+        <Route path="/mi-file" element={P('mi-file', <MiFile />)} />
+        <Route path="/mis-tramites" element={P('mis-tramites', <MisTramites />)} />
+        <Route path="/mis-tramites/:nro" element={P('mis-tramites', <MiTramite />)} />
 
-        <Route path="/hojas-ruta/nueva" element={P('nueva-hr', <EnConstruccion />)} />
-        <Route path="/hojas-ruta" element={P('hojas-ruta', <EnConstruccion />)} />
-        <Route path="/hojas-ruta/:nro" element={P('detalle-hr', <EnConstruccion />)} />
-        <Route path="/pases" element={P('pases', <EnConstruccion />)} />
-        <Route path="/entregas" element={P('entregas', <EnConstruccion />)} />
+        <Route path="/hojas-ruta/nueva" element={P('nueva-hr', <NuevaHojaRuta />)} />
+        <Route path="/hojas-ruta" element={P('hojas-ruta', <HojasRuta />)} />
+        <Route path="/hojas-ruta/:nro" element={P('detalle-hr', <DetalleHojaRuta />)} />
+        <Route path="/pases" element={P('pases', <BandejaPases />)} />
+        <Route path="/entregas" element={P('entregas', <FirmaEntrega />)} />
 
-        <Route path="/files" element={P('files', <EnConstruccion />)} />
-        <Route path="/files/nuevo" element={P('form-file', <EnConstruccion />)} />
-        <Route path="/files/:id" element={P('detalle-file', <EnConstruccion />)} />
-        <Route path="/files/:id/editar" element={P('form-file', <EnConstruccion />)} />
-        <Route path="/revision" element={P('revision', <EnConstruccion />)} />
-        <Route path="/emision" element={P('emision', <EnConstruccion />)} />
-        <Route path="/carga-masiva" element={P('carga', <EnConstruccion />)} />
-        <Route path="/usuarios" element={P('usuarios', <EnConstruccion />)} />
-        <Route path="/bitacora" element={P('bitacora', <EnConstruccion />)} />
+        <Route path="/files" element={P('files', <Files />)} />
+        <Route path="/files/nuevo" element={P('form-file', <FormFile />)} />
+        <Route path="/files/:id" element={P('detalle-file', <DetalleFile />)} />
+        <Route path="/files/:id/editar" element={P('form-file', <FormFile />)} />
+        <Route path="/revision" element={P('revision', <Revision />)} />
+        <Route path="/emision" element={P('emision', <Emision />)} />
+        <Route path="/carga-masiva" element={P('carga', <CargaMasiva />)} />
+        <Route path="/usuarios" element={P('usuarios', <Usuarios />)} />
+        <Route path="/bitacora" element={P('bitacora', <Bitacora />)} />
 
-        <Route path="/dictamenes" element={P('dictamenes', <EnConstruccion />)} />
-        <Route path="/dictamenes/:nro" element={P('emitir-dictamen', <EnConstruccion />)} />
-        <Route path="/reportes" element={P('reportes', <EnConstruccion />)} />
+        <Route path="/dictamenes" element={P('dictamenes', <Dictamenes />)} />
+        <Route path="/dictamenes/:nro" element={P('emitir-dictamen', <EmitirDictamen />)} />
+        <Route path="/reportes" element={P('reportes', <Reportes />)} />
         <Route path="*" element={<NoEncontrado />} />
       </Route>
       {/* La carátula se imprime sin layout. */}
-      <Route path="/hojas-ruta/:nro/caratula" element={P('caratula', <EnConstruccion />)} />
+      <Route path="/hojas-ruta/:nro/caratula" element={P('caratula', <Caratula />)} />
     </Routes>
   );
 }
