@@ -1,21 +1,8 @@
-import type { Sede, Usuario } from '@/types';
+import type { Usuario } from '@/types';
 import { haceDias } from '@/lib/formato';
 
 /** En el prototipo la contraseña de todos es "demo123". */
 export const CLAVE_DEMO = 'demo123';
-
-export const SEDES: Sede[] = [
-  { id: 1, codigo: 'LA_PAZ', nombre: 'Sede Central La Paz' },
-  { id: 2, codigo: 'ANCOCAGUA', nombre: 'UA Ancocagua (Pucarani)' },
-];
-
-export const ESPECIALIDADES = [
-  'Educación Primaria Comunitaria Vocacional',
-  'Matemática',
-  'Comunicación y Lenguajes',
-  'Ciencias Naturales: Biología-Geografía',
-  'Educación Física y Deportes',
-];
 
 export const seedUsuarios = (): Usuario[] => [
   // Personal

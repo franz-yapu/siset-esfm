@@ -1,0 +1,59 @@
+import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
+import clsx from 'clsx';
+
+interface Props {
+  open: boolean; title: ReactNode; onClose: () => void; footer?: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl'; children: ReactNode;
+}
+
+const ANCHO = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-3xl', xl: 'max-w-5xl' };
+const ENFOCABLES = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Ventana modal accesible: Esc cierra y el foco queda atrapado dentro. */
+export function Modal({ open, title, onClose, footer, size = 'md', children }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const cerrar = useRef(onClose);
+  cerrar.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    const previo = document.activeElement as HTMLElement | null;
+    const panel = ref.current;
+    (panel?.querySelector<HTMLElement>('[data-autofocus]') ?? panel?.querySelector<HTMLElement>(ENFOCABLES))?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') cerrar.current();
+      if (e.key !== 'Tab' || !panel) return;
+      const els = [...panel.querySelectorAll<HTMLElement>(ENFOCABLES)];
+      if (!els.length) return;
+      const [primero, ultimo] = [els[0], els[els.length - 1]];
+      if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+      previo?.focus();
+    };
+  }, [open]);
+
+  if (!open) return null;
+  return createPortal(
+    <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
+        className={clsx('flex max-h-[92vh] w-full flex-col rounded-t-xl bg-white shadow-xl sm:rounded-xl', ANCHO[size])}>
+        <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-3">
+          <h2 id="modal-titulo" className="text-base font-semibold text-slate-900">{title}</h2>
+          <button type="button" onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Cerrar">
+            <X className="size-5" />
+          </button>
+        </header>
+        <div className="overflow-y-auto px-5 py-4">{children}</div>
+        {footer && <footer className="flex flex-wrap justify-end gap-2 border-t border-slate-200 px-5 py-3">{footer}</footer>}
+      </div>
+    </div>,
+    document.body,
+  );
+}

@@ -1,11 +1,11 @@
-import type { EstadoTramite, HojaRuta, TipoTramite } from '@/types';
+import type { EstadoTramite, HojaRuta, TipoTramite, Usuario } from '@/types';
 import { db } from '@/mocks/db';
 import { ORDEN_ESTADOS } from '@/config/estados';
 import { aIso, delay, diasDesde, mesCorto } from '@/lib/formato';
 import { parseISO, differenceInHours } from 'date-fns';
 import { conTitular, LATENCIA, ultimoMovimiento } from './_comun';
 import { DIAS_DETENIDO, estaDetenido } from './hojasRuta.service';
-import { fileHabilitado } from '@/lib/reglas';
+import { alertasFile, fileHabilitado } from '@/lib/reglas';
 
 export interface FiltrosReporte { desde?: string; hasta?: string; sedeId?: number | ''; tipo?: TipoTramite | '' }
 
@@ -109,4 +109,38 @@ export const reportesService = {
       diasDetenido: DIAS_DETENIDO,
     };
   },
+};
+
+export interface Notificacion { texto: string; to: string }
+
+/** Campana del header: pendientes del rol (en la v1.0 no hay correo/WhatsApp, D-19). */
+export const notificaciones = (u: Usuario): Notificacion[] => {
+  const hs = db.hojasRuta;
+  const n = (cond: (h: HojaRuta) => boolean) => hs.filter(cond).length;
+  const lista: Notificacion[] = [];
+  const add = (cantidad: number, texto: string, to: string) => { if (cantidad > 0) lista.push({ texto: texto.replace('#', String(cantidad)), to }); };
+  switch (u.rol) {
+    case 'SEC_DIR':
+      add(n((h) => h.estado === 'EN_TRANSITO_LP'), '# retornos por recibir', '/pases');
+      add(n((h) => h.estado === 'LISTO'), '# trámites listos para entrega', '/entregas');
+      break;
+    case 'SEC_COORD':
+      add(n((h) => h.estado === 'EN_TRANSITO_ANC'), '# pases por recibir', '/pases');
+      break;
+    case 'KARDEX':
+      add(n((h) => h.estado === 'EN_TRANSITO_ANC'), '# pases por recibir', '/pases');
+      add(n((h) => h.estado === 'RECIBIDO'), '# trámites recibidos sin revisar', '/revision');
+      add(n((h) => h.estado === 'DICTAMINADO'), '# documentos por emitir', '/emision');
+      add(db.files.filter((f) => f.bloqueado).length, '# files bloqueados', '/files?bloqueados=1');
+      break;
+    case 'COORDINADOR':
+      add(n((h) => h.estado === 'EN_REVISION' && Boolean(h.enviadoDictamen)), '# trámites esperan dictamen', '/dictamenes');
+      break;
+    default: {
+      const f = db.files.find((x) => x.id === u.fileId);
+      if (f) alertasFile(f).forEach((texto) => lista.push({ texto, to: '/mi-file' }));
+      if (u.rol === 'EGRESADO') add(n((h) => h.fileId === u.fileId && h.estado === 'LISTO'), 'Tu trámite está listo para recoger', '/mis-tramites');
+    }
+  }
+  return lista;
 };

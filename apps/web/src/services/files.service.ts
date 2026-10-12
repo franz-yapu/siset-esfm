@@ -1,6 +1,6 @@
 import type { CodigoRequisito, ColorSemaforo, FileAcademico, Matricula, Requisito, ResultadoAnual, Usuario } from '@/types';
 import { auditar, copia, db } from '@/mocks/db';
-import { ESPECIALIDADES } from '@/mocks/usuarios';
+import { ESPECIALIDADES } from '@/config/catalogos';
 import { delay } from '@/lib/formato';
 import { ErrorNegocio } from '@/lib/transiciones';
 import { motivoBloqueoPorUf, NOMBRE_REQUISITO, nombreCompleto, semaforoFile, superaLimite } from '@/lib/reglas';
