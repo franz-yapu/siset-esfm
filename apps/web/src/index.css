@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-primario: #1f4e79;
+  --color-primario-oscuro: #173b5c;
+  --color-acento: #2e75b6;
+  --color-fondo: #f5f7fa;
+}
+
+body {
+  @apply bg-fondo text-slate-800 antialiased;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  @page { size: letter; margin: 1.5cm; }
+}
