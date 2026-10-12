@@ -1,0 +1,10 @@
+{
+  "_comment": "Config del adaptador clickup para SISET. Token: CLICKUP_TOKEN_FILE=~/.config/clickup-token-yhonnyyapu (nunca en el repo).",
+  "team_id": "9011619994",
+  "boards": { "main": "90112298246" },
+  "projects": {
+    "siset": { "list": "901115543466", "desc": "SISET — backlog y sprints (cuenta yhonnyyapu@gmail.com)" }
+  },
+  "people": { "me": "me" },
+  "defaults": { "assignee": "me", "board": "main", "include_closed": false }
+}

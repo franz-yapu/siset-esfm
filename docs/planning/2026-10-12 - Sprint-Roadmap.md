@@ -1,6 +1,6 @@
 # SISET — Roadmap de sprint
 
-**Fecha:** 2026-10-12 · **Repo:** `5c2e185` (main) · **Backlog:** [2026-10-12 - Backlog-Epics-Tasks.md](2026-10-12%20-%20Backlog-Epics-Tasks.md) · **Board del tracker revisado:** sí — ClickUp "FRANZ's Space": no existe lista de SISET todavía (solo "Mi proyecto", de beta-ia). Sin tickets previos que contrastar.
+**Fecha:** 2026-10-12 · **Repo:** `5c2e185` (main) · **Backlog:** [2026-10-12 - Backlog-Epics-Tasks.md](2026-10-12%20-%20Backlog-Epics-Tasks.md) · **Board del tracker revisado:** sí — ClickUp "FRANZ's Space": no existía lista de SISET (solo "Mi proyecto", de beta-ia). Se creó la lista **SISET** (`901115543466`) con los 7 tickets de la Ola 1.
 
 **Contexto de fechas:** hoy arranca el Sprint 0 del plan (12–16 oct 2026). El Go-Live de referencia es 18-ene-2027 (opción A de D-06, sin confirmar).
 
@@ -77,13 +77,13 @@ Tamaño en horas. Estado: ⬜ pendiente · 🟡 UI en prototipo, falta API · �
 
 | ID | Módulo | Tarea | Tamaño | Estado | Ola | Ticket | Fuente | Depende de | Bloqueo |
 |---|---|---|---:|---|---|---|---|---|---|
-| S0.1 | Negocio | Demo del prototipo + cerrar dudas bloqueantes | 3 | ⬜ | 1 | | dudas.md | — | — |
-| S0.3 | Entorno | Monorepo + apps/api + lint/format/Husky | 3 | ⬜ | 1 | | RNF-07 | — | — |
-| S0.4 | Entorno | Docker Compose (PG16, API, web, Nginx) | 4 | ⬜ | 1 | | PRD §5 | S0.3 | — |
-| S0.5 | Entorno | CI GitHub Actions | 3 | ⬜ | 1 | | DoD | S0.3 | — |
-| S0.6 | Entorno | Prisma inicial + seed | 4 | ⬜ | 1 | | PRD §5 | S0.4 | — |
-| S0.7 | Entorno | Base del API por capas | 5 | ⬜ | 1 | | RNF-07, RNF-10 | S0.3 | — |
-| S0.8 | Entorno | Axios + interruptor mock/API | 2 | 🟡 | 1 | | spec §1 | S0.3 | — |
+| S0.1 | Negocio | Demo del prototipo + cerrar dudas bloqueantes | 3 | ⬜ | 1 | [868mgh27v](https://app.clickup.com/t/868mgh27v) | dudas.md | — | — |
+| S0.3 | Entorno | Monorepo + apps/api + lint/format/Husky | 3 | ⬜ | 1 | [868mgh27z](https://app.clickup.com/t/868mgh27z) | RNF-07 | — | — |
+| S0.4 | Entorno | Docker Compose (PG16, API, web, Nginx) | 4 | ⬜ | 1 | [868mgh284](https://app.clickup.com/t/868mgh284) | PRD §5 | S0.3 | — |
+| S0.5 | Entorno | CI GitHub Actions | 3 | ⬜ | 1 | [868mgh285](https://app.clickup.com/t/868mgh285) | DoD | S0.3 | — |
+| S0.6 | Entorno | Prisma inicial + seed | 4 | ⬜ | 1 | [868mgh287](https://app.clickup.com/t/868mgh287) | PRD §5 | S0.4 | — |
+| S0.7 | Entorno | Base del API por capas | 5 | ⬜ | 1 | [868mgh289](https://app.clickup.com/t/868mgh289) | RNF-07, RNF-10 | S0.3 | — |
+| S0.8 | Entorno | Axios + interruptor mock/API | 2 | 🟡 | 1 | [868mgh28b](https://app.clickup.com/t/868mgh28b) | spec §1 | S0.3 | — |
 | S0.9 | Entorno | Staging HTTPS (provisional) | 3 | ⬜ | 2 | | D-12 | S0.4 | — |
 | S0.2 | Negocio | Plantillas oficiales y hoja de ruta física | 1 | ⛔ | 3 | | D-10 | S0.1 | D-10 |
 | S1.1 | Seguridad | refresh_token + campos de bloqueo | 2 | ⬜ | 2 | | RF-01 | S0.6 | — |
