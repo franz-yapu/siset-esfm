@@ -214,3 +214,18 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    staging (el script lo genera con `openssl`). Completa DEC-008 #3.
 4. **Módulo `personas`** con `buscarNombreCompleto` como única API pública; la raíz de composición
    (`app.ts`) lo conecta con `seguridad`.
+
+## DEC-013 — Contador de intentos, bloqueo y rate limit del login
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S1.4 (aprobado) · **Estado:** activa
+
+1. **Contador:** cada contraseña incorrecta suma 1 (atómico). Al llegar a `MAX_INTENTOS_LOGIN` la cuenta se
+   bloquea `MIN_BLOQUEO_LOGIN` minutos y el contador **vuelve a 0**. Un login correcto también lo deja en 0.
+   "Seguidos" = sin un login correcto en medio, sin ventana de tiempo.
+2. **Durante el bloqueo** los errores no suman ni extienden el bloqueo, para que nadie pueda dejar a otra
+   persona sin entrar indefinidamente. La respuesta sigue siendo el 401 genérico (DEC-012).
+3. Los valores se leen de `parametro` en cada intento (módulo `catalogos`, `leerParametrosEnteros`). Un valor
+   inválido es un error, nunca un default silencioso.
+4. **Rate limit:** `express-rate-limit` 8.7.0, en memoria (una sola instancia de la API), solo en
+   `POST /auth/login`, 10 peticiones por minuto por IP contando todas; 429 `DEMASIADAS_PETICIONES`.
+   Configurable con `LOGIN_LIMITE_POR_MINUTO` si la escuela sale por una sola IP.

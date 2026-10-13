@@ -21,5 +21,24 @@ export const buscarUsuarioParaLogin = (cliente: Cliente, username: string) =>
     },
   });
 
+/** Login correcto: último acceso, y el contador y el bloqueo vuelven a cero (SDD S1.4 §2.1). */
 export const registrarAcceso = (cliente: Cliente, id: number, ahora: Date) =>
-  cliente.usuario.update({ where: { id }, data: { ultimoAcceso: ahora }, select: { id: true } });
+  cliente.usuario.update({
+    where: { id },
+    data: { ultimoAcceso: ahora, intentosFallidos: 0, bloqueadoHasta: null },
+    select: { id: true },
+  });
+
+/** +1 atómico (UPDATE … SET x = x + 1 RETURNING); devuelve el valor nuevo. */
+export async function sumarIntentoFallido(cliente: Cliente, id: number): Promise<number> {
+  const { intentosFallidos } = await cliente.usuario.update({
+    where: { id },
+    data: { intentosFallidos: { increment: 1 } },
+    select: { intentosFallidos: true },
+  });
+  return intentosFallidos;
+}
+
+/** Bloquea hasta `hasta` y deja el contador en 0: al vencer, hay otros N intentos. */
+export const bloquearCuenta = (cliente: Cliente, id: number, hasta: Date) =>
+  cliente.usuario.update({ where: { id }, data: { bloqueadoHasta: hasta, intentosFallidos: 0 }, select: { id: true } });

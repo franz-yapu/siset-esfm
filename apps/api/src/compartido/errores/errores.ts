@@ -56,6 +56,14 @@ export class ErrorNegocio extends ErrorApp {
   }
 }
 
+/** Demasiadas peticiones en poco tiempo (rate limit, SDD S1.4 §2.3). */
+export class ErrorDemasiadasPeticiones extends ErrorApp {
+  readonly estado = 429;
+  constructor(mensaje = 'Demasiados intentos. Espere un minuto y vuelva a intentar.') {
+    super(mensaje, 'DEMASIADAS_PETICIONES');
+  }
+}
+
 /** Un servicio del que depende la API no responde (p. ej. la base de datos). */
 export class ErrorServicioNoDisponible extends ErrorApp {
   readonly estado = 503;

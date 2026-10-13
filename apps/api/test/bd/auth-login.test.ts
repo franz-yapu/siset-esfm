@@ -11,7 +11,8 @@ import { sembrar } from '../../prisma/semilla';
 import { KARDEX_DE_PRUEBA } from './utilidades';
 
 const bd = clienteDeTest();
-const app = crearApp({ bd, config: configDePrueba() });
+// Este archivo hace muchos logins por minuto: el rate limit se prueba aparte (S1.4).
+const app = crearApp({ bd, config: configDePrueba({ loginLimitePorMinuto: 1000 }) });
 const PASSWORD = 'clave-1234';
 const ERROR_401 = { error: { code: 'CREDENCIALES_INVALIDAS', message: 'CI o contraseña incorrectos.' } };
 
@@ -126,7 +127,7 @@ describe('POST /api/v1/auth/login (SDD S1.3)', () => {
     expect(await ultimoEvento()).toMatchObject({
       accion: 'LOGIN_FALLIDO',
       usuarioId: anaId,
-      datosDespues: { motivo: 'PASSWORD_INCORRECTA', intentosFallidos: 0 },
+      datosDespues: { motivo: 'PASSWORD_INCORRECTA', intentosFallidos: 1 },
     });
     expect(await bd.refreshToken.count({ where: { usuarioId: anaId } })).toBe(sesiones);
   });
@@ -194,9 +195,9 @@ describe('POST /api/v1/auth/login (SDD S1.3)', () => {
     }
   });
 
-  it('el documento OpenAPI tiene POST /api/v1/auth/login con 200, 400 y 401', async () => {
+  it('el documento OpenAPI tiene POST /api/v1/auth/login con 200, 400, 401 y 429', async () => {
     const r = await request(app).get('/api/v1/openapi.json');
-    expect(Object.keys(r.body.paths['/api/v1/auth/login'].post.responses)).toEqual(['200', '400', '401']);
+    expect(Object.keys(r.body.paths['/api/v1/auth/login'].post.responses)).toEqual(['200', '400', '401', '429']);
   });
 });
 
