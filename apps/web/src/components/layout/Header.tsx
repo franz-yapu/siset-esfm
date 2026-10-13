@@ -7,8 +7,10 @@ import { ROLES, rutaInicio } from '@/config/permisos';
 import { authService } from '@/services/auth.service';
 import { notificaciones } from '@/services/reportes.service';
 import { iniciales, primerNombre } from '@/lib/formato';
+import { todoMock } from '@/services/_modo';
 
-const DEMO = import.meta.env.VITE_DEMO === 'true';
+/** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
+const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
 
 /** Cierra un menú desplegable al hacer clic fuera. */
 function useFuera(abierto: boolean, cerrar: () => void) {

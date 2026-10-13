@@ -3,6 +3,7 @@ import { auditar, db } from '@/mocks/db';
 import { ESTADOS } from '@/config/estados';
 import { ahora } from './formato';
 import { fileHabilitado } from './reglas';
+import { ErrorNegocio } from './errores';
 
 export type Accion =
   | 'ENVIAR_ANC'
@@ -118,7 +119,8 @@ export const accionesDisponibles = (h: HojaRuta, f: FileAcademico, u: Usuario): 
     .filter((r) => !(r.accion === 'ENVIAR_DICTAMEN' && h.enviadoDictamen))
     .map((r) => ({ accion: r.accion, etiqueta: r.etiqueta, deshabilitada: r.bloqueo?.(h, f) ?? null }));
 
-export class ErrorNegocio extends Error {}
+/** Se movió a lib/errores.ts (SDD S0.8 §2.2); se reexporta para no tocar los servicios. */
+export { ErrorNegocio } from './errores';
 
 export interface DatosTransicion {
   obs?: string;

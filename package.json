@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
+    "e2e": "npm run e2e -w @siset/web",
     "build": "npm run build --workspaces --if-present",
     "prepare": "husky"
   },
