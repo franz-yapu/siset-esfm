@@ -2,7 +2,7 @@ REGISTRO DE DUDAS
 
 Registro de Dudas
 
-SISET — 26 dudas (D-01 a D-26) para validar con Kardex y Coordinación
+SISET — 27 dudas (D-01 a D-27) para validar con Kardex y Coordinación
 
 | Proyecto             | SISET — Sistema de Gestión y Seguimiento de Trámites          |
 | -------------------- | ------------------------------------------------------------- |
@@ -28,7 +28,7 @@ Cómo usar este registro: la columna Respuesta se llena en la reunión con Karde
 | Prioridad  | Cantidad | Cuándo cerrarlas                                   |
 | ---------- | -------- | -------------------------------------------------- |
 | Bloqueante | 5        | Antes de terminar el Sprint 0                      |
-| Alta       | 12       | Antes de iniciar el sprint que bloquean            |
+| Alta       | 13       | Antes de iniciar el sprint que bloquean            |
 | Media      | 9        | Durante el refinamiento del sprint correspondiente |
 
 # Dudas abiertas
@@ -61,3 +61,4 @@ Cómo usar este registro: la columna Respuesta se llena en la reunión con Karde
 | D-24 | Sede del personal               | El personal (Secretarías, Kardex, Coordinación), ¿trabaja siempre en una sola sede? ¿Alguien trabaja en las dos? El prototipo asigna una sede a cada persona del personal, pero la tabla `usuario` del PRD §5 no tiene sede. (Origen: SDD S0.6 §7.)                                       | Cada persona del personal pertenece a una sola sede; estudiantes y egresados no tienen sede.                                                    | S1      | Alta       | Abierta |           |
 | D-25 | Nombre de usuario               | ¿Todos entran con su carnet, o el personal prefiere un nombre de usuario (por ejemplo, "kardex", "secdir")? El prototipo usa esos nombres solo para la demo. Relacionada con D-14. (Origen: SDD S0.6 §7.)                                                                                 | Todos entran con su CI; los nombres de la demo desaparecen.                                                                                     | S1      | Alta       | Abierta |           |
 | D-26 | Registro de intentos de ingreso | Si alguien intenta entrar con un carnet que no existe, ¿queda anotado en la bitácora? Hoy cada registro de la bitácora exige un usuario. (Origen: SDD S0.6 §7.)                                                                                                                           | Solo se anotan los intentos sobre cuentas existentes (sirven para el bloqueo tras 5 intentos fallidos).                                         | S1      | Media      | Abierta |           |
+| D-27 | Administrador del sistema       | ¿Quién administra el sistema: Kardex (como dice el PRD §2: gestiona usuarios y ve la bitácora) o una persona aparte con un rol "Administrador" que no hace trámites? Define quién crea usuarios, asigna roles y ve el historial de acciones (DEC-007). (Origen: DEC-007 #1.)              | Kardex es el administrador: crea usuarios, asigna roles y consulta la bitácora; no hay un rol ADMIN aparte.                                     | S1      | Alta       | Abierta |           |
