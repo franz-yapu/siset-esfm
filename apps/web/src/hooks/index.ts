@@ -53,10 +53,13 @@ export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList): Async<T
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const fnRef = useRef(fn);
-  fnRef.current = fn;
+  // Corre antes que el efecto de carga (mismo componente, orden de declaración).
+  useEffect(() => { fnRef.current = fn; });
 
   useEffect(() => {
     let vivo = true;
+    // Recargar al cambiar deps exige volver a "cargando"; TanStack Query reemplaza este hook en S0.8.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fnRef.current()
       .then((d) => { if (vivo) { setData(d); setError(null); } })

@@ -14,7 +14,7 @@ const ENFOCABLES = 'button:not([disabled]), [href], input:not([disabled]), selec
 export function Modal({ open, title, onClose, footer, size = 'md', children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const cerrar = useRef(onClose);
-  cerrar.current = onClose;
+  useEffect(() => { cerrar.current = onClose; });
 
   useEffect(() => {
     if (!open) return;

@@ -37,12 +37,13 @@ const guardarSesion = (id: number | null) => {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [cargando, setCargando] = useState(true);
+  // Sin sesión guardada no hay nada que cargar: se arranca listo.
+  const [cargando, setCargando] = useState(() => leerSesion() !== null);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
     const id = leerSesion();
-    if (id === null) { setCargando(false); return; }
+    if (id === null) return;
     authService.obtener(id).then((u) => { setUsuario(u); if (!u) guardarSesion(null); }).finally(() => setCargando(false));
   }, []);
 

@@ -1,0 +1,7 @@
+dist
+coverage
+package-lock.json
+docs/planning
+docs/product/originales
+_templates
+.claude
