@@ -49,6 +49,13 @@ npm run bd:seed -w @siset/api             # roles, sedes, especialidades y Karde
 npm run test:bd -w @siset/api             # tests de BD (base temporal por corrida)
 ```
 
+API (S0.7): `npm run dev` levanta la API en `http://localhost:3000`.
+
+- `GET /api/v1/health`: estado de la API y de la base de datos (503 si la base no responde).
+- `GET /api/v1/docs`: documentación OpenAPI (Swagger UI), solo fuera de producción.
+- Errores en formato único `{ "error": { "code", "message", "details" } }`.
+- Toda escritura registra un evento de auditoría (`auditoria.registrarEvento`, DEC-007).
+
 Gate de calidad (lo mismo que corre la CI):
 
 ```bash

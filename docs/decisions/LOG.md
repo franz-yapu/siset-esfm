@@ -114,3 +114,20 @@ de web, solo las de las herramientas nuevas.
    `usuario` y los triggers de solo inserción de `log_auditoria` (incluido `TRUNCATE`).
 5. `log_auditoria.usuario_id` pasa a **nullable**. No cierra D-26: solo permite ambas respuestas.
 6. **Autorización con Casbin** y política en archivo versionado: ADR-0002.
+
+## DEC-007 — Trazabilidad de acciones por usuario desde el inicio
+
+**Fecha:** 2026-10-13 · **Fuente:** responsable del proyecto · **Estado:** activa
+
+1. **RF-14 (bitácora) pasa de "Should" a "Must".** Debe existir un historial de acciones por usuario que el
+   administrador (Kardex, que en el PRD §2 gestiona usuarios y bitácora) consulta: quién entró al sistema,
+   quién creó, editó o dio de baja algo, cuándo, desde qué IP y con qué valores antes y después.
+2. **La base de auditoría se adelanta a S0.7**: contexto de la petición (usuario, IP, user agent, id de
+   petición) y el servicio público `auditoria.registrarEvento()`, que escribe en la misma transacción que
+   la operación (D-17).
+3. **Regla para todos los tickets siguientes:** toda escritura de negocio (crear, editar, dar de baja,
+   cambiar de estado) y todo evento de acceso (login, login fallido, logout, cambio de contraseña) registra
+   un evento de auditoría en la misma transacción. Entra en la Definición de Terminado de cada ticket.
+4. **S6.4 / S6.5 se adelantan a la Ola 2**, justo después de la autenticación (S1.x): `GET /auditoria`
+   (solo KARDEX) con filtros por usuario, módulo, acción, fecha y **entidad** (historial de un registro:
+   "quién editó este file"), conectados a la pantalla P-48. El `REVOKE` de permisos sigue en S6.4 (ADR-0003).

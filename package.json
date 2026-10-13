@@ -40,5 +40,13 @@
     "*.{json,md,css,html,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.2"
+    },
+    "prisma": {
+      "mysql2": "^3.23.1"
+    }
   }
 }
