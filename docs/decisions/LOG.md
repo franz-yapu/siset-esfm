@@ -141,3 +141,27 @@ de web, solo las de las herramientas nuevas.
 2. El **rol de BD separado para la app** (sin `UPDATE/DELETE/TRUNCATE` en la bitácora) se crea en
    **S6.4**, junto con el `REVOKE` que lo usa. Aclara ADR-0003, que decía "S0.4/S0.9".
 3. `JWT_SECRET` se agrega en S1.x, cuando exista código que lo lea.
+
+## DEC-009 — Opción B: piloto en noviembre y sistema completo después (cierra D-06)
+
+**Fecha:** 2026-10-13 · **Fuente:** respuesta de D-06 en la hoja "Preguntas para la escuela" + confirmación del
+responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
+
+1. **Piloto la primera semana de noviembre de 2026** (lunes 2 al viernes 6), con el personal administrativo
+   cargando datos reales de estudiantes. Alcance del piloto: **ingreso al sistema y permisos** (Sprint 1
+   completo), **bitácora** (DEC-007) y **file académico básico** (crear, editar y buscar files; datos personales,
+   especialidad y año). Desarrollo hasta el **viernes 30 de octubre**; la semana del piloto es para puesta en
+   marcha, capacitación de Kardex, carga de datos y correcciones.
+2. **Usuarios del piloto: solo el personal** (Kardex, Secretarías, Coordinación). Estudiantes y egresados
+   entran después del piloto ("mi file", tracking).
+3. **Entra en el piloto solo si la escuela responde antes del 23-oct:** matrículas y resultado anual (D-07) e
+   importación desde Excel (D-13). Sin respuesta, el file del piloto lleva solo datos personales y académicos
+   básicos, y la carga es manual.
+4. **Pantallas para el docente tutor:** se usan las del prototipo en modo demo (kit de S0.1), que ya muestran
+   todos los módulos. No suman trabajo de desarrollo; publicarlas en línea depende del despliegue en el VPS.
+5. **Sistema completo (v1.0) después del piloto:** hojas de ruta, pases, tracking, dictamen, emisión y
+   reportes, en sprints desde el 9 de noviembre. La meta de referencia sigue siendo el **18-ene-2027**
+   (opción A del plan); se recalcula al terminar el piloto con la velocidad real.
+6. **Datos reales exigen un servidor definido:** el piloto no arranca con datos de estudiantes sin respuesta
+   de D-12 (dónde funciona el sistema) y sin respaldo diario con restauración probada (RNF-11). D-12 pasa a
+   urgente.

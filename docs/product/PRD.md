@@ -214,7 +214,7 @@ Errores en formato único: { "error": { "code", "message", "details" } }. Docume
 
 ## 6. Supuestos, riesgos y Definición de Terminado
 
-El mayor riesgo no es técnico: el borrador fija el Go-Live en la primera semana de noviembre de 2026 y el plan realista necesita más tiempo (D-06).
+El mayor riesgo no es técnico: el borrador fija el Go-Live en la primera semana de noviembre de 2026 y el plan realista necesita más tiempo. Se resolvió con un piloto en noviembre (ingreso, bitácora y file académico básico) y el sistema completo después (DEC-009).
 
 Supuestos provisionales (válidos hasta cerrar la duda indicada)
 
@@ -227,7 +227,7 @@ Supuestos provisionales (válidos hasta cerrar la duda indicada)
 
 | ID  | Riesgo                                                             | Prob. | Impacto | Mitigación                                                            |
 | --- | ------------------------------------------------------------------ | ----- | ------- | --------------------------------------------------------------------- |
-| R1  | Calendario: Go-Live de noviembre inalcanzable con alcance completo | Alta  | Alto    | MVP con solo "Must"; Should a v1.1                                    |
+| R1  | Calendario: Go-Live de noviembre inalcanzable con alcance completo | Alta  | Alto    | Piloto acotado en nov (DEC-009); MVP con solo "Must"; Should a v1.1   |
 | R2  | Reglas TACFI/TCLO/notas mal definidas                              | Alta  | Alto    | Catálogo de requisitos parametrizable; validar con Kardex en Sprint 0 |
 | R3  | Resistencia al cambio del personal                                 | Alta  | Medio   | Demos por sprint con usuarios reales, manual y capacitación           |
 | R4  | Conectividad intermitente en Ancocagua                             | Alta  | Medio   | Interfaz ligera, reintentos, guardado de borradores en el navegador   |
