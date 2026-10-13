@@ -7,7 +7,17 @@ import tseslint from 'typescript-eslint';
 const FRONTERA = 'ADR-0001: docs/adr/0001-monolito-modular.md';
 
 export default tseslint.config(
-  { ignores: ['**/dist', '**/node_modules', '**/coverage', '**/generado/**'] },
+  {
+    ignores: [
+      '**/dist',
+      '**/dist-e2e-*',
+      '**/node_modules',
+      '**/coverage',
+      '**/generado/**',
+      '**/playwright-report',
+      '**/test-results',
+    ],
+  },
 
   {
     files: ['**/*.{js,ts,tsx}'],
