@@ -1,0 +1,82 @@
+# CI de SISET (SDD S0.5). Las acciones van fijadas por SHA (el tag, en el comentario).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  HUSKY: '0'
+
+jobs:
+  calidad:
+    name: calidad
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Formato
+        run: npx prettier --check .
+      - name: Lint
+        run: npm run lint
+      - name: Tipos
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Audit de dependencias (altas y críticas)
+        run: npm audit --audit-level=high
+
+  base-de-datos:
+    name: base-de-datos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: siset
+          POSTGRES_PASSWORD: siset_ci
+          POSTGRES_DB: siset
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U siset -d siset"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # Base efímera del runner: no son secretos.
+      DATABASE_URL: postgresql://siset:siset_ci@localhost:5432/siset
+      DATABASE_URL_TEST: postgresql://siset:siset_ci@localhost:5432/siset_test
+      SEED_KARDEX_CI: '9000001'
+      SEED_KARDEX_PASSWORD: ci12345678
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Migraciones
+        run: npm run bd:desplegar -w @siset/api
+      - name: Seed
+        run: npm run bd:seed -w @siset/api
+      - name: Seed otra vez (idempotencia)
+        run: npm run bd:seed -w @siset/api
+      - name: Tests de base de datos
+        run: npm run test:bd -w @siset/api
