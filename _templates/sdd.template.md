@@ -42,6 +42,14 @@
 
 ## 2 · Diseño técnico
 
+### Módulos del monolito (ADR-0001)
+
+*(Solo backend. Omitir si el ticket no toca `apps/api`.)*
+
+| Módulo | Rol en este ticket | API pública que agrega o consume (`index.ts`) | Tablas propias que toca |
+|---|---|---|---|
+| | dueño / consumidor | | |
+
 
 
 ---
