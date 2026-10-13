@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esquemaPassword } from './password.esquemas';
 
 // Contrato de POST /auth/login (SDD S1.3 §2.1).
 
@@ -44,3 +45,13 @@ export type RespuestaLogin = z.infer<typeof esquemaRespuestaLogin>;
 
 /** Para `validar` y `datosValidos`. */
 export const esquemasLogin = { body: esquemaLogin };
+
+/** POST /auth/cambiar-password (SDD S1.5 §2.1). La nueva cumple la política de DEC-011. */
+export const esquemaCambiarPassword = z
+  .object({
+    passwordActual: z.string().min(1).max(200),
+    passwordNueva: esquemaPassword.meta({ example: 'nueva.clave-2' }),
+  })
+  .meta({ id: 'CambiarPassword', description: 'Contraseña actual y nueva (mín. 8, con letras, números y símbolos).' });
+
+export const esquemasCambiarPassword = { body: esquemaCambiarPassword };

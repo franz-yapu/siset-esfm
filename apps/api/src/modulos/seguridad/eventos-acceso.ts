@@ -44,6 +44,10 @@ export const registrarLogout = (cliente: Cliente, usuarioId: number) =>
 export const registrarCambioPassword = (cliente: Cliente, usuarioId: number) =>
   registrar(cliente, 'CAMBIAR_PASSWORD', usuarioId, usuarioId);
 
+/** Alguien usó un refresh ya rotado: se revocaron todas las sesiones del usuario (SDD S1.5 §2.2). */
+export const registrarReusoSesion = (cliente: Cliente, usuarioId: number, sesionesRevocadas: number) =>
+  registrar(cliente, 'REUSO_SESION', usuarioId, usuarioId, { sesionesRevocadas });
+
 /** Lo hace Kardex: el autor sale del contexto de la petición; el afectado va en entidad_id. */
 export const registrarRestablecimientoPassword = (cliente: Cliente, usuarioAfectadoId: number) =>
   registrar(cliente, 'RESTABLECER_PASSWORD', usuarioAfectadoId, undefined);

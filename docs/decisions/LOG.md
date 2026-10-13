@@ -229,3 +229,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. **Rate limit:** `express-rate-limit` 8.7.0, en memoria (una sola instancia de la API), solo en
    `POST /auth/login`, 10 peticiones por minuto por IP contando todas; 429 `DEMASIADAS_PETICIONES`.
    Configurable con `LOGIN_LIMITE_POR_MINUTO` si la escuela sale por una sola IP.
+
+## DEC-014 — Refresh con rotación, logout, cambio de contraseña y `autenticar`
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S1.5 (aprobado) · **Estado:** activa
+
+1. `POST /auth/refresh` y `POST /auth/logout` funcionan solo con la cookie, sin access token.
+   `POST /auth/cambiar-password` (no `cambiar-clave`) exige el access token y recibe `passwordActual` y
+   `passwordNueva`.
+2. El refresh devuelve el mismo cuerpo que el login, **hereda el vencimiento** (la sesión nunca pasa de 8 h)
+   y lee rol, sede y `cpw` de la base. Un usuario inactivo pierde sus sesiones en el refresh; uno bloqueado
+   por intentos, no.
+3. **Reuso** de un refresh ya rotado (también la carrera de dos refresh simultáneos): se revocan todas las
+   sesiones del usuario y se registra la acción nueva **`REUSO_SESION`** (S0.7 prevé ampliar la lista).
+4. El cambio de contraseña revoca todas las sesiones y emite una nueva con `cpw: false`. La nueva debe ser
+   distinta de la actual y cumplir DEC-011. Tiene su propio conteo de rate limit (10/min por IP).
+5. **`autenticar`** (módulo `seguridad`) verifica el Bearer (solo HS256, emisor `siset`) sin consultar la
+   base, deja la sesión en `res.locals` y el usuario en el contexto de la petición. S1.6 lo reutiliza.
+6. Logout siempre responde 204; la cookie se borra en logout y en todo refresh rechazado.

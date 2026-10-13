@@ -1,4 +1,4 @@
-import { SignJWT } from 'jose';
+import { jwtVerify, SignJWT } from 'jose';
 
 /** Access token: 15 min (business-rules §Seguridad). */
 export const DURACION_ACCESS_MS = 15 * 60_000;
@@ -31,4 +31,26 @@ export async function firmarAccessToken(
     .setExpirationTime(Math.floor(expiraEn.getTime() / 1000))
     .sign(new TextEncoder().encode(secreto));
   return { token, expiraEn };
+}
+
+/**
+ * Verifica firma (solo HS256, para que nadie cuele otro algoritmo), emisor y
+ * vencimiento (SDD S1.5 §2.4). Lanza si algo no cuadra.
+ */
+export async function verificarAccessToken(token: string, secreto: string): Promise<DatosAccessToken> {
+  const { payload } = await jwtVerify(token, new TextEncoder().encode(secreto), {
+    algorithms: ['HS256'],
+    issuer: EMISOR_JWT,
+  });
+  const usuarioId = Number(payload.sub);
+  const { rol, sede, cpw } = payload;
+  if (
+    !Number.isInteger(usuarioId) ||
+    typeof rol !== 'string' ||
+    !(sede === null || typeof sede === 'number') ||
+    typeof cpw !== 'boolean'
+  ) {
+    throw new Error('El access token no tiene el formato esperado.');
+  }
+  return { usuarioId, rol, sedeId: sede, debeCambiarPassword: cpw };
 }

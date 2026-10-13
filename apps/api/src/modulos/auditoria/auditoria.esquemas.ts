@@ -11,6 +11,7 @@ export type AccionAuditoria =
   | 'CAMBIAR_PASSWORD'
   | 'RESTABLECER_PASSWORD'
   | 'BLOQUEO_CUENTA'
+  | 'REUSO_SESION'
   | 'EXPORTAR'
   | 'IMPRIMIR';
 

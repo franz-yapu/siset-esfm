@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Router, type Express } from 'express';
 import helmet from 'helmet';
@@ -48,6 +49,7 @@ export function crearApp({
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigen, credentials: true }));
   app.use(express.json({ limit: config.jsonLimite }));
+  app.use(cookieParser()); // la cookie del refresh (SDD S1.5 §2.5)
 
   const modulos: ModuloHttp[] = [
     crearModuloSalud({ bd, version }),
