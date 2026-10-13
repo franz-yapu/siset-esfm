@@ -7,18 +7,18 @@ D-xx son provisionales hasta que el Registro de Dudas las cierre.
 
 Estados: `REGISTRADO → EN_TRANSITO → RECIBIDO → EN_REVISION ⇄ OBSERVADO → DICTAMINADO → EN_IMPRESION → EN_TRANSITO_LA_PAZ → EN_FIRMA → LISTO → ENTREGADO`.
 
-| Transición | Rol | Condición |
-|---|---|---|
-| → Registrado | SEC_DIR | Valorado canjeado, file existente, file no bloqueado |
-| Registrado → En tránsito | SEC_DIR | Crea pase La Paz → Ancocagua |
-| En tránsito → Recibido | SEC_COORD o KARDEX | Confirma recepción del pase |
-| Recibido → En revisión | KARDEX | Toma el trámite |
-| En revisión → Observado | KARDEX | Requisito faltante o file bloqueado (motivo obligatorio) |
-| Observado → En revisión | KARDEX | Requisito subsanado |
-| En revisión → Dictaminado | COORDINADOR | File sin bloqueo y requisitos completos |
-| Dictaminado → En impresión | KARDEX | Dictamen = Aprobado |
-| En impresión → En tránsito a La Paz | KARDEX | Documento emitido; crea pase de retorno |
-| En tránsito a La Paz → En firma → Listo → Entregado | SEC_DIR | Recepción, firmas y entrega |
+| Transición                                          | Rol                | Condición                                                |
+| --------------------------------------------------- | ------------------ | -------------------------------------------------------- |
+| → Registrado                                        | SEC_DIR            | Valorado canjeado, file existente, file no bloqueado     |
+| Registrado → En tránsito                            | SEC_DIR            | Crea pase La Paz → Ancocagua                             |
+| En tránsito → Recibido                              | SEC_COORD o KARDEX | Confirma recepción del pase                              |
+| Recibido → En revisión                              | KARDEX             | Toma el trámite                                          |
+| En revisión → Observado                             | KARDEX             | Requisito faltante o file bloqueado (motivo obligatorio) |
+| Observado → En revisión                             | KARDEX             | Requisito subsanado                                      |
+| En revisión → Dictaminado                           | COORDINADOR        | File sin bloqueo y requisitos completos                  |
+| Dictaminado → En impresión                          | KARDEX             | Dictamen = Aprobado                                      |
+| En impresión → En tránsito a La Paz                 | KARDEX             | Documento emitido; crea pase de retorno                  |
+| En tránsito a La Paz → En firma → Listo → Entregado | SEC_DIR            | Recepción, firmas y entrega                              |
 
 - Cualquier otra transición → **409**.
 - Cada transición inserta un `movimiento_hoja_ruta` (estado anterior/nuevo, sede, usuario, observación, fecha) en la misma transacción.

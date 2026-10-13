@@ -21,7 +21,17 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ReactNode;
 }
 
-export function Button({ variant = 'primary', loading, icon: Icono, size = 'md', className, children, disabled, type = 'button', ...rest }: Props) {
+export function Button({
+  variant = 'primary',
+  loading,
+  icon: Icono,
+  size = 'md',
+  className,
+  children,
+  disabled,
+  type = 'button',
+  ...rest
+}: Props) {
   return (
     <button
       type={type}
@@ -34,7 +44,11 @@ export function Button({ variant = 'primary', loading, icon: Icono, size = 'md',
       )}
       {...rest}
     >
-      {loading ? <Spinner size="sm" /> : Icono && <Icono className={size === 'sm' ? 'size-3.5' : 'size-4'} aria-hidden />}
+      {loading ? (
+        <Spinner size="sm" />
+      ) : (
+        Icono && <Icono className={size === 'sm' ? 'size-3.5' : 'size-4'} aria-hidden />
+      )}
       {children}
     </button>
   );

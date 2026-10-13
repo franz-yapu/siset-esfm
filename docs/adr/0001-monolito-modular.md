@@ -25,17 +25,17 @@ fronteras explícitas. Las capas de RNF-07 se mantienen **dentro de cada módulo
 
 ### Módulos
 
-| Módulo (`src/modulos/…`) | Cubre | Tablas que posee (PRD §5) |
-|---|---|---|
-| `seguridad` | M1: login, sesiones, RBAC, usuarios | `rol`, `usuario`, `refresh_token` |
-| `catalogos` | Sedes, especialidades, tipos de requisito | `sede`, `especialidad`, `requisito_tipo` |
-| `files` | M2: file académico, matrícula, resultado anual, requisitos, semáforo, bloqueo por UF | `file_academico`, `matricula`, `resultado_anual`, `requisito_file` |
-| `hojas-ruta` | M3 + M4: ingesta, correlativo, QR, máquina de estados, tracking | `hoja_ruta`, `movimiento_hoja_ruta` |
-| `pases` | M5: envío/recepción entre sedes, cadena de custodia | `pase_derivacion` |
-| `dictamenes` | Dictamen del coordinador (M7) | `dictamen` |
-| `documentos` | M6: vista previa PDF, emisión, reimpresión | `documento_emitido` |
-| `reportes` | M7: KPI y exportación (solo lectura) | — |
-| `auditoria` | M7: bitácora append-only (RF-14) | `log_auditoria` |
+| Módulo (`src/modulos/…`) | Cubre                                                                                | Tablas que posee (PRD §5)                                          |
+| ------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `seguridad`              | M1: login, sesiones, RBAC, usuarios                                                  | `rol`, `usuario`, `refresh_token`                                  |
+| `catalogos`              | Sedes, especialidades, tipos de requisito                                            | `sede`, `especialidad`, `requisito_tipo`                           |
+| `files`                  | M2: file académico, matrícula, resultado anual, requisitos, semáforo, bloqueo por UF | `file_academico`, `matricula`, `resultado_anual`, `requisito_file` |
+| `hojas-ruta`             | M3 + M4: ingesta, correlativo, QR, máquina de estados, tracking                      | `hoja_ruta`, `movimiento_hoja_ruta`                                |
+| `pases`                  | M5: envío/recepción entre sedes, cadena de custodia                                  | `pase_derivacion`                                                  |
+| `dictamenes`             | Dictamen del coordinador (M7)                                                        | `dictamen`                                                         |
+| `documentos`             | M6: vista previa PDF, emisión, reimpresión                                           | `documento_emitido`                                                |
+| `reportes`               | M7: KPI y exportación (solo lectura)                                                 | —                                                                  |
+| `auditoria`              | M7: bitácora append-only (RF-14)                                                     | `log_auditoria`                                                    |
 
 Los módulos coinciden con los servicios que ya tiene el prototipo en
 `apps/web/src/services/`, así el cambio mock → API (S0.8) es uno a uno.

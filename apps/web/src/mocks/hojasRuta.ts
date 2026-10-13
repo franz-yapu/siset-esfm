@@ -35,12 +35,22 @@ const recorrido = (hasta: EstadoTramite, inicio: number, ritmo = 1, valorado = '
 };
 
 const hr = (
-  n: number, fileId: number, tipo: TipoTramite, estado: EstadoTramite, inicio: number, ritmo = 1, extra: Partial<HojaRuta> = {},
+  n: number,
+  fileId: number,
+  tipo: TipoTramite,
+  estado: EstadoTramite,
+  inicio: number,
+  ritmo = 1,
+  extra: Partial<HojaRuta> = {},
 ): HojaRuta => {
   const nroValorado = String(4400 + n).padStart(6, '0');
   const movimientos = recorrido(estado === 'OBSERVADO' ? 'EN_REVISION' : estado, inicio, ritmo, nroValorado);
   return {
-    nro: `HR-2026-000${n}`, fileId, tipo, estado, nroValorado,
+    nro: `HR-2026-000${n}`,
+    fileId,
+    tipo,
+    estado,
+    nroValorado,
     sedeActualId: movimientos[movimientos.length - 1].sedeId,
     fechaIngreso: movimientos[0].fecha,
     movimientos,
@@ -50,7 +60,9 @@ const hr = (
 
 export const seedHojasRuta = (): HojaRuta[] => {
   const lista: HojaRuta[] = [
-    hr(110, 10, 'Historial académico', 'ENTREGADO', 26, 2.3, { entrega: { entregadoA: 'Titular', ciReceptor: '6087654', fecha: haceDias(3, '11:20') } }),
+    hr(110, 10, 'Historial académico', 'ENTREGADO', 26, 2.3, {
+      entrega: { entregadoA: 'Titular', ciReceptor: '6087654', fecha: haceDias(3, '11:20') },
+    }),
     hr(111, 11, 'Historial académico', 'EN_TRANSITO_LP', 19, 2.4),
     hr(112, 11, 'Certificación', 'LISTO', 22, 2.4),
     hr(113, 9, 'Copia legalizada', 'EN_FIRMA', 18, 2.1),
@@ -68,7 +80,13 @@ export const seedHojasRuta = (): HojaRuta[] => {
   ];
   // El observado lleva su paso de observación con el motivo.
   const obs = lista.find((h) => h.nro === 'HR-2026-000118');
-  obs?.movimientos.push({ estado: 'OBSERVADO', fecha: haceDias(12, '15:40'), sedeId: 2, usuario: MARIA, obs: 'Falta certificado TCLO' });
+  obs?.movimientos.push({
+    estado: 'OBSERVADO',
+    fecha: haceDias(12, '15:40'),
+    sedeId: 2,
+    usuario: MARIA,
+    obs: 'Falta certificado TCLO',
+  });
   return lista;
 };
 
@@ -77,12 +95,18 @@ export const seedDictamenes = (hojas: HojaRuta[]): Dictamen[] =>
   hojas
     .map((h) => ({ h, m: h.movimientos.find((m) => m.estado === 'DICTAMINADO') }))
     .filter((x): x is { h: HojaRuta; m: Movimiento } => Boolean(x.m))
-    .map(({ h, m }) => ({ nro: h.nro, resultado: 'APROBADO', obs: 'Requisitos completos, sin observaciones.', fecha: m.fecha, coordinador: PEDRO }));
+    .map(({ h, m }) => ({
+      nro: h.nro,
+      resultado: 'APROBADO',
+      obs: 'Requisitos completos, sin observaciones.',
+      fecha: m.fecha,
+      coordinador: PEDRO,
+    }));
 
 const TIPO_DOC: Record<TipoTramite, DocumentoEmitido['tipo']> = {
   'Historial académico': 'HISTORIAL',
   'Copia legalizada': 'HISTORIAL',
-  'Certificación': 'TCLO',
+  Certificación: 'TCLO',
 };
 export const tipoDocumento = (tipo: TipoTramite): DocumentoEmitido['tipo'] => TIPO_DOC[tipo];
 
@@ -93,7 +117,12 @@ export const seedDocumentos = (hojas: HojaRuta[]): DocumentoEmitido[] => {
     .map((h) => ({ h, m: h.movimientos.find((m) => m.estado === 'EN_IMPRESION') }))
     .filter((x): x is { h: HojaRuta; m: Movimiento } => Boolean(x.m))
     .map(({ h, m }) => ({
-      id: ++id, nro: h.nro, tipo: TIPO_DOC[h.tipo], nroValorado: `V-${String(81200 + id * 7)}`,
-      usuario: MARIA, fecha: m.fecha, esReimpresion: false,
+      id: ++id,
+      nro: h.nro,
+      tipo: TIPO_DOC[h.tipo],
+      nroValorado: `V-${String(81200 + id * 7)}`,
+      usuario: MARIA,
+      fecha: m.fecha,
+      esReimpresion: false,
     }));
 };

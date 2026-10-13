@@ -40,8 +40,12 @@ export const reset = (): void => {
 
 /** Registra una acción en la bitácora (RF-14). Lo llaman todos los servicios que modifican datos. */
 export const auditar = (
-  usuario: string, modulo: string, accion: string, registro: string,
-  antes: Record<string, unknown> | null = null, despues: Record<string, unknown> | null = null,
+  usuario: string,
+  modulo: string,
+  accion: string,
+  registro: string,
+  antes: Record<string, unknown> | null = null,
+  despues: Record<string, unknown> | null = null,
 ): void => {
   const id = (db.bitacora.at(-1)?.id ?? 0) + 1;
   db.bitacora.push({ id, fecha: ahora(), usuario, ip: ipDe(usuario), modulo, accion, registro, antes, despues });

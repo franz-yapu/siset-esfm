@@ -32,29 +32,57 @@ export function FormClave({ onListo }: { onListo: () => void }) {
     try {
       await authService.cambiarClave(usuario, nueva);
       toast.success('Contraseña actualizada');
-      setNueva(''); setRepetir(''); setEnviado(false);
+      setNueva('');
+      setRepetir('');
+      setEnviado(false);
       onListo();
-    } catch (err) { toast.error(err instanceof Error ? err.message : 'Error'); }
-    finally { setCargando(false); }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <form onSubmit={enviar} className="space-y-4" noValidate>
       <div>
-        <Input label="Nueva contraseña" type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} error={errorNueva} autoComplete="new-password" />
+        <Input
+          label="Nueva contraseña"
+          type="password"
+          value={nueva}
+          onChange={(e) => setNueva(e.target.value)}
+          error={errorNueva}
+          autoComplete="new-password"
+        />
         {nueva && (
           <div className="mt-2">
-            <div className="flex gap-1">{[0, 1, 2].map((i) => <span key={i} className={clsx('h-1.5 flex-1 rounded-full', i < fuerza ? COLORES[fuerza] : 'bg-slate-200')} />)}</div>
+            <div className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className={clsx('h-1.5 flex-1 rounded-full', i < fuerza ? COLORES[fuerza] : 'bg-slate-200')}
+                />
+              ))}
+            </div>
             <p className="mt-1 text-xs text-slate-500">Fuerza: {NIVELES[fuerza]}</p>
           </div>
         )}
       </div>
-      <Input label="Repetir contraseña" type="password" value={repetir} onChange={(e) => setRepetir(e.target.value)} error={errorRepetir} autoComplete="new-password" />
+      <Input
+        label="Repetir contraseña"
+        type="password"
+        value={repetir}
+        onChange={(e) => setRepetir(e.target.value)}
+        error={errorRepetir}
+        autoComplete="new-password"
+      />
       <ul className="space-y-1 text-xs text-slate-500">
         <li className={nueva.length >= 8 ? 'text-green-700' : ''}>• Mínimo 8 caracteres</li>
         <li className={/[a-zA-Z]/.test(nueva) && /\d/.test(nueva) ? 'text-green-700' : ''}>• Letras y números</li>
       </ul>
-      <Button type="submit" icon={KeyRound} loading={cargando}>Guardar contraseña</Button>
+      <Button type="submit" icon={KeyRound} loading={cargando}>
+        Guardar contraseña
+      </Button>
     </form>
   );
 }
@@ -67,8 +95,15 @@ export function CambiarClave() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-lg font-semibold text-slate-900">Cambia tu contraseña</h1>
-        <Alerta tipo="aviso" className="my-4">Kardex reseteó tu contraseña. Antes de continuar debes elegir una nueva.</Alerta>
-        <FormClave onListo={async () => { await refrescar(); if (usuario) nav(rutaInicio(usuario.rol), { replace: true }); }} />
+        <Alerta tipo="aviso" className="my-4">
+          Kardex reseteó tu contraseña. Antes de continuar debes elegir una nueva.
+        </Alerta>
+        <FormClave
+          onListo={async () => {
+            await refrescar();
+            if (usuario) nav(rutaInicio(usuario.rol), { replace: true });
+          }}
+        />
       </div>
     </div>
   );

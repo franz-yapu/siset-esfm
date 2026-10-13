@@ -31,8 +31,11 @@ const leerSesion = (): number | null => {
 };
 const guardarSesion = (id: number | null) => {
   try {
-    if (id === null) sessionStorage.removeItem(CLAVE); else sessionStorage.setItem(CLAVE, String(id));
-  } catch { /* sin sessionStorage: la sesión dura lo que la pestaña */ }
+    if (id === null) sessionStorage.removeItem(CLAVE);
+    else sessionStorage.setItem(CLAVE, String(id));
+  } catch {
+    /* sin sessionStorage: la sesión dura lo que la pestaña */
+  }
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -44,7 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const id = leerSesion();
     if (id === null) return;
-    authService.obtener(id).then((u) => { setUsuario(u); if (!u) guardarSesion(null); }).finally(() => setCargando(false));
+    authService
+      .obtener(id)
+      .then((u) => {
+        setUsuario(u);
+        if (!u) guardarSesion(null);
+      })
+      .finally(() => setCargando(false));
   }, []);
 
   const login = useCallback(async (u: string, c: string) => {
@@ -78,8 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setVersion((v) => v + 1);
   }, [usuario]);
 
-  const api = useMemo<ApiAuth>(() => ({ usuario, cargando, login, logout, verComo, refrescar, version, reiniciar }),
-    [usuario, cargando, login, logout, verComo, refrescar, version, reiniciar]);
+  const api = useMemo<ApiAuth>(
+    () => ({ usuario, cargando, login, logout, verComo, refrescar, version, reiniciar }),
+    [usuario, cargando, login, logout, verComo, refrescar, version, reiniciar],
+  );
 
   return <AuthContext.Provider value={api}>{children}</AuthContext.Provider>;
 }

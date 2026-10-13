@@ -58,15 +58,70 @@ export function App() {
       <Route path="/" element={<Raiz />} />
       <Route path="/login" element={<Login />} />
       <Route path="/seguimiento" element={<Seguimiento />} />
-      <Route path="/cambiar-clave" element={<ProtectedRoute><CambiarClave /></ProtectedRoute>} />
+      <Route
+        path="/cambiar-clave"
+        element={
+          <ProtectedRoute>
+            <CambiarClave />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-        <Route path="/estudiante" element={<Inicio rol="ESTUDIANTE"><InicioEstudiante /></Inicio>} />
-        <Route path="/egresado" element={<Inicio rol="EGRESADO"><InicioEgresado /></Inicio>} />
-        <Route path="/sec-dir" element={<Inicio rol="SEC_DIR"><InicioSecDir /></Inicio>} />
-        <Route path="/sec-coord" element={<Inicio rol="SEC_COORD"><InicioSecCoord /></Inicio>} />
-        <Route path="/coordinador" element={<Inicio rol="COORDINADOR"><InicioCoordinador /></Inicio>} />
-        <Route path="/kardex" element={<Inicio rol="KARDEX"><InicioKardex /></Inicio>} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="/estudiante"
+          element={
+            <Inicio rol="ESTUDIANTE">
+              <InicioEstudiante />
+            </Inicio>
+          }
+        />
+        <Route
+          path="/egresado"
+          element={
+            <Inicio rol="EGRESADO">
+              <InicioEgresado />
+            </Inicio>
+          }
+        />
+        <Route
+          path="/sec-dir"
+          element={
+            <Inicio rol="SEC_DIR">
+              <InicioSecDir />
+            </Inicio>
+          }
+        />
+        <Route
+          path="/sec-coord"
+          element={
+            <Inicio rol="SEC_COORD">
+              <InicioSecCoord />
+            </Inicio>
+          }
+        />
+        <Route
+          path="/coordinador"
+          element={
+            <Inicio rol="COORDINADOR">
+              <InicioCoordinador />
+            </Inicio>
+          }
+        />
+        <Route
+          path="/kardex"
+          element={
+            <Inicio rol="KARDEX">
+              <InicioKardex />
+            </Inicio>
+          }
+        />
         <Route path="/perfil" element={<MiPerfil />} />
 
         <Route path="/mi-file" element={P('mi-file', <MiFile />)} />

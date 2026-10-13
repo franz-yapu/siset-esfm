@@ -80,3 +80,4 @@ Consecuencia: se agrega la tarea **S0.10 — Actualizar `apps/web` al stack
 vigente** (React 19, React Router 8, Vite 8, lucide-react 1.x, etc.), con su
 propio SDD. Va después de S0.3 y antes de S0.8. S0.3 no cambia las versiones
 de web, solo las de las herramientas nuevas.
+```

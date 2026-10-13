@@ -1,4 +1,12 @@
-import type { CodigoRequisito, ColorSemaforo, FileAcademico, Matricula, Requisito, ResultadoAnual, Usuario } from '@/types';
+import type {
+  CodigoRequisito,
+  ColorSemaforo,
+  FileAcademico,
+  Matricula,
+  Requisito,
+  ResultadoAnual,
+  Usuario,
+} from '@/types';
 import { auditar, copia, db } from '@/mocks/db';
 import { ESPECIALIDADES } from '@/config/catalogos';
 import { delay } from '@/lib/formato';
@@ -7,10 +15,26 @@ import { motivoBloqueoPorUf, NOMBRE_REQUISITO, nombreCompleto, semaforoFile, sup
 import { LATENCIA } from './_comun';
 
 export interface FiltrosFiles {
-  texto?: string; especialidad?: string; anio?: number; semaforo?: ColorSemaforo | ''; soloBloqueados?: boolean;
+  texto?: string;
+  especialidad?: string;
+  anio?: number;
+  semaforo?: ColorSemaforo | '';
+  soloBloqueados?: boolean;
 }
 
-export type DatosFile = Pick<FileAcademico, 'ci' | 'nombres' | 'apellidos' | 'codigo' | 'especialidad' | 'anioIngreso' | 'condicion' | 'fechaNacimiento' | 'celular' | 'correo'>;
+export type DatosFile = Pick<
+  FileAcademico,
+  | 'ci'
+  | 'nombres'
+  | 'apellidos'
+  | 'codigo'
+  | 'especialidad'
+  | 'anioIngreso'
+  | 'condicion'
+  | 'fechaNacimiento'
+  | 'celular'
+  | 'correo'
+>;
 
 const buscar = (id: number): FileAcademico => {
   const f = db.files.find((x) => x.id === id);
@@ -24,12 +48,16 @@ export const filesService = {
   async listar(filtros: FiltrosFiles = {}): Promise<FileAcademico[]> {
     await delay(LATENCIA);
     const t = filtros.texto?.toLowerCase().trim();
-    return copia(db.files.filter((f) =>
-      (!t || [f.ci, f.codigo, nombreCompleto(f)].some((v) => v.toLowerCase().includes(t)))
-      && (!filtros.especialidad || f.especialidad === filtros.especialidad)
-      && (!filtros.anio || (f.matriculas.at(-1)?.anio ?? 0) === filtros.anio)
-      && (!filtros.semaforo || semaforoFile(f) === filtros.semaforo)
-      && (!filtros.soloBloqueados || f.bloqueado)));
+    return copia(
+      db.files.filter(
+        (f) =>
+          (!t || [f.ci, f.codigo, nombreCompleto(f)].some((v) => v.toLowerCase().includes(t))) &&
+          (!filtros.especialidad || f.especialidad === filtros.especialidad) &&
+          (!filtros.anio || (f.matriculas.at(-1)?.anio ?? 0) === filtros.anio) &&
+          (!filtros.semaforo || semaforoFile(f) === filtros.semaforo) &&
+          (!filtros.soloBloqueados || f.bloqueado),
+      ),
+    );
   },
 
   async obtener(id: number): Promise<FileAcademico> {
@@ -49,7 +77,11 @@ export const filesService = {
     await delay(150);
     const t = ci.trim();
     if (t.length < 2) return [];
-    return copia(db.files.filter((f) => f.ci.startsWith(t) || nombreCompleto(f).toLowerCase().includes(t.toLowerCase())).slice(0, 6));
+    return copia(
+      db.files
+        .filter((f) => f.ci.startsWith(t) || nombreCompleto(f).toLowerCase().includes(t.toLowerCase()))
+        .slice(0, 6),
+    );
   },
 
   async crear(datos: DatosFile, crearCuenta: boolean, u: Usuario): Promise<FileAcademico> {
@@ -57,15 +89,30 @@ export const filesService = {
     if (db.files.some((f) => f.ci === datos.ci)) throw new ErrorNegocio('Ya existe un file con ese CI');
     if (db.files.some((f) => f.codigo === datos.codigo)) throw new ErrorNegocio('El código de estudiante ya existe');
     const nuevo: FileAcademico = {
-      ...datos, id: Math.max(...db.files.map((f) => f.id)) + 1, bloqueado: false, matriculas: [], resultados: [],
-      requisitos: { TACFI: { estado: 'PENDIENTE' }, TCLO: { estado: 'PENDIENTE' }, CERT_NOTAS: { estado: 'PENDIENTE' } },
+      ...datos,
+      id: Math.max(...db.files.map((f) => f.id)) + 1,
+      bloqueado: false,
+      matriculas: [],
+      resultados: [],
+      requisitos: {
+        TACFI: { estado: 'PENDIENTE' },
+        TCLO: { estado: 'PENDIENTE' },
+        CERT_NOTAS: { estado: 'PENDIENTE' },
+      },
     };
     db.files.push(nuevo);
     auditar(u.nombre, 'Files', 'Crear file', nuevo.codigo, null, { ...datos });
     if (crearCuenta && !db.usuarios.some((x) => x.usuario === datos.ci)) {
       db.usuarios.push({
-        id: Math.max(...db.usuarios.map((x) => x.id)) + 1, usuario: datos.ci, nombre: nombreCompleto(datos),
-        rol: datos.condicion, sedeId: null, activo: true, fileId: nuevo.id, debeCambiarClave: true, correo: datos.correo,
+        id: Math.max(...db.usuarios.map((x) => x.id)) + 1,
+        usuario: datos.ci,
+        nombre: nombreCompleto(datos),
+        rol: datos.condicion,
+        sedeId: null,
+        activo: true,
+        fileId: nuevo.id,
+        debeCambiarClave: true,
+        correo: datos.correo,
       });
       auditar(u.nombre, 'Usuarios', 'Crear cuenta de acceso', datos.ci, null, { rol: datos.condicion });
     }
@@ -79,7 +126,10 @@ export const filesService = {
     const antes: Record<string, unknown> = {};
     const despues: Record<string, unknown> = {};
     for (const k of Object.keys(datos) as (keyof DatosFile)[]) {
-      if (f[k] !== datos[k]) { antes[k] = f[k]; despues[k] = datos[k]; }
+      if (f[k] !== datos[k]) {
+        antes[k] = f[k];
+        despues[k] = datos[k];
+      }
     }
     Object.assign(f, datos);
     auditar(u.nombre, 'Files', 'Editar datos personales', f.codigo, antes, despues);
@@ -90,7 +140,9 @@ export const filesService = {
     await delay(LATENCIA);
     const f = buscar(id);
     if (f.matriculas.some((x) => x.anio === m.anio)) throw new ErrorNegocio(`Ya hay matrícula para ${m.anio}.º año`);
-    f.matriculas.forEach((x) => { x.estado = 'Concluida'; });
+    f.matriculas.forEach((x) => {
+      x.estado = 'Concluida';
+    });
     f.matriculas.push(m);
     f.matriculas.sort((a, b) => a.anio - b.anio);
     auditar(u.nombre, 'Files', 'Registrar matrícula', f.codigo, null, { ...m });
@@ -108,7 +160,10 @@ export const filesService = {
       f.bloqueado = true;
       f.motivoBloqueo = motivoBloqueoPorUf(r);
     }
-    auditar(u.nombre, 'Files', 'Registrar resultado anual', f.codigo, antes, { resultado: { ...r }, bloqueado: f.bloqueado });
+    auditar(u.nombre, 'Files', 'Registrar resultado anual', f.codigo, antes, {
+      resultado: { ...r },
+      bloqueado: f.bloqueado,
+    });
     return copia(f);
   },
 
@@ -130,7 +185,10 @@ export const filesService = {
     const antes = { bloqueado: f.bloqueado, motivo: f.motivoBloqueo ?? null };
     f.bloqueado = bloquear;
     f.motivoBloqueo = bloquear ? motivo.trim() : undefined;
-    auditar(u.nombre, 'Files', bloquear ? 'Bloquear file' : 'Desbloquear file', f.codigo, antes, { bloqueado: bloquear, motivo: motivo.trim() });
+    auditar(u.nombre, 'Files', bloquear ? 'Bloquear file' : 'Desbloquear file', f.codigo, antes, {
+      bloqueado: bloquear,
+      motivo: motivo.trim(),
+    });
     return copia(f);
   },
 
@@ -142,15 +200,26 @@ export const filesService = {
   },
 
   /** Carga masiva (P-46): simulada con filas fijas; importa solo las válidas. */
-  async importar(filas: (DatosFile & { error?: string })[], u: Usuario): Promise<{ importados: number; errores: number }> {
+  async importar(
+    filas: (DatosFile & { error?: string })[],
+    u: Usuario,
+  ): Promise<{ importados: number; errores: number }> {
     await delay(800);
     let importados = 0;
     for (const fila of filas.filter((x) => !x.error)) {
       if (db.files.some((f) => f.ci === fila.ci)) continue;
       const { error: _e, ...datos } = fila;
       db.files.push({
-        ...datos, id: Math.max(...db.files.map((f) => f.id)) + 1, bloqueado: false, matriculas: [], resultados: [],
-        requisitos: { TACFI: { estado: 'PENDIENTE' }, TCLO: { estado: 'PENDIENTE' }, CERT_NOTAS: { estado: 'PENDIENTE' } },
+        ...datos,
+        id: Math.max(...db.files.map((f) => f.id)) + 1,
+        bloqueado: false,
+        matriculas: [],
+        resultados: [],
+        requisitos: {
+          TACFI: { estado: 'PENDIENTE' },
+          TCLO: { estado: 'PENDIENTE' },
+          CERT_NOTAS: { estado: 'PENDIENTE' },
+        },
       });
       importados++;
     }
