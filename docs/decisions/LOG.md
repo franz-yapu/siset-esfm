@@ -165,3 +165,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 6. **Datos reales exigen un servidor definido:** el piloto no arranca con datos de estudiantes sin respuesta
    de D-12 (dónde funciona el sistema) y sin respaldo diario con restauración probada (RNF-11). D-12 pasa a
    urgente.
+
+## DEC-010 — `parametro` entra en S1.1; la auditoría de sesiones vive en el caso de uso
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S1.1 (aprobado) · **Estado:** activa
+
+1. **La tabla `parametro` se crea en S1.1**, aunque el ticket solo nombraba `refresh_token`: el modelo de
+   datos y el SDD de S0.11 se la asignan, y S1.4 (bloqueo) la necesita. La migración siembra solo
+   `MAX_INTENTOS_LOGIN = 5` y `MIN_BLOQUEO_LOGIN = 15` (business-rules §Seguridad). `MAX_UF_REPROBADAS`
+   espera a D-07 y `DIAS_ALERTA_TRAMITE` a S3.x. S1.1 pasa de 2 h a 2,5 h.
+2. **Las filas de `refresh_token` no se auditan en el repositorio.** El evento de acceso lo registra el
+   servicio del caso de uso, en la misma transacción (DEC-007): `LOGIN` en S1.3, `LOGOUT` en S1.5. La
+   rotación normal del refresh no es un evento; el reuso detectado sí, y lo define S1.5.
+3. **Pendiente para el SDD de S1.3/S1.5:** la duración del refresh token (ni el PRD ni las reglas la fijan).
+   Propuesta: una jornada (8 h), renovada con cada rotación mientras haya actividad.

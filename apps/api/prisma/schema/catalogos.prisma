@@ -20,3 +20,13 @@ model Especialidad {
 
   @@map("especialidad")
 }
+
+/// Reglas configurables sin tocar código (modelo-datos.md §catalogos, SDD S1.1 §2.1).
+model Parametro {
+  clave       String   @id @db.VarChar(50)
+  valor       String   @db.VarChar(100)
+  descripcion String?  @db.VarChar(255)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("parametro")
+}
