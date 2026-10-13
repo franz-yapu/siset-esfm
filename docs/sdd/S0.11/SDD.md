@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.11** (`868mgu855`, https://app.clickup.com/t/868mgu855).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/modelo-datos.md` (modelo v1: §Convenciones, §personas, §seguridad, §catalogos, §auditoria)

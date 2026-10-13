@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.6** (`868mgh287`, https://app.clickup.com/t/868mgh287).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Aprobado (2026-10-13)
+- **Estado:** Implementado (2026-10-13) · PR #2 · migración reemplazada por S0.11
 - **Versión:** 1.1 · **Fecha:** 2026-10-13 (ver changelog al pie)
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Modelo de datos: `rol`, `usuario`, `sede`, `especialidad`, `log_auditoria`; convenciones; RNF-01, RNF-03)

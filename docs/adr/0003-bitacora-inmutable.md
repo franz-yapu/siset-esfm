@@ -1,6 +1,6 @@
 # 0003 — Bitácora de solo inserción desde su creación
 
-**Estado:** Propuesta (se acepta junto con el SDD de S0.11)
+**Estado:** Aceptada (2026-10-13, con el SDD de S0.11)
 **Fecha:** 2026-10-13
 
 ## Contexto
