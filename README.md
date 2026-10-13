@@ -1,5 +1,7 @@
 # SISET — Sistema de Gestión y Seguimiento de Trámites
 
+[![CI](https://github.com/franz-yapu/siset-esfm/actions/workflows/ci.yml/badge.svg)](https://github.com/franz-yapu/siset-esfm/actions/workflows/ci.yml)
+
 ESFM "Mcal. Andrés de Santa Cruz y Calahumana" — Unidad Académica Ancocagua.
 Digitaliza hojas de ruta, file académico y pases entre La Paz y Ancocagua.
 
@@ -61,6 +63,10 @@ Gate de calidad (lo mismo que corre la CI):
 ```bash
 npm run typecheck && npm run lint && npm test && npm run build
 ```
+
+La CI (GitHub Actions, `.github/workflows/ci.yml`) corre lo mismo, además de `prettier --check`,
+`npm audit --audit-level=high` y, con un PostgreSQL 18, las migraciones, el seed y `test:bd`. `main`
+está protegida: todo entra por PR con la CI en verde.
 
 ## Flujo de trabajo (kit beta-ia)
 
