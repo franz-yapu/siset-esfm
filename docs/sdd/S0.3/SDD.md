@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.3** (`868mgh27z`, https://app.clickup.com/t/868mgh27z).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Aprobado (2026-10-13)
+- **Estado:** Implementado (2026-10-13) · PR #1
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Stack; RNF-07, RNF-09)
