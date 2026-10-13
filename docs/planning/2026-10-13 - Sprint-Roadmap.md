@@ -44,7 +44,7 @@ flowchart LR
 
 De esto cuelga el piloto: **S1.3 es llave de 10 tareas del Sprint 1** y **S0.12 es llave de la producción del piloto (S6.10) y de la demo en línea (S0.13)**.
 
-- **S1.1** Tablas de sesión (`refresh_token`) y campos de bloqueo (2 h). *Llave de S1.3.*
+- **S1.1** Tabla de sesión (`refresh_token`) y tabla `parametro` (2,5 h; DEC-010). *Llave de S1.3.*
 - **S1.2** bcrypt y política de contraseña (2 h).
 - **S1.7** Eventos de acceso en la bitácora: login, login fallido, logout (1 h; la base ya está hecha desde S0.7).
 - **S1.3** `POST /auth/login` con CI y contraseña (6 h). *Llave: 10 tareas del Sprint 1 dependen de esta.* Se hace con la propuesta provisional de D-14/D-25 (se entra con el CI).
@@ -102,7 +102,7 @@ Tamaño en horas. Estado: ✅ listo · 🟡 en curso o UI en prototipo · ⬜ pe
 | S0.3–S0.11 | Entorno | Fundaciones (9 tareas) | 28 | ✅ | — | sí | ClickUp | — | — |
 | S0.12 | DevOps | Despliegue de staging en el VPS | 2 | ⬜ | 1 | sí | [868mh1kuh](https://app.clickup.com/t/868mh1kuh) | S0.9 | Tu autorización |
 | S0.13 | Negocio | Demo en línea para el tutor | 1 | ⬜ | 2 | sí | [868mh1kyb](https://app.clickup.com/t/868mh1kyb) | S0.12 | — |
-| S1.1 | Seguridad | refresh_token + campos de bloqueo | 2 | ⬜ | 1 | sí | [868mh1kur](https://app.clickup.com/t/868mh1kur) | S0.11 | — |
+| S1.1 | Seguridad | refresh_token + parametro (DEC-010) | 2,5 | ⬜ | 1 | sí | [868mh1kur](https://app.clickup.com/t/868mh1kur) | S0.11 | — |
 | S1.2 | Seguridad | bcrypt + política de contraseña | 2 | ⬜ | 1 | sí | [868mh1kuv](https://app.clickup.com/t/868mh1kuv) | S0.7 | — |
 | S1.3 | Seguridad | POST /auth/login | 6 | ⬜ | 1 | sí | [868mh1kv5](https://app.clickup.com/t/868mh1kv5) | S1.1, S1.2 | D-14/D-25 (provisional) |
 | S1.7 | Auditoría | Eventos de acceso en bitácora | 1 | ⬜ | 1 | sí | [868mh1kv0](https://app.clickup.com/t/868mh1kv0) | S0.7 | — |
