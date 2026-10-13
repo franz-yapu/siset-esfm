@@ -41,3 +41,42 @@ Donde la spec y el PRD no coincidían o no decían nada, el prototipo hace esto:
    `docs/sdd/<ID>/SDD.md` en Estado `Aprobado (fecha)`, generado con
    `task-brief` → `write-sdd`. Todo SDD de backend declara en §2 qué
    módulo(s) toca y qué API pública agrega o consume.
+
+## DEC-003 — Versión de Node.js
+**Fecha:** 2026-10-13 · **Fuente:** task-brief de S0.3 · **Estado:** reemplazada por DEC-004
+
+El PRD §5 fija "Node.js 20 LTS", pero Node 20 quedó sin soporte en abril de
+2026. Provisionalmente se usa **Node 22 LTS** (soporte hasta abril de 2027),
+declarado en `engines` y `.nvmrc`. Queda por confirmar si se pasa a Node 24 LTS
+(soporte hasta 2028) para tener margen después del Go-Live; el cambio cuesta poco
+mientras no haya despliegue.
+
+## DEC-004 — Usar las versiones más actuales del stack (reemplaza DEC-003)
+**Fecha:** 2026-10-13 · **Fuente:** pedido del responsable del proyecto · **Estado:** activa
+
+Regla: cada dependencia usa **la última versión estable mayor** al momento de
+instalarla, salvo que sea incompatible con otra pieza del stack; en ese caso se
+usa la más nueva compatible y se anota aquí. Esto enmienda la tabla de stack del
+PRD §5 (React 18, Node 20).
+
+Versiones vigentes (verificadas en npm y nodejs.org el 2026-10-13):
+
+| Pieza | Versión | Nota |
+|---|---|---|
+| Node.js | **26** | Hoy es "Current"; pasa a LTS a fines de oct-2026 (soporte hasta abr-2029). |
+| TypeScript | **6.0** | TS 7.0 existe, pero typescript-eslint 8 exige `<6.1`. Se sube cuando lo soporte. |
+| React / React DOM | 19.3 | |
+| React Router | 8 (`react-router`) | Reemplaza a `react-router-dom` 6. |
+| Vite / @vitejs/plugin-react | 8 / 6 | |
+| Tailwind CSS | 4.3 | |
+| Express | 5.3 | |
+| Prisma | 7.10 | Prisma 8 todavía está en rc. |
+| Vitest | 5 | |
+| ESLint / typescript-eslint / react-hooks | 10 / 8.71 / 7 | |
+| Zod · TanStack Query · Axios · React Hook Form | 4 · 5 · 1.20 · 7 | Se instalan en sus tickets (S0.7, S0.8). |
+| Build de la API | tsdown | tsup no recibe cambios desde nov-2025. |
+
+Consecuencia: se agrega la tarea **S0.10 — Actualizar `apps/web` al stack
+vigente** (React 19, React Router 8, Vite 8, lucide-react 1.x, etc.), con su
+propio SDD. Va después de S0.3 y antes de S0.8. S0.3 no cambia las versiones
+de web, solo las de las herramientas nuevas.

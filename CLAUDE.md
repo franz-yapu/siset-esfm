@@ -10,7 +10,7 @@
 - Convenciones del plan: IDs de tarea `Sx.y`; rama `feat/Sx.y-descripcion`;
   commit `Sx.y <qué hace>`. Definición de Terminado: PRD §6.
 - Monorepo: `apps/web` (React + Vite + TS + Tailwind v4), `apps/api`
-  (Express + TS + Prisma).
+  (Express + TS + Prisma). Versiones: siempre la última estable (DEC-004).
 - Arquitectura del backend: **monolito modular** (ADR-0001, DEC-002).
   `apps/api/src/modulos/<modulo>/` con capas internas rutas → controlador →
   servicio → repositorio; lo transversal en `src/compartido/`. Un módulo solo
