@@ -1,24 +1,24 @@
-// Módulo dueño: auditoria (ADR-0001). Append-only; la inmutabilidad por
-// permisos de BD llega en S6.4.
+// Módulo dueño: auditoria (ADR-0001). Solo inserción por triggers (ADR-0003);
+// los permisos de BD llegan en S6.4. Modelo v1: docs/product/modelo-datos.md.
 
 model LogAuditoria {
-  id           BigInt   @id @default(autoincrement())
-  /// NOT NULL provisional (D-26).
-  usuarioId    BigInt   @map("usuario_id")
-  accion       String   @db.VarChar(50)
-  modulo       String   @db.VarChar(30)
-  entidad      String   @db.VarChar(50)
-  /// Texto: apunta a entidades de cualquier módulo (ids numéricos o claves como HR-2026-000123).
-  entidadId    String?  @map("entidad_id") @db.VarChar(50)
+  id           Int      @id @default(autoincrement())
+  /// Nullable: eventos sin usuario (DEC-006 #5; no cierra D-26).
+  usuarioId    Int?     @map("usuario_id")
+  accion       String   @db.VarChar(40)
+  modulo       String   @db.VarChar(40)
+  entidad      String?  @db.VarChar(40)
+  /// Texto: apunta a entidades de cualquier módulo.
+  entidadId    String?  @map("entidad_id") @db.VarChar(40)
   datosAntes   Json?    @map("datos_antes")
   datosDespues Json?    @map("datos_despues")
-  /// IPv6 cabe en 45 caracteres.
-  ip           String?  @db.VarChar(45)
+  ip           String?  @db.Inet
+  userAgent    String?  @map("user_agent") @db.VarChar(255)
   fecha        DateTime @default(now()) @db.Timestamptz(6)
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  usuario      Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
-  @@index([fecha])
-  @@index([usuarioId, fecha])
-  @@index([modulo, fecha])
+  @@index([fecha(sort: Desc)])
+  @@index([usuarioId, fecha(sort: Desc)])
+  @@index([modulo, fecha(sort: Desc)])
   @@map("log_auditoria")
 }
