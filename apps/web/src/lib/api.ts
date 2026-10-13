@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { ErrorApi } from './errores';
+import { obtenerAccessToken } from './sesion';
 
 interface CuerpoError {
   error?: { code?: unknown; message?: unknown; details?: unknown };
@@ -32,6 +33,13 @@ export function aErrorApi(e: unknown): ErrorApi {
   }
   return new ErrorApi('Ocurrió un error inesperado.', 'ERROR_DESCONOCIDO');
 }
+
+/** Manda el access token si hay sesión (SDD S1.3 §2.6). El 401 y el refresh automático son de S1.10. */
+api.interceptors.request.use((c) => {
+  const token = obtenerAccessToken();
+  if (token) c.headers.set('Authorization', `Bearer ${token}`);
+  return c;
+});
 
 api.interceptors.response.use(
   (r) => r,

@@ -58,6 +58,7 @@ services:
       CORS_ORIGEN: ${WEB_ORIGEN:-http://localhost:8080}
       TRUST_PROXY: '1'
       LOG_LEVEL: info
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env de la raíz (ver .env.example)}
     depends_on:
       migrar:
         condition: service_completed_successfully

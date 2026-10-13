@@ -3,6 +3,9 @@ import type { Config } from '@/compartido/config';
 import type { ModuloHttp } from '@/compartido/http';
 import { crearApp } from '@/app';
 
+/** Solo para tests. */
+export const SECRETO_JWT_DE_PRUEBA = 'secreto-de-prueba-de-al-menos-32-caracteres';
+
 export const configDePrueba = (extra: Partial<Config> = {}): Config => ({
   entorno: 'test',
   puerto: 0,
@@ -11,6 +14,7 @@ export const configDePrueba = (extra: Partial<Config> = {}): Config => ({
   trustProxy: 0,
   nivelLog: 'silent',
   jsonLimite: '1kb',
+  jwtSecreto: SECRETO_JWT_DE_PRUEBA,
   ...extra,
 });
 

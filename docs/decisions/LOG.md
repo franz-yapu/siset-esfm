@@ -197,3 +197,20 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    Convención mientras tanto: todo campo de contraseña en el código se llama `password…`.
 6. **Criterio de trabajo:** las decisiones técnicas (largos, límites, tipos) las toma el desarrollo y quedan
    escritas en el SDD; a la escuela solo se le llevan decisiones de flujo o críticas.
+
+## DEC-012 — Contrato del login, duración de la sesión y JWT
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S1.3 (aprobado) · **Estado:** activa
+
+1. **Contrato:** `POST /api/v1/auth/login` con `{ usuario, password }` (antes la web mandaba `clave`).
+   Responde `{ accessToken, expiraEn, usuario }` y deja el refresh en la cookie `siset_refresh`
+   (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/v1/auth`). CI inexistente, contraseña incorrecta,
+   cuenta inactiva o bloqueada: el mismo 401 `CREDENCIALES_INVALIDAS`, con una comparación bcrypt en todos
+   los casos para no revelar qué CI existen.
+2. **Sesión de 8 h desde el login** (cierra DEC-010 #3): la rotación de S1.5 hereda el vencimiento, no lo
+   extiende. La inactividad de 15 min la controlan el access de 15 min y la web (S1.10).
+3. **Access JWT HS256 con `jose`** (6.2.12, MIT): `sub`, `rol`, `sede`, `cpw` (debe cambiar la contraseña,
+   para S1.6), `iss: siset`. `JWT_SECRET` obligatorio, de 32 caracteres o más, en config, Compose, CI y
+   staging (el script lo genera con `openssl`). Completa DEC-008 #3.
+4. **Módulo `personas`** con `buscarNombreCompleto` como única API pública; la raíz de composición
+   (`app.ts`) lo conecta con `seguridad`.

@@ -15,7 +15,9 @@ import {
   type ModuloHttp,
 } from '@/compartido/http';
 import { crearLogger } from '@/compartido/logger';
+import { buscarNombreCompleto } from '@/modulos/personas';
 import { crearModuloSalud } from '@/modulos/salud';
+import { crearModuloAuth } from '@/modulos/seguridad';
 
 export interface DependenciasApp {
   bd: ClienteBd;
@@ -46,7 +48,12 @@ export function crearApp({
   app.use(cors({ origin: config.corsOrigen, credentials: true }));
   app.use(express.json({ limit: config.jsonLimite }));
 
-  const modulos: ModuloHttp[] = [crearModuloSalud({ bd, version }), ...modulosExtra];
+  const modulos: ModuloHttp[] = [
+    crearModuloSalud({ bd, version }),
+    // La raíz une seguridad con personas: seguridad no importa a personas (SDD S1.3 §2.4).
+    crearModuloAuth({ bd, jwtSecreto: config.jwtSecreto, nombreDe: buscarNombreCompleto }),
+    ...modulosExtra,
+  ];
   const api = Router();
   for (const m of modulos) api.use(m.router);
   if (config.entorno !== 'production') {

@@ -30,6 +30,12 @@ if [ ! -f .env ]; then
     "\$(openssl rand -base64 32 | tr -d '/+=')" "$DOMINIO" "$DOMINIO" > .env
   echo "  .env creado (600)"
 fi
+# JWT_SECRET (S1.3): se agrega también a un .env creado antes de S1.3. Nunca se imprime.
+if ! grep -q '^JWT_SECRET=' .env; then
+  umask 077
+  printf 'JWT_SECRET=%s\n' "\$(openssl rand -base64 48 | tr -d '/+=\n')" >> .env
+  echo "  JWT_SECRET agregado al .env"
+fi
 git fetch -q origin
 git checkout -q --detach "$COMMIT"
 docker compose -f docker-compose.yml -f docker-compose.staging.yml --profile completo up -d --build --wait --wait-timeout 300
