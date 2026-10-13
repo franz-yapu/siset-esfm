@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react';
 
 /** Título de la pantalla + botón principal (layout §4.3). */
-export function PageHeader({ titulo, subtitulo, acciones }: { titulo: ReactNode; subtitulo?: ReactNode; acciones?: ReactNode }) {
+export function PageHeader({
+  titulo,
+  subtitulo,
+  acciones,
+}: {
+  titulo: ReactNode;
+  subtitulo?: ReactNode;
+  acciones?: ReactNode;
+}) {
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-4">
       <div className="min-w-0">

@@ -10,7 +10,9 @@ export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vist
     <article className="relative mx-auto aspect-[8.5/11] w-full max-w-[8.5in] overflow-hidden bg-white p-[7%] text-[13px] leading-relaxed text-slate-900 shadow ring-1 ring-slate-200 print:aspect-auto print:shadow-none print:ring-0">
       {vistaPrevia && (
         <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="-rotate-35 text-[clamp(2rem,9vw,5.5rem)] font-black tracking-widest whitespace-nowrap text-red-500/15 select-none">VISTA PREVIA</span>
+          <span className="-rotate-35 text-[clamp(2rem,9vw,5.5rem)] font-black tracking-widest whitespace-nowrap text-red-500/15 select-none">
+            VISTA PREVIA
+          </span>
         </div>
       )}
       <header className="border-b-2 border-slate-900 pb-3 text-center text-[11px] leading-snug uppercase">
@@ -39,22 +41,35 @@ export function PlantillaHistorial({ f }: { f: FileAcademico }) {
   return (
     <>
       <h1 className="mt-6 text-center text-base font-bold uppercase">Historial académico</h1>
-      <p className="mt-4">La Unidad Académica certifica que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong> y código {f.codigo},
-        cursó la especialidad de <strong>{f.especialidad}</strong> con el siguiente registro:</p>
+      <p className="mt-4">
+        La Unidad Académica certifica que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong> y
+        código {f.codigo}, cursó la especialidad de <strong>{f.especialidad}</strong> con el siguiente registro:
+      </p>
       <table className="mt-4 w-full border border-slate-900 text-[12px]">
-        <thead><tr className="bg-slate-100 [&_th]:border [&_th]:border-slate-900 [&_th]:px-2 [&_th]:py-1"><th>Año de formación</th><th>Gestión</th><th>Resultado</th><th>UF reprobadas</th></tr></thead>
+        <thead>
+          <tr className="bg-slate-100 [&_th]:border [&_th]:border-slate-900 [&_th]:px-2 [&_th]:py-1">
+            <th>Año de formación</th>
+            <th>Gestión</th>
+            <th>Resultado</th>
+            <th>UF reprobadas</th>
+          </tr>
+        </thead>
         <tbody>
           {f.matriculas.map((m) => {
             const r = f.resultados.find((x) => x.anio === m.anio);
             return (
               <tr key={m.anio} className="text-center [&_td]:border [&_td]:border-slate-900 [&_td]:px-2 [&_td]:py-1">
-                <td>{ordinal(m.anio)} año</td><td>{m.gestion}</td><td>{r ? (r.resultado === 'APROBADO' ? 'Aprobado' : 'Reprobado') : 'En curso'}</td><td>{r?.ufReprobadas ?? '—'}</td>
+                <td>{ordinal(m.anio)} año</td>
+                <td>{m.gestion}</td>
+                <td>{r ? (r.resultado === 'APROBADO' ? 'Aprobado' : 'Reprobado') : 'En curso'}</td>
+                <td>{r?.ufReprobadas ?? '—'}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <Lugar /><Firmas />
+      <Lugar />
+      <Firmas />
     </>
   );
 }
@@ -64,10 +79,16 @@ export function PlantillaTCLO({ f }: { f: FileAcademico }) {
   return (
     <>
       <h1 className="mt-6 text-center text-base font-bold uppercase">Certificación TCLO</h1>
-      <p className="mt-6">Se certifica que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong>, de la especialidad de {f.especialidad},
-        acreditó el nivel <strong>{r.nivel ?? '—'}</strong> según certificado N.º <strong>{r.nro ?? '—'}</strong>.</p>
-      <p className="mt-3 text-[11px] text-slate-500">(Texto provisional: la definición oficial de TCLO está pendiente, D-04.)</p>
-      <Lugar /><Firmas />
+      <p className="mt-6">
+        Se certifica que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong>, de la especialidad de{' '}
+        {f.especialidad}, acreditó el nivel <strong>{r.nivel ?? '—'}</strong> según certificado N.º{' '}
+        <strong>{r.nro ?? '—'}</strong>.
+      </p>
+      <p className="mt-3 text-[11px] text-slate-500">
+        (Texto provisional: la definición oficial de TCLO está pendiente, D-04.)
+      </p>
+      <Lugar />
+      <Firmas />
     </>
   );
 }
@@ -76,18 +97,37 @@ export function PlantillaTACFI({ f }: { f: FileAcademico }) {
   return (
     <>
       <h1 className="mt-6 text-center text-base font-bold uppercase">Constancia TACFI</h1>
-      <p className="mt-6">Se hace constar que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong>, entregó en Kardex la documentación TACFI
-        en fecha {f.requisitos.TACFI.fecha ? fechaLarga(f.requisitos.TACFI.fecha) : '—'}.</p>
-      <p className="mt-3 text-[11px] text-slate-500">(Texto provisional: la definición oficial de TACFI está pendiente, D-04.)</p>
-      <Lugar /><Firmas />
+      <p className="mt-6">
+        Se hace constar que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong>, entregó en Kardex la
+        documentación TACFI en fecha {f.requisitos.TACFI.fecha ? fechaLarga(f.requisitos.TACFI.fecha) : '—'}.
+      </p>
+      <p className="mt-3 text-[11px] text-slate-500">
+        (Texto provisional: la definición oficial de TACFI está pendiente, D-04.)
+      </p>
+      <Lugar />
+      <Firmas />
     </>
   );
 }
 
-export function Documento({ tipo, file, vistaPrevia }: { tipo: TipoDocumento; file: FileAcademico; vistaPrevia?: boolean }) {
+export function Documento({
+  tipo,
+  file,
+  vistaPrevia,
+}: {
+  tipo: TipoDocumento;
+  file: FileAcademico;
+  vistaPrevia?: boolean;
+}) {
   return (
     <HojaCarta vistaPrevia={vistaPrevia}>
-      {tipo === 'HISTORIAL' ? <PlantillaHistorial f={file} /> : tipo === 'TCLO' ? <PlantillaTCLO f={file} /> : <PlantillaTACFI f={file} />}
+      {tipo === 'HISTORIAL' ? (
+        <PlantillaHistorial f={file} />
+      ) : tipo === 'TCLO' ? (
+        <PlantillaTCLO f={file} />
+      ) : (
+        <PlantillaTACFI f={file} />
+      )}
     </HojaCarta>
   );
 }

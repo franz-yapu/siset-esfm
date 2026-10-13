@@ -13,14 +13,31 @@ const ESTILO: Record<Tipo, { clase: string; icono: typeof Info }> = {
 };
 
 /** Banner de aviso dentro de una pantalla (bloqueo, observaciones, avisos). */
-export function Alerta({ tipo = 'info', titulo, children, accion, className }: { tipo?: Tipo; titulo?: ReactNode; children?: ReactNode; accion?: ReactNode; className?: string }) {
+export function Alerta({
+  tipo = 'info',
+  titulo,
+  children,
+  accion,
+  className,
+}: {
+  tipo?: Tipo;
+  titulo?: ReactNode;
+  children?: ReactNode;
+  accion?: ReactNode;
+  className?: string;
+}) {
   const { clase, icono: Icono } = ESTILO[tipo];
   return (
-    <div role={tipo === 'error' || tipo === 'bloqueo' ? 'alert' : 'status'} className={clsx('flex flex-wrap items-start gap-3 rounded-lg border px-4 py-3 text-sm', clase, className)}>
+    <div
+      role={tipo === 'error' || tipo === 'bloqueo' ? 'alert' : 'status'}
+      className={clsx('flex flex-wrap items-start gap-3 rounded-lg border px-4 py-3 text-sm', clase, className)}
+    >
       <Icono className="mt-0.5 size-5 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
         {titulo && <p className="font-semibold">{titulo}</p>}
-        {children && <div className={clsx(titulo && 'mt-0.5', tipo === 'bloqueo' ? 'text-red-50' : 'opacity-90')}>{children}</div>}
+        {children && (
+          <div className={clsx(titulo && 'mt-0.5', tipo === 'bloqueo' ? 'text-red-50' : 'opacity-90')}>{children}</div>
+        )}
       </div>
       {accion}
     </div>

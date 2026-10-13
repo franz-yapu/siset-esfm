@@ -58,6 +58,9 @@ export const authService = {
   /** Solo para la demo: usuarios de la tabla de la sección 2 y selector "Ver como". */
   usuariosDemo(): Usuario[] {
     const demo = ['7012345', '6098765', 'secdir', 'seccoord', 'coordinador', 'kardex'];
-    return demo.map((d) => db.usuarios.find((u) => u.usuario === d)).filter((u): u is Usuario => Boolean(u)).map(copia);
+    return demo
+      .map((d) => db.usuarios.find((u) => u.usuario === d))
+      .filter((u): u is Usuario => Boolean(u))
+      .map(copia);
   },
 };

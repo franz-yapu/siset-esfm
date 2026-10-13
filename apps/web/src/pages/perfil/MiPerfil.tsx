@@ -23,12 +23,17 @@ export function MiPerfil() {
         <Card title="Mis datos">
           <dl className="divide-y divide-slate-100 text-sm">
             {datos.map(([k, v]) => (
-              <div key={k} className="grid grid-cols-3 gap-2 py-2"><dt className="text-slate-500">{k}</dt><dd className="col-span-2 text-slate-800">{v}</dd></div>
+              <div key={k} className="grid grid-cols-3 gap-2 py-2">
+                <dt className="text-slate-500">{k}</dt>
+                <dd className="col-span-2 text-slate-800">{v}</dd>
+              </div>
             ))}
           </dl>
           <p className="mt-3 text-xs text-slate-500">Para corregir tus datos, acércate a Kardex.</p>
         </Card>
-        <Card title="Cambiar contraseña"><FormClave onListo={() => undefined} /></Card>
+        <Card title="Cambiar contraseña">
+          <FormClave onListo={() => undefined} />
+        </Card>
       </div>
     </>
   );

@@ -1,0 +1,5 @@
+# Commits solo de formato; git blame los salta.
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# S0.3 formatea el código existente con Prettier
+c5f91c90a8628191e5b164722c463cc13b6e45ba

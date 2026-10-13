@@ -1,7 +1,19 @@
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 import clsx from 'clsx';
 
-interface Base { label?: string; error?: string | null; hint?: ReactNode; className?: string }
+interface Base {
+  label?: string;
+  error?: string | null;
+  hint?: ReactNode;
+  className?: string;
+}
 
 const control = (error?: string | null) =>
   clsx(
@@ -12,9 +24,17 @@ const control = (error?: string | null) =>
 function Envoltura({ id, label, error, hint, className, children }: Base & { id: string; children: ReactNode }) {
   return (
     <div className={className}>
-      {label && <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-700">{label}</label>}
+      {label && (
+        <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+      )}
       {children}
-      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {error ? (
+        <p className="mt-1 text-xs text-red-600">{error}</p>
+      ) : (
+        hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>
+      )}
     </div>
   );
 }
@@ -32,17 +52,34 @@ export const Input = forwardRef<HTMLInputElement, Base & InputHTMLAttributes<HTM
 );
 Input.displayName = 'Input';
 
-export function Select({ label, error, hint, className, id, children, ...rest }: Base & SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  label,
+  error,
+  hint,
+  className,
+  id,
+  children,
+  ...rest
+}: Base & SelectHTMLAttributes<HTMLSelectElement>) {
   const auto = useId();
   const cid = id ?? auto;
   return (
     <Envoltura id={cid} label={label} error={error} hint={hint} className={className}>
-      <select id={cid} aria-invalid={Boolean(error)} className={control(error)} {...rest}>{children}</select>
+      <select id={cid} aria-invalid={Boolean(error)} className={control(error)} {...rest}>
+        {children}
+      </select>
     </Envoltura>
   );
 }
 
-export function Textarea({ label, error, hint, className, id, ...rest }: Base & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({
+  label,
+  error,
+  hint,
+  className,
+  id,
+  ...rest
+}: Base & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const auto = useId();
   const cid = id ?? auto;
   return (

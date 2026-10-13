@@ -9,7 +9,7 @@
 
   "projects": {
     "backlog": { "list": "TU_LIST_ID_BACKLOG", "desc": "Backlog sin fecha" },
-    "sprint":  { "list": "TU_LIST_ID_SPRINT",  "desc": "Sprint vigente - actualizar cada iteración" }
+    "sprint": { "list": "TU_LIST_ID_SPRINT", "desc": "Sprint vigente - actualizar cada iteración" }
   },
 
   "people": {

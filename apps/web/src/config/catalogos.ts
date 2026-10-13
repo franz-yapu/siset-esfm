@@ -6,7 +6,8 @@ export const SEDES: Sede[] = [
 ];
 
 export const nombreSede = (id: number | null | undefined): string => SEDES.find((s) => s.id === id)?.nombre ?? '—';
-export const sedeCorta = (id: number | null | undefined): string => (id === 1 ? 'La Paz' : id === 2 ? 'Ancocagua' : '—');
+export const sedeCorta = (id: number | null | undefined): string =>
+  id === 1 ? 'La Paz' : id === 2 ? 'Ancocagua' : '—';
 
 export const ESPECIALIDADES = [
   'Educación Primaria Comunitaria Vocacional',

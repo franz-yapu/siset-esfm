@@ -6,7 +6,12 @@ import { ROLES } from '@/config/permisos';
 
 export function Badge({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <span className={clsx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset', className ?? 'bg-slate-100 text-slate-700 ring-slate-300')}>
+    <span
+      className={clsx(
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+        className ?? 'bg-slate-100 text-slate-700 ring-slate-300',
+      )}
+    >
       {children}
     </span>
   );

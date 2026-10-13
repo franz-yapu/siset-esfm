@@ -39,12 +39,19 @@ export const alertasFile = (file: FileAcademico): string[] => {
   const alertas: string[] = [];
   if (file.bloqueado) alertas.push(`File bloqueado: ${file.motivoBloqueo ?? 'consulta en Kardex'}. Acércate a Kardex.`);
   for (const c of requisitosPendientes(file)) {
-    alertas.push(c === 'TACFI' ? 'Falta entregar TACFI en Kardex' : c === 'TCLO' ? 'Falta acreditar el TCLO' : 'Falta el certificado de notas');
+    alertas.push(
+      c === 'TACFI'
+        ? 'Falta entregar TACFI en Kardex'
+        : c === 'TCLO'
+          ? 'Falta acreditar el TCLO'
+          : 'Falta el certificado de notas',
+    );
   }
   return alertas;
 };
 
-export const nombreCompleto = (f: Pick<FileAcademico, 'nombres' | 'apellidos'>): string => `${f.nombres} ${f.apellidos}`;
+export const nombreCompleto = (f: Pick<FileAcademico, 'nombres' | 'apellidos'>): string =>
+  `${f.nombres} ${f.apellidos}`;
 
 /** Año de formación actual (la matrícula vigente o la última). */
 export const anioActual = (file: FileAcademico): number => file.matriculas.at(-1)?.anio ?? 1;

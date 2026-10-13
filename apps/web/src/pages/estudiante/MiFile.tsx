@@ -17,11 +17,16 @@ export function MiFile() {
     <>
       <CabeceraFile file={f} />
       <Card>
-        <Tabs activa={tab} onChange={setTab} className="mb-4" tabs={[
-          { id: 'matriculas', label: 'Matrículas', count: f.matriculas.length },
-          { id: 'resultados', label: 'Resultados anuales', count: f.resultados.length },
-          { id: 'requisitos', label: 'Requisitos' },
-        ]} />
+        <Tabs
+          activa={tab}
+          onChange={setTab}
+          className="mb-4"
+          tabs={[
+            { id: 'matriculas', label: 'Matrículas', count: f.matriculas.length },
+            { id: 'resultados', label: 'Resultados anuales', count: f.resultados.length },
+            { id: 'requisitos', label: 'Requisitos' },
+          ]}
+        />
         {tab === 'matriculas' && <TablaMatriculas file={f} />}
         {tab === 'resultados' && <TablaResultados file={f} />}
         {tab === 'requisitos' && <TablaRequisitos file={f} />}

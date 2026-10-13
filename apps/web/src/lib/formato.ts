@@ -23,7 +23,8 @@ export const haceDias = (dias: number, hora = '09:00'): string => {
 };
 
 export const fecha = (iso?: string): string => (iso ? format(parseISO(iso), 'dd/MM/yyyy', { locale: es }) : '—');
-export const fechaHora = (iso?: string): string => (iso ? format(parseISO(iso), 'dd/MM/yyyy HH:mm', { locale: es }) : '—');
+export const fechaHora = (iso?: string): string =>
+  iso ? format(parseISO(iso), 'dd/MM/yyyy HH:mm', { locale: es }) : '—';
 export const fechaLarga = (iso: string): string => format(parseISO(iso), "d 'de' MMMM 'de' yyyy", { locale: es });
 export const mesCorto = (iso: string): string => format(parseISO(iso), 'MMM yyyy', { locale: es });
 
@@ -35,6 +36,12 @@ export const diasTexto = (n: number): string => (n === 0 ? 'Hoy' : n === 1 ? '1 
 export const ordinal = (n: number): string => `${n}.${n === 1 || n === 3 ? 'er' : 'º'}`;
 
 export const iniciales = (nombre: string): string =>
-  nombre.replace(/^(Lic|Ing|Dr|Prof)\.\s*/i, '').split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+  nombre
+    .replace(/^(Lic|Ing|Dr|Prof)\.\s*/i, '')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
 
 export const primerNombre = (nombre: string): string => nombre.replace(/^(Lic|Ing|Dr|Prof)\.\s*/i, '').split(' ')[0];

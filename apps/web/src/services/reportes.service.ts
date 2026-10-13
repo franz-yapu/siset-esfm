@@ -7,21 +7,30 @@ import { conTitular, LATENCIA, ultimoMovimiento } from './_comun';
 import { DIAS_DETENIDO, estaDetenido } from './hojasRuta.service';
 import { alertasFile, fileHabilitado } from '@/lib/reglas';
 
-export interface FiltrosReporte { desde?: string; hasta?: string; sedeId?: number | ''; tipo?: TipoTramite | '' }
+export interface FiltrosReporte {
+  desde?: string;
+  hasta?: string;
+  sedeId?: number | '';
+  tipo?: TipoTramite | '';
+}
 
 const filtrar = (f: FiltrosReporte): HojaRuta[] =>
-  db.hojasRuta.filter((h) =>
-    (!f.desde || h.fechaIngreso.slice(0, 10) >= f.desde)
-    && (!f.hasta || h.fechaIngreso.slice(0, 10) <= f.hasta)
-    && (!f.sedeId || h.sedeActualId === f.sedeId)
-    && (!f.tipo || h.tipo === f.tipo));
+  db.hojasRuta.filter(
+    (h) =>
+      (!f.desde || h.fechaIngreso.slice(0, 10) >= f.desde) &&
+      (!f.hasta || h.fechaIngreso.slice(0, 10) <= f.hasta) &&
+      (!f.sedeId || h.sedeActualId === f.sedeId) &&
+      (!f.tipo || h.tipo === f.tipo),
+  );
 
 const diasEntre = (a: string, b: string): number => differenceInHours(parseISO(b), parseISO(a)) / 24;
 
-const promedio = (xs: number[]): number => (xs.length ? Math.round((xs.reduce((s, x) => s + x, 0) / xs.length) * 10) / 10 : 0);
+const promedio = (xs: number[]): number =>
+  xs.length ? Math.round((xs.reduce((s, x) => s + x, 0) / xs.length) * 10) / 10 : 0;
 
 /** Tiempo total del trámite: ingreso → entrega, o ingreso → hoy si sigue en curso. */
-const duracion = (h: HojaRuta): number => (h.estado === 'ENTREGADO' ? diasEntre(h.fechaIngreso, ultimoMovimiento(h)) : diasDesde(h.fechaIngreso));
+const duracion = (h: HojaRuta): number =>
+  h.estado === 'ENTREGADO' ? diasEntre(h.fechaIngreso, ultimoMovimiento(h)) : diasDesde(h.fechaIngreso);
 
 /** Etapas para el gráfico de tiempo promedio (agrupa estados vecinos). */
 const ETAPAS: { nombre: string; estados: EstadoTramite[] }[] = [
@@ -69,18 +78,22 @@ export const reportesService = {
     await delay(LATENCIA);
     const hs = filtrar(f);
     return ETAPAS.map((e) => {
-      const tramos = hs.flatMap((h) => h.movimientos.flatMap((m, i) => {
-        if (!e.estados.includes(m.estado)) return [];
-        const sig = h.movimientos[i + 1];
-        return sig ? [diasEntre(m.fecha, sig.fecha)] : [];
-      }));
+      const tramos = hs.flatMap((h) =>
+        h.movimientos.flatMap((m, i) => {
+          if (!e.estados.includes(m.estado)) return [];
+          const sig = h.movimientos[i + 1];
+          return sig ? [diasEntre(m.fecha, sig.fecha)] : [];
+        }),
+      );
       return { etapa: e.nombre, dias: promedio(tramos) };
     });
   },
 
   async detenidos(f: FiltrosReporte = {}) {
     await delay(LATENCIA);
-    return filtrar(f).filter(estaDetenido).map((h) => ({ ...conTitular(h), dias: diasDesde(ultimoMovimiento(h)) }))
+    return filtrar(f)
+      .filter(estaDetenido)
+      .map((h) => ({ ...conTitular(h), dias: diasDesde(ultimoMovimiento(h)) }))
       .sort((a, b) => b.dias - a.dias);
   },
 
@@ -90,7 +103,8 @@ export const reportesService = {
     const hs = db.hojasRuta;
     const hoy = aIso(new Date()).slice(0, 10);
     const cuenta = (e: EstadoTramite) => hs.filter((h) => h.estado === e).length;
-    const movHoy = (e: EstadoTramite) => hs.filter((h) => h.movimientos.some((m) => m.estado === e && m.fecha.startsWith(hoy))).length;
+    const movHoy = (e: EstadoTramite) =>
+      hs.filter((h) => h.movimientos.some((m) => m.estado === e && m.fecha.startsWith(hoy))).length;
     const esteMes = hoy.slice(0, 7);
     return {
       ingresadosHoy: hs.filter((h) => h.fechaIngreso.startsWith(hoy)).length,
@@ -105,41 +119,81 @@ export const reportesService = {
       tiempoPromedio: promedio(hs.map(duracion)),
       filesBloqueados: db.files.filter((x) => x.bloqueado).length,
       enRevision: hs.filter((h) => ['RECIBIDO', 'EN_REVISION'].includes(h.estado)).length,
-      porImprimir: hs.filter((h) => h.estado === 'DICTAMINADO' && db.files.some((x) => x.id === h.fileId && fileHabilitado(x))).length,
+      porImprimir: hs.filter(
+        (h) => h.estado === 'DICTAMINADO' && db.files.some((x) => x.id === h.fileId && fileHabilitado(x)),
+      ).length,
       diasDetenido: DIAS_DETENIDO,
     };
   },
 };
 
-export interface Notificacion { texto: string; to: string }
+export interface Notificacion {
+  texto: string;
+  to: string;
+}
 
 /** Campana del header: pendientes del rol (en la v1.0 no hay correo/WhatsApp, D-19). */
 export const notificaciones = (u: Usuario): Notificacion[] => {
   const hs = db.hojasRuta;
   const n = (cond: (h: HojaRuta) => boolean) => hs.filter(cond).length;
   const lista: Notificacion[] = [];
-  const add = (cantidad: number, texto: string, to: string) => { if (cantidad > 0) lista.push({ texto: texto.replace('#', String(cantidad)), to }); };
+  const add = (cantidad: number, texto: string, to: string) => {
+    if (cantidad > 0) lista.push({ texto: texto.replace('#', String(cantidad)), to });
+  };
   switch (u.rol) {
     case 'SEC_DIR':
-      add(n((h) => h.estado === 'EN_TRANSITO_LP'), '# retornos por recibir', '/pases');
-      add(n((h) => h.estado === 'LISTO'), '# trámites listos para entrega', '/entregas');
+      add(
+        n((h) => h.estado === 'EN_TRANSITO_LP'),
+        '# retornos por recibir',
+        '/pases',
+      );
+      add(
+        n((h) => h.estado === 'LISTO'),
+        '# trámites listos para entrega',
+        '/entregas',
+      );
       break;
     case 'SEC_COORD':
-      add(n((h) => h.estado === 'EN_TRANSITO_ANC'), '# pases por recibir', '/pases');
+      add(
+        n((h) => h.estado === 'EN_TRANSITO_ANC'),
+        '# pases por recibir',
+        '/pases',
+      );
       break;
     case 'KARDEX':
-      add(n((h) => h.estado === 'EN_TRANSITO_ANC'), '# pases por recibir', '/pases');
-      add(n((h) => h.estado === 'RECIBIDO'), '# trámites recibidos sin revisar', '/revision');
-      add(n((h) => h.estado === 'DICTAMINADO'), '# documentos por emitir', '/emision');
+      add(
+        n((h) => h.estado === 'EN_TRANSITO_ANC'),
+        '# pases por recibir',
+        '/pases',
+      );
+      add(
+        n((h) => h.estado === 'RECIBIDO'),
+        '# trámites recibidos sin revisar',
+        '/revision',
+      );
+      add(
+        n((h) => h.estado === 'DICTAMINADO'),
+        '# documentos por emitir',
+        '/emision',
+      );
       add(db.files.filter((f) => f.bloqueado).length, '# files bloqueados', '/files?bloqueados=1');
       break;
     case 'COORDINADOR':
-      add(n((h) => h.estado === 'EN_REVISION' && Boolean(h.enviadoDictamen)), '# trámites esperan dictamen', '/dictamenes');
+      add(
+        n((h) => h.estado === 'EN_REVISION' && Boolean(h.enviadoDictamen)),
+        '# trámites esperan dictamen',
+        '/dictamenes',
+      );
       break;
     default: {
       const f = db.files.find((x) => x.id === u.fileId);
       if (f) alertasFile(f).forEach((texto) => lista.push({ texto, to: '/mi-file' }));
-      if (u.rol === 'EGRESADO') add(n((h) => h.fileId === u.fileId && h.estado === 'LISTO'), 'Tu trámite está listo para recoger', '/mis-tramites');
+      if (u.rol === 'EGRESADO')
+        add(
+          n((h) => h.fileId === u.fileId && h.estado === 'LISTO'),
+          'Tu trámite está listo para recoger',
+          '/mis-tramites',
+        );
     }
   }
   return lista;

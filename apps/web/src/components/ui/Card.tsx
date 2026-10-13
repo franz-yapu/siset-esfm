@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 
-interface Props { title?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; padding?: boolean }
+interface Props {
+  title?: ReactNode;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  padding?: boolean;
+}
 
 export function Card({ title, actions, children, className, padding = true }: Props) {
   return (
