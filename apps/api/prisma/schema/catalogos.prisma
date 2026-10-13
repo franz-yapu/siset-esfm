@@ -1,0 +1,18 @@
+// Módulo dueño: catalogos (ADR-0001).
+
+model Sede {
+  id     BigInt @id @default(autoincrement())
+  /// LA_PAZ, ANCOCAGUA
+  codigo String @unique @db.VarChar(20)
+  nombre String @db.VarChar(100)
+
+  @@map("sede")
+}
+
+model Especialidad {
+  id     BigInt  @id @default(autoincrement())
+  nombre String  @unique @db.VarChar(120)
+  activo Boolean @default(true)
+
+  @@map("especialidad")
+}

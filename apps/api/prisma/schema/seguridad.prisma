@@ -1,0 +1,30 @@
+// Módulo dueño: seguridad (ADR-0001).
+
+model Rol {
+  id       BigInt    @id @default(autoincrement())
+  /// ESTUDIANTE, EGRESADO, SEC_DIR, SEC_COORD, COORDINADOR, KARDEX
+  codigo   String    @unique @db.VarChar(20)
+  nombre   String    @db.VarChar(60)
+  usuarios Usuario[]
+
+  @@map("rol")
+}
+
+model Usuario {
+  id                 BigInt         @id @default(autoincrement())
+  rolId              BigInt         @map("rol_id")
+  /// D-14: el CI es el usuario. Texto: admite complemento y ceros a la izquierda.
+  ci                 String         @unique @db.VarChar(20)
+  nombres            String         @db.VarChar(100)
+  apellidos          String         @db.VarChar(100)
+  passwordHash       String         @map("password_hash") @db.VarChar(100)
+  email              String?        @db.VarChar(150)
+  activo             Boolean        @default(true)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rol                Rol            @relation(fields: [rolId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  registrosAuditoria LogAuditoria[]
+
+  @@index([rolId])
+  @@map("usuario")
+}

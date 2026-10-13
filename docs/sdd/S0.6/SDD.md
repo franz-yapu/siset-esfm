@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.6** (`868mgh287`, https://app.clickup.com/t/868mgh287).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Modelo de datos: `rol`, `usuario`, `sede`, `especialidad`, `log_auditoria`; convenciones; RNF-01, RNF-03)

@@ -1,0 +1,24 @@
+// Módulo dueño: auditoria (ADR-0001). Append-only; la inmutabilidad por
+// permisos de BD llega en S6.4.
+
+model LogAuditoria {
+  id           BigInt   @id @default(autoincrement())
+  /// NOT NULL provisional (D-26).
+  usuarioId    BigInt   @map("usuario_id")
+  accion       String   @db.VarChar(50)
+  modulo       String   @db.VarChar(30)
+  entidad      String   @db.VarChar(50)
+  /// Texto: apunta a entidades de cualquier módulo (ids numéricos o claves como HR-2026-000123).
+  entidadId    String?  @map("entidad_id") @db.VarChar(50)
+  datosAntes   Json?    @map("datos_antes")
+  datosDespues Json?    @map("datos_despues")
+  /// IPv6 cabe en 45 caracteres.
+  ip           String?  @db.VarChar(45)
+  fecha        DateTime @default(now()) @db.Timestamptz(6)
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([fecha])
+  @@index([usuarioId, fecha])
+  @@index([modulo, fecha])
+  @@map("log_auditoria")
+}

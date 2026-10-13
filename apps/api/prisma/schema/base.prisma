@@ -1,0 +1,12 @@
+// Esquema partido por módulo dueño (ADR-0001, SDD S0.6 §2.1):
+// seguridad.prisma, catalogos.prisma, auditoria.prisma.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../../src/compartido/bd/generado"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
