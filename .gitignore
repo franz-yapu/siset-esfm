@@ -6,3 +6,6 @@ dist/
 coverage/
 playwright-report/
 *.log
+
+# Cliente Prisma generado (SDD S0.6)
+apps/api/src/compartido/bd/generado/

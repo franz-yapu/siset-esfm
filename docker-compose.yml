@@ -1,0 +1,24 @@
+# Servicios locales de SISET. Por ahora solo la base de datos (DEC-005);
+# S0.4 agrega api, web y Nginx.
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: siset
+      POSTGRES_USER: siset
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-siset_dev}
+      TZ: America/La_Paz
+      PGTZ: America/La_Paz
+    ports:
+      - '127.0.0.1:${DB_PORT:-5432}:5432'
+    volumes:
+      # Desde PostgreSQL 18 la imagen guarda los datos en un subdirectorio por versión.
+      - siset_db:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U siset -d siset']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  siset_db:

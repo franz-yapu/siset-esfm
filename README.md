@@ -38,6 +38,17 @@ npm install          # instala los dos workspaces y los hooks de Husky
 npm run dev          # web (Vite) + api (tsx watch) a la vez
 ```
 
+Base de datos local (PostgreSQL 18 en Docker, SDD S0.6):
+
+```bash
+cp .env.example .env                      # DB_PORT si 5432 está ocupado
+cp apps/api/.env.example apps/api/.env    # mismo puerto en DATABASE_URL
+docker compose up -d db
+npm run bd:migrar -w @siset/api           # aplica las migraciones
+npm run bd:seed -w @siset/api             # roles, sedes, especialidades y Kardex inicial
+npm run test:bd -w @siset/api             # tests de BD (base temporal por corrida)
+```
+
 Gate de calidad (lo mismo que corre la CI):
 
 ```bash

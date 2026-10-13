@@ -81,3 +81,18 @@ vigente** (React 19, React Router 8, Vite 8, lucide-react 1.x, etc.), con su
 propio SDD. Va después de S0.3 y antes de S0.8. S0.3 no cambia las versiones
 de web, solo las de las herramientas nuevas.
 ```
+
+## DEC-005 — PostgreSQL 18 y servicio `db` adelantado a S0.6
+
+**Fecha:** 2026-10-13 · **Fuente:** task-brief de S0.6 · **Estado:** activa (provisional)
+
+1. Por la regla de DEC-004 se usa **PostgreSQL 18** (18.6 es la última estable al
+   2026-10-13) en lugar de la 16 del PRD §5. Queda provisional hasta cerrar D-12:
+   si el servidor institucional impone otra versión, se baja (el esquema no usa
+   nada exclusivo de la 18).
+2. S0.6 dependía de S0.4 (Docker Compose), que no está hecho. S0.6 crea un
+   `docker-compose.yml` mínimo con **solo el servicio `db`**; S0.4 lo extiende con
+   api, web y Nginx.
+3. La contraseña se hashea con **`bcryptjs`** (mismo algoritmo y formato que
+   bcrypt, costo 12, RNF-01): `bcrypt` es nativo y npm 11 bloquea su script de
+   instalación.
