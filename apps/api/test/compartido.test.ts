@@ -32,6 +32,7 @@ describe('cargarConfig', () => {
       nivelLog: 'info',
       jsonLimite: '100kb',
       jwtSecreto: SECRETO,
+      loginLimitePorMinuto: 10,
     });
   });
 
@@ -42,6 +43,12 @@ describe('cargarConfig', () => {
       JWT_SECRET: SECRETO,
     });
     expect(c.corsOrigen).toEqual(['https://a.bo', 'https://b.bo']);
+  });
+
+  it('LOGIN_LIMITE_POR_MINUTO es 10 por defecto y rechaza 0 (SDD S1.4 §2.3)', () => {
+    const base = { DATABASE_URL: 'postgresql://localhost/siset', JWT_SECRET: SECRETO };
+    expect(cargarConfig({ ...base, LOGIN_LIMITE_POR_MINUTO: '25' }).loginLimitePorMinuto).toBe(25);
+    expect(() => cargarConfig({ ...base, LOGIN_LIMITE_POR_MINUTO: '0' })).toThrow(/LOGIN_LIMITE_POR_MINUTO/);
   });
 
   it('exige JWT_SECRET de 32 caracteres o más, sin mostrar su valor (SDD S1.3 §2.3)', () => {

@@ -3,23 +3,31 @@ import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
 import { ErrorNoAutenticado } from '@/compartido/errores';
 import { obtenerContexto } from '@/compartido/http';
 import type { RespuestaLogin } from './auth.esquemas';
-import { registrarLogin, registrarLoginFallido, type MotivoLoginFallido } from './eventos-acceso';
+import { registrarBloqueo, registrarLogin, registrarLoginFallido, type MotivoLoginFallido } from './eventos-acceso';
 import { firmarAccessToken } from './jwt';
 import { compararPassword, hashPassword } from './password';
 import { crearRefreshToken } from './refresh-token.repositorio';
 import { hashDeToken } from './token';
-import { buscarUsuarioParaLogin, registrarAcceso } from './usuario.repositorio';
+import { bloquearCuenta, buscarUsuarioParaLogin, registrarAcceso, sumarIntentoFallido } from './usuario.repositorio';
 
 /** Refresh token: 8 h desde el login; la rotación (S1.5) no lo extiende (DEC-012). */
 export const DURACION_REFRESH_MS = 8 * 60 * 60_000;
 
 export type NombreDe = (cliente: ClienteBd | TransaccionBd, personaId: number) => Promise<string>;
 
+type ParametroLogin = 'MAX_INTENTOS_LOGIN' | 'MIN_BLOQUEO_LOGIN';
+export type LeerParametros = (
+  cliente: ClienteBd | TransaccionBd,
+  claves: readonly ParametroLogin[],
+) => Promise<Record<ParametroLogin, number>>;
+
 export interface DependenciasAuth {
   bd: ClienteBd;
   jwtSecreto: string;
   /** Del módulo personas; lo inyecta la raíz de composición (ADR-0001). */
   nombreDe: NombreDe;
+  /** Del módulo catalogos (`leerParametrosEnteros`); lo inyecta la raíz de composición. */
+  leerParametros: LeerParametros;
   ahora?: () => Date;
 }
 
@@ -31,7 +39,13 @@ export interface ResultadoLogin extends RespuestaLogin {
 /** El mismo error para CI inexistente, contraseña incorrecta, cuenta inactiva o bloqueada (SDD S1.3 §2.2). */
 const credencialesInvalidas = () => new ErrorNoAutenticado('CI o contraseña incorrectos.', 'CREDENCIALES_INVALIDAS');
 
-export function crearServicioAuth({ bd, jwtSecreto, nombreDe, ahora = () => new Date() }: DependenciasAuth) {
+export function crearServicioAuth({
+  bd,
+  jwtSecreto,
+  nombreDe,
+  leerParametros,
+  ahora = () => new Date(),
+}: DependenciasAuth) {
   // Hash de un texto aleatorio: con un CI inexistente igual se compara, para tardar lo mismo.
   // Se calcula la primera vez que hace falta, no al crear la app.
   let hashFicticio: Promise<string> | undefined;
@@ -46,15 +60,15 @@ export function crearServicioAuth({ bd, jwtSecreto, nombreDe, ahora = () => new 
 
     // La contraseña se compara siempre primero: el tiempo no revela el estado de la cuenta.
     const momento = ahora();
-    const motivo: MotivoLoginFallido | null = !(await compararPassword(password, u.passwordHash))
-      ? 'PASSWORD_INCORRECTA'
-      : !u.activo
-        ? 'CUENTA_INACTIVA'
-        : u.bloqueadoHasta && u.bloqueadoHasta > momento
-          ? 'CUENTA_BLOQUEADA'
-          : null;
+    const correcta = await compararPassword(password, u.passwordHash);
+    const bloqueada = u.bloqueadoHasta !== null && u.bloqueadoHasta > momento;
+
+    if (!correcta) {
+      await registrarPasswordIncorrecta(u.id, u.intentosFallidos, bloqueada, momento);
+      throw credencialesInvalidas();
+    }
+    const motivo: MotivoLoginFallido | null = !u.activo ? 'CUENTA_INACTIVA' : bloqueada ? 'CUENTA_BLOQUEADA' : null;
     if (motivo) {
-      // Contar intentos y bloquear es de S1.4: aquí va el valor actual.
       await registrarLoginFallido(bd, u.id, motivo, u.intentosFallidos);
       throw credencialesInvalidas();
     }
@@ -97,6 +111,27 @@ export function crearServicioAuth({ bd, jwtSecreto, nombreDe, ahora = () => new 
         ultimoAcceso: u.ultimoAcceso?.toISOString() ?? null,
       },
     };
+  }
+
+  /**
+   * Contador de intentos (SDD S1.4 §2.1): +1 atómico y, al llegar al máximo, bloqueo con
+   * el contador en 0. Con la cuenta ya bloqueada no se cuenta ni se extiende el bloqueo.
+   */
+  async function registrarPasswordIncorrecta(id: number, intentosActuales: number, bloqueada: boolean, momento: Date) {
+    if (bloqueada) {
+      await registrarLoginFallido(bd, id, 'PASSWORD_INCORRECTA', intentosActuales);
+      return;
+    }
+    const parametros = await leerParametros(bd, ['MAX_INTENTOS_LOGIN', 'MIN_BLOQUEO_LOGIN']);
+    await bd.$transaction(async (tx) => {
+      const intentos = await sumarIntentoFallido(tx, id);
+      await registrarLoginFallido(tx, id, 'PASSWORD_INCORRECTA', intentos);
+      if (intentos >= parametros.MAX_INTENTOS_LOGIN) {
+        const hasta = new Date(momento.getTime() + parametros.MIN_BLOQUEO_LOGIN * 60_000);
+        await bloquearCuenta(tx, id, hasta);
+        await registrarBloqueo(tx, id, hasta);
+      }
+    });
   }
 
   return { login };

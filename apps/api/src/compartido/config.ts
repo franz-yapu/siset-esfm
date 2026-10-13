@@ -20,6 +20,8 @@ const esquema = z.object({
   JSON_LIMITE: z.string().default('100kb'),
   /** Firma del access JWT (HS256, SDD S1.3 §2.3): obligatorio, 32 caracteres o más. */
   JWT_SECRET: z.string().min(32),
+  /** Rate limit del login por IP (RNF-10, SDD S1.4 §2.3). Solo los tests lo cambian. */
+  LOGIN_LIMITE_POR_MINUTO: z.coerce.number().int().min(1).default(10),
 });
 
 export interface Config {
@@ -31,6 +33,7 @@ export interface Config {
   nivelLog: (typeof NIVELES_LOG)[number];
   jsonLimite: string;
   jwtSecreto: string;
+  loginLimitePorMinuto: number;
 }
 
 /**
@@ -53,5 +56,6 @@ export function cargarConfig(entorno: Record<string, string | undefined> = proce
     nivelLog: e.LOG_LEVEL ?? (e.NODE_ENV === 'test' ? 'silent' : 'info'),
     jsonLimite: e.JSON_LIMITE,
     jwtSecreto: e.JWT_SECRET,
+    loginLimitePorMinuto: e.LOGIN_LIMITE_POR_MINUTO,
   };
 }

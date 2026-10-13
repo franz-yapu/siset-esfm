@@ -15,6 +15,7 @@ export const configDePrueba = (extra: Partial<Config> = {}): Config => ({
   nivelLog: 'silent',
   jsonLimite: '1kb',
   jwtSecreto: SECRETO_JWT_DE_PRUEBA,
+  loginLimitePorMinuto: 10,
   ...extra,
 });
 

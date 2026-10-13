@@ -15,6 +15,7 @@ import {
   type ModuloHttp,
 } from '@/compartido/http';
 import { crearLogger } from '@/compartido/logger';
+import { leerParametrosEnteros } from '@/modulos/catalogos';
 import { buscarNombreCompleto } from '@/modulos/personas';
 import { crearModuloSalud } from '@/modulos/salud';
 import { crearModuloAuth } from '@/modulos/seguridad';
@@ -51,7 +52,13 @@ export function crearApp({
   const modulos: ModuloHttp[] = [
     crearModuloSalud({ bd, version }),
     // La raíz une seguridad con personas: seguridad no importa a personas (SDD S1.3 §2.4).
-    crearModuloAuth({ bd, jwtSecreto: config.jwtSecreto, nombreDe: buscarNombreCompleto }),
+    crearModuloAuth({
+      bd,
+      jwtSecreto: config.jwtSecreto,
+      nombreDe: buscarNombreCompleto,
+      leerParametros: leerParametrosEnteros,
+      loginLimitePorMinuto: config.loginLimitePorMinuto,
+    }),
     ...modulosExtra,
   ];
   const api = Router();
