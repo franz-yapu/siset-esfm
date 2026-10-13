@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.5** (`868mgh285`, https://app.clickup.com/t/868mgh285).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §6 (DoD: "pruebas pasan en CI"; código en `main` vía PR revisado)
