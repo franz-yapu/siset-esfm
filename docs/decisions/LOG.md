@@ -131,3 +131,13 @@ de web, solo las de las herramientas nuevas.
 4. **S6.4 / S6.5 se adelantan a la Ola 2**, justo después de la autenticación (S1.x): `GET /auditoria`
    (solo KARDEX) con filtros por usuario, módulo, acción, fecha y **entidad** (historial de un registro:
    "quién editó este file"), conectados a la pantalla P-48. El `REVOKE` de permisos sigue en S6.4 (ADR-0003).
+
+## DEC-008 — Docker: un solo Nginx y rol de BD separado en S6.4
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S0.4 (aprobado) · **Estado:** activa
+
+1. El contenedor `web` es **un solo Nginx** que sirve la SPA y hace de proxy de `/api` hacia la API (el
+   ticket pedía `web` + `nginx` separados). Mismo origen para web y API (cookie del refresh, S0.8).
+2. El **rol de BD separado para la app** (sin `UPDATE/DELETE/TRUNCATE` en la bitácora) se crea en
+   **S6.4**, junto con el `REVOKE` que lo usa. Aclara ADR-0003, que decía "S0.4/S0.9".
+3. `JWT_SECRET` se agrega en S1.x, cuando exista código que lo lea.
