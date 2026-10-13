@@ -3,8 +3,9 @@
 ESFM "Mcal. Andrés de Santa Cruz y Calahumana" — Unidad Académica Ancocagua.
 Digitaliza hojas de ruta, file académico y pases entre La Paz y Ancocagua.
 
-Stack previsto (PRD §5, D-01): React 18 + Vite + TS + Tailwind · Node 20 +
-Express + TS + Prisma · PostgreSQL 16 · Docker Compose + Nginx.
+Stack (PRD §5, D-01; versiones según DEC-004): React + Vite + TS + Tailwind ·
+Node 26 + Express 5 + TS + Prisma · PostgreSQL 16 · Docker Compose + Nginx.
+Backend como monolito modular (ADR-0001).
 
 ## Estructura
 
@@ -24,8 +25,23 @@ docs/
 .claude/skills/                kit de planificación (copiado de beta-ia)
 scripts/tracker/               adaptador ClickUp
 _templates/                    plantillas de backlog, roadmap, tickets, SDD
-apps/web/                      (por crear) frontend — arranca como prototipo
-apps/api/                      (por crear) backend
+apps/web/                      frontend (prototipo navegable con datos de prueba)
+apps/api/                      backend — monolito modular (src/compartido, src/modulos)
+```
+
+## Desarrollo
+
+Requiere Node 26 (`nvm use` lee `.nvmrc`). Desde la raíz:
+
+```bash
+npm install          # instala los dos workspaces y los hooks de Husky
+npm run dev          # web (Vite) + api (tsx watch) a la vez
+```
+
+Gate de calidad (lo mismo que corre la CI):
+
+```bash
+npm run typecheck && npm run lint && npm test && npm run build
 ```
 
 ## Flujo de trabajo (kit beta-ia)
@@ -35,5 +51,5 @@ apps/api/                      (por crear) backend
 2. "usá el skill prd-to-tickets" → backlog → roadmap por olas → tickets de la Ola 1
    (pide confirmación antes de crear en ClickUp; copiar
    `scripts/tracker/clickup.json.example` → `.clickup.json`).
-3. Por ticket: "usá el skill write-sdd ID" → "usá el skill task-brief ID" → código.
+3. Por ticket: "usá el skill task-brief ID" → "usá el skill write-sdd ID" → SDD aprobado → código.
 4. Cada respuesta del cliente a una duda → entrada `DEC-###` en `docs/decisions/LOG.md`.
