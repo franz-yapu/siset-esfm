@@ -1,5 +1,16 @@
-# Servicios locales de SISET. Por ahora solo la base de datos (DEC-005);
-# S0.4 agrega api, web y Nginx.
+# Servicios de SISET (SDD S0.4).
+#   Desarrollo (solo la base):  docker compose up -d db
+#   Stack completo:             docker compose --profile completo up -d --build --wait
+#                               → web en http://localhost:${WEB_PORT:-8080}
+
+x-api-build: &api-build
+  context: .
+  dockerfile: apps/api/Dockerfile
+
+x-seguro: &seguro
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+
 services:
   db:
     image: postgres:18-alpine
@@ -19,6 +30,54 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Aplica las migraciones y termina. La API no arranca si fallan.
+  migrar:
+    profiles: [completo]
+    build:
+      <<: *api-build
+      target: build
+    command: ['npm', 'run', 'bd:desplegar', '-w', '@siset/api']
+    environment:
+      DATABASE_URL: postgresql://siset:${POSTGRES_PASSWORD:-siset_dev}@db:5432/siset
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    profiles: [completo]
+    <<: *seguro
+    build:
+      <<: *api-build
+      target: runtime
+    read_only: true
+    tmpfs: [/tmp]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://siset:${POSTGRES_PASSWORD:-siset_dev}@db:5432/siset
+      CORS_ORIGEN: ${WEB_ORIGEN:-http://localhost:8080}
+      TRUST_PROXY: '1'
+      LOG_LEVEL: info
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    profiles: [completo]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_USAR_API: ${VITE_USAR_API:-false}
+        VITE_DEMO: ${VITE_DEMO:-true}
+        VITE_PUBLIC_URL: ${WEB_ORIGEN:-http://localhost:8080}
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   siset_db:
