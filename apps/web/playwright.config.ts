@@ -21,7 +21,13 @@ export default defineConfig({
   forbidOnly: CI,
   retries: CI ? 1 : 0,
   reporter: CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  use: { channel: 'chrome', headless: true, trace: 'retain-on-failure' },
+  use: {
+    channel: 'chrome',
+    headless: true,
+    trace: 'retain-on-failure',
+    // Solo para probar localmente un proxy con certificado autofirmado (SDD S0.9).
+    ignoreHTTPSErrors: Boolean(process.env.E2E_IGNORAR_TLS),
+  },
   projects: BASE_EXTERNA
     ? [{ name: 'mock', testIgnore: /modo-api/, use: { baseURL: BASE_EXTERNA } }]
     : [

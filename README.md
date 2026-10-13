@@ -79,6 +79,18 @@ scripts/docker-smoke.sh                                # prueba de humo en un pr
 Nginx sirve la web y hace de proxy de `/api` (mismo origen). La API no publica su puerto, corre sin root y
 con el filesystem de solo lectura. `docker compose up -d db` sigue levantando solo la base para desarrollo.
 
+Staging (S0.9, provisional en el VPS, detrás del Traefik de Coolify con Let's Encrypt):
+
+```bash
+scripts/desplegar-staging.sh --simular   # muestra qué haría, sin conectarse
+scripts/desplegar-staging.sh [commit]    # despliega un commit de main (default: origin/main) y lo verifica
+```
+
+`docker-compose.staging.yml` no publica puertos, limita CPU y memoria (el VPS es compartido con producción
+de otros proyectos) y le da prioridad al dominio (`STAGING_DOMINIO`, default `siset-staging.vertexall.com`)
+sobre reglas genéricas de otros proyectos. La contraseña de la base se genera en el servidor. Rollback:
+desplegar el commit anterior. _Todavía no se desplegó (decisión del responsable, SDD S0.9 v1.1)._
+
 Gate de calidad (lo mismo que corre la CI):
 
 ```bash
