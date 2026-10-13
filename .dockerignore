@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/dist-e2e-*
+**/test-results
+**/playwright-report
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+**/src/compartido/bd/generado
+.git
+.github
+.husky
+docs
+_templates
+scripts
+*.log

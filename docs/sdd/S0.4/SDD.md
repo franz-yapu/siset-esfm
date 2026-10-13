@@ -2,8 +2,8 @@
 
 - **Ticket:** ClickUp **S0.4** (`868mgh284`, https://app.clickup.com/t/868mgh284).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Estado:** Aprobado (2026-10-13)
+- **Versión:** 1.1 · **Fecha:** 2026-10-13 (ver changelog al pie)
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Infraestructura: Docker Compose, Nginx como proxy con TLS), RNF-10 (HTTPS, Helmet, CORS), RNF-12
   2. `docs/decisions/LOG.md` — DEC-004 (Node 26, última estable), DEC-005 (PostgreSQL 18, servicio `db` ya creado en S0.6)
@@ -223,3 +223,21 @@ proyecto `api` de la E2E con la petición interceptada; la API real todavía no 
 
 _(Ninguna para el cliente.)_ Se registra **DEC-008** (decisión interna): rol de BD separado en S6.4 y un
 solo contenedor Nginx.
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13)**:
+  - **Fuente Inter servida desde la propia web.** La E2E contra Nginx detectó que la CSP bloqueaba
+    `fonts.googleapis.com`, que se usaba en `index.html`. En lugar de relajar la CSP, la fuente pasa a
+    `@fontsource-variable/inter` (OFL-1.1): se ve igual y no hace pedidos externos, lo que también sirve
+    para la conexión intermitente de Ancocagua (RNF-12) y para RNF-09. Verificado: Inter cargada y 0
+    pedidos a otros dominios.
+  - **Instalación de producción de la API:** `npm ci --omit=dev --omit=optional --omit=peer` y sin el
+    workspace web. `@prisma/client` declara el CLI de Prisma y TypeScript como peers opcionales, y el CLI
+    arrastra Prisma Studio con React. La imagen baja de 513 MB a 281 MB; `node_modules`, de 357 MB a 102 MB.
+  - **IP real detrás de Nginx:** Nginx **reemplaza** `X-Forwarded-For` por `$remote_addr`, en lugar de
+    agregar a lo que mande el cliente. Con `TRUST_PROXY=1`, la API toma esa IP y no una falsificada. La
+    lectura de `X-Forwarded-For` con `TRUST_PROXY` ya la cubre el test de S0.7.
+- **1.0 (2026-10-13)**: aprobado.
