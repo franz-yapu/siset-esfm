@@ -3,7 +3,7 @@
 - **Ticket:** ClickUp **S0.10** (`868mgt162`, https://app.clickup.com/t/868mgt162).
 - **Autor:** generado con Claude (Entregable 1).
 - **Estado:** Aprobado (2026-10-13)
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Versión:** 1.1 · **Fecha:** 2026-10-13 (ver changelog al pie)
 - **Fuentes de verdad citadas:**
   1. `docs/decisions/LOG.md` — DEC-004 (última versión estable de cada dependencia; React 19, React Router 8, Vite 8)
   2. `docs/planning/2026-10-12-tickets/S0.10-web-stack-vigente.json`
@@ -73,15 +73,33 @@ Se copió `apps/web` al scratchpad, se actualizaron las versiones de §2.1 y se 
 
 ---
 
+### 2.3 Una sola copia de React en el monorepo (v1.1)
+
+Al aplicar el cambio en el repo real (no en la prueba aislada), la web quedó en blanco con el error
+**React #525** ("se renderizó un elemento de otra versión de React"). La causa: Prisma Studio
+(`@prisma/studio-core`, que trae el CLI de Prisma en `apps/api`) declara `react` como peer y npm había
+dejado **React 18.3.1 en la raíz** del monorepo. Las librerías de la web instaladas en la raíz
+(`lucide-react`, `qrcode.react`, `react-chartjs-2`) resolvían ese React 18, y la app el 19 de
+`apps/web/node_modules`.
+
+Solución: `overrides` en el `package.json` raíz con `react` y `react-dom` ^19.3.0. Prisma Studio acepta
+`^18 || ^19`, así que no hay conflicto. Así queda **una sola copia** de React en todo el monorepo
+(verificado con `npm ls react`), y una instalación futura no puede volver a separarlas.
+
+La prueba aislada no lo detectó porque estaba fuera del monorepo. El recorrido sobre el repo real sí.
+
+---
+
 ## 3 · Cambios por archivo/módulo
 
-| Archivo                               | Cambio                                         |
-| ------------------------------------- | ---------------------------------------------- |
-| `apps/web/package.json`               | Versiones de §2.1.                             |
-| `package-lock.json`                   | Regenerado por `npm install`.                  |
-| `apps/web/src/**/*.tsx` (32 archivos) | Import de `react-router-dom` → `react-router`. |
-| `apps/web/src/main.tsx`               | Sin flags `future`.                            |
-| `docs/sdd/S0.10/SDD.md`               | Este documento.                                |
+| Archivo                               | Cambio                                                   |
+| ------------------------------------- | -------------------------------------------------------- |
+| `apps/web/package.json`               | Versiones de §2.1.                                       |
+| `package-lock.json`                   | Regenerado por `npm install`.                            |
+| `package.json` (raíz)                 | `overrides`: `react` y `react-dom` ^19.3.0 (v1.1, §2.3). |
+| `apps/web/src/**/*.tsx` (32 archivos) | Import de `react-router-dom` → `react-router`.           |
+| `apps/web/src/main.tsx`               | Sin flags `future`.                                      |
+| `docs/sdd/S0.10/SDD.md`               | Este documento.                                          |
 
 Commits en `feat/S0.10-web-stack-vigente`: `S0.10 SDD`, `S0.10 actualiza la web a React 19, React Router 8 y Vite 8`.
 
@@ -128,3 +146,13 @@ conectadas a la API (S0.8 en adelante); probar hoy los mocks del prototipo la ha
 ## 7 · Preguntas abiertas
 
 _(Ninguna.)_
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13)**: §2.3 y §3. `overrides` de React en la raíz para evitar dos copias (React 18 que
+  arrastra Prisma Studio y React 19 de la web), que dejaban la app en blanco con el error #525. Después
+  del arreglo: recorrido de 6 roles con 43 pantallas idénticas a `main`, 0 errores de consola, flujos
+  interactivos en verde y `npm audit` en 0 en todo el monorepo.
+- **1.0 (2026-10-13)**: aprobado.
