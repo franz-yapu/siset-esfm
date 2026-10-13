@@ -16,8 +16,11 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('es idempotente: dos corridas dejan los mismos conteos', async () => {
     const primera = await sembrar(bd, KARDEX_DE_PRUEBA);
     const segunda = await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, usuarios: 1 });
+    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5 });
+    // Los archivos comparten la base y otros tests crean usuarios con eventos en la
+    // bitácora, que no se pueden borrar (ADR-0003): se cuenta "al menos uno".
     expect(primera.personas).toBeGreaterThanOrEqual(1);
+    expect(primera.usuarios).toBeGreaterThanOrEqual(1);
     expect(segunda).toEqual(primera);
   });
 

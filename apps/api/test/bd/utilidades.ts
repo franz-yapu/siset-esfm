@@ -11,7 +11,7 @@ export function clienteDeTest(): ClienteBd {
 export const KARDEX_DE_PRUEBA: KardexInicial = {
   ci: '9000001',
   complemento: '',
-  password: 'prueba1234',
+  password: 'prueba-1234',
   nombres: 'Kardex',
   apellidoPaterno: 'Prueba',
   apellidoMaterno: null,

@@ -179,3 +179,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    rotación normal del refresh no es un evento; el reuso detectado sí, y lo define S1.5.
 3. **Pendiente para el SDD de S1.3/S1.5:** la duración del refresh token (ni el PRD ni las reglas la fijan).
    Propuesta: una jornada (8 h), renovada con cada rotación mientras haya actividad.
+
+## DEC-011 — Contraseña con símbolos, eventos de acceso cerrados y criterio para decisiones técnicas
+
+**Fecha:** 2026-10-13 · **Fuente:** responsable del proyecto + SDD de S1.2-S1.7 (aprobado) · **Estado:** activa
+
+1. **Política de contraseña (pedido del responsable):** mínimo 8 caracteres, con **letras, números y
+   símbolos**. Símbolo = cualquier carácter que no sea letra, número ni espacio. Letras = cualquier letra
+   Unicode (ñ y tildes cuentan). Cambia `business-rules.md` §Seguridad; web (`validarClave`) y API
+   (`esquemaPassword`) aplican la misma regla y prueban la misma tabla de casos.
+2. **Máximo 72 bytes** (decisión técnica): bcrypt ignora lo que pasa de 72 bytes.
+3. **Acciones de acceso:** se usan los nombres de S0.7 (`LOGIN`, `LOGIN_FALLIDO`, `LOGOUT`,
+   `CAMBIAR_PASSWORD`, `RESTABLECER_PASSWORD`, `BLOQUEO_CUENTA`), no los del ticket S1.7.
+4. **Los eventos de acceso se registran solo con `seguridad/eventos-acceso.ts`**, que no acepta datos
+   libres: así nunca llega una contraseña ni un token a la bitácora. Exigen un usuario (D-26 provisional).
+5. **Pendiente para un ADR de la bitácora:** `redactar` no tapa claves en español (`clave`, `contrasena`).
+   Convención mientras tanto: todo campo de contraseña en el código se llama `password…`.
+6. **Criterio de trabajo:** las decisiones técnicas (largos, límites, tipos) las toma el desarrollo y quedan
+   escritas en el SDD; a la escuela solo se le llevan decisiones de flujo o críticas.

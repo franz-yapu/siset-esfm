@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs';
 import type { ClienteBd } from '../src/compartido/bd';
+import { esquemaPassword, hashPassword } from '../src/modulos/seguridad';
 
 // Valores copiados de apps/web/src/config/{permisos,catalogos}.ts (mismos códigos
 // y nombres que el prototipo). La API no importa del frontend; el test
@@ -36,12 +36,6 @@ export const ESPECIALIDADES = [
   'Educación Física y Deportes',
 ] as const;
 
-/** RNF-01: bcrypt con costo ≥ 12. */
-export const COSTO_BCRYPT = 12;
-
-/** business-rules §Seguridad: mínimo 8 caracteres, con letras y números. */
-const REGLA_CONTRASENA = /^(?=.*\p{L})(?=.*\d).{8,}$/u;
-
 type CodigoSede = (typeof SEDES)[number]['codigo'];
 
 export interface KardexInicial {
@@ -65,8 +59,10 @@ export function leerKardexInicial(entorno: Entorno = process.env): KardexInicial
   const password = entorno.SEED_KARDEX_PASSWORD;
   if (!ci) throw new Error('Falta SEED_KARDEX_CI: el CI del Kardex inicial.');
   if (!password) throw new Error('Falta SEED_KARDEX_PASSWORD: la contraseña del Kardex inicial.');
-  if (!REGLA_CONTRASENA.test(password)) {
-    throw new Error('SEED_KARDEX_PASSWORD no cumple la regla: mínimo 8 caracteres, con letras y números.');
+  const politica = esquemaPassword.safeParse(password);
+  if (!politica.success) {
+    // Los mensajes del esquema nunca incluyen la contraseña.
+    throw new Error(`SEED_KARDEX_PASSWORD no cumple la regla (DEC-011): ${politica.error.issues[0].message}.`);
   }
 
   const complemento = texto(entorno.SEED_KARDEX_COMPLEMENTO) ?? '';
@@ -112,7 +108,7 @@ export interface ResultadoSemilla {
  * su contraseña (puede haberla cambiado).
  */
 export async function sembrar(bd: ClienteBd, kardex: KardexInicial): Promise<ResultadoSemilla> {
-  const passwordHash = await bcrypt.hash(kardex.password, COSTO_BCRYPT);
+  const passwordHash = await hashPassword(kardex.password);
 
   return bd.$transaction(async (tx) => {
     for (const rol of ROLES) {

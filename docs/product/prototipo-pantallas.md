@@ -235,7 +235,7 @@ Tipografía: **Inter** (Google Fonts). Esquinas redondeadas `rounded-lg`. Sombra
 ### P-03 · Cambio de contraseña obligatorio — `/cambiar-clave`
 
 - **Quién:** cualquier usuario al que Kardex le reseteó la contraseña.
-- **Campos:** nueva contraseña, repetir contraseña, indicador de fuerza, reglas (mín. 8, letras y números).
+- **Campos:** nueva contraseña, repetir contraseña, indicador de fuerza, reglas (mín. 8, letras, números y símbolos; DEC-011).
 
 ### P-04 · Acceso denegado (403) y no encontrado (404)
 

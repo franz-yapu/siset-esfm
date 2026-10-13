@@ -56,17 +56,25 @@ export const nombreCompleto = (f: Pick<FileAcademico, 'nombres' | 'apellidos'>):
 /** Año de formación actual (la matrícula vigente o la última). */
 export const anioActual = (file: FileAcademico): number => file.matriculas.at(-1)?.anio ?? 1;
 
-/** Política de contraseña (S1.2): mín. 8 caracteres, letras y números. */
+/** ¿Tiene letras (con tildes y ñ), números y algún símbolo (ni letra, ni número, ni espacio)? */
+export const combinaLetrasNumerosSimbolos = (clave: string): boolean =>
+  /\p{L}/u.test(clave) && /\p{N}/u.test(clave) && /[^\p{L}\p{N}\s]/u.test(clave);
+
+/**
+ * Política de contraseña (DEC-011): mín. 8 caracteres, con letras, números y símbolos, y
+ * como máximo 72 bytes (límite de bcrypt). Misma regla que `esquemaPassword` de la API.
+ */
 export const validarClave = (clave: string): string | null => {
   if (clave.length < 8) return 'Debe tener al menos 8 caracteres';
-  if (!/[a-zA-Z]/.test(clave) || !/\d/.test(clave)) return 'Debe combinar letras y números';
+  if (!combinaLetrasNumerosSimbolos(clave)) return 'Debe combinar letras, números y símbolos';
+  if (new TextEncoder().encode(clave).length > 72) return 'Es demasiado larga (máximo 72 bytes)';
   return null;
 };
 
 export const fuerzaClave = (clave: string): 0 | 1 | 2 | 3 => {
   let p = 0;
   if (clave.length >= 8) p++;
-  if (/[a-zA-Z]/.test(clave) && /\d/.test(clave)) p++;
-  if (clave.length >= 12 || /[^a-zA-Z0-9]/.test(clave)) p++;
+  if (combinaLetrasNumerosSimbolos(clave)) p++;
+  if (clave.length >= 12) p++;
   return p as 0 | 1 | 2 | 3;
 };

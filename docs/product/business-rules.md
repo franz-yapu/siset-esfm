@@ -49,7 +49,7 @@ Estados: `REGISTRADO → EN_TRANSITO → RECIBIDO → EN_REVISION ⇄ OBSERVADO 
 
 - Login con CI + contraseña (D-14). 5 intentos fallidos → bloqueo 15 min. Rate limit 10/min por IP.
 - Access JWT 15 min + refresh rotado en cookie httpOnly/Secure/SameSite=Strict; 15 min de inactividad = cierre.
-- Contraseña: bcrypt costo ≥ 12, mín. 8 caracteres con letras y números. Reseteo por Kardex obliga a cambiarla.
+- Contraseña: bcrypt costo ≥ 12, mín. 8 caracteres con letras, números y símbolos (DEC-011). Reseteo por Kardex obliga a cambiarla.
 - "Propio" se valida en backend (ESTUDIANTE/EGRESADO no leen otro file cambiando el id).
 - Tracking público: N.º + CI, mismo error para N.º o CI incorrecto (anti-enumeración), solo nombre y estados.
 - Usuarios: baja lógica, nunca DELETE. CI único.
