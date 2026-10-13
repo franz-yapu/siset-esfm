@@ -10,7 +10,7 @@ const MAX_INTENTOS = 5;
 /** Contraseñas cambiadas durante la demo (en memoria). */
 const claves: Record<string, string> = {};
 
-export const authService = {
+export const authMock = {
   /** RF-01: CI o usuario + contraseña; 5 intentos fallidos bloquean 15 min. */
   async login(usuario: string, clave: string): Promise<Usuario> {
     await delay(LATENCIA);

@@ -5,8 +5,10 @@ import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
 import { authService } from '@/services/auth.service';
+import { todoMock } from '@/services/_modo';
 
-const DEMO = import.meta.env.VITE_DEMO === 'true';
+/** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
+const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
 
 /** P-01 · Login (CI o usuario + contraseña). */
 export function Login() {

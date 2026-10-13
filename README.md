@@ -58,6 +58,14 @@ API (S0.7): `npm run dev` levanta la API en `http://localhost:3000`.
 - Errores en formato único `{ "error": { "code", "message", "details" } }`.
 - Toda escritura registra un evento de auditoría (`auditoria.registrarEvento`, DEC-007).
 
+Web: mock o API, servicio por servicio (S0.8). En `apps/web/.env`, `VITE_USAR_API=false` usa los
+mocks del prototipo; `true` usa la API en todo; una lista (`auth,files`) usa la API solo en esos
+servicios. Cada servicio tiene `<servicio>.mock.ts` y `<servicio>.api.ts` con la misma firma; las
+pantallas solo importan `<servicio>.service.ts`. En desarrollo, `/api` va por el proxy de Vite a la API local.
+
+E2E (Playwright con el Chrome instalado): `npm run e2e`. Recorre las pantallas de los 6 roles, los flujos
+interactivos y el modo API, y falla ante cualquier error o advertencia de consola.
+
 Gate de calidad (lo mismo que corre la CI):
 
 ```bash
