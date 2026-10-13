@@ -1,14 +1,35 @@
 import { randomBytes } from 'node:crypto';
 import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
-import { ErrorNoAutenticado } from '@/compartido/errores';
+import { ErrorNegocio, ErrorNoAutenticado, ErrorValidacion } from '@/compartido/errores';
 import { obtenerContexto } from '@/compartido/http';
-import type { RespuestaLogin } from './auth.esquemas';
-import { registrarBloqueo, registrarLogin, registrarLoginFallido, type MotivoLoginFallido } from './eventos-acceso';
+import type { RespuestaLogin, UsuarioSesion } from './auth.esquemas';
+import {
+  registrarBloqueo,
+  registrarCambioPassword,
+  registrarLogin,
+  registrarLoginFallido,
+  registrarLogout,
+  registrarReusoSesion,
+  type MotivoLoginFallido,
+} from './eventos-acceso';
 import { firmarAccessToken } from './jwt';
 import { compararPassword, hashPassword } from './password';
-import { crearRefreshToken } from './refresh-token.repositorio';
+import {
+  buscarRefreshTokenPorHash,
+  crearRefreshToken,
+  revocarRefreshToken,
+  revocarRefreshTokensDeUsuario,
+} from './refresh-token.repositorio';
 import { hashDeToken } from './token';
-import { bloquearCuenta, buscarUsuarioParaLogin, registrarAcceso, sumarIntentoFallido } from './usuario.repositorio';
+import {
+  actualizarPassword,
+  bloquearCuenta,
+  buscarUsuarioParaLogin,
+  buscarUsuarioPorId,
+  registrarAcceso,
+  sumarIntentoFallido,
+  type UsuarioBd,
+} from './usuario.repositorio';
 
 /** Refresh token: 8 h desde el login; la rotación (S1.5) no lo extiende (DEC-012). */
 export const DURACION_REFRESH_MS = 8 * 60 * 60_000;
@@ -35,6 +56,11 @@ export interface ResultadoLogin extends RespuestaLogin {
   refreshToken: string;
   refreshExpiraEn: Date;
 }
+
+/** Refresh ausente, inexistente, vencido, reusado o de un usuario inactivo (SDD S1.5 §2.1). */
+export const CODIGO_SESION_INVALIDA = 'SESION_INVALIDA';
+const sesionInvalida = () =>
+  new ErrorNoAutenticado('Su sesión terminó. Vuelva a iniciar sesión.', CODIGO_SESION_INVALIDA);
 
 /** El mismo error para CI inexistente, contraseña incorrecta, cuenta inactiva o bloqueada (SDD S1.3 §2.2). */
 const credencialesInvalidas = () => new ErrorNoAutenticado('CI o contraseña incorrectos.', 'CREDENCIALES_INVALIDAS');
@@ -73,44 +99,130 @@ export function crearServicioAuth({
       throw credencialesInvalidas();
     }
 
-    const nombre = await nombreDe(bd, u.personaId);
+    return bd.$transaction(async (tx) => {
+      const sesion = await emitirSesion(tx, u, momento, new Date(momento.getTime() + DURACION_REFRESH_MS));
+      await registrarAcceso(tx, u.id, momento);
+      await registrarLogin(tx, u.id);
+      return sesion;
+    });
+  }
+
+  /**
+   * Crea la fila del refresh y firma el access, dentro de la transacción del caso de
+   * uso. Rol, sede y `cpw` salen de la base, nunca de un token anterior (SDD S1.5 §2.2).
+   */
+  async function emitirSesion(
+    tx: TransaccionBd,
+    u: UsuarioBd,
+    momento: Date,
+    refreshExpiraEn: Date,
+  ): Promise<ResultadoLogin> {
     const { token: accessToken, expiraEn } = await firmarAccessToken(
       { usuarioId: u.id, rol: u.rol.codigo, sedeId: u.sedeId, debeCambiarPassword: u.debeCambiarPassword },
       jwtSecreto,
       momento,
     );
     const refreshToken = randomBytes(32).toString('base64url');
-    const refreshExpiraEn = new Date(momento.getTime() + DURACION_REFRESH_MS);
     const contexto = obtenerContexto();
-
-    await bd.$transaction(async (tx) => {
-      await crearRefreshToken(tx, {
-        usuarioId: u.id,
-        tokenHash: hashDeToken(refreshToken),
-        expiraEn: refreshExpiraEn,
-        ip: contexto?.ip ?? null,
-        userAgent: contexto?.userAgent ?? null,
-      });
-      await registrarAcceso(tx, u.id, momento);
-      await registrarLogin(tx, u.id);
+    await crearRefreshToken(tx, {
+      usuarioId: u.id,
+      tokenHash: hashDeToken(refreshToken),
+      expiraEn: refreshExpiraEn,
+      ip: contexto?.ip ?? null,
+      userAgent: contexto?.userAgent ?? null,
     });
-
     return {
       accessToken,
       expiraEn: expiraEn.toISOString(),
       refreshToken,
       refreshExpiraEn,
-      usuario: {
-        id: u.id,
-        usuario: u.username,
-        nombre,
-        rol: u.rol.codigo,
-        sedeId: u.sedeId,
-        activo: u.activo,
-        debeCambiarPassword: u.debeCambiarPassword,
-        ultimoAcceso: u.ultimoAcceso?.toISOString() ?? null,
-      },
+      usuario: await usuarioSesion(tx, u),
     };
+  }
+
+  const usuarioSesion = async (cliente: TransaccionBd, u: UsuarioBd): Promise<UsuarioSesion> => ({
+    id: u.id,
+    usuario: u.username,
+    nombre: await nombreDe(cliente, u.personaId),
+    rol: u.rol.codigo,
+    sedeId: u.sedeId,
+    activo: u.activo,
+    debeCambiarPassword: u.debeCambiarPassword,
+    ultimoAcceso: u.ultimoAcceso?.toISOString() ?? null,
+  });
+
+  /** Reuso de un refresh ya rotado: se revocan todas las sesiones del usuario (SDD S1.5 §2.2). */
+  async function revocarPorReuso(usuarioId: number, momento: Date): Promise<never> {
+    await bd.$transaction(async (tx) => {
+      const n = await revocarRefreshTokensDeUsuario(tx, usuarioId, momento);
+      await registrarReusoSesion(tx, usuarioId, n);
+    });
+    throw sesionInvalida();
+  }
+
+  /** Rota el refresh: revoca el viejo y emite uno nuevo con el MISMO vencimiento (DEC-012). */
+  async function refrescar(token: string | undefined): Promise<ResultadoLogin> {
+    if (!token) throw sesionInvalida();
+    const momento = ahora();
+    const fila = await buscarRefreshTokenPorHash(bd, hashDeToken(token));
+    if (!fila) throw sesionInvalida();
+    if (fila.revocadoEn) return revocarPorReuso(fila.usuarioId, momento);
+    if (fila.expiraEn <= momento) throw sesionInvalida();
+
+    const u = await buscarUsuarioPorId(bd, fila.usuarioId);
+    if (!u?.activo) {
+      // Dado de baja: pierde todas sus sesiones. Bloqueado por intentos: sigue (SDD S1.5 §2.2).
+      await revocarRefreshTokensDeUsuario(bd, fila.usuarioId, momento);
+      throw sesionInvalida();
+    }
+
+    const sesion = await bd.$transaction(async (tx) => {
+      // Atómico: si otra petición lo revocó antes, esto es un reuso.
+      if (!(await revocarRefreshToken(tx, fila.id, momento))) return null;
+      return emitirSesion(tx, u, momento, fila.expiraEn);
+    });
+    return sesion ?? revocarPorReuso(fila.usuarioId, momento);
+  }
+
+  /** Revoca la sesión de la cookie si sigue activa y registra LOGOUT. Nunca falla (SDD S1.5 §2.3). */
+  async function cerrarSesion(token: string | undefined): Promise<void> {
+    if (!token) return;
+    const fila = await buscarRefreshTokenPorHash(bd, hashDeToken(token));
+    if (!fila || fila.revocadoEn || fila.expiraEn <= ahora()) return;
+    await bd.$transaction(async (tx) => {
+      if (await revocarRefreshToken(tx, fila.id, ahora())) await registrarLogout(tx, fila.usuarioId);
+    });
+  }
+
+  /**
+   * Cambia la contraseña de quien tiene la sesión: revoca TODAS sus sesiones y emite
+   * una nueva con `cpw: false` (SDD S1.5 §2.3). La política ya la validó la ruta.
+   */
+  async function cambiarPassword(usuarioId: number, actual: string, nueva: string): Promise<ResultadoLogin> {
+    const u = await buscarUsuarioPorId(bd, usuarioId);
+    if (!u?.activo) throw new ErrorNoAutenticado();
+    if (!(await compararPassword(actual, u.passwordHash))) {
+      throw new ErrorNegocio('La contraseña actual no es correcta.', 'PASSWORD_ACTUAL_INCORRECTA');
+    }
+    if (nueva === actual) {
+      throw new ErrorValidacion([
+        { ruta: 'body.passwordNueva', mensaje: 'La nueva contraseña debe ser distinta de la actual' },
+      ]);
+    }
+    const hash = await hashPassword(nueva);
+    const momento = ahora();
+    return bd.$transaction(async (tx) => {
+      await actualizarPassword(tx, u.id, hash);
+      await revocarRefreshTokensDeUsuario(tx, u.id, momento);
+      const sesion = await emitirSesion(
+        tx,
+        { ...u, debeCambiarPassword: false },
+        momento,
+        new Date(momento.getTime() + DURACION_REFRESH_MS),
+      );
+      await registrarCambioPassword(tx, u.id);
+      return sesion;
+    });
   }
 
   /**
@@ -134,7 +246,7 @@ export function crearServicioAuth({
     });
   }
 
-  return { login };
+  return { login, refrescar, cerrarSesion, cambiarPassword };
 }
 
 export type ServicioAuth = ReturnType<typeof crearServicioAuth>;
