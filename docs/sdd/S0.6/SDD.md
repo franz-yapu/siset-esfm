@@ -3,7 +3,7 @@
 - **Ticket:** ClickUp **S0.6** (`868mgh287`, https://app.clickup.com/t/868mgh287).
 - **Autor:** generado con Claude (Entregable 1).
 - **Estado:** Aprobado (2026-10-13)
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Versión:** 1.1 · **Fecha:** 2026-10-13 (ver changelog al pie)
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Modelo de datos: `rol`, `usuario`, `sede`, `especialidad`, `log_auditoria`; convenciones; RNF-01, RNF-03)
   2. `docs/product/business-rules.md` §Convenciones de datos, §Seguridad y acceso, §Bitácora
@@ -236,9 +236,10 @@ volumes: { siset_db: {} }
 - Volumen en `/var/lib/postgresql`: desde PostgreSQL 18, la imagen oficial
   guarda los datos en un subdirectorio por versión, y montar el directorio
   padre es lo que pide la imagen.
-- La base de test (`siset_test`) la crea el propio script `test:bd`
-  (`prisma migrate reset --force` sobre `DATABASE_URL_TEST`). No hace falta un
-  init-script en compose.
+- Las bases de test las crea y elimina el propio `test:bd` (§2.7, v1.1). No hace
+  falta un init-script en compose.
+- Las variables de compose (`DB_PORT`, `POSTGRES_PASSWORD`) van en un `.env` de la
+  raíz, documentado en `.env.example` de la raíz (v1.1).
 
 ### 2.7 Scripts (`apps/api/package.json`)
 
@@ -252,8 +253,18 @@ volumes: { siset_db: {} }
 | `test:bd`      | `vitest run --config vitest.bd.config.ts`                      |
 
 `test` (unitario) **excluye** `test/bd/**`. `vitest.bd.config.ts` incluye
-solo `test/bd/**`, corre en serie (una sola base) y antes de empezar aplica
-`migrate reset --force --skip-seed` sobre `DATABASE_URL_TEST`.
+solo `test/bd/**` y corre en serie.
+
+**Base temporal por corrida (v1.1).** El `globalSetup` (`test/bd/preparar-bd.ts`):
+
+1. Crea una base nueva `siset_test_<timestamp>_<pid>` en el servidor de `DATABASE_URL_TEST`.
+2. Le aplica las migraciones con `prisma migrate deploy`, que no es destructivo.
+3. Pasa su URL a los tests con `provide`/`inject` de Vitest.
+4. Al terminar, elimina **solo esa base** (salvaguarda: solo nombres con el prefijo `siset_test_`).
+
+Nunca vacía una base existente. Reemplaza a `migrate reset --force` de la v1.0:
+Prisma 7 bloquea `reset` cuando lo invoca un agente de IA sin autorización
+explícita, y además un `reset` sobre una URL mal configurada borraría datos reales.
 
 ---
 
@@ -294,7 +305,7 @@ Commits en `feat/S0.6-prisma-inicial`:
 
 | Caso                                                                                                                  | Nivel                                         | Cubre                                                           |
 | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------- |
-| `migrate reset` aplica la migración limpia sobre una base vacía                                                       | integración (`test:bd`)                       | DoD "aplica limpio".                                            |
+| `migrate deploy` aplica la migración limpia sobre una base nueva (v1.1)                                               | integración (`test:bd`)                       | DoD "aplica limpio".                                            |
 | Las 5 tablas existen con los nombres `snake_case` del PRD                                                             | integración (`information_schema`)            | Mapeo §2.2.                                                     |
 | Todas las FK tienen `ON DELETE RESTRICT` (consulta a `pg_constraint`, `confdeltype = 'r'`)                            | integración                                   | RNF-03, DoD.                                                    |
 | Borrar un `rol` que tiene usuarios falla con violación de FK                                                          | integración                                   | RESTRICT en la práctica, no solo en el catálogo del sistema.    |
@@ -355,3 +366,15 @@ cliente. Ninguna bloquea S0.6: este SDD aplica la propuesta provisional de cada 
 | D-24 | ¿El personal pertenece a una sola sede?                       | No agrega `sede_id` a `usuario` (no está en el PRD §5). Si la respuesta es sí, se agrega en S1.x con una migración nueva. |
 | D-25 | ¿Hay nombre de usuario además del CI?                         | Solo `ci` (D-14).                                                                                                         |
 | D-26 | ¿Se anotan en la bitácora los intentos con un CI inexistente? | `log_auditoria.usuario_id` es NOT NULL. Si la respuesta es sí, pasa a nullable (migración trivial).                       |
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13)**: §2.7 y §2.6. Los tests de BD usan una base temporal por
+  corrida (`CREATE DATABASE` → `migrate deploy` → `DROP` solo de esa base) en lugar de
+  `migrate reset --force`. Motivo: Prisma 7 bloquea `reset` invocado por un agente de
+  IA, y el diseño nuevo nunca vacía una base existente. Elegido por el responsable del
+  proyecto. Además: `--skip-seed` ya no existe en Prisma 7 (reset no corre el seed), y
+  las variables de compose se documentan en `.env.example` de la raíz.
+- **1.0 (2026-10-13)**: aprobado.
