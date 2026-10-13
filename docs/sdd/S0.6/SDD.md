@@ -347,12 +347,11 @@ Commits en `feat/S0.6-prisma-inicial`:
 
 ## 7 · Preguntas abiertas
 
-1. **¿El usuario tiene sede?** El prototipo asigna `sedeId` al personal (SEC_DIR
-   en La Paz, Kardex en Ancocagua), y los pases entre sedes (M5) probablemente lo
-   necesitan, pero `usuario` en PRD §5 no tiene `sede_id`. No se agrega aquí:
-   se decide en S1.x o en S3.x, con DEC.
-2. **¿Hay alias de login además del CI?** El prototipo usa `kardex`, `secdir`,
-   etc. D-14 (provisional) dice CI como usuario. Se sigue D-14; los alias son
-   solo de la demo.
-3. **¿Hay eventos de bitácora sin usuario?** Por ejemplo, un login fallido con un
-   CI inexistente. Hoy `usuario_id` es NOT NULL; se revisa en S1.x / S6.4.
+Pasadas al Registro de Dudas (`docs/product/dudas.md`) y a la hoja que responde el
+cliente. Ninguna bloquea S0.6: este SDD aplica la propuesta provisional de cada una.
+
+| Duda | Pregunta                                                      | Qué hace S0.6 mientras tanto                                                                                              |
+| ---- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| D-24 | ¿El personal pertenece a una sola sede?                       | No agrega `sede_id` a `usuario` (no está en el PRD §5). Si la respuesta es sí, se agrega en S1.x con una migración nueva. |
+| D-25 | ¿Hay nombre de usuario además del CI?                         | Solo `ci` (D-14).                                                                                                         |
+| D-26 | ¿Se anotan en la bitácora los intentos con un CI inexistente? | `log_auditoria.usuario_id` es NOT NULL. Si la respuesta es sí, pasa a nullable (migración trivial).                       |
