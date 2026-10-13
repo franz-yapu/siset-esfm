@@ -96,3 +96,21 @@ de web, solo las de las herramientas nuevas.
 3. La contraseña se hashea con **`bcryptjs`** (mismo algoritmo y formato que
    bcrypt, costo 12, RNF-01): `bcrypt` es nativo y npm 11 bloquea su script de
    instalación.
+
+## DEC-006 — Modelo de datos v1, módulo `personas` y autorización con Casbin
+
+**Fecha:** 2026-10-13 · **Fuente:** responsable del proyecto, sobre `docs/bd-tentaiva/ANALISIS.md` · **Estado:** activa
+
+1. Se adopta como **modelo objetivo** el modelo tentativo de `docs/bd-tentaiva/`, con las correcciones del
+   análisis. El documento vigente es `docs/product/modelo-datos.md`; gana sobre `docs/bd-tentaiva/`.
+2. **Enmienda business-rules §Convenciones de datos:** ids `INTEGER` autoincrementales (`SERIAL`
+   vía Prisma) en lugar de `BIGSERIAL`. Excepciones a `ON DELETE RESTRICT`: `refresh_token` y
+   `tipo_tramite_requisito` en `CASCADE`. `CHECK`, índices parciales, triggers y funciones van como SQL
+   dentro de las migraciones de Prisma (no "SQL primero").
+3. **Enmienda ADR-0001:** nuevo módulo **`personas`**, dueño de la tabla `persona` (la usan `seguridad` y
+   `files` por su API pública).
+4. **Enmienda S0.6 (ya en `main`):** como no hay ninguna base desplegada, la migración inicial se rehace
+   (tarea nueva **S0.11**, antes de S0.7) con `persona`, ids `INTEGER`, `ip INET`, los campos completos de
+   `usuario` y los triggers de solo inserción de `log_auditoria` (incluido `TRUNCATE`).
+5. `log_auditoria.usuario_id` pasa a **nullable**. No cierra D-26: solo permite ambas respuestas.
+6. **Autorización con Casbin** y política en archivo versionado: ADR-0002.

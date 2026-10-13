@@ -1,16 +1,20 @@
-// Módulo dueño: catalogos (ADR-0001).
+// Módulo dueño: catalogos (ADR-0001). Modelo v1: docs/product/modelo-datos.md.
 
 model Sede {
-  id     BigInt @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   /// LA_PAZ, ANCOCAGUA
-  codigo String @unique @db.VarChar(20)
-  nombre String @db.VarChar(100)
+  codigo    String    @unique @db.VarChar(20)
+  nombre    String    @db.VarChar(100)
+  direccion String?   @db.VarChar(200)
+  activo    Boolean   @default(true)
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  usuarios  Usuario[]
 
   @@map("sede")
 }
 
 model Especialidad {
-  id     BigInt  @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   nombre String  @unique @db.VarChar(120)
   activo Boolean @default(true)
 

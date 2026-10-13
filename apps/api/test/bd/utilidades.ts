@@ -1,5 +1,6 @@
 import { inject } from 'vitest';
 import { crearClienteBd, type ClienteBd } from '@/compartido/bd';
+import type { KardexInicial } from '../../prisma/semilla';
 
 /** Cliente sobre la base temporal que creó `preparar-bd.ts` para esta corrida. */
 export function clienteDeTest(): ClienteBd {
@@ -7,4 +8,12 @@ export function clienteDeTest(): ClienteBd {
 }
 
 /** Valores de prueba, solo para la base de test. */
-export const KARDEX_DE_PRUEBA = { ci: '9000001', password: 'prueba1234', nombres: 'Kardex', apellidos: 'Prueba' };
+export const KARDEX_DE_PRUEBA: KardexInicial = {
+  ci: '9000001',
+  complemento: '',
+  password: 'prueba1234',
+  nombres: 'Kardex',
+  apellidoPaterno: 'Prueba',
+  apellidoMaterno: null,
+  sede: 'ANCOCAGUA',
+};

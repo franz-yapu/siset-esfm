@@ -1,0 +1,457 @@
+// =====================================================================
+// SISET — Schema de Prisma 6.x (equivalente a siset_schema.sql)
+// Ubicación final: apps/api/prisma/schema.prisma
+//
+// IMPORTANTE: Prisma no puede expresar CHECK, índices parciales, triggers,
+// funciones ni vistas. Esas reglas viven en siset_schema.sql.
+// Flujo recomendado (SQL primero):
+//   1. psql -d siset -f siset_schema.sql
+//   2. npx prisma db pull     (opcional: regenera este archivo desde la BD)
+//   3. npx prisma generate
+// Las vistas (v_file_semaforo, v_hoja_ruta_bandeja) se consultan con
+// prisma.$queryRaw y la función fn_siguiente_nro_hoja_ruta igual.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------
+enum EstadoTramite {
+  REGISTRADO
+  EN_TRANSITO_ANC
+  RECIBIDO
+  EN_REVISION
+  OBSERVADO
+  DICTAMINADO
+  EN_IMPRESION
+  EN_TRANSITO_LP
+  EN_FIRMA
+  LISTO
+  ENTREGADO
+
+  @@map("estado_tramite")
+}
+
+enum CondicionEstudiante {
+  ESTUDIANTE
+  EGRESADO
+
+  @@map("condicion_estudiante")
+}
+
+enum EstadoMatricula {
+  VIGENTE
+  CONCLUIDA
+  ANULADA
+
+  @@map("estado_matricula")
+}
+
+enum ResultadoGestion {
+  APROBADO
+  REPROBADO
+
+  @@map("resultado_gestion")
+}
+
+enum EstadoRequisito {
+  PENDIENTE
+  COMPLETO
+  OBSERVADO
+
+  @@map("estado_requisito")
+}
+
+enum NivelTclo {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+
+  @@map("nivel_tclo")
+}
+
+enum ResultadoDictamen {
+  APROBADO
+  OBSERVADO
+
+  @@map("resultado_dictamen")
+}
+
+// ---------------------------------------------------------------------
+// 1. Seguridad
+// ---------------------------------------------------------------------
+model Rol {
+  id          Int       @id @default(autoincrement()) @db.SmallInt
+  codigo      String    @unique @db.VarChar(20)
+  nombre      String    @db.VarChar(80)
+  descripcion String?   @db.VarChar(255)
+  usuarios    Usuario[]
+
+  @@map("rol")
+}
+
+model Sede {
+  id                Int                  @id @default(autoincrement()) @db.SmallInt
+  codigo            String               @unique @db.VarChar(20)
+  nombre            String               @db.VarChar(100)
+  direccion         String?              @db.VarChar(200)
+  activo            Boolean              @default(true)
+  usuarios          Usuario[]
+  hojasRutaActuales HojaRuta[]
+  movimientos       MovimientoHojaRuta[]
+  pasesOrigen       Pase[]               @relation("PaseOrigen")
+  pasesDestino      Pase[]               @relation("PaseDestino")
+
+  @@map("sede")
+}
+
+model Persona {
+  id              Int            @id @default(autoincrement())
+  ci              String         @db.VarChar(15)
+  complemento     String?        @db.VarChar(5)
+  nombres         String         @db.VarChar(80)
+  apellidoPaterno String?        @map("apellido_paterno") @db.VarChar(60)
+  apellidoMaterno String?        @map("apellido_materno") @db.VarChar(60)
+  fechaNacimiento DateTime?      @map("fecha_nacimiento") @db.Date
+  celular         String?        @db.VarChar(20)
+  email           String?        @db.VarChar(120)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  usuario         Usuario?
+  file            FileAcademico?
+
+  @@unique([ci, complemento], map: "uq_persona_ci")
+  @@index([apellidoPaterno, apellidoMaterno], map: "ix_persona_apellidos")
+  @@map("persona")
+}
+
+model Usuario {
+  id                  Int       @id @default(autoincrement())
+  personaId           Int       @unique @map("persona_id")
+  rolId               Int       @map("rol_id") @db.SmallInt
+  sedeId              Int?      @map("sede_id") @db.SmallInt
+  username            String    @unique @db.VarChar(40)
+  passwordHash        String    @map("password_hash") @db.VarChar(100)
+  activo              Boolean   @default(true)
+  intentosFallidos    Int       @default(0) @map("intentos_fallidos") @db.SmallInt
+  bloqueadoHasta      DateTime? @map("bloqueado_hasta") @db.Timestamptz(6)
+  debeCambiarPassword Boolean   @default(true) @map("debe_cambiar_password")
+  ultimoAcceso        DateTime? @map("ultimo_acceso") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  persona Persona @relation(fields: [personaId], references: [id], onDelete: Restrict)
+  rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  sede    Sede?   @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+
+  refreshTokens         RefreshToken[]
+  resultadosRegistrados ResultadoAnual[]     @relation("ResultadoRegistradoPor")
+  requisitosRegistrados RequisitoFile[]      @relation("RequisitoRegistradoPor")
+  hojasRutaCreadas      HojaRuta[]           @relation("HojaRutaCreadaPor")
+  movimientos           MovimientoHojaRuta[]
+  pasesEnviados         Pase[]               @relation("PaseEnvia")
+  pasesRecibidos        Pase[]               @relation("PaseRecibe")
+  dictamenes            Dictamen[]
+  documentosEmitidos    DocumentoEmitido[]
+  auditoria             LogAuditoria[]
+
+  @@map("usuario")
+}
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  usuarioId  Int       @map("usuario_id")
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiraEn   DateTime  @map("expira_en") @db.Timestamptz(6)
+  revocadoEn DateTime? @map("revocado_en") @db.Timestamptz(6)
+  ip         String?   @db.Inet
+  userAgent  String?   @map("user_agent") @db.VarChar(255)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_token")
+}
+
+// ---------------------------------------------------------------------
+// 2. Catálogos y parámetros
+// ---------------------------------------------------------------------
+model Especialidad {
+  id     Int             @id @default(autoincrement()) @db.SmallInt
+  nombre String          @unique @db.VarChar(120)
+  activo Boolean         @default(true)
+  files  FileAcademico[]
+
+  @@map("especialidad")
+}
+
+model RequisitoTipo {
+  id            Int                    @id @default(autoincrement()) @db.SmallInt
+  codigo        String                 @unique @db.VarChar(30)
+  nombre        String                 @db.VarChar(120)
+  descripcion   String?                @db.VarChar(255)
+  obligatorio   Boolean                @default(true)
+  requiereNivel Boolean                @default(false) @map("requiere_nivel")
+  activo        Boolean                @default(true)
+  requisitos    RequisitoFile[]
+  tiposTramite  TipoTramiteRequisito[]
+
+  @@map("requisito_tipo")
+}
+
+model TipoTramite {
+  id                 Int                    @id @default(autoincrement()) @db.SmallInt
+  codigo             String                 @unique @db.VarChar(30)
+  nombre             String                 @db.VarChar(120)
+  plantillaDocumento String?                @map("plantilla_documento") @db.VarChar(50)
+  activo             Boolean                @default(true)
+  requisitos         TipoTramiteRequisito[]
+  hojasRuta          HojaRuta[]
+
+  @@map("tipo_tramite")
+}
+
+model TipoTramiteRequisito {
+  tipoTramiteId   Int @map("tipo_tramite_id") @db.SmallInt
+  requisitoTipoId Int @map("requisito_tipo_id") @db.SmallInt
+
+  tipoTramite   TipoTramite   @relation(fields: [tipoTramiteId], references: [id], onDelete: Cascade)
+  requisitoTipo RequisitoTipo @relation(fields: [requisitoTipoId], references: [id], onDelete: Restrict)
+
+  @@id([tipoTramiteId, requisitoTipoId])
+  @@map("tipo_tramite_requisito")
+}
+
+model Parametro {
+  clave       String   @id @db.VarChar(50)
+  valor       String   @db.VarChar(100)
+  descripcion String?  @db.VarChar(255)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("parametro")
+}
+
+// ---------------------------------------------------------------------
+// 3. File académico
+// ---------------------------------------------------------------------
+model FileAcademico {
+  id               Int                 @id @default(autoincrement())
+  personaId        Int                 @unique @map("persona_id")
+  codigoEstudiante String              @unique @map("codigo_estudiante") @db.VarChar(20)
+  especialidadId   Int                 @map("especialidad_id") @db.SmallInt
+  anioIngreso      Int                 @map("anio_ingreso") @db.SmallInt
+  condicion        CondicionEstudiante @default(ESTUDIANTE)
+  bloqueado        Boolean             @default(false)
+  motivoBloqueo    String?             @map("motivo_bloqueo") @db.VarChar(255)
+  activo           Boolean             @default(true)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  persona      Persona          @relation(fields: [personaId], references: [id], onDelete: Restrict)
+  especialidad Especialidad     @relation(fields: [especialidadId], references: [id], onDelete: Restrict)
+  matriculas   Matricula[]
+  resultados   ResultadoAnual[]
+  requisitos   RequisitoFile[]
+  hojasRuta    HojaRuta[]
+
+  @@index([especialidadId, anioIngreso], map: "ix_file_especialidad")
+  @@map("file_academico")
+}
+
+model Matricula {
+  id            Int             @id @default(autoincrement())
+  fileId        Int             @map("file_id")
+  anioFormacion Int             @map("anio_formacion") @db.SmallInt
+  gestion       Int             @db.SmallInt
+  estado        EstadoMatricula @default(VIGENTE)
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  file FileAcademico @relation(fields: [fileId], references: [id], onDelete: Restrict)
+
+  @@unique([fileId, anioFormacion], map: "uq_matricula_anio")
+  @@map("matricula")
+}
+
+model ResultadoAnual {
+  id            Int              @id @default(autoincrement())
+  fileId        Int              @map("file_id")
+  anioFormacion Int              @map("anio_formacion") @db.SmallInt
+  gestion       Int              @db.SmallInt
+  resultado     ResultadoGestion
+  ufReprobadas  Int              @default(0) @map("uf_reprobadas") @db.SmallInt
+  fuente        String?          @db.VarChar(100)
+  registradoPor Int              @map("registrado_por")
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  file        FileAcademico @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  registrador Usuario       @relation("ResultadoRegistradoPor", fields: [registradoPor], references: [id], onDelete: Restrict)
+
+  @@unique([fileId, anioFormacion], map: "uq_resultado_anio")
+  @@map("resultado_anual")
+}
+
+model RequisitoFile {
+  id              Int             @id @default(autoincrement())
+  fileId          Int             @map("file_id")
+  requisitoTipoId Int             @map("requisito_tipo_id") @db.SmallInt
+  estado          EstadoRequisito @default(PENDIENTE)
+  fecha           DateTime?       @db.Date
+  nroDocumento    String?         @map("nro_documento") @db.VarChar(40)
+  nivel           NivelTclo?
+  observacion     String?         @db.VarChar(255)
+  registradoPor   Int?            @map("registrado_por")
+  updatedAt       DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  file          FileAcademico @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  requisitoTipo RequisitoTipo @relation(fields: [requisitoTipoId], references: [id], onDelete: Restrict)
+  registrador   Usuario?      @relation("RequisitoRegistradoPor", fields: [registradoPor], references: [id], onDelete: Restrict)
+
+  @@unique([fileId, requisitoTipoId], map: "uq_requisito_file")
+  @@map("requisito_file")
+}
+
+// ---------------------------------------------------------------------
+// 4. Trámites
+// ---------------------------------------------------------------------
+model HojaRutaCorrelativo {
+  gestion Int @id @db.SmallInt
+  ultimo  Int @default(0)
+
+  @@map("hoja_ruta_correlativo")
+}
+
+model HojaRuta {
+  id            Int           @id @default(autoincrement())
+  nroTramite    String        @unique @map("nro_tramite") @db.VarChar(20)
+  gestion       Int           @db.SmallInt
+  correlativo   Int
+  fileId        Int           @map("file_id")
+  tipoTramiteId Int           @map("tipo_tramite_id") @db.SmallInt
+  estadoActual  EstadoTramite @default(REGISTRADO) @map("estado_actual")
+  sedeActualId  Int           @map("sede_actual_id") @db.SmallInt
+  nroValorado   String?       @map("nro_valorado") @db.VarChar(30)
+  observacion   String?       @db.VarChar(255)
+  fechaIngreso  DateTime      @default(now()) @map("fecha_ingreso") @db.Timestamptz(6)
+  fechaCierre   DateTime?     @map("fecha_cierre") @db.Timestamptz(6)
+  creadoPor     Int           @map("creado_por")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  file        FileAcademico        @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  tipoTramite TipoTramite          @relation(fields: [tipoTramiteId], references: [id], onDelete: Restrict)
+  sedeActual  Sede                 @relation(fields: [sedeActualId], references: [id], onDelete: Restrict)
+  creador     Usuario              @relation("HojaRutaCreadaPor", fields: [creadoPor], references: [id], onDelete: Restrict)
+  movimientos MovimientoHojaRuta[]
+  pases       Pase[]
+  dictamenes  Dictamen[]
+  documentos  DocumentoEmitido[]
+
+  @@unique([gestion, correlativo], map: "uq_hoja_ruta_correlativo")
+  @@index([sedeActualId, estadoActual], map: "ix_hoja_ruta_bandeja")
+  @@index([fileId], map: "ix_hoja_ruta_file")
+  @@index([fechaIngreso(sort: Desc)], map: "ix_hoja_ruta_fecha")
+  @@map("hoja_ruta")
+}
+
+model MovimientoHojaRuta {
+  id             Int            @id @default(autoincrement())
+  hojaRutaId     Int            @map("hoja_ruta_id")
+  estadoAnterior EstadoTramite? @map("estado_anterior")
+  estadoNuevo    EstadoTramite  @map("estado_nuevo")
+  sedeId         Int            @map("sede_id") @db.SmallInt
+  usuarioId      Int            @map("usuario_id")
+  observacion    String?        @db.VarChar(255)
+  fecha          DateTime       @default(now()) @db.Timestamptz(6)
+
+  hojaRuta HojaRuta @relation(fields: [hojaRutaId], references: [id], onDelete: Restrict)
+  sede     Sede     @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([hojaRutaId, fecha], map: "ix_movimiento_timeline")
+  @@map("movimiento_hoja_ruta")
+}
+
+model Pase {
+  id              Int       @id @default(autoincrement())
+  hojaRutaId      Int       @map("hoja_ruta_id")
+  sedeOrigenId    Int       @map("sede_origen_id") @db.SmallInt
+  sedeDestinoId   Int       @map("sede_destino_id") @db.SmallInt
+  usuarioEnviaId  Int       @map("usuario_envia_id")
+  fechaEnvio      DateTime  @default(now()) @map("fecha_envio") @db.Timestamptz(6)
+  usuarioRecibeId Int?      @map("usuario_recibe_id")
+  fechaRecepcion  DateTime? @map("fecha_recepcion") @db.Timestamptz(6)
+  observacion     String?   @db.VarChar(255)
+
+  hojaRuta      HojaRuta @relation(fields: [hojaRutaId], references: [id], onDelete: Restrict)
+  sedeOrigen    Sede     @relation("PaseOrigen", fields: [sedeOrigenId], references: [id], onDelete: Restrict)
+  sedeDestino   Sede     @relation("PaseDestino", fields: [sedeDestinoId], references: [id], onDelete: Restrict)
+  usuarioEnvia  Usuario  @relation("PaseEnvia", fields: [usuarioEnviaId], references: [id], onDelete: Restrict)
+  usuarioRecibe Usuario? @relation("PaseRecibe", fields: [usuarioRecibeId], references: [id], onDelete: Restrict)
+
+  @@index([hojaRutaId], map: "ix_pase_hoja_ruta")
+  @@map("pase")
+}
+
+model Dictamen {
+  id            Int               @id @default(autoincrement())
+  hojaRutaId    Int               @map("hoja_ruta_id")
+  coordinadorId Int               @map("coordinador_id")
+  resultado     ResultadoDictamen
+  observaciones String?           @db.VarChar(500)
+  fecha         DateTime          @default(now()) @db.Timestamptz(6)
+
+  hojaRuta    HojaRuta @relation(fields: [hojaRutaId], references: [id], onDelete: Restrict)
+  coordinador Usuario  @relation(fields: [coordinadorId], references: [id], onDelete: Restrict)
+
+  @@index([hojaRutaId, fecha(sort: Desc)], map: "ix_dictamen_hoja_ruta")
+  @@map("dictamen")
+}
+
+model DocumentoEmitido {
+  id                Int      @id @default(autoincrement())
+  hojaRutaId        Int      @map("hoja_ruta_id")
+  tipoDocumento     String   @map("tipo_documento") @db.VarChar(50)
+  nroValorado       String   @unique(map: "uq_documento_valorado") @map("nro_valorado") @db.VarChar(30)
+  emitidoPor        Int      @map("emitido_por")
+  esReimpresion     Boolean  @default(false) @map("es_reimpresion")
+  motivoReimpresion String?  @map("motivo_reimpresion") @db.VarChar(255)
+  fecha             DateTime @default(now()) @db.Timestamptz(6)
+
+  hojaRuta HojaRuta @relation(fields: [hojaRutaId], references: [id], onDelete: Restrict)
+  emisor   Usuario  @relation(fields: [emitidoPor], references: [id], onDelete: Restrict)
+
+  @@index([hojaRutaId], map: "ix_documento_hoja_ruta")
+  @@map("documento_emitido")
+}
+
+// ---------------------------------------------------------------------
+// 5. Auditoría
+// ---------------------------------------------------------------------
+model LogAuditoria {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int?     @map("usuario_id")
+  accion       String   @db.VarChar(40)
+  modulo       String   @db.VarChar(40)
+  entidad      String?  @db.VarChar(40)
+  entidadId    String?  @map("entidad_id") @db.VarChar(40)
+  datosAntes   Json?    @map("datos_antes")
+  datosDespues Json?    @map("datos_despues")
+  ip           String?  @db.Inet
+  userAgent    String?  @map("user_agent") @db.VarChar(255)
+  fecha        DateTime @default(now()) @db.Timestamptz(6)
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([fecha(sort: Desc)], map: "ix_auditoria_fecha")
+  @@index([usuarioId, fecha(sort: Desc)], map: "ix_auditoria_usuario")
+  @@index([modulo, fecha(sort: Desc)], map: "ix_auditoria_modulo")
+  @@map("log_auditoria")
+}

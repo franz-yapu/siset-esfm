@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { crearClienteBd } from '@/compartido/bd';
-import { leerKardexInicial } from '../prisma/semilla';
+import { leerKardexInicial, usernameDe } from '../prisma/semilla';
 
 describe('leerKardexInicial', () => {
   const valido = { SEED_KARDEX_CI: '1000001', SEED_KARDEX_PASSWORD: 'clave1234' };
@@ -14,23 +14,48 @@ describe('leerKardexInicial', () => {
   });
 
   it.each(['corta1', 'soloLetrasLargas', '12345678'])('rechaza la contraseña débil %s sin mostrarla', (clave) => {
-    expect(() => leerKardexInicial({ ...valido, SEED_KARDEX_PASSWORD: clave })).toThrow(
-      /mínimo 8 caracteres, con letras y números/,
-    );
+    let mensaje = '';
     try {
       leerKardexInicial({ ...valido, SEED_KARDEX_PASSWORD: clave });
     } catch (e) {
-      expect((e as Error).message).not.toContain(clave);
+      mensaje = (e as Error).message;
     }
+    expect(mensaje).toMatch(/mínimo 8 caracteres, con letras y números/);
+    expect(mensaje).not.toContain(clave);
   });
 
-  it('usa nombres por defecto', () => {
+  it('rechaza una sede que no existe', () => {
+    expect(() => leerKardexInicial({ ...valido, SEED_KARDEX_SEDE: 'ORURO' })).toThrow(/LA_PAZ, ANCOCAGUA/);
+  });
+
+  it('rechaza un complemento de más de 5 caracteres', () => {
+    expect(() => leerKardexInicial({ ...valido, SEED_KARDEX_COMPLEMENTO: '123456' })).toThrow(/5 caracteres/);
+  });
+
+  it('exige al menos un apellido', () => {
+    expect(() => leerKardexInicial({ ...valido, SEED_KARDEX_APELLIDO_PATERNO: '' })).toThrow(/al menos un apellido/);
+    expect(
+      leerKardexInicial({ ...valido, SEED_KARDEX_APELLIDO_PATERNO: '', SEED_KARDEX_APELLIDO_MATERNO: 'Mamani' }),
+    ).toMatchObject({ apellidoPaterno: null, apellidoMaterno: 'Mamani' });
+  });
+
+  it('usa valores por defecto', () => {
     expect(leerKardexInicial(valido)).toEqual({
       ci: '1000001',
+      complemento: '',
       password: 'clave1234',
       nombres: 'Kardex',
-      apellidos: 'Inicial',
+      apellidoPaterno: 'Inicial',
+      apellidoMaterno: null,
+      sede: 'ANCOCAGUA',
     });
+  });
+});
+
+describe('usernameDe', () => {
+  it('es el CI, con el complemento si lo hay', () => {
+    expect(usernameDe('1234567', '')).toBe('1234567');
+    expect(usernameDe('1234567', '1A')).toBe('1234567-1A');
   });
 });
 
