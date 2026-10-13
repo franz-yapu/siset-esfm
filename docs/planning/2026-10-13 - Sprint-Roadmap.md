@@ -100,27 +100,27 @@ Tamaño en horas. Estado: ✅ listo · 🟡 en curso o UI en prototipo · ⬜ pe
 |---|---|---|---:|---|---|---|---|---|---|
 | S0.1 | Negocio | Demo del prototipo + dudas | 3 | 🟡 | 1 | sí | [868mgh27v](https://app.clickup.com/t/868mgh27v) | — | — |
 | S0.3–S0.11 | Entorno | Fundaciones (9 tareas) | 28 | ✅ | — | sí | ClickUp | — | — |
-| S0.12 | DevOps | Despliegue de staging en el VPS | 2 | ⬜ | 1 | sí | | S0.9 | Tu autorización |
-| S0.13 | Negocio | Demo en línea para el tutor | 1 | ⬜ | 2 | sí | | S0.12 | — |
-| S1.1 | Seguridad | refresh_token + campos de bloqueo | 2 | ⬜ | 1 | sí | | S0.11 | — |
-| S1.2 | Seguridad | bcrypt + política de contraseña | 2 | ⬜ | 1 | sí | | S0.7 | — |
-| S1.3 | Seguridad | POST /auth/login | 6 | ⬜ | 1 | sí | | S1.1, S1.2 | D-14/D-25 (provisional) |
-| S1.7 | Auditoría | Eventos de acceso en bitácora | 1 | ⬜ | 1 | sí | | S0.7 | — |
-| S1.4 | Seguridad | Bloqueo 5 intentos + rate limit | 3 | ⬜ | 2 | sí | | S1.3 | — |
-| S1.5 | Seguridad | refresh (rotación) + logout | 4 | ⬜ | 2 | sí | | S1.3 | — |
-| S1.6 | Seguridad | Casbin + "solo lo propio" + sede | 5 | ⬜ | 2 | sí | | S1.3 | D-24, D-27 (provisional) |
-| S1.8 | Usuarios | API de usuarios | 6 | ⬜ | 2 | sí | | S1.6 | D-27 (provisional) |
-| S1.9 | Seguridad | Login y cambio de clave conectados | 2 | 🟡 | 2 | sí | | S1.3 | — |
-| S1.10 | Seguridad | Sesión real, refresh, inactividad | 4 | 🟡 | 2 | sí | | S1.5 | — |
-| S1.11 | Seguridad | Rutas por rol, menú, 403 | 1 | 🟡 | 2 | sí | | S1.10 | — |
-| S1.13 | Usuarios | Pantalla de usuarios conectada | 3 | 🟡 | 2 | sí | | S1.8 | — |
-| S1.14 | QA | Pruebas auth + 403 + URL directa | 6 | ⬜ | 2 | sí | | S1.6 | — |
-| S6.4 | Auditoría | Bitácora inmutable + cobertura | 4 | ⬜ | 2 | sí | | S1.7 | — |
-| S6.5 | Auditoría | Pantalla de bitácora conectada | 2 | 🟡 | 2 | sí | | S6.4 | — |
-| S2.1 | File | Tablas del file + catálogo | 5 | ⬜ | 2 | sí | | S0.11 | — |
-| S2.2 | File | API de files con paginación | 6 | ⬜ | 2 | sí | | S2.1, S1.6 | — |
-| S2.9 | File | Búsqueda de files conectada | 2 | 🟡 | 2 | sí | | S2.2 | — |
-| S2.10 | File | Detalle del file (sin requisitos oficiales) | 3 | 🟡 | 2 | sí | | S2.2 | D-04 para requisitos |
+| S0.12 | DevOps | Despliegue de staging en el VPS | 2 | ⬜ | 1 | sí | [868mh1kuh](https://app.clickup.com/t/868mh1kuh) | S0.9 | Tu autorización |
+| S0.13 | Negocio | Demo en línea para el tutor | 1 | ⬜ | 2 | sí | [868mh1kyb](https://app.clickup.com/t/868mh1kyb) | S0.12 | — |
+| S1.1 | Seguridad | refresh_token + campos de bloqueo | 2 | ⬜ | 1 | sí | [868mh1kur](https://app.clickup.com/t/868mh1kur) | S0.11 | — |
+| S1.2 | Seguridad | bcrypt + política de contraseña | 2 | ⬜ | 1 | sí | [868mh1kuv](https://app.clickup.com/t/868mh1kuv) | S0.7 | — |
+| S1.3 | Seguridad | POST /auth/login | 6 | ⬜ | 1 | sí | [868mh1kv5](https://app.clickup.com/t/868mh1kv5) | S1.1, S1.2 | D-14/D-25 (provisional) |
+| S1.7 | Auditoría | Eventos de acceso en bitácora | 1 | ⬜ | 1 | sí | [868mh1kv0](https://app.clickup.com/t/868mh1kv0) | S0.7 | — |
+| S1.4 | Seguridad | Bloqueo 5 intentos + rate limit | 3 | ⬜ | 2 | sí | [868mh1kve](https://app.clickup.com/t/868mh1kve) | S1.3 | — |
+| S1.5 | Seguridad | refresh (rotación) + logout | 4 | ⬜ | 2 | sí | [868mh1kvq](https://app.clickup.com/t/868mh1kvq) | S1.3 | — |
+| S1.6 | Seguridad | Casbin + "solo lo propio" + sede | 5 | ⬜ | 2 | sí | [868mh1kw0](https://app.clickup.com/t/868mh1kw0) | S1.3 | D-24, D-27 (provisional) |
+| S1.8 | Usuarios | API de usuarios | 6 | ⬜ | 2 | sí | [868mh1kw5](https://app.clickup.com/t/868mh1kw5) | S1.6 | D-27 (provisional) |
+| S1.9 | Seguridad | Login y cambio de clave conectados | 2 | 🟡 | 2 | sí | [868mh1kwe](https://app.clickup.com/t/868mh1kwe) | S1.3 | — |
+| S1.10 | Seguridad | Sesión real, refresh, inactividad | 4 | 🟡 | 2 | sí | [868mh1kwk](https://app.clickup.com/t/868mh1kwk) | S1.5 | — |
+| S1.11 | Seguridad | Rutas por rol, menú, 403 | 1 | 🟡 | 2 | sí | [868mh1kwp](https://app.clickup.com/t/868mh1kwp) | S1.10 | — |
+| S1.13 | Usuarios | Pantalla de usuarios conectada | 3 | 🟡 | 2 | sí | [868mh1kwv](https://app.clickup.com/t/868mh1kwv) | S1.8 | — |
+| S1.14 | QA | Pruebas auth + 403 + URL directa | 6 | ⬜ | 2 | sí | [868mh1kwy](https://app.clickup.com/t/868mh1kwy) | S1.6 | — |
+| S6.4 | Auditoría | Bitácora inmutable + cobertura | 4 | ⬜ | 2 | sí | [868mh1kx2](https://app.clickup.com/t/868mh1kx2) | S1.7 | — |
+| S6.5 | Auditoría | Pantalla de bitácora conectada | 2 | 🟡 | 2 | sí | [868mh1kx8](https://app.clickup.com/t/868mh1kx8) | S6.4 | — |
+| S2.1 | File | Tablas del file + catálogo | 5 | ⬜ | 2 | sí | [868mh1kxd](https://app.clickup.com/t/868mh1kxd) | S0.11 | — |
+| S2.2 | File | API de files con paginación | 6 | ⬜ | 2 | sí | [868mh1kxn](https://app.clickup.com/t/868mh1kxn) | S2.1, S1.6 | — |
+| S2.9 | File | Búsqueda de files conectada | 2 | 🟡 | 2 | sí | [868mh1kxz](https://app.clickup.com/t/868mh1kxz) | S2.2 | — |
+| S2.10 | File | Detalle del file (sin requisitos oficiales) | 3 | 🟡 | 2 | sí | [868mh1ky6](https://app.clickup.com/t/868mh1ky6) | S2.2 | D-04 para requisitos |
 | S6.10 | DevOps | Producción del piloto + respaldos | 5 | ⛔ | 3a | sí | | S0.12 | D-12 |
 | S2.3 | File | Matrículas y resultado anual | 4 | ⛔ | 3a | si llega D-07 | | S2.1 | D-07 |
 | S2.8 | File | Importación Excel | 6 | ⛔ | 3a | si llega D-13 | | S2.2 | D-13 |
