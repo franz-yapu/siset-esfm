@@ -19,6 +19,8 @@
   globales.
 - Modelo de datos: `docs/product/modelo-datos.md` (DEC-006); ids `INTEGER`, nunca `BigInt`.
   Autorización: Casbin con política en archivo (ADR-0002); "propio" y sede se validan en el servicio.
+- Trazabilidad (DEC-007): toda escritura de negocio y todo evento de acceso llama a
+  `auditoria.registrarEvento()` en la misma transacción. Sin evento, el ticket no está terminado.
 - Flujo SDD: antes de codear un ticket, `task-brief` → `write-sdd` →
   `docs/sdd/<ID>/SDD.md`. No se escribe código hasta que el SDD esté en
   Estado `Aprobado (fecha)`; si la implementación se desvía, se versiona el SDD.
