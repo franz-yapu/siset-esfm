@@ -104,3 +104,9 @@ sigue la tabla de arriba en ambos casos.
   cada módulo.
 - **Frontend:** `apps/web` mantiene su estructura actual (páginas por rol +
   `src/services/` por módulo); este ADR no la cambia.
+
+## Enmiendas
+
+- **2026-10-13 (DEC-006):** se agrega el módulo **`personas`**, dueño de la tabla `persona` (datos
+  personales únicos por CI). `seguridad` (cuentas) y `files` (expedientes, carga masiva) la usan por su
+  API pública. La propiedad completa de las tablas del modelo v1 está en `docs/product/modelo-datos.md`.
