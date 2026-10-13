@@ -6,8 +6,8 @@ const bd = clienteDeTest();
 beforeAll(() => sembrar(bd, KARDEX_DE_PRUEBA));
 afterAll(() => bd.$disconnect());
 
-describe('migración inicial del modelo v1 (SDD S0.11)', () => {
-  it('crea exactamente las 6 tablas del ticket', async () => {
+describe('migraciones del modelo v1 (SDD S0.11, S1.1)', () => {
+  it('crea exactamente las 8 tablas: las 6 de S0.11 más parametro y refresh_token (S1.1)', async () => {
     const filas = await bd.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'
@@ -15,7 +15,9 @@ describe('migración inicial del modelo v1 (SDD S0.11)', () => {
     expect(filas.map((f) => f.table_name)).toEqual([
       'especialidad',
       'log_auditoria',
+      'parametro',
       'persona',
+      'refresh_token',
       'rol',
       'sede',
       'usuario',
@@ -32,12 +34,14 @@ describe('migración inicial del modelo v1 (SDD S0.11)', () => {
     expect(columnas.filter((c) => c.data_type !== 'integer')).toEqual([]);
   });
 
-  it('todas las FK son ON DELETE RESTRICT y ON UPDATE RESTRICT', async () => {
+  it('todas las FK son RESTRICT, salvo refresh_token.usuario_id: CASCADE al borrar (DEC-006)', async () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(4);
-    expect(fks.filter((fk) => fk.del !== 'r' || fk.upd !== 'r')).toEqual([]);
+    expect(fks.length).toBe(5);
+    const excepcion = 'refresh_token_usuario_id_fkey';
+    expect(fks.find((fk) => fk.conname === excepcion)).toMatchObject({ del: 'c', upd: 'r' });
+    expect(fks.filter((fk) => fk.conname !== excepcion && (fk.del !== 'r' || fk.upd !== 'r'))).toEqual([]);
   });
 
   it('impide duplicar un CI sin complemento y permite complementos distintos (E1)', async () => {
