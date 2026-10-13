@@ -66,6 +66,19 @@ pantallas solo importan `<servicio>.service.ts`. En desarrollo, `/api` va por el
 E2E (Playwright con el Chrome instalado): `npm run e2e`. Recorre las pantallas de los 6 roles, los flujos
 interactivos y el modo API, y falla ante cualquier error o advertencia de consola.
 
+Stack completo con Docker (S0.4): base, API, migraciones y web con Nginx, como en producción.
+
+```bash
+cp .env.example .env                                   # puertos y contraseña de desarrollo
+docker compose --profile completo up -d --build --wait # web en http://localhost:8080
+docker compose --profile completo run --rm \
+  -e SEED_KARDEX_CI=… -e SEED_KARDEX_PASSWORD=… migrar npm run bd:seed -w @siset/api   # seed opcional
+scripts/docker-smoke.sh                                # prueba de humo en un proyecto aparte
+```
+
+Nginx sirve la web y hace de proxy de `/api` (mismo origen). La API no publica su puerto, corre sin root y
+con el filesystem de solo lectura. `docker compose up -d db` sigue levantando solo la base para desarrollo.
+
 Gate de calidad (lo mismo que corre la CI):
 
 ```bash

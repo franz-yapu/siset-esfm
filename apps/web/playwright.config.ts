@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
 const CI = Boolean(process.env.CI);
+/** Con E2E_BASE_URL, la suite corre el proyecto `mock` contra un stack ya levantado (p. ej. Docker, SDD S0.4). */
+const BASE_EXTERNA = process.env.E2E_BASE_URL;
 const servidor = (puerto: number, salida: string, usarApi: string) => ({
   command: `npx vite build --outDir ${salida} --emptyOutDir && npx vite preview --outDir ${salida} --port ${puerto} --strictPort`,
   url: `http://localhost:${puerto}`,
@@ -20,9 +22,11 @@ export default defineConfig({
   retries: CI ? 1 : 0,
   reporter: CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: { channel: 'chrome', headless: true, trace: 'retain-on-failure' },
-  projects: [
-    { name: 'mock', testIgnore: /modo-api/, use: { baseURL: 'http://localhost:4180' } },
-    { name: 'api', testMatch: /modo-api/, use: { baseURL: 'http://localhost:4181' } },
-  ],
-  webServer: [servidor(4180, 'dist-e2e-mock', 'false'), servidor(4181, 'dist-e2e-api', 'auth')],
+  projects: BASE_EXTERNA
+    ? [{ name: 'mock', testIgnore: /modo-api/, use: { baseURL: BASE_EXTERNA } }]
+    : [
+        { name: 'mock', testIgnore: /modo-api/, use: { baseURL: 'http://localhost:4180' } },
+        { name: 'api', testMatch: /modo-api/, use: { baseURL: 'http://localhost:4181' } },
+      ],
+  webServer: BASE_EXTERNA ? [] : [servidor(4180, 'dist-e2e-mock', 'false'), servidor(4181, 'dist-e2e-api', 'auth')],
 });

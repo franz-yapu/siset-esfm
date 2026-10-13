@@ -101,3 +101,27 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report
           retention-days: 7
+
+  docker:
+    name: docker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Stack completo + prueba de humo
+        run: scripts/docker-smoke.sh --mantener
+      - name: E2E contra Nginx (Docker)
+        run: npm run e2e
+        env:
+          E2E_BASE_URL: http://localhost:8090
+      - name: Logs de los contenedores
+        if: failure()
+        run: COMPOSE_PROJECT_NAME=siset-smoke docker compose --profile completo logs --no-color --tail 200
+      - name: Bajar el stack
+        if: always()
+        run: COMPOSE_PROJECT_NAME=siset-smoke docker compose --profile completo down -v
