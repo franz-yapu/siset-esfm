@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { Printer } from 'lucide-react';
 import type { Entrega } from '@/types';

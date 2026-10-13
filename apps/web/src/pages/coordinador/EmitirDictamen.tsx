@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { AlertTriangle, CheckCircle2, PenLine } from 'lucide-react';
 import clsx from 'clsx';
 import type { Dictamen } from '@/types';

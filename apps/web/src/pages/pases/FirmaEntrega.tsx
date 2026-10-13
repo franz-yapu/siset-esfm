@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowRight, PackageCheck } from 'lucide-react';
 import type { EstadoTramite, Entrega, HojaRutaConTitular } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';

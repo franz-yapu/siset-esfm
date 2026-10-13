@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowRight, FileText } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
 import { filesService } from '@/services/files.service';

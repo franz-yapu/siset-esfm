@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { CheckCheck } from 'lucide-react';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { pasesService, type Pase } from '@/services/pases.service';

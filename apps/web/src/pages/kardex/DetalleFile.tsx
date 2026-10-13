@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { Lock, LockOpen, Plus } from 'lucide-react';
 import type { CodigoRequisito, Requisito, ResultadoAnual } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';

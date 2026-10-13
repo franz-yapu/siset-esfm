@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { CheckCircle2, Circle, Send, X } from 'lucide-react';
 import type { HojaRutaConTitular } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';

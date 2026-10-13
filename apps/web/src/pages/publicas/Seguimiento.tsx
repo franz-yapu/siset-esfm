@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router';
 import { ArrowLeft, MapPin, Search, ShieldCheck } from 'lucide-react';
 import type { Movimiento, EstadoTramite } from '@/types';
 import { hojasRutaService } from '@/services/hojasRuta.service';

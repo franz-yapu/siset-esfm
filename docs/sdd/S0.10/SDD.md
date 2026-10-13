@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.10** (`868mgt162`, https://app.clickup.com/t/868mgt162).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/decisions/LOG.md` — DEC-004 (última versión estable de cada dependencia; React 19, React Router 8, Vite 8)

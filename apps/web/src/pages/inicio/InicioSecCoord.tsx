@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowRightLeft, Inbox, PackageCheck } from 'lucide-react';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { reportesService } from '@/services/reportes.service';

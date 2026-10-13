@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from '@/hooks';
 import { rutaInicio } from '@/config/permisos';
 import { AppLayout } from '@/components/layout/AppLayout';

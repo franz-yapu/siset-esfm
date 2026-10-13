@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { ArrowLeftRight, ClipboardCheck, Lock, Printer, Search, UserCog } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
 import { reportesService } from '@/services/reportes.service';

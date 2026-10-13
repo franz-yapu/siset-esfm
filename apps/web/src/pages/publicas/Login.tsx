@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
