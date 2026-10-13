@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { useAsync } from '@/hooks';

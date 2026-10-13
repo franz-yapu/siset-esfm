@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { FileQuestion, ShieldX } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { rutaInicio } from '@/config/permisos';

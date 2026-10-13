@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { MapPin, X } from 'lucide-react';
 import clsx from 'clsx';
 import type { Usuario } from '@/types';

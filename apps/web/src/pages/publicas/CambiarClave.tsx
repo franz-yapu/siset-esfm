@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { KeyRound } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth, useToast, useUsuario } from '@/hooks';

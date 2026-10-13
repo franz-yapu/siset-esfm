@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { ArrowLeft, Download, FileText, MapPin } from 'lucide-react';
 import { useAsync, useToast, useUsuario } from '@/hooks';
 import { hojasRutaService } from '@/services/hojasRuta.service';

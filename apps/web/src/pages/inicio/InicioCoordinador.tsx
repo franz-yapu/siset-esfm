@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Bar } from 'react-chartjs-2';
 import { AlertTriangle, CheckCircle2, Clock, Gavel } from 'lucide-react';
 import '@/lib/graficos';

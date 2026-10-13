@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { CheckCircle2, Eye, Printer, Save, Search, Send, X } from 'lucide-react';
 import type { FileAcademico, HojaRutaConTitular, TipoTramite } from '@/types';

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { useAsync, useToast, useUsuario } from '@/hooks';
 import { filesService } from '@/services/files.service';
 import { Card, Cargando, PageHeader } from '@/components/ui';

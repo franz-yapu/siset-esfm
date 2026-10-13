@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Bar, Line } from 'react-chartjs-2';
 import { AlertTriangle, CheckCircle2, Clock, FileDown, FileSpreadsheet, Layers, Loader } from 'lucide-react';
 import '@/lib/graficos';

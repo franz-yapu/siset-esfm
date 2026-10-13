@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Lock, UserPlus } from 'lucide-react';
 import type { ColorSemaforo } from '@/types';
 import { useAsync, useUsuario } from '@/hooks';

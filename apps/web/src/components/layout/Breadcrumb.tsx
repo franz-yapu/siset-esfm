@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import type { Rol } from '@/types';
 import { rutaInicio } from '@/config/permisos';
