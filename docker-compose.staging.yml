@@ -1,0 +1,54 @@
+# Staging de SISET detrás del Traefik de Coolify (SDD S0.9). Se usa junto con docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.staging.yml --profile completo up -d --build --wait
+# El VPS es compartido con producción de otros proyectos: sin puertos de host, con límites de recursos y
+# con routers de prioridad alta (otro proyecto usa un HostRegexp para todo *.vertexall.com).
+name: siset-staging
+
+services:
+  db:
+    ports: !reset []
+    cpus: 1.0
+    mem_limit: 768m
+    restart: unless-stopped
+
+  migrar:
+    mem_limit: 512m
+
+  api:
+    environment:
+      CORS_ORIGEN: https://${STAGING_DOMINIO:-siset-staging.vertexall.com}
+    cpus: 1.0
+    mem_limit: 512m
+
+  web:
+    build:
+      args:
+        VITE_PUBLIC_URL: https://${STAGING_DOMINIO:-siset-staging.vertexall.com}
+    ports: !reset []
+    networks: [default, coolify]
+    cpus: 0.5
+    mem_limit: 256m
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: coolify
+      # HTTP → HTTPS
+      traefik.http.routers.siset-staging-http.rule: Host(`${STAGING_DOMINIO:-siset-staging.vertexall.com}`)
+      traefik.http.routers.siset-staging-http.entrypoints: http
+      traefik.http.routers.siset-staging-http.priority: '1000'
+      traefik.http.routers.siset-staging-http.middlewares: siset-staging-https
+      traefik.http.middlewares.siset-staging-https.redirectscheme.scheme: https
+      traefik.http.middlewares.siset-staging-https.redirectscheme.permanent: 'true'
+      # HTTPS con Let's Encrypt; prioridad por encima de reglas genéricas de otros proyectos
+      traefik.http.routers.siset-staging.rule: Host(`${STAGING_DOMINIO:-siset-staging.vertexall.com}`)
+      traefik.http.routers.siset-staging.entrypoints: https
+      traefik.http.routers.siset-staging.tls: 'true'
+      traefik.http.routers.siset-staging.tls.certresolver: letsencrypt
+      traefik.http.routers.siset-staging.priority: '1000'
+      traefik.http.routers.siset-staging.middlewares: siset-staging-cabeceras
+      traefik.http.middlewares.siset-staging-cabeceras.headers.customresponseheaders.X-Robots-Tag: noindex, nofollow
+      traefik.http.middlewares.siset-staging-cabeceras.headers.stsSeconds: '31536000'
+      traefik.http.services.siset-staging.loadbalancer.server.port: '80'
+
+networks:
+  coolify:
+    external: true

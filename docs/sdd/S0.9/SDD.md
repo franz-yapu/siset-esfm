@@ -2,8 +2,8 @@
 
 - **Ticket:** S0.9 (backlog 2026-10-12, Ola 2; se crea en ClickUp al aprobar este SDD).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Estado:** Aprobado (2026-10-13) — solo configuración; el despliegue en el VPS queda para después (decisión del responsable)
+- **Versión:** 1.1 · **Fecha:** 2026-10-13 (ver changelog al pie)
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (Nginx con TLS, Docker Compose), RNF-10 (HTTPS obligatorio), RNF-11 (respaldos), D-12 (infraestructura definitiva sin definir)
   2. `docs/sdd/S0.4/SDD.md` v1.1 (imágenes, perfil `completo`, prueba de humo, E2E con `E2E_BASE_URL`)
@@ -207,3 +207,18 @@ Para no afectar a los otros sistemas:
 1. **Dominio:** se propone `siset-staging.vertexall.com`. ¿Otro (por ejemplo, `siset.vertexall.com`)?
 2. **¿Acceso con usuario y contraseña** (basic auth en Traefik) o público con `noindex`? Público facilita la demo con el cliente (S0.1).
 3. **CD automático:** ¿se guarda una clave SSH de despliegue como secret de GitHub para desplegar en cada merge a `main`? Si sí, va en un ticket aparte, con una clave dedicada y restringida.
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13)**: aprobado por el responsable con dos condiciones.
+  - **Este ticket entrega solo la configuración; no se despliega en el VPS.** Quedan diferidas las filas
+    de §4 y §5 que necesitan el servidor (certificado real, E2E contra la URL pública, verificación de los
+    otros sistemas). Se reemplazan por una **prueba local equivalente**: un Traefik 3.6 local con la red
+    `coolify`, las mismas etiquetas, un HostRegexp "competidor" como el de vf-saas-prueba y HTTPS con el
+    certificado por defecto de Traefik.
+  - Decisiones de §7: el dominio queda **configurable** (`STAGING_DOMINIO`, default
+    `siset-staging.vertexall.com`); el acceso es **público con `noindex`**; el CD automático queda para un
+    ticket aparte. `desplegar-staging.sh` agrega `--simular` (muestra lo que haría, sin conectarse).
+- **1.0 (2026-10-13)**: borrador.
