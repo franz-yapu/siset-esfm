@@ -15,10 +15,10 @@ test('con VITE_USAR_API=auth el login llama a la API y muestra su error (SDD S0.
   await expect(page.getByRole('button', { name: /usuarios de prueba/i })).toHaveCount(0);
 
   await page.getByLabel('CI o usuario').fill('1234567');
-  await page.getByLabel('Contraseña', { exact: true }).fill('clave1234');
+  await page.getByLabel('Contraseña', { exact: true }).fill('clave-1234');
   await page.getByRole('button', { name: /ingresar|iniciar/i }).click();
 
   await expect(page.getByText('La ruta solicitada no existe.')).toBeVisible();
-  expect(cuerpo).toEqual({ usuario: '1234567', clave: 'clave1234' });
+  expect(cuerpo).toEqual({ usuario: '1234567', password: 'clave-1234' });
   await expect(page).toHaveURL(/\/login/);
 });

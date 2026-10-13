@@ -4,6 +4,8 @@ import { cargarConfig } from '@/compartido/config';
 import { crearLogger } from '@/compartido/logger';
 import { redactar, REDACTADO } from '@/modulos/auditoria';
 
+const SECRETO = 'x'.repeat(32);
+
 describe('cargarConfig', () => {
   it('falla nombrando la variable que falta, sin mostrar valores', () => {
     expect(() => cargarConfig({ CORS_ORIGEN: 'http://x' })).toThrow(/DATABASE_URL/);
@@ -12,7 +14,7 @@ describe('cargarConfig', () => {
   it('rechaza una DATABASE_URL que no es de PostgreSQL sin mostrarla', () => {
     let mensaje = '';
     try {
-      cargarConfig({ DATABASE_URL: 'mysql://usuario:clave@host/db' });
+      cargarConfig({ DATABASE_URL: 'mysql://usuario:clave@host/db', JWT_SECRET: SECRETO });
     } catch (e) {
       mensaje = (e as Error).message;
     }
@@ -21,7 +23,7 @@ describe('cargarConfig', () => {
   });
 
   it('aplica los valores por defecto', () => {
-    expect(cargarConfig({ DATABASE_URL: 'postgresql://u:p@localhost:5432/siset' })).toEqual({
+    expect(cargarConfig({ DATABASE_URL: 'postgresql://u:p@localhost:5432/siset', JWT_SECRET: SECRETO })).toEqual({
       entorno: 'development',
       puerto: 3000,
       databaseUrl: 'postgresql://u:p@localhost:5432/siset',
@@ -29,12 +31,30 @@ describe('cargarConfig', () => {
       trustProxy: 0,
       nivelLog: 'info',
       jsonLimite: '100kb',
+      jwtSecreto: SECRETO,
     });
   });
 
   it('acepta varios orígenes de CORS separados por coma', () => {
-    const c = cargarConfig({ DATABASE_URL: 'postgresql://localhost/siset', CORS_ORIGEN: 'https://a.bo, https://b.bo' });
+    const c = cargarConfig({
+      DATABASE_URL: 'postgresql://localhost/siset',
+      CORS_ORIGEN: 'https://a.bo, https://b.bo',
+      JWT_SECRET: SECRETO,
+    });
     expect(c.corsOrigen).toEqual(['https://a.bo', 'https://b.bo']);
+  });
+
+  it('exige JWT_SECRET de 32 caracteres o más, sin mostrar su valor (SDD S1.3 §2.3)', () => {
+    const base = { DATABASE_URL: 'postgresql://localhost/siset' };
+    expect(() => cargarConfig(base)).toThrow(/JWT_SECRET/);
+    let mensaje = '';
+    try {
+      cargarConfig({ ...base, JWT_SECRET: 'secreto-corto-visible' });
+    } catch (e) {
+      mensaje = (e as Error).message;
+    }
+    expect(mensaje).toMatch(/JWT_SECRET/);
+    expect(mensaje).not.toContain('secreto-corto-visible');
   });
 });
 

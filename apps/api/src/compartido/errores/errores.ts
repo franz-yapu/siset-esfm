@@ -21,8 +21,8 @@ export class ErrorValidacion extends ErrorApp {
 
 export class ErrorNoAutenticado extends ErrorApp {
   readonly estado = 401;
-  constructor(mensaje = 'Necesita iniciar sesión.') {
-    super(mensaje, 'NO_AUTENTICADO');
+  constructor(mensaje = 'Necesita iniciar sesión.', codigo = 'NO_AUTENTICADO') {
+    super(mensaje, codigo);
   }
 }
 

@@ -2,6 +2,7 @@ import { AxiosError, AxiosHeaders, type AxiosAdapter, type InternalAxiosRequestC
 import { afterEach, describe, expect, it } from 'vitest';
 import { aErrorApi, api } from './api';
 import { ErrorApi, ErrorNegocio } from './errores';
+import { borrarAccessToken, guardarAccessToken } from './sesion';
 
 const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
 const respuesta = (status: number, data: unknown) =>
@@ -71,5 +72,33 @@ describe('cliente api', () => {
     };
     api.defaults.adapter = adapter;
     await expect(api.get('/x')).rejects.toMatchObject({ codigo: 'NO_ENCONTRADO', estado: 404 });
+  });
+});
+
+describe('Authorization con el access token (SDD S1.3 §2.6)', () => {
+  const adapterOriginal = api.defaults.adapter;
+  afterEach(() => {
+    api.defaults.adapter = adapterOriginal;
+    borrarAccessToken();
+  });
+
+  const cabeceraEnviada = async () => {
+    let enviada: unknown;
+    const adapter: AxiosAdapter = async (c) => {
+      enviada = c.headers.get('Authorization');
+      return { status: 200, data: {}, statusText: '', headers: {}, config: c };
+    };
+    api.defaults.adapter = adapter;
+    await api.get('/algo');
+    return enviada;
+  };
+
+  it('sin sesión no manda Authorization', async () => {
+    expect(await cabeceraEnviada()).toBeUndefined();
+  });
+
+  it('con sesión manda Bearer <token>', async () => {
+    guardarAccessToken('jwt-de-prueba');
+    expect(await cabeceraEnviada()).toBe('Bearer jwt-de-prueba');
   });
 });

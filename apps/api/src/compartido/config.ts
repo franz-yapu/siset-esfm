@@ -18,6 +18,8 @@ const esquema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   LOG_LEVEL: z.enum(NIVELES_LOG).optional(),
   JSON_LIMITE: z.string().default('100kb'),
+  /** Firma del access JWT (HS256, SDD S1.3 §2.3): obligatorio, 32 caracteres o más. */
+  JWT_SECRET: z.string().min(32),
 });
 
 export interface Config {
@@ -28,6 +30,7 @@ export interface Config {
   trustProxy: number;
   nivelLog: (typeof NIVELES_LOG)[number];
   jsonLimite: string;
+  jwtSecreto: string;
 }
 
 /**
@@ -49,5 +52,6 @@ export function cargarConfig(entorno: Record<string, string | undefined> = proce
     trustProxy: e.TRUST_PROXY,
     nivelLog: e.LOG_LEVEL ?? (e.NODE_ENV === 'test' ? 'silent' : 'info'),
     jsonLimite: e.JSON_LIMITE,
+    jwtSecreto: e.JWT_SECRET,
   };
 }
