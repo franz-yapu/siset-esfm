@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.8** (`868mgh28b`, https://app.clickup.com/t/868mgh28b).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §5 (stack: Axios, TanStack Query; API `/api/v1`; error único), RNF-02 (refresh en cookie httpOnly), RNF-12 (aviso "sin conexión")
@@ -25,13 +25,13 @@
 - Proxy de Vite en desarrollo (`/api` → `http://localhost:3000`).
 - "Reiniciar datos de demo" visible solo cuando todo es mock.
 - Vitest en `apps/web` (hoy no tiene tests) para lo nuevo.
+- **Suite E2E con Playwright en el repo** (pedida por el responsable al aprobar): recorrido de los 6 roles, flujos interactivos y modo API, corriendo en la CI (§2.6).
 
 ### No entra (a propósito)
 
 - Migrar las 23 pantallas que usan `useAsync` a TanStack Query → en cada ticket "conectar a la API" (las 22 tareas 🟡). Cambiar la implementación de `useAsync` por `useQuery` en bloque no es posible sin una clave de caché única por pantalla, que el hook no recibe. Así que **el disable de `react-hooks/set-state-in-effect` en `useAsync` se queda** hasta que la última pantalla migre. Esto corrige lo que anticipó el SDD de S0.10 §1 ("TanStack Query reemplaza este hook en S0.8"): el reemplazo es gradual.
 - Implementaciones de API de los otros 9 servicios → sus tickets.
 - Refresh automático del token ante un 401, sesión por cookie y `AuthContext` contra la API → S1.x (sus endpoints no existen todavía).
-- Suite E2E con Playwright en el repo → cuando haya pantallas conectadas (como en S0.10).
 
 ### Premisas verificadas (`task-brief`)
 
@@ -39,7 +39,7 @@
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Las pantallas no importan mocks  | ✅ Ninguna en `pages/`, `components/`, `hooks/` ni `context/`. ⚠️ `lib/transiciones.ts` sí importa `@/mocks/db`, y ahí vive `ErrorNegocio`: si `api.ts` lo importara, arrastraría los mocks. Se mueve `ErrorNegocio` a `lib/errores.ts` (§2.2).                            |
 | `authService` tiene login/logout | ✅ Además `obtener(id)` (restaura la sesión por id desde `sessionStorage`), `cambiarClave` y `usuariosDemo`. ⚠️ El PRD §5 solo define `/auth/login`, `/auth/refresh` y `/auth/logout`: `obtener` y `cambiarClave` **no tienen endpoint definido** y no se inventan (§2.4). |
-| "Correr el guion E2E existente"  | ⚠️ En el repo no hay guion E2E. Se usan los recorridos de Chrome headless de S0.3/S0.10 (6 roles, 43 pantallas, y los flujos interactivos), con los resultados en el PR.                                                                                                   |
+| "Correr el guion E2E existente"  | ⚠️ En el repo no hay guion E2E: los recorridos de S0.3/S0.10 vivían en el scratchpad. **Se pasan al repo como suite de Playwright** (§2.6).                                                                                                                                |
 | La web no tiene tests            | ✅ Cierto. Se agrega Vitest (entorno `node`, sin DOM: lo nuevo no renderiza).                                                                                                                                                                                              |
 | Versiones                        | ✅ Al 2026-10-13: `axios` 1.20.0, `@tanstack/react-query` 5.104.2, `vitest` 5.0.4.                                                                                                                                                                                         |
 
@@ -134,32 +134,62 @@ S0.7), que llega a la pantalla de login como mensaje. Es lo que pide la DoD.
 - `.env.example` de la web: `VITE_USAR_API=false` y `VITE_API_URL=` (vacío → `/api/v1`), con comentarios.
 - Tipos de `import.meta.env` en `vite-env.d.ts`.
 
+### 2.6 Suite E2E con Playwright (`apps/web/e2e/`)
+
+- **`@playwright/test` 1.64** con `channel: 'chrome'`: usa el Google Chrome instalado (local y en los
+  runners de GitHub, que traen Chrome 154). No descarga navegadores ni ejecuta binarios de terceros.
+- **Dos proyectos**, cada uno con su build y su `vite preview` (`webServer` de Playwright):
+
+| Proyecto | Build                                                                           | Specs                                 |
+| -------- | ------------------------------------------------------------------------------- | ------------------------------------- |
+| `mock`   | `vite build` normal (`VITE_USAR_API=false`, `VITE_DEMO=true`) en el puerto 4180 | `recorrido.spec.ts`, `flujos.spec.ts` |
+| `api`    | `VITE_USAR_API=auth vite build --outDir dist-e2e-api` en el puerto 4181         | `modo-api.spec.ts`                    |
+
+- **`recorrido.spec.ts`**: un test por rol (6). Para cada rol: login, cada enlace del menú y el primer
+  detalle de cada lista. Exige un `h1` visible, que no termine en `/no-autorizado` ni en "no encontrado", y
+  **0 errores y 0 advertencias de consola** (incluido cualquier error de React, como el #525 de S0.10).
+- **`flujos.spec.ts`**: los flujos de S0.3. Sin sesión redirige a `/login`, el login funciona, recargar
+  conserva la sesión, la lista y el filtro (`useAsync`) responden, y el modal se cierra con Esc.
+- **`modo-api.spec.ts`**: con `page.route('**/api/v1/auth/login')` responde un 404 con el formato único de
+  S0.7, sin depender de que la API esté corriendo. Verifica que el login hace la petición a
+  `/api/v1/auth/login` con `{ usuario, clave }`, que la pantalla muestra el mensaje de la API y que no
+  aparece el bloque de usuarios demo.
+- La contraseña demo se lee de `src/mocks/usuarios.ts` (`CLAVE_DEMO`): es un valor de prueba del propio
+  proyecto, no un secreto.
+- Scripts: `e2e` en `apps/web` (`playwright test`) y en la raíz (`npm run e2e -w @siset/web`).
+- **CI**: job nuevo `e2e` en `ci.yml` (Chrome del runner; reporte HTML como artefacto si falla).
+- `tsconfig.e2e.json` (referenciado en `tsconfig.json`) para que `typecheck` cubra los specs.
+
 ---
 
 ## 3 · Cambios por archivo/módulo
 
-| Archivo                                                                 | Cambio                                                                                   |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `apps/web/package.json`                                                 | Dependencias `axios`, `@tanstack/react-query`; dev `vitest`; script `test: vitest run`.  |
-| `apps/web/vitest.config.ts`                                             | **Nuevo**: alias `@`, entorno `node`, `include: ['src/**/*.test.ts']`.                   |
-| `apps/web/vite.config.ts`                                               | Proxy `/api` (§2.5).                                                                     |
-| `apps/web/src/lib/errores.ts`                                           | **Nuevo** (§2.2).                                                                        |
-| `apps/web/src/lib/transiciones.ts`                                      | `ErrorNegocio` → reexport desde `./errores`.                                             |
-| `apps/web/src/lib/api.ts`                                               | **Nuevo** (§2.1).                                                                        |
-| `apps/web/src/lib/consultas.ts`                                         | **Nuevo**: `crearQueryClient()`.                                                         |
-| `apps/web/src/main.tsx`                                                 | `QueryClientProvider`.                                                                   |
-| `apps/web/src/services/_modo.ts`                                        | **Nuevo** (§2.3).                                                                        |
-| `apps/web/src/services/auth.mock.ts`                                    | El `authService` actual, renombrado `authMock` (sin cambios de lógica).                  |
-| `apps/web/src/services/auth.api.ts`                                     | **Nuevo** (§2.4).                                                                        |
-| `apps/web/src/services/auth.service.ts`                                 | Elige entre mock y API.                                                                  |
-| `apps/web/src/components/layout/Header.tsx`, `pages/publicas/Login.tsx` | Condición de demo con `todoMock()`.                                                      |
-| `apps/web/src/vite-env.d.ts`                                            | Tipos de `VITE_USAR_API`, `VITE_API_URL`, `VITE_DEMO` y `VITE_PUBLIC_URL`.               |
-| `apps/web/.env.example`                                                 | §2.5.                                                                                    |
-| `apps/web/src/**/*.test.ts`                                             | **Nuevos** (§4).                                                                         |
-| `README.md`                                                             | Cómo cambiar un servicio de mock a API.                                                  |
-| `docs/sdd/S0.10/SDD.md`                                                 | Sin cambios (está implementado); la corrección del diferimiento queda en §1 de este SDD. |
+| Archivo                                                                                 | Cambio                                                                                   |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `apps/web/package.json`                                                                 | Dependencias `axios`, `@tanstack/react-query`; dev `vitest`; script `test: vitest run`.  |
+| `apps/web/vitest.config.ts`                                                             | **Nuevo**: alias `@`, entorno `node`, `include: ['src/**/*.test.ts']`.                   |
+| `apps/web/vite.config.ts`                                                               | Proxy `/api` (§2.5).                                                                     |
+| `apps/web/src/lib/errores.ts`                                                           | **Nuevo** (§2.2).                                                                        |
+| `apps/web/src/lib/transiciones.ts`                                                      | `ErrorNegocio` → reexport desde `./errores`.                                             |
+| `apps/web/src/lib/api.ts`                                                               | **Nuevo** (§2.1).                                                                        |
+| `apps/web/src/lib/consultas.ts`                                                         | **Nuevo**: `crearQueryClient()`.                                                         |
+| `apps/web/src/main.tsx`                                                                 | `QueryClientProvider`.                                                                   |
+| `apps/web/src/services/_modo.ts`                                                        | **Nuevo** (§2.3).                                                                        |
+| `apps/web/src/services/auth.mock.ts`                                                    | El `authService` actual, renombrado `authMock` (sin cambios de lógica).                  |
+| `apps/web/src/services/auth.api.ts`                                                     | **Nuevo** (§2.4).                                                                        |
+| `apps/web/src/services/auth.service.ts`                                                 | Elige entre mock y API.                                                                  |
+| `apps/web/src/components/layout/Header.tsx`, `pages/publicas/Login.tsx`                 | Condición de demo con `todoMock()`.                                                      |
+| `apps/web/src/vite-env.d.ts`                                                            | Tipos de `VITE_USAR_API`, `VITE_API_URL`, `VITE_DEMO` y `VITE_PUBLIC_URL`.               |
+| `apps/web/.env.example`                                                                 | §2.5.                                                                                    |
+| `apps/web/src/**/*.test.ts`                                                             | **Nuevos** (§4).                                                                         |
+| `apps/web/playwright.config.ts`, `apps/web/e2e/*.spec.ts`, `apps/web/tsconfig.e2e.json` | **Nuevos** (§2.6).                                                                       |
+| `apps/web/tsconfig.json`                                                                | Referencia a `tsconfig.e2e.json`.                                                        |
+| `.github/workflows/ci.yml`                                                              | Job `e2e` (§2.6).                                                                        |
+| `.gitignore`                                                                            | `dist-e2e-api/` y `test-results/` (`playwright-report/` ya estaba).                      |
+| `README.md`                                                                             | Cómo cambiar un servicio de mock a API.                                                  |
+| `docs/sdd/S0.10/SDD.md`                                                                 | Sin cambios (está implementado); la corrección del diferimiento queda en §1 de este SDD. |
 
-Commits en `feat/S0.8-axios-servicios`: `S0.8 SDD`, `S0.8 cliente Axios, ErrorApi e interruptor mock/API`, `S0.8 authService con implementación de API y TanStack Query`, `S0.8 tests de la web`.
+Commits en `feat/S0.8-axios-servicios`: `S0.8 SDD`, `S0.8 cliente Axios, ErrorApi e interruptor mock/API`, `S0.8 authService con implementación de API y TanStack Query`, `S0.8 tests de la web`, `S0.8 suite E2E con Playwright y job de CI`.
 
 ---
 
@@ -179,7 +209,7 @@ Commits en `feat/S0.8-axios-servicios`: `S0.8 SDD`, `S0.8 cliente Axios, ErrorAp
 | `authApi.obtener` y `cambiarClave` → `NO_IMPLEMENTADO`; `usuariosDemo()` → `[]`                                                                             | §2.4                  |
 | `crearQueryClient`: no reintenta un `ErrorApi` 422 y sí uno `SIN_CONEXION` (una vez)                                                                        | §2.5                  |
 
-**E2E (scripts de Chrome headless de S0.3/S0.10, resultados en el PR):**
+**E2E (Playwright en el repo, §2.6; corre en la CI):**
 
 | Caso                                                                                                                                        | Cubre                             |
 | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
@@ -197,7 +227,7 @@ los tests de la web, porque el `npm test` de la raíz recorre los workspaces.
 - [ ] `VITE_USAR_API=false`: prototipo idéntico (recorrido + flujos)
 - [ ] `VITE_USAR_API=true` o `auth`: el login llama a `POST /api/v1/auth/login` (404 hasta S1.3)
 - [ ] Ninguna pantalla importa `@/mocks/*`
-- [ ] Tests de §4 en verde; CI en verde
+- [ ] Tests de §4 en verde (Vitest y Playwright); CI en verde, incluido el job `e2e`
 - [ ] PR a `main`; S0.8 en ClickUp → "necesita revisión"
 
 ---
