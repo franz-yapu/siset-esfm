@@ -98,5 +98,5 @@ Enum `estado_tramite`: los 11 valores del prototipo. Se crea en S3.x, después d
 
 ## Datos de prueba
 
-- La contraseña de los usuarios de prueba debe cumplir la regla (mínimo 8 caracteres, con letras y números). `demo123` no la cumple.
+- La contraseña de los usuarios de prueba debe cumplir la regla (mínimo 8 caracteres, con letras, números y símbolos; DEC-011). `demo123` no la cumple.
 - Los nombres de rol son los del prototipo (el test de S0.6 lo exige); el nombre institucional largo va en `rol.descripcion`.

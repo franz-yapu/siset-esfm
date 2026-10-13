@@ -3,26 +3,29 @@ import { crearClienteBd } from '@/compartido/bd';
 import { leerKardexInicial, usernameDe } from '../prisma/semilla';
 
 describe('leerKardexInicial', () => {
-  const valido = { SEED_KARDEX_CI: '1000001', SEED_KARDEX_PASSWORD: 'clave1234' };
+  const valido = { SEED_KARDEX_CI: '1000001', SEED_KARDEX_PASSWORD: 'clave-1234' };
 
   it('falla con un mensaje claro si falta la contraseña', () => {
     expect(() => leerKardexInicial({ SEED_KARDEX_CI: '1000001' })).toThrow(/SEED_KARDEX_PASSWORD/);
   });
 
   it('falla si falta el CI', () => {
-    expect(() => leerKardexInicial({ SEED_KARDEX_PASSWORD: 'clave1234' })).toThrow(/SEED_KARDEX_CI/);
+    expect(() => leerKardexInicial({ SEED_KARDEX_PASSWORD: 'clave-1234' })).toThrow(/SEED_KARDEX_CI/);
   });
 
-  it.each(['corta1', 'soloLetrasLargas', '12345678'])('rechaza la contraseña débil %s sin mostrarla', (clave) => {
-    let mensaje = '';
-    try {
-      leerKardexInicial({ ...valido, SEED_KARDEX_PASSWORD: clave });
-    } catch (e) {
-      mensaje = (e as Error).message;
-    }
-    expect(mensaje).toMatch(/mínimo 8 caracteres, con letras y números/);
-    expect(mensaje).not.toContain(clave);
-  });
+  it.each(['corta1!', 'soloLetrasLargas', '12345678', 'clave1234'])(
+    'rechaza la contraseña débil %s sin mostrarla',
+    (clave) => {
+      let mensaje = '';
+      try {
+        leerKardexInicial({ ...valido, SEED_KARDEX_PASSWORD: clave });
+      } catch (e) {
+        mensaje = (e as Error).message;
+      }
+      expect(mensaje).toMatch(/SEED_KARDEX_PASSWORD no cumple la regla/);
+      expect(mensaje).not.toContain(clave);
+    },
+  );
 
   it('rechaza una sede que no existe', () => {
     expect(() => leerKardexInicial({ ...valido, SEED_KARDEX_SEDE: 'ORURO' })).toThrow(/LA_PAZ, ANCOCAGUA/);
@@ -43,7 +46,7 @@ describe('leerKardexInicial', () => {
     expect(leerKardexInicial(valido)).toEqual({
       ci: '1000001',
       complemento: '',
-      password: 'clave1234',
+      password: 'clave-1234',
       nombres: 'Kardex',
       apellidoPaterno: 'Inicial',
       apellidoMaterno: null,

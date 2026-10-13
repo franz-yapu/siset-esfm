@@ -4,7 +4,7 @@ import { KeyRound } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth, useToast, useUsuario } from '@/hooks';
 import { authService } from '@/services/auth.service';
-import { fuerzaClave, validarClave } from '@/lib/reglas';
+import { combinaLetrasNumerosSimbolos, fuerzaClave, validarClave } from '@/lib/reglas';
 import { rutaInicio } from '@/config/permisos';
 import { Alerta, Button, Input } from '@/components/ui';
 
@@ -78,7 +78,7 @@ export function FormClave({ onListo }: { onListo: () => void }) {
       />
       <ul className="space-y-1 text-xs text-slate-500">
         <li className={nueva.length >= 8 ? 'text-green-700' : ''}>• Mínimo 8 caracteres</li>
-        <li className={/[a-zA-Z]/.test(nueva) && /\d/.test(nueva) ? 'text-green-700' : ''}>• Letras y números</li>
+        <li className={combinaLetrasNumerosSimbolos(nueva) ? 'text-green-700' : ''}>• Letras, números y símbolos</li>
       </ul>
       <Button type="submit" icon={KeyRound} loading={cargando}>
         Guardar contraseña
