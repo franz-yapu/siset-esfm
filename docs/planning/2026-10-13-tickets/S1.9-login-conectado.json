@@ -1,0 +1,8 @@
+{
+  "name": "[FEAT] Web: login y cambio de clave conectados",
+  "markdown_content": "## Explicación\n\nLas pantallas P-01 y P-03 ya existen en el prototipo; falta usar la API real.\n\n## Qué construir\n\n- `apps/web/src/services/auth.api.ts` con el contrato de S1.3 y S1.5.\n- Mensajes de error de la API (bloqueo, credenciales).\n- El modo demo sigue funcionando con mocks.\n\n## Orden de entregables (cada uno bloquea al siguiente)\n\n1. **SDD aprobado**: generado con el skill `write-sdd` en `docs/sdd/S1.9/SDD.md`. Nadie escribe código de este ticket hasta que el SDD tenga Estado = `Aprobado (fecha)`.\n2. **Implementación según ese SDD**: si algo no calza en el camino, se vuelve al SDD (revisión nueva versionada); no se improvisa por fuera de lo aprobado.\n3. **Tests del plan del §4 del SDD**: corriendo y en verde. Sin estos tests, el ticket no está terminado aunque el código funcione.\n4. **Quality gate del proyecto** en verde: CI con `calidad`, `base-de-datos`, `e2e` y `docker`.\n\n## Definition of Done\n\n- [ ] SDD en `docs/sdd/S1.9/SDD.md`, Estado = Aprobado\n- [ ] E2E de login real y cambio obligatorio de clave\n- [ ] Toda escritura y evento de acceso registra su evento de auditoría (DEC-007)\n- [ ] Tests del §4 del SDD en verde\n- [ ] Quality gate del proyecto en verde\n- [ ] Commit con el ID: `S1.9 …` en la rama `feat/S1.9-login-conectado`\n\n## Referencias\n\n- Roadmap: docs/planning/2026-10-13 - Sprint-Roadmap.md (Ola 2, piloto DEC-009) · Tamaño: 2 h\n- Backlog: tarea S1.9 (docs/planning/2026-10-12 - Backlog-Epics-Tasks.md)\n- P-01, P-03\n- SDD S0.8\n",
+  "assignees": [
+    114193632
+  ],
+  "custom_fields": []
+}

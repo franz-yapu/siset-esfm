@@ -28,5 +28,6 @@ registra en `docs/decisions/LOG.md` y gana sobre este archivo.
 
 ## Fechas
 
-- Plan base: 7 sprints, 12-oct-2026 → Go-Live 18-ene-2027 (opción A de D-06, pendiente de confirmar).
-- El borrador de tesis pedía Go-Live la 1.ª semana de noviembre 2026: solo alcanza para S0 + S1.
+- **Piloto: 2–6 nov 2026** con el personal (ingreso y permisos, bitácora, file académico básico). DEC-009, opción B de D-06.
+- **Sistema completo (v1.0):** meta 18-ene-2027, a recalcular al terminar el piloto.
+- Roadmap vigente: `docs/planning/2026-10-13 - Sprint-Roadmap.md`.

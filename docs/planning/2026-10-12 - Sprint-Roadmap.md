@@ -1,5 +1,7 @@
 # SISET — Roadmap de sprint
 
+> **Reemplazado** por [2026-10-13 - Sprint-Roadmap.md](2026-10-13%20-%20Sprint-Roadmap.md) (DEC-009, piloto de noviembre). Se conserva como registro.
+
 **Fecha:** 2026-10-12 · **Repo:** `5c2e185` (main) · **Backlog:** [2026-10-12 - Backlog-Epics-Tasks.md](2026-10-12%20-%20Backlog-Epics-Tasks.md) · **Board del tracker revisado:** sí — ClickUp "FRANZ's Space": no existía lista de SISET (solo "Mi proyecto", de beta-ia). Se creó la lista **SISET** (`901115543466`) con los 7 tickets de la Ola 1.
 
 **Contexto de fechas:** hoy arranca el Sprint 0 del plan (12–16 oct 2026). El Go-Live de referencia es 18-ene-2027 (opción A de D-06, sin confirmar).

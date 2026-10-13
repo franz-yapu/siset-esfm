@@ -1,0 +1,8 @@
+{
+  "name": "[TEST] QA: pruebas de acceso, 403 y URL directa",
+  "markdown_content": "## Explicación\n\nGarantía de que la seguridad del piloto funciona antes de cargar datos reales (PI-01, CPA-01).\n\n## Qué construir\n\n- Supertest: login ok/fallido/bloqueo, refresh, logout.\n- Matriz rol × endpoint con 403 esperados.\n- Acceso a recurso ajeno por ID → 403/404.\n- E2E Playwright de los 3 roles del personal.\n\n## Orden de entregables (cada uno bloquea al siguiente)\n\n1. **SDD aprobado**: generado con el skill `write-sdd` en `docs/sdd/S1.14/SDD.md`. Nadie escribe código de este ticket hasta que el SDD tenga Estado = `Aprobado (fecha)`.\n2. **Implementación según ese SDD**: si algo no calza en el camino, se vuelve al SDD (revisión nueva versionada); no se improvisa por fuera de lo aprobado.\n3. **Tests del plan del §4 del SDD**: corriendo y en verde. Sin estos tests, el ticket no está terminado aunque el código funcione.\n4. **Quality gate del proyecto** en verde: CI con `calidad`, `base-de-datos`, `e2e` y `docker`.\n\n## Definition of Done\n\n- [ ] SDD en `docs/sdd/S1.14/SDD.md`, Estado = Aprobado\n- [ ] Toda la matriz de la política cubierta\n- [ ] Corre en CI (`calidad`, `e2e`)\n- [ ] Toda escritura y evento de acceso registra su evento de auditoría (DEC-007)\n- [ ] Tests del §4 del SDD en verde\n- [ ] Quality gate del proyecto en verde\n- [ ] Commit con el ID: `S1.14 …` en la rama `feat/S1.14-pruebas-auth`\n\n## Referencias\n\n- Roadmap: docs/planning/2026-10-13 - Sprint-Roadmap.md (Ola 2, piloto DEC-009) · Tamaño: 6 h\n- Backlog: tarea S1.14 (docs/planning/2026-10-12 - Backlog-Epics-Tasks.md)\n- PI-01\n- CPA-01\n- R6\n",
+  "assignees": [
+    114193632
+  ],
+  "custom_fields": []
+}
