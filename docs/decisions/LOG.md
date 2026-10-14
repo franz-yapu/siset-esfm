@@ -389,3 +389,18 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    mientras tanto la web usa `hojas-ruta/crear` como puente.
 7. El **EGRESADO** (sin permisos, D-08) queda con Inicio y Mi perfil, también en la demo. Su usuario de prueba y su
    inicio se quitan en S1.12.
+
+## DEC-023 — Pantalla de usuarios conectada a la API
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.13 (aprobado) + responsable del proyecto · **Estado:** activa
+
+1. **El mock de cada servicio que pasa a la API imita su contrato** (tipos, códigos de error y paginación): la
+   pantalla es una sola en los dos modos.
+2. **P-47 muestra la contraseña temporal una sola vez**, en un modal que solo se cierra con un botón explícito
+   (`Modal` suma `cerrable={false}`), y no la guarda en ningún lado. En modo demo la temporal es `CLAVE_DEMO`.
+3. **P-47 es la primera pantalla con TanStack Query:** claves por recurso (`['usuarios', filtros]`), invalidación
+   al escribir y la página anterior visible mientras carga la siguiente (paginación en el servidor, con el
+   `Paginacion` compartido con S6.5).
+4. Los errores `VALIDACION` de la API se muestran debajo de cada campo, usando `detalles[].ruta`.
+5. Decisiones del responsable: cuando lleguen las cuentas de estudiantes (S2.x) aparecerán en P-47 sin "Editar",
+   y Kardex podrá restablecer, desbloquear y dar de baja; el correo sigue opcional.
