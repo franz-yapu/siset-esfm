@@ -13,6 +13,8 @@ import {
   type FileBd,
 } from './file.repositorio';
 import type { CambiosFileApi, DatosCrearFile, FileDetalle, FiltrosFiles } from './files.esquemas';
+import { listarEstadosDeFiles } from './requisito.repositorio';
+import { semaforoDelFile, type ColorSemaforo, type EstadoParaSemaforo } from './semaforo';
 
 type Cliente = ClienteBd | TransaccionBd;
 
@@ -47,8 +49,15 @@ export interface EspecialidadesParaFiles {
   nombresEspecialidades(cliente: Cliente, ids: number[]): Promise<Map<number, string>>;
 }
 
+/** Lo que el semáforo necesita del catálogo de requisitos (catalogos, vía la raíz). */
+export interface RequisitoParaSemaforo {
+  id: number;
+  obligatorio: boolean;
+}
+
 export interface DependenciasFiles {
   bd: ClienteBd;
+  obtenerRequisitosActivos(cliente: Cliente): Promise<RequisitoParaSemaforo[]>;
   personas: PersonasParaFiles;
   especialidades: EspecialidadesParaFiles;
 }
@@ -67,7 +76,7 @@ const deFecha = (d: Date | null): string | null => (d ? d.toISOString().slice(0,
 
 const nombreCompleto = (p: PersonaFile) => [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
 
-function detalle(f: FileBd, p: PersonaFile, especialidad: string): FileDetalle {
+function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: ColorSemaforo): FileDetalle {
   return {
     id: f.id,
     codigo: f.codigoEstudiante,
@@ -86,6 +95,7 @@ function detalle(f: FileBd, p: PersonaFile, especialidad: string): FileDetalle {
     condicion: f.condicion,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo,
+    semaforo,
   };
 }
 
@@ -103,14 +113,34 @@ const especialidadInexistente = () => new ErrorNegocio('La especialidad no exist
  * API de files (SDD S2.2). Las rutas ya pasaron por `autorizar('files', …)`. Cada escritura deja su
  * evento en la misma transacción (DEC-007).
  */
-export function crearServicioFiles({ bd, personas, especialidades }: DependenciasFiles) {
+export function crearServicioFiles({ bd, personas, especialidades, obtenerRequisitosActivos }: DependenciasFiles) {
+  /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2). */
+  async function semaforos(
+    cliente: Cliente,
+    files: Pick<FileBd, 'id' | 'bloqueado'>[],
+  ): Promise<Map<number, ColorSemaforo>> {
+    const obligatorios = (await obtenerRequisitosActivos(cliente)).filter((r) => r.obligatorio).map((r) => r.id);
+    const filas = await listarEstadosDeFiles(
+      cliente,
+      files.map((f) => f.id),
+    );
+    const estadoDe = new Map(filas.map((r) => [`${r.fileId}:${r.requisitoTipoId}`, r.estado]));
+    return new Map(
+      files.map((f) => {
+        const estados: EstadoParaSemaforo[] = obligatorios.map((id) => estadoDe.get(`${f.id}:${id}`) ?? 'PENDIENTE');
+        return [f.id, semaforoDelFile({ bloqueado: f.bloqueado, estados })];
+      }),
+    );
+  }
+
   async function cargar(cliente: Cliente, id: number) {
     const f = await buscarFile(cliente, id);
     if (!f) throw new ErrorNoEncontrado('El file no existe.');
     const p = (await personas.obtenerPersonas(cliente, [f.personaId])).get(f.personaId);
     if (!p) throw new Error(`El file ${id} no tiene persona.`);
     const nombre = (await especialidades.nombresEspecialidades(cliente, [f.especialidadId])).get(f.especialidadId);
-    return { f, p, d: detalle(f, p, nombre ?? '') };
+    const semaforo = (await semaforos(cliente, [f])).get(f.id)!;
+    return { f, p, d: detalle(f, p, nombre ?? '', semaforo) };
   }
 
   /** El código es único (DEC-016 #4): se revisa antes para dar un error claro. */
@@ -146,12 +176,16 @@ export function crearServicioFiles({ bd, personas, especialidades }: Dependencia
         files.map((f) => f.personaId),
       );
       const nombres = await especialidades.nombresEspecialidades(bd, [...new Set(files.map((f) => f.especialidadId))]);
+      const colores = await semaforos(bd, files);
       const filas = files
+        .filter((f) => !filtros.semaforo || colores.get(f.id) === filtros.semaforo)
         .map((f) => ({ f, p: datos.get(f.personaId)! }))
         .sort((a, b) => compararPorApellido(a.p, b.p) || a.f.id - b.f.id);
       const { skip, take } = desplazamiento(filtros);
       return {
-        datos: filas.slice(skip, skip + take).map(({ f, p }) => detalle(f, p, nombres.get(f.especialidadId) ?? '')),
+        datos: filas
+          .slice(skip, skip + take)
+          .map(({ f, p }) => detalle(f, p, nombres.get(f.especialidadId) ?? '', colores.get(f.id)!)),
         pagina: filtros.pagina,
         porPagina: filtros.porPagina,
         total: filas.length,

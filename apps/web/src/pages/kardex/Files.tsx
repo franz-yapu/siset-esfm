@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Lock, UserPlus } from 'lucide-react';
+import type { ColorSemaforo } from '@/types';
 import type { CondicionFile, FiltrosFiles } from '@/types/files';
 import { usePermiso } from '@/hooks';
 import { useEspecialidades, useFiles } from '@/hooks/useFiles';
-import { Alerta, Button, DataTable, Input, PageHeader, Paginacion, Select } from '@/components/ui';
+import { textoSemaforo } from '@/lib/semaforo';
+import { Alerta, Button, DataTable, Input, PageHeader, Paginacion, Select, Semaforo } from '@/components/ui';
 
 const POR_PAGINA = 20;
 const ESPERA_BUSQUEDA = 300;
@@ -16,6 +18,7 @@ const filtrosDeUrl = (p: URLSearchParams): FiltrosFiles => ({
   anioIngreso: Number(p.get('anio')) || undefined,
   condicion: (p.get('condicion') as CondicionFile | null) ?? undefined,
   bloqueado: p.get('bloqueados') === '1' ? true : undefined,
+  semaforo: (p.get('semaforo') as ColorSemaforo | null) ?? undefined,
   pagina: Number(p.get('pagina')) || 1,
   porPagina: POR_PAGINA,
 });
@@ -28,6 +31,7 @@ const urlDeFiltros = (f: FiltrosFiles): Record<string, string> =>
       anio: f.anioIngreso,
       condicion: f.condicion,
       bloqueados: f.bloqueado ? '1' : undefined,
+      semaforo: f.semaforo,
       pagina: f.pagina && f.pagina > 1 ? f.pagina : undefined,
     })
       .filter(([, v]) => v !== undefined && v !== '')
@@ -71,7 +75,7 @@ export function Files() {
           )
         }
       />
-      <div className="mb-4 grid items-end gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-4 grid items-end gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 lg:grid-cols-6">
         <Input
           label="Buscar"
           placeholder="CI, nombre o código"
@@ -111,6 +115,16 @@ export function Files() {
           <option value="ESTUDIANTE">Estudiante</option>
           <option value="EGRESADO">Egresado</option>
         </Select>
+        <Select
+          label="Semáforo"
+          value={filtros.semaforo ?? ''}
+          onChange={(e) => ir({ semaforo: (e.target.value || undefined) as ColorSemaforo | undefined })}
+        >
+          <option value="">Todos</option>
+          <option value="VERDE">Verde</option>
+          <option value="AMARILLO">Amarillo</option>
+          <option value="ROJO">Rojo</option>
+        </Select>
         <label className="flex items-center gap-2 pb-2 text-sm text-slate-700">
           <input
             type="checkbox"
@@ -146,6 +160,12 @@ export function Files() {
             key: 'anio',
             header: 'Ingreso',
             render: (x) => (x.condicion === 'EGRESADO' ? `${x.anioIngreso} · Egresado` : x.anioIngreso),
+          },
+          // Calculado por la API (S2.5); provisional hasta D-31.
+          {
+            key: 'sem',
+            header: 'Semáforo',
+            render: (x) => <Semaforo color={x.semaforo} texto={textoSemaforo(x.semaforo, x.bloqueado)} size="sm" />,
           },
           {
             key: 'bloq',

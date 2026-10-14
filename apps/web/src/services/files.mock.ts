@@ -7,6 +7,8 @@ import { ESPECIALIDADES } from '@/config/catalogos';
 import { delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
 import { normalizarDatosFile, validarDatosFile } from '@/lib/files';
+import { semaforoDelFile } from '@/lib/semaforo';
+import { estadosDeRequisitos } from './requisitos.mock';
 import { LATENCIA } from './_comun';
 import type { ServicioFiles } from './files.service';
 
@@ -49,6 +51,7 @@ export const aDetalle = (f: FileMock): FileDetalle => {
     condicion: f.condicion,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo ?? null,
+    semaforo: semaforoDelFile({ bloqueado: f.bloqueado, estados: estadosDeRequisitos(f.id) }),
   };
 };
 
@@ -112,7 +115,8 @@ export const filesMock: ServicioFiles = {
           (!f.especialidadId || d.especialidadId === f.especialidadId) &&
           (!f.anioIngreso || d.anioIngreso === f.anioIngreso) &&
           (!f.condicion || d.condicion === f.condicion) &&
-          (f.bloqueado === undefined || d.bloqueado === f.bloqueado),
+          (f.bloqueado === undefined || d.bloqueado === f.bloqueado) &&
+          (!f.semaforo || d.semaforo === f.semaforo),
       )
       .sort(
         (a, b) =>

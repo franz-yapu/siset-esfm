@@ -174,4 +174,57 @@ describe('requisitos del file (SDD S2.4, D-04, D-04b)', () => {
     expect(r.status).toBe(200);
     expect(r.body[0]).toMatchObject({ codigo: 'TACFI_1', anioFormacion: 1, obligatorio: true });
   });
+
+  it('semáforo del file (S2.5): amarillo sin registros, rojo con un observado o bloqueado, verde con todo completo', async () => {
+    const id = await nuevoFile();
+    const color = async () => (await como('KARDEX', 'get', `/files/${id}`)).body.semaforo as string;
+    expect(await color()).toBe('AMARILLO');
+
+    await como('KARDEX', 'put', `/files/${id}/requisitos/TCLO_BASICO`, {
+      estado: 'OBSERVADO',
+      observacion: 'No se presentó',
+    });
+    expect(await color()).toBe('ROJO');
+
+    const codigos = ['TACFI_1', 'TCLO_BASICO', 'TACFI_2', 'TCLO_INTERMEDIO', 'TCLO_AVANZADO', 'CERT_NOTAS'];
+    for (const c of codigos) {
+      await como('KARDEX', 'put', `/files/${id}/requisitos/${c}`, { estado: 'COMPLETO', fecha: '2026-01-10' });
+    }
+    expect(await color()).toBe('VERDE');
+
+    // Un requisito no obligatorio no cuenta.
+    await bd.requisitoTipo.update({ where: { codigo: 'CERT_NOTAS' }, data: { obligatorio: false } });
+    try {
+      await como('KARDEX', 'put', `/files/${id}/requisitos/CERT_NOTAS`, { estado: 'PENDIENTE' });
+      expect(await color()).toBe('VERDE');
+    } finally {
+      await bd.requisitoTipo.update({ where: { codigo: 'CERT_NOTAS' }, data: { obligatorio: true } });
+    }
+
+    const r = await como('KARDEX', 'put', `/files/${id}/requisitos/CERT_NOTAS`, {
+      estado: 'COMPLETO',
+      fecha: '2026-01-10',
+    });
+    expect(r.status).toBe(200);
+    await bd.fileAcademico.update({ where: { id }, data: { bloqueado: true, motivoBloqueo: 'Permiso obligatorio' } });
+    expect(await color()).toBe('ROJO');
+  });
+
+  it('GET /files?semaforo= filtra por el color calculado', async () => {
+    const verde = await nuevoFile();
+    for (const c of ['TACFI_1', 'TCLO_BASICO', 'TACFI_2', 'TCLO_INTERMEDIO', 'TCLO_AVANZADO', 'CERT_NOTAS']) {
+      await como('KARDEX', 'put', `/files/${verde}/requisitos/${c}`, { estado: 'COMPLETO', fecha: '2026-01-10' });
+    }
+    const amarillo = await nuevoFile();
+    const ids = async (color: string) =>
+      (
+        (await como('KARDEX', 'get', `/files?texto=Requisitos&semaforo=${color}&porPagina=100`)).body.datos as {
+          id: number;
+        }[]
+      ).map((f) => f.id);
+    expect(await ids('VERDE')).toContain(verde);
+    expect(await ids('VERDE')).not.toContain(amarillo);
+    expect(await ids('AMARILLO')).toContain(amarillo);
+    expect((await como('KARDEX', 'get', '/files?semaforo=AZUL')).status).toBe(400);
+  });
 });

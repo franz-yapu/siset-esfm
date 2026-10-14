@@ -2,8 +2,11 @@
 
 - **Ticket:** S2.5 (backlog 2026-10-12: "Motor de semáforo por requisito y global, parametrizado desde requisito_tipo"). Se crea en ClickUp al aprobar este SDD.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (al implementar): el rojo sin bloqueo se muestra como "Requisito observado" (el texto de siempre era
+    "File bloqueado", que sería falso). La tabla de casos vive en `apps/api/test/fixtures/casos-semaforo.ts` y la
+    usan los dos tests.
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-06 CA2 (el semáforo se actualiza al instante) y RF-07 CA1 (semáforo verde/amarillo/rojo por requisito y global)
   2. `docs/product/business-rules.md` §File: "verde (completo), amarillo (pendiente/parcial), rojo (faltante obligatorio o bloqueo)"
@@ -95,11 +98,11 @@ Una función pura `semaforoDelFile({ bloqueado, estados })` en `files/semaforo.t
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S2.5/SDD.md`, Estado = Aprobado; ticket S2.5 en ClickUp.
-- [ ] Semáforo calculado en la API, con filtro; la web lo muestra en los dos modos.
-- [ ] D-31 en la hoja y en `dudas.md`; regla provisional en `business-rules.md`; DEC-031.
-- [ ] Tests del §4 y quality gate en verde.
-- [ ] Commit `S2.5 …` en `feat/S2.5-semaforo`.
+- [x] SDD en `docs/sdd/S2.5/SDD.md`, Estado = Aprobado; ticket S2.5 en ClickUp.
+- [x] Semáforo calculado en la API, con filtro; la web lo muestra en los dos modos.
+- [x] D-31 en la hoja y en `dudas.md`; regla provisional en `business-rules.md`; DEC-031.
+- [x] Tests del §4 y quality gate en verde.
+- [x] Commit `S2.5 …` en `feat/S2.5-semaforo`.
 
 ---
 

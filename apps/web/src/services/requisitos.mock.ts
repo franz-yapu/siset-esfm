@@ -72,6 +72,12 @@ const buscar = (id: number): FileMock => {
   return f;
 };
 
+/** Estado de cada requisito del catálogo en el file (todos son obligatorios en el mock). Lo usa el semáforo. */
+export const estadosDeRequisitos = (fileId: number): RequisitoDelFile['estado'][] => {
+  const f = buscar(fileId);
+  return CATALOGO_MOCK.map((c) => f.requisitosCatalogo?.[c.codigo]?.estado ?? 'PENDIENTE');
+};
+
 const armar = (item: ItemCatalogo, r?: RequisitoRegistradoMock): RequisitoDelFile => ({
   ...item,
   obligatorio: true,
