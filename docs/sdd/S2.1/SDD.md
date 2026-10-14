@@ -2,8 +2,8 @@
 
 - **Ticket:** ClickUp **S2.1** (`868mh1kxd`, https://app.clickup.com/t/868mh1kxd).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Estado:** Aprobado (2026-10-13) · v1.1 aprobada el mismo día
+- **Versión:** 1.1 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/modelo-datos.md` §Convenciones, §catalogos (`requisito_tipo`, `tipo_tramite`, `tipo_tramite_requisito`), §files
   2. `docs/decisions/LOG.md` — DEC-006 (ids `INTEGER`, FK RESTRICT), DEC-009 (piloto: file básico; matrículas y resultado anual solo si llega D-07)
@@ -220,3 +220,15 @@ Los nombres son los de `NOMBRE_REQUISITO` del prototipo. `descripcion` queda vac
   2. Enums de PostgreSQL para condición, estado del requisito y nivel del TCLO.
   3. `codigo_estudiante` es texto libre y único hasta conocer el formato de la escuela.
   4. El catálogo provisional se siembra con los códigos del prototipo, sin descripción inventada.
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13), por la respuesta de D-04 (DEC-018 #6):** el TACFI son 2 talleres artísticos (uno en 1.º y otro en 2.º) y el TCLO, el taller de lengua originaria, se defiende de 1.º a 3.º con niveles básico, intermedio y avanzado. El catálogo pasa a tener **una fila por requisito concreto**, con su año y su nivel:
+  - `requisito_tipo` **gana** `anio_formacion` (1–5, nullable: un requisito que no es de un año, como el certificado de notas) y `nivel` (`nivel_tclo`, nullable), y **pierde** `requiere_nivel`.
+  - `requisito_file` **pierde** `nivel`: el nivel es del requisito del catálogo, no de cada file.
+  - `CHECK` nuevo: `anio_formacion BETWEEN 1 AND 5`.
+  - Seed provisional (supone una defensa del TCLO por año; se repreguntó en D-04b): `TACFI_1` (1.º), `TACFI_2` (2.º), `TCLO_BASICO` (1.º), `TCLO_INTERMEDIO` (2.º), `TCLO_AVANZADO` (3.º) y `CERT_NOTAS` (sin año). Si son 3 defensas por año, se agregan filas sin cambiar el esquema. Lo mismo vale para los unos 30 requisitos que va a mandar la escuela (D-18).
+  - `catalogos-seed.test.ts` deja de comparar los requisitos con el prototipo (`TACFI`, `TCLO`, `CERT_NOTAS`), que ya no coincide con lo que dijo la escuela. La web se alinea en S2.10.
+  - El servicio de S2.2 ya no valida el nivel por file.

@@ -247,3 +247,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 5. **`autenticar`** (módulo `seguridad`) verifica el Bearer (solo HS256, emisor `siset`) sin consultar la
    base, deja la sesión en `res.locals` y el usuario en el contexto de la petición. S1.6 lo reutiliza.
 6. Logout siempre responde 204; la cookie se borra en logout y en todo refresh rechazado.
+
+## DEC-016 — Tablas del file y catálogo de requisitos por año y nivel
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S2.1 v1.1 (aprobado) + respuesta de D-04 · **Estado:** activa
+
+1. S2.1 crea `file_academico`, `requisito_file` y `requisito_tipo`. **No** crea `matricula` ni
+   `resultado_anual` (esperan D-07, S2.3) ni `tipo_tramite`/`tipo_tramite_requisito` (esperan D-21/D-05, S3.x).
+2. **Catálogo con una fila por requisito concreto**, con `anio_formacion` y `nivel` (D-04): `TACFI_1`, `TACFI_2`,
+   `TCLO_BASICO`, `TCLO_INTERMEDIO`, `TCLO_AVANZADO` y `CERT_NOTAS`. Supone una defensa del TCLO por año
+   (repregunta D-04b). Agregar requisitos (D-18, unos 30) no cambia el esquema. El nivel ya no va en
+   `requisito_file`.
+3. Enums de PostgreSQL para la condición del estudiante, el estado del requisito y el nivel del TCLO.
+4. `codigo_estudiante` es texto libre y único hasta conocer el formato de la escuela (D-13b).
+5. El seed no pisa requisitos editados por Kardex. La web (`TACFI`, `TCLO`, `CERT_NOTAS`) se alinea en S2.10.

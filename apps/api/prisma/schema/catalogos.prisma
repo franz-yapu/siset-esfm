@@ -14,9 +14,11 @@ model Sede {
 }
 
 model Especialidad {
-  id     Int     @id @default(autoincrement())
-  nombre String  @unique @db.VarChar(120)
-  activo Boolean @default(true)
+  id     Int             @id @default(autoincrement())
+  nombre String          @unique @db.VarChar(120)
+  activo Boolean         @default(true)
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  files  FileAcademico[]
 
   @@map("especialidad")
 }
@@ -29,4 +31,25 @@ model Parametro {
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("parametro")
+}
+
+/// Catálogo de requisitos del file, una fila por requisito concreto con su año y nivel
+/// (D-04, D-18; SDD S2.1 v1.1). Provisional hasta la lista completa de la escuela.
+model RequisitoTipo {
+  id             Int             @id @default(autoincrement())
+  /// TACFI_1, TCLO_BASICO, CERT_NOTAS…
+  codigo         String          @unique @db.VarChar(30)
+  nombre         String          @db.VarChar(120)
+  descripcion    String?         @db.VarChar(255)
+  /// Año de formación al que corresponde (1–5); null si no es de un año.
+  anioFormacion  Int?            @map("anio_formacion") @db.SmallInt
+  /// Nivel del TCLO; null para los demás.
+  nivel          NivelTclo?
+  /// Cuenta para el semáforo del file.
+  obligatorio    Boolean         @default(true)
+  activo         Boolean         @default(true)
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  requisitosFile RequisitoFile[]
+
+  @@map("requisito_tipo")
 }

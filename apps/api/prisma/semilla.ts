@@ -36,6 +36,29 @@ export const ESPECIALIDADES = [
   'Educación Física y Deportes',
 ] as const;
 
+/**
+ * Catálogo provisional de requisitos (SDD S2.1 v1.1, D-04): una fila por requisito concreto,
+ * con su año y nivel. Supone una defensa del TCLO por año (se repreguntó en D-04b). La lista
+ * completa (unos 30 requisitos, D-18) la manda la escuela; Kardex podrá editarla.
+ */
+export const REQUISITOS = [
+  { codigo: 'TACFI_1', nombre: 'TACFI artístico de 1.º año', anioFormacion: 1, nivel: null },
+  { codigo: 'TACFI_2', nombre: 'TACFI artístico de 2.º año', anioFormacion: 2, nivel: null },
+  { codigo: 'TCLO_BASICO', nombre: 'TCLO nivel básico', anioFormacion: 1, nivel: 'BASICO' },
+  { codigo: 'TCLO_INTERMEDIO', nombre: 'TCLO nivel intermedio', anioFormacion: 2, nivel: 'INTERMEDIO' },
+  { codigo: 'TCLO_AVANZADO', nombre: 'TCLO nivel avanzado', anioFormacion: 3, nivel: 'AVANZADO' },
+  { codigo: 'CERT_NOTAS', nombre: 'Certificado de notas', anioFormacion: null, nivel: null },
+] as const;
+
+/** Lo que dijo la escuela de cada sigla (D-04); no se inventa más. */
+const DESCRIPCION_REQUISITO: Partial<Record<(typeof REQUISITOS)[number]['codigo'], string>> = {
+  TACFI_1: 'Taller artístico; requisito para defender el diseño metodológico.',
+  TACFI_2: 'Taller artístico; requisito para defender el diseño metodológico.',
+  TCLO_BASICO: 'Defensa del taller de lengua originaria.',
+  TCLO_INTERMEDIO: 'Defensa del taller de lengua originaria.',
+  TCLO_AVANZADO: 'Defensa del taller de lengua originaria.',
+};
+
 type CodigoSede = (typeof SEDES)[number]['codigo'];
 
 export interface KardexInicial {
@@ -98,6 +121,7 @@ export interface ResultadoSemilla {
   roles: number;
   sedes: number;
   especialidades: number;
+  requisitosTipo: number;
   personas: number;
   usuarios: number;
 }
@@ -120,6 +144,14 @@ export async function sembrar(bd: ClienteBd, kardex: KardexInicial): Promise<Res
     }
     for (const nombre of ESPECIALIDADES) {
       await tx.especialidad.upsert({ where: { nombre }, create: { nombre }, update: {} });
+    }
+    // update vacío: si Kardex edita un requisito, el seed no lo pisa.
+    for (const r of REQUISITOS) {
+      await tx.requisitoTipo.upsert({
+        where: { codigo: r.codigo },
+        create: { ...r, descripcion: DESCRIPCION_REQUISITO[r.codigo] ?? null },
+        update: {},
+      });
     }
 
     const persona = await tx.persona.upsert({
@@ -153,6 +185,7 @@ export async function sembrar(bd: ClienteBd, kardex: KardexInicial): Promise<Res
       roles: await tx.rol.count(),
       sedes: await tx.sede.count(),
       especialidades: await tx.especialidad.count(),
+      requisitosTipo: await tx.requisitoTipo.count(),
       personas: await tx.persona.count(),
       usuarios: await tx.usuario.count(),
     };
