@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { CodigoRequisito, FileAcademico, NivelTclo, Requisito, ResultadoAnual } from '@/types';
 import { hoy, ordinal } from '@/lib/formato';
 import { LIMITE_UF, NOMBRE_REQUISITO } from '@/lib/reglas';
-import { Alerta, Button, Input, Modal, Select, Textarea } from '@/components/ui';
+import { Alerta, Button, Input, Modal, Select } from '@/components/ui';
 
 interface Base {
   onCerrar: () => void;
@@ -208,50 +208,6 @@ export function ModalRequisito({
           El requisito {NOMBRE_REQUISITO[codigo]} pasará a “Completo” y el semáforo se actualizará al instante.
         </p>
       </div>
-    </Modal>
-  );
-}
-
-/** RF-07 CA3: bloquear o desbloquear exige motivo. */
-export function ModalBloqueo({
-  bloquear,
-  onCerrar,
-  onGuardar,
-  ocupado,
-}: Base & { bloquear: boolean; onGuardar: (motivo: string) => void }) {
-  const [motivo, setMotivo] = useState('');
-  const [enviado, setEnviado] = useState(false);
-  return (
-    <Modal
-      open
-      onClose={onCerrar}
-      title={bloquear ? 'Bloquear file' : 'Desbloquear file'}
-      size="sm"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onCerrar}>
-            Cancelar
-          </Button>
-          <Button
-            variant={bloquear ? 'danger' : 'success'}
-            loading={ocupado}
-            onClick={() => {
-              setEnviado(true);
-              if (motivo.trim()) onGuardar(motivo);
-            }}
-          >
-            {bloquear ? 'Bloquear' : 'Desbloquear'}
-          </Button>
-        </>
-      }
-    >
-      <Textarea
-        label="Motivo"
-        value={motivo}
-        onChange={(e) => setMotivo(e.target.value)}
-        error={enviado && !motivo.trim() ? 'El motivo es obligatorio' : null}
-        hint="Quedará registrado en la bitácora con tu usuario."
-      />
     </Modal>
   );
 }

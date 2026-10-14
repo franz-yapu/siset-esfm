@@ -2,7 +2,7 @@
 
 - **Ticket:** S2.6, redefinido por la respuesta D-07b (el backlog decía "Bloqueo por UF reprobadas sobre el límite"). Se crea en ClickUp al aprobar este SDD.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/dudas.md` D-07 y **D-07b** (respondida el 2026-10-14): "si un estudiante reprueba ya no es necesario que retome TACFI ni TCLO… el detalle está cuando al estudiante le otorgan el **permiso obligatorio por una gestión** por reprobación o por no existir la especialidad para su reincorporación; en ese caso **debe bloquearse al estudiante hasta que haya una resolución** que determine su situación".
@@ -97,11 +97,11 @@ Responden 200 con el `FileDetalle`. Errores: 404 `NO_ENCONTRADO`; 422 `ESTADO_SI
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S2.6/SDD.md`, Estado = Aprobado; ticket S2.6 en ClickUp.
-- [ ] Rutas, eventos y botón conectados; demo y API con el mismo comportamiento.
-- [ ] PRD y `business-rules.md` corregidos según D-07b; DEC-029.
-- [ ] Tests del §4 y quality gate en verde.
-- [ ] Commit `S2.6 …` en `feat/S2.6-bloqueo-file`.
+- [x] SDD en `docs/sdd/S2.6/SDD.md`, Estado = Aprobado; ticket S2.6 en ClickUp.
+- [x] Rutas, eventos y botón conectados; demo y API con el mismo comportamiento.
+- [x] PRD y `business-rules.md` corregidos según D-07b; DEC-029.
+- [x] Tests del §4 y quality gate en verde.
+- [x] Commit `S2.6 …` en `feat/S2.6-bloqueo-file`.
 
 ---
 

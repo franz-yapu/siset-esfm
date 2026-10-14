@@ -26,7 +26,7 @@ test.describe.serial('E11 · files', () => {
 
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
-    await page.getByRole('row', { name: /Prueba Archivo/ }).click();
+    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
     await page.getByLabel('Celular').fill('70000001');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByText('Datos actualizados')).toBeVisible();
@@ -40,9 +40,32 @@ test.describe.serial('E11 · files', () => {
     await irA(page, '/files');
     await expect(page.getByRole('button', { name: 'Nuevo file' })).toHaveCount(0);
     await page.getByLabel('Buscar').fill(CI);
-    await page.getByRole('row', { name: /Prueba Archivo/ }).click();
+    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
     await expect(page.getByRole('heading', { name: 'Prueba Archivo' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Guardar' })).toHaveCount(0);
     await expect(page.getByLabel('Celular')).toBeDisabled();
+  });
+
+  test('E12 · Kardex bloquea y desbloquea el file; el historial muestra los dos eventos (S2.6)', async ({ page }) => {
+    await entrarComo(page, 'KARDEX');
+    await irA(page, '/files');
+    await page.getByLabel('Buscar').fill(CI);
+    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+
+    await page.getByRole('button', { name: 'Bloquear', exact: true }).click();
+    const modal = page.getByRole('dialog', { name: 'Bloquear file' });
+    await modal.getByLabel('Motivo').fill('Permiso obligatorio por reprobación, prueba E2E');
+    await modal.getByRole('button', { name: 'Bloquear', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Desbloquear', exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Desbloquear', exact: true }).click();
+    const otro = page.getByRole('dialog', { name: 'Desbloquear file' });
+    await otro.getByLabel('Número de resolución').fill('RA-E2E/2026');
+    await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Bloquear', exact: true })).toBeVisible();
+
+    await page.getByRole('tab', { name: 'Historial' }).click();
+    await expect(page.getByRole('row', { name: /Bloqueo del file/ })).toBeVisible();
+    await expect(page.getByRole('row', { name: /Desbloqueo del file/ })).toBeVisible();
   });
 });

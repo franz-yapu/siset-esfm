@@ -97,6 +97,30 @@ export const esquemaFiltrosFiles = z.object({
   ...esquemaPaginacion,
 });
 
+/** Bloqueo por el permiso obligatorio de una gestión (D-07b, SDD S2.6 §2.1). Texto libre: la escuela no cerró la lista. */
+export const esquemaBloquearFile = z
+  .strictObject({
+    motivo: z
+      .string()
+      .trim()
+      .min(5, 'Escriba el motivo del bloqueo')
+      .max(255)
+      .meta({ example: 'Permiso obligatorio por reprobación, gestión 2026' }),
+  })
+  .meta({ id: 'BloquearFile' });
+
+/** El desbloqueo exige la resolución que define la situación del estudiante (D-07b, D-29). */
+export const esquemaDesbloquearFile = z
+  .strictObject({
+    resolucion: z
+      .string()
+      .trim()
+      .min(1, 'Escriba el número de la resolución')
+      .max(100)
+      .meta({ example: 'RA-045/2026' }),
+  })
+  .meta({ id: 'DesbloquearFile' });
+
 export const esquemaIdFile = z.object({ id: z.coerce.number().int().min(1).max(2_147_483_647) });
 
 export type DatosCrearFile = z.output<typeof esquemaCrearFile>;
@@ -107,6 +131,8 @@ export const esquemasListarFiles = { query: esquemaFiltrosFiles };
 export const esquemasUnFile = { params: esquemaIdFile };
 export const esquemasCrearFile = { body: esquemaCrearFile };
 export const esquemasEditarFile = { params: esquemaIdFile, body: esquemaEditarFile };
+export const esquemasBloquearFile = { params: esquemaIdFile, body: esquemaBloquearFile };
+export const esquemasDesbloquearFile = { params: esquemaIdFile, body: esquemaDesbloquearFile };
 
 export const esquemaFileDetalle = z
   .object({

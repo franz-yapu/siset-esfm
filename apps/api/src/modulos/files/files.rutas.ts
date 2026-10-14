@@ -4,13 +4,17 @@ import type { ZodOpenApiResponseObject } from 'zod-openapi';
 import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import type { crearControladorFiles } from './files.controlador';
 import {
+  esquemaBloquearFile,
   esquemaCrearFile,
+  esquemaDesbloquearFile,
   esquemaEditarFile,
   esquemaFileDetalle,
   esquemaFiltrosFiles,
   esquemaIdFile,
   esquemaPaginaFiles,
+  esquemasBloquearFile,
   esquemasCrearFile,
+  esquemasDesbloquearFile,
   esquemasEditarFile,
   esquemasListarFiles,
   esquemasUnFile,
@@ -33,7 +37,15 @@ export const crearRutasFiles = (
     .get('/files', autenticar, autorizar.leer, validar(esquemasListarFiles), controlador.listar)
     .get('/files/:id', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.obtener)
     .post('/files', autenticar, autorizar.crear, validar(esquemasCrearFile), controlador.crear)
-    .patch('/files/:id', autenticar, autorizar.editar, validar(esquemasEditarFile), controlador.editar);
+    .patch('/files/:id', autenticar, autorizar.editar, validar(esquemasEditarFile), controlador.editar)
+    .post('/files/:id/bloqueo', autenticar, autorizar.editar, validar(esquemasBloquearFile), controlador.bloquear)
+    .post(
+      '/files/:id/desbloqueo',
+      autenticar,
+      autorizar.editar,
+      validar(esquemasDesbloquearFile),
+      controlador.desbloquear,
+    );
 
 const error = (description: string) => ({ description, content: { 'application/json': { schema: esquemaError } } });
 const json = (description: string, schema: z.ZodType): ZodOpenApiResponseObject => ({
@@ -103,6 +115,41 @@ export const openapiFiles: ZodOpenApiPathsObject = {
         '404': error('El file no existe (NO_ENCONTRADO).'),
         '409': error('El código se repite (CODIGO_EXISTENTE).'),
         '422': error('La especialidad no existe (ESPECIALIDAD_INEXISTENTE).'),
+      },
+    },
+  },
+  '/api/v1/files/{id}/bloqueo': {
+    post: {
+      tags: ['Files'],
+      summary: 'Bloquear un file (solo Kardex)',
+      description: 'Por el permiso obligatorio de una gestión (D-07b). El motivo queda en el file y en la bitácora.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      requestBody: { content: { 'application/json': { schema: esquemaBloquearFile } } },
+      responses: {
+        '200': json('File bloqueado.', esquemaFileDetalle),
+        '400': error('Sin motivo (VALIDACION).'),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
+        '422': error('Ya estaba bloqueado (ESTADO_SIN_CAMBIO).'),
+      },
+    },
+  },
+  '/api/v1/files/{id}/desbloqueo': {
+    post: {
+      tags: ['Files'],
+      summary: 'Desbloquear un file (solo Kardex)',
+      description:
+        'Con el número de la resolución que define la situación del estudiante (D-07b); queda en la bitácora.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      requestBody: { content: { 'application/json': { schema: esquemaDesbloquearFile } } },
+      responses: {
+        '200': json('File desbloqueado.', esquemaFileDetalle),
+        '400': error('Sin resolución (VALIDACION).'),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
+        '422': error('No estaba bloqueado (ESTADO_SIN_CAMBIO).'),
       },
     },
   },

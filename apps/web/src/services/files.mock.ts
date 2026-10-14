@@ -188,6 +188,31 @@ export const filesMock: ServicioFiles = {
     return aDetalle(f);
   },
 
+  async bloquear(id: number, motivo: string, actor: Usuario): Promise<FileDetalle> {
+    await delay(LATENCIA);
+    const f = buscar(id);
+    const m = motivo.trim();
+    if (m.length < 5) throw validacion([{ ruta: 'body.motivo', mensaje: 'Escriba el motivo del bloqueo' }]);
+    if (f.bloqueado) throw new ErrorApi('El file ya está bloqueado.', 'ESTADO_SIN_CAMBIO', 422);
+    f.bloqueado = true;
+    f.motivoBloqueo = m;
+    auditar(actor.nombre, MODULO, 'Bloquear file', f.codigo, { bloqueado: false }, { bloqueado: true, motivo: m });
+    return aDetalle(f);
+  },
+
+  async desbloquear(id: number, resolucion: string, actor: Usuario): Promise<FileDetalle> {
+    await delay(LATENCIA);
+    const f = buscar(id);
+    const r = resolucion.trim();
+    if (!r) throw validacion([{ ruta: 'body.resolucion', mensaje: 'Escriba el número de la resolución' }]);
+    if (!f.bloqueado) throw new ErrorApi('El file no está bloqueado.', 'ESTADO_SIN_CAMBIO', 422);
+    const antes = { bloqueado: true, motivo: f.motivoBloqueo ?? null };
+    f.bloqueado = false;
+    f.motivoBloqueo = undefined;
+    auditar(actor.nombre, MODULO, 'Desbloquear file', f.codigo, antes, { bloqueado: false, resolucion: r });
+    return aDetalle(f);
+  },
+
   async especialidades(): Promise<Especialidad[]> {
     await delay(LATENCIA);
     return copia(ESPECIALIDADES_MOCK);

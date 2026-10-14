@@ -116,4 +116,18 @@ describe('filesMock: contrato de la API de S2.2 (SDD S2.9-S2.10 §2.1)', () => {
   it('especialidades: el catálogo con ids', async () => {
     expect((await filesMock.especialidades())[1]).toEqual({ id: 2, nombre: 'Matemática' });
   });
+
+  it('bloquear y desbloquear: mismo contrato y errores que la API (S2.6)', async () => {
+    const libre = db.files.find((f) => !f.bloqueado)!;
+    expect(await codigoDe(filesMock.bloquear(libre.id, 'x', kardex()))).toBe('VALIDACION');
+    expect(await codigoDe(filesMock.desbloquear(libre.id, 'RA-1', kardex()))).toBe('ESTADO_SIN_CAMBIO');
+    const b = await filesMock.bloquear(libre.id, ' Permiso obligatorio por reprobación ', kardex());
+    expect(b).toMatchObject({ bloqueado: true, motivoBloqueo: 'Permiso obligatorio por reprobación' });
+    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Bloquear file' });
+    expect(await codigoDe(filesMock.bloquear(libre.id, 'Otra vez el motivo', kardex()))).toBe('ESTADO_SIN_CAMBIO');
+    expect(await codigoDe(filesMock.desbloquear(libre.id, ' ', kardex()))).toBe('VALIDACION');
+    const d = await filesMock.desbloquear(libre.id, 'RA-045/2026', kardex());
+    expect(d).toMatchObject({ bloqueado: false, motivoBloqueo: null });
+    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Desbloquear file', despues: { resolucion: 'RA-045/2026' } });
+  });
 });

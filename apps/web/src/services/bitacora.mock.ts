@@ -31,8 +31,8 @@ const ACCION: Record<string, AccionAuditoria> = {
   'Registrar hoja de ruta': 'CREAR',
   'Registrar matrícula': 'CREAR',
   'Carga masiva de files': 'CREAR',
-  'Bloquear file': 'CAMBIAR_ESTADO',
-  'Desbloquear file': 'CAMBIAR_ESTADO',
+  'Bloquear file': 'BLOQUEAR',
+  'Desbloquear file': 'DESBLOQUEAR',
 };
 
 const ENTIDAD: Record<ModuloAuditoria, string> = {

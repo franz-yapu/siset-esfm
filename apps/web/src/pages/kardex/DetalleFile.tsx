@@ -15,7 +15,8 @@ import { ACCIONES, esAccion } from '@/config/auditoria';
 import { Alerta, Card, Cargando, DataTable, Tabs } from '@/components/ui';
 import { CabeceraFile } from '@/components/file/CabeceraFile';
 import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
-import { BotonBloqueoDemo, SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
+import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
+import { BloqueoFile } from '@/components/file/BloqueoFile';
 
 type Tab = 'datos' | 'historial-api' | TabDemo;
 
@@ -50,8 +51,8 @@ function HistorialFile({ fileId }: { fileId: number }) {
 }
 
 /**
- * P-41 · Detalle del file (S2.10). Datos personales y académicos contra GET/PATCH /files. Matrículas,
- * resultados, requisitos, trámites y bloqueo solo en la demo hasta S2.3 y S2.4 (DEC-028).
+ * P-41 · Detalle del file (S2.10). Datos personales y académicos contra GET/PATCH /files; bloqueo y desbloqueo
+ * (S2.6, D-07b). Matrículas, resultados, requisitos y trámites solo en la demo (DEC-028).
  */
 export function DetalleFile() {
   const { id = '' } = useParams();
@@ -110,12 +111,12 @@ export function DetalleFile() {
     <>
       <CabeceraFile
         file={{ ...f, semaforo: prototipo ? semaforoFile(prototipo) : undefined }}
-        acciones={editable && demo && <BotonBloqueoDemo fileId={f.id} bloqueado={f.bloqueado} onCambio={alCambiar} />}
+        acciones={editable && <BloqueoFile file={f} />}
       />
       {!demo && (
         <Alerta tipo="info" className="mb-4">
-          Matrículas, resultados anuales, requisitos (TACFI, TCLO y certificados) y el bloqueo del file se habilitan en
-          una próxima versión, cuando la escuela confirme sus reglas.
+          Matrículas y requisitos (TACFI, TCLO y certificados) se habilitan en una próxima versión, cuando la escuela
+          confirme sus reglas.
         </Alerta>
       )}
       <Card>

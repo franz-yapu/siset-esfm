@@ -15,6 +15,10 @@ export interface ServicioFiles {
   obtener(id: number): Promise<FileDetalle>;
   crear(d: DatosCrearFile, actor: Usuario): Promise<FileDetalle>;
   editar(id: number, c: CambiosFile, actor: Usuario): Promise<FileDetalle>;
+  /** Por el permiso obligatorio de una gestión (D-07b, SDD S2.6). */
+  bloquear(id: number, motivo: string, actor: Usuario): Promise<FileDetalle>;
+  /** Con el número de la resolución, que queda en la bitácora. */
+  desbloquear(id: number, resolucion: string, actor: Usuario): Promise<FileDetalle>;
   especialidades(): Promise<Especialidad[]>;
 }
 
