@@ -17,10 +17,24 @@ import {
 } from '@/compartido/http';
 import { crearLogger } from '@/compartido/logger';
 import { leerParametrosEnteros } from '@/modulos/catalogos';
-import { buscarNombreCompleto, buscarNombresCompletos } from '@/modulos/personas';
+import {
+  actualizarPersona,
+  buscarIdsPorNombre,
+  buscarNombreCompleto,
+  buscarNombresCompletos,
+  buscarPersonaPorCi,
+  crearPersona,
+  obtenerPersonas,
+} from '@/modulos/personas';
 import { crearModuloAuditoria } from '@/modulos/auditoria';
 import { crearModuloSalud } from '@/modulos/salud';
-import { crearAutenticar, crearAutorizar, crearModuloAuth, describirUsuarios } from '@/modulos/seguridad';
+import {
+  crearAutenticar,
+  crearAutorizar,
+  crearModuloAuth,
+  crearModuloUsuarios,
+  describirUsuarios,
+} from '@/modulos/seguridad';
 
 export interface DependenciasApp {
   bd: ClienteBd;
@@ -73,6 +87,13 @@ export function crearApp({
       nombreDe: buscarNombreCompleto,
       leerParametros: leerParametrosEnteros,
       loginLimitePorMinuto: config.loginLimitePorMinuto,
+    }),
+    // Crear un usuario crea su persona en la misma transacción: la raíz pasa personas (SDD S1.8 §2.4).
+    crearModuloUsuarios({
+      bd,
+      autenticar,
+      autorizar,
+      personas: { buscarPersonaPorCi, crearPersona, actualizarPersona, buscarIdsPorNombre, obtenerPersonas },
     }),
     crearModuloAuditoria({
       bd,

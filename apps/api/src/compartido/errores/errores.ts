@@ -43,8 +43,12 @@ export class ErrorNoEncontrado extends ErrorApp {
 /** Choca con el estado actual del recurso (duplicado, modificado por otra persona). */
 export class ErrorConflicto extends ErrorApp {
   readonly estado = 409;
-  constructor(mensaje = 'El recurso entra en conflicto con su estado actual.', detalles?: unknown) {
-    super(mensaje, 'CONFLICTO', detalles);
+  constructor(
+    mensaje = 'El recurso entra en conflicto con su estado actual.',
+    detalles?: unknown,
+    codigo = 'CONFLICTO',
+  ) {
+    super(mensaje, codigo, detalles);
   }
 }
 

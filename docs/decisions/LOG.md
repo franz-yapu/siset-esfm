@@ -311,3 +311,19 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    Kardex), **D-24** (una sede por persona; Coordinación y Kardex en Ancocagua) y **D-25** (CI como usuario).
 8. **Repreguntas agregadas a la hoja:** D-07b, D-12b (¿aceptan un servidor externo?), D-04b, D-13b (formato de
    los 152 files) y D-14b (quién restablece contraseñas).
+
+## DEC-020 — API de usuarios del personal
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.8 v1.1 (aprobado) · **Estado:** activa
+
+1. `/api/v1/usuarios` crea solo cuentas del **personal** (SEC_DIR, SEC_COORD, COORDINADOR, KARDEX). Las de
+   estudiantes llegan con el file y la doble verificación (S2.15); los egresados no tienen cuenta (D-08).
+2. **El sistema genera la contraseña temporal** (12 caracteres, cumple DEC-011, sin caracteres ambiguos) y la
+   devuelve una sola vez. Restablecer genera otra, obliga a cambiarla, quita el bloqueo y cierra las sesiones.
+   Lo hace Kardex (D-14b).
+3. **El CI no se edita**: es el usuario (D-25). Si está mal, se da de baja la cuenta y se crea otra.
+4. Kardex no puede darse de baja ni quitarse el rol, y **el sistema nunca queda sin un KARDEX activo**
+   (`ULTIMO_KARDEX`, verificado con un bloqueo de transacción para que dos bajas simultáneas no lo salteen).
+5. Acción nueva de bitácora: **`DESBLOQUEAR_CUENTA`**. `EDITAR` guarda solo los campos que cambiaron; una
+   edición sin cambios reales no escribe ni registra nada.
+6. Si el CI ya es de una persona sin cuenta, **se reutiliza esa persona sin cambiar sus datos**.

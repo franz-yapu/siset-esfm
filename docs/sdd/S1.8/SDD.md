@@ -2,8 +2,12 @@
 
 - **Ticket:** ClickUp **S1.8** (`868mh1kw5`, https://app.clickup.com/t/868mh1kw5).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.2 · **Fecha:** 2026-10-14
+  - 1.1: la decisión pasa a DEC-020 porque DEC-019 registró las repreguntas; D-14b confirmó que Kardex restablece.
+  - 1.2 (al implementar): el listado se ordena en memoria (el apellido vive en `personas`); la regla del último
+    KARDEX usa `pg_advisory_xact_lock` desde el principio en vez de dejarlo para después; una edición sin cambios
+    reales responde 200 sin evento; la sede inexistente se detecta por la FK (P2003).
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-03 (CA1 crea, edita, da de baja y reactiva; CA2 baja lógica; CA3 CI único; CA4 el reseteo obliga a cambiar la contraseña)
   2. `docs/decisions/LOG.md` — DEC-007 (evento con antes y después), DEC-009 (piloto solo con el personal), DEC-011 (política de contraseña, eventos de acceso), DEC-014 (revocar sesiones), DEC-015 (política: `KARDEX, usuarios, crear/leer/editar`), DEC-017 (paginación), DEC-018 (D-08: egresados sin cuenta)
@@ -192,7 +196,7 @@ Si cualquier paso falla, no queda ni la persona, ni el usuario, ni el evento.
 | `apps/api/src/app.ts`                                                                     | Monta el módulo con las funciones de `personas`.                                                                        |
 | `apps/api/test/bd/usuarios-*.test.ts`                                                     | **Nuevos** (§4).                                                                                                        |
 | `apps/api/test/seguridad-password-temporal.test.ts`                                       | **Nuevo**.                                                                                                              |
-| `docs/decisions/LOG.md`                                                                   | DEC-019 (§7).                                                                                                           |
+| `docs/decisions/LOG.md`                                                                   | DEC-020 (§7).                                                                                                           |
 
 ---
 
@@ -221,12 +225,12 @@ Si cualquier paso falla, no queda ni la persona, ni el usuario, ni el evento.
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.8/SDD.md`, Estado = Aprobado.
-- [ ] Tests de cada operación, permisos y eventos (§4).
-- [ ] Nunca se devuelve `password_hash`; la temporal solo en la respuesta de crear y de restablecer.
-- [ ] Cada escritura con su evento en la misma transacción (DEC-007).
-- [ ] DEC-019 en `LOG.md`.
-- [ ] Quality gate en verde.
+- [x] SDD en `docs/sdd/S1.8/SDD.md`, Estado = Aprobado.
+- [x] Tests de cada operación, permisos y eventos (§4).
+- [x] Nunca se devuelve `password_hash`; la temporal solo en la respuesta de crear y de restablecer.
+- [x] Cada escritura con su evento en la misma transacción (DEC-007).
+- [x] DEC-020 en `LOG.md`.
+- [x] Quality gate en verde.
 - [ ] Commit `S1.8 …` en la rama `feat/S1.8-api-usuarios`.
 
 ---
@@ -245,7 +249,7 @@ Si cualquier paso falla, no queda ni la persona, ni el usuario, ni el evento.
 ## 7 · Preguntas abiertas
 
 - **Para la escuela:** nada nuevo. D-14b (quién restablece la contraseña) ya está repreguntada; mientras tanto la restablece Kardex, que es la propuesta provisional.
-- **DEC-019 (va a `LOG.md`):**
+- **DEC-020 (va a `LOG.md`):**
   1. La API de usuarios crea solo cuentas del personal; las de estudiantes llegan con el file y la doble verificación.
   2. El sistema genera la contraseña temporal (12 caracteres, política DEC-011) y la muestra una sola vez; restablecer revoca las sesiones.
   3. El CI no se edita.
