@@ -13,3 +13,6 @@ apps/api/src/compartido/bd/generado/
 # E2E de la web (SDD S0.8)
 dist-e2e-*/
 test-results/
+
+# Copias de trabajo de los agentes de Claude Code
+.claude/worktrees/
