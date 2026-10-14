@@ -16,9 +16,16 @@ import {
   type ModuloHttp,
 } from '@/compartido/http';
 import { crearLogger } from '@/compartido/logger';
-import { leerParametrosEnteros } from '@/modulos/catalogos';
+import {
+  crearModuloCatalogos,
+  leerParametrosEnteros,
+  nombreEspecialidadActiva,
+  nombresEspecialidades,
+} from '@/modulos/catalogos';
+import { crearModuloFiles } from '@/modulos/files';
 import {
   actualizarPersona,
+  buscarIdsPorCi,
   buscarIdsPorNombre,
   buscarNombreCompleto,
   buscarNombresCompletos,
@@ -95,6 +102,26 @@ export function crearApp({
       autorizar,
       personas: { buscarPersonaPorCi, crearPersona, actualizarPersona, buscarIdsPorNombre, obtenerPersonas },
     }),
+    // El file crea su persona en la misma transacción; la especialidad sale de catalogos (SDD S2.2 §2).
+    crearModuloFiles({
+      bd,
+      autenticar,
+      autorizar: {
+        leer: autorizar('files', 'leer'),
+        crear: autorizar('files', 'crear'),
+        editar: autorizar('files', 'editar'),
+      },
+      personas: {
+        buscarPersonaPorCi,
+        crearPersona,
+        actualizarPersona,
+        buscarIdsPorNombre,
+        buscarIdsPorCi,
+        obtenerPersonas,
+      },
+      especialidades: { nombreEspecialidadActiva, nombresEspecialidades },
+    }),
+    crearModuloCatalogos({ bd, autenticar, autorizarLectura: autorizar('files', 'leer') }),
     crearModuloAuditoria({
       bd,
       autenticar,

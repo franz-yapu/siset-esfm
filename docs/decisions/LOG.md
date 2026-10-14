@@ -452,3 +452,18 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    igual: todas las sesiones revocadas y `REUSO_SESION`.
 3. `refresh_token.reemplazado_por_id` (FK `SET NULL`, segunda excepción a DEC-006) marca la revocación por rotación.
 4. El arreglo es de la API; la web no cambia. E10 (`api-real`) lo prueba: falla 3 de 3 veces sin la gracia.
+
+## DEC-027 — API de files
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S2.2 (aprobado) + respuestas D-07b, D-13b, D-15 y D-24 · **Estado:** activa
+
+1. Módulo **`files`** con `/api/v1/files`: crear, ver, editar y listar paginado (texto en CI, código y nombre;
+   especialidad, año, condición y bloqueo). La persona se crea o se reutiliza en la misma transacción (patrón de
+   DEC-020). KARDEX crea y edita; el personal lee (DEC-015).
+2. **Quedan fuera:** el bloqueo (sigue D-07b y va en S2.3), los requisitos (S2.4), "mi file" (S2.7) y la cuenta
+   del estudiante (S2.15). El file se crea desbloqueado y el PATCH no acepta el bloqueo.
+3. **El file no tiene sede:** todos los estudiantes son de Ancocagua (D-24, D-15). No se aplica `exigirSede`. Si
+   entra la UA Corpa, el file necesitará la columna.
+4. `GET /api/v1/catalogos/especialidades` (solo activas), con permiso `files`/`leer`.
+5. El código de estudiante sigue obligatorio (DEC-016 #4) hasta la respuesta de **D-28**, en la hoja desde el
+   2026-10-14. Si no hay respuesta antes de que Kardex cargue los files, se vuelve opcional.

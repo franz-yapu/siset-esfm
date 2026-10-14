@@ -20,6 +20,8 @@ export interface FilaRuta {
 }
 
 const SOLO_KARDEX = ['KARDEX'] as const;
+/** Leen files: el personal (DEC-015). ESTUDIANTE solo tiene `leer_propio` ("mi file", S2.7). */
+const PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
 const ID_INEXISTENTE = 999_999;
 
 export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
@@ -45,6 +47,23 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     permitidos: SOLO_KARDEX,
   })),
   { metodo: 'get', documentada: '/api/v1/auditoria', ruta: '/auditoria', permitidos: SOLO_KARDEX },
+  // Files (SDD S2.2, DEC-015): KARDEX crea y edita; el personal lee.
+  { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: PERSONAL },
+  { metodo: 'post', documentada: '/api/v1/files', ruta: '/files', cuerpo: {}, permitidos: SOLO_KARDEX },
+  { metodo: 'get', documentada: '/api/v1/files/{id}', ruta: `/files/${ID_INEXISTENTE}`, permitidos: PERSONAL },
+  {
+    metodo: 'patch',
+    documentada: '/api/v1/files/{id}',
+    ruta: `/files/${ID_INEXISTENTE}`,
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/catalogos/especialidades',
+    ruta: '/catalogos/especialidades',
+    permitidos: PERSONAL,
+  },
   // Sin `autorizar`: la web arma el menú con esto aun con cpw (DEC-015 #6, SDD S1.6 §2.5).
   {
     metodo: 'get',

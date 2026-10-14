@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S2.2** (`868mh1kxn`, https://app.clickup.com/t/868mh1kxn).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-04 (registro y búsqueda del file)
@@ -158,12 +158,12 @@ Dentro de `bd.$transaction`: (1) `personas.buscarPersonaPorCi(tx, ci, complement
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S2.2/SDD.md`, Estado = Aprobado.
-- [ ] Tests de búsqueda, paginación, permisos y eventos (§4), y la matriz HTTP con las rutas nuevas.
-- [ ] Toda escritura registra su evento en la misma transacción (DEC-007).
-- [ ] DEC-027 en `LOG.md`.
-- [ ] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
-- [ ] Commit `S2.2 …` en `feat/S2.2-api-files`.
+- [x] SDD en `docs/sdd/S2.2/SDD.md`, Estado = Aprobado.
+- [x] Tests de búsqueda, paginación, permisos y eventos (§4), y la matriz HTTP con las rutas nuevas.
+- [x] Toda escritura registra su evento en la misma transacción (DEC-007).
+- [x] DEC-027 en `LOG.md`.
+- [x] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
+- [x] Commit `S2.2 …` en `feat/S2.2-api-files`.
 
 ---
 
@@ -179,7 +179,7 @@ Dentro de `bd.$transaction`: (1) `personas.buscarPersonaPorCi(tx, ci, complement
 
 ## 7 · Preguntas abiertas
 
-- **Para la escuela (no bloquea):** ¿todos los estudiantes tienen un **código de estudiante** asignado por la escuela? Mientras tanto, se mantiene obligatorio (DEC-016 #4). Si no lo tienen, se vuelve opcional con una migración chica.
+- **Para la escuela (no bloquea), D-28 en la hoja:** ¿todos los estudiantes tienen un **código de estudiante** asignado por la escuela? Mientras tanto, se mantiene obligatorio (DEC-016 #4). Si no lo tienen, se vuelve opcional con una migración chica.
 - **DEC-027 (va a `LOG.md`):**
   1. Módulo `files` con `/api/v1/files` (crear, ver, editar, listar paginado). La persona se crea o se reutiliza en la misma transacción (patrón de DEC-020).
   2. Bloqueo, requisitos, matrículas, "mi file" y la cuenta del estudiante quedan fuera (S2.3, S2.4, S2.7, S2.15). El bloqueo sigue D-07b y va en S2.3.
