@@ -16,3 +16,6 @@ test-results/
 
 # Credenciales del E2E contra la API real (SDD S1.14)
 apps/web/e2e/.auth/
+
+# Copias de trabajo de los agentes de Claude Code
+.claude/worktrees/

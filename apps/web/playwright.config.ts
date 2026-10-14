@@ -82,12 +82,12 @@ export default defineConfig({
     ? []
     : [
         servidor(4180, 'dist-e2e-mock', 'false'),
-        servidor(4181, 'dist-e2e-api', 'auth'),
+        servidor(4181, 'dist-e2e-api', 'auth,bitacora'),
         ...(API_REAL
           ? [
               apiE2E,
               // `vite preview` hereda el proxy /api del vite.config: mismo origen, como en producción.
-              servidor(PUERTO_WEB_API_REAL, 'dist-e2e-api-real', 'auth', 'false', {
+              servidor(PUERTO_WEB_API_REAL, 'dist-e2e-api-real', 'auth,usuarios,bitacora', 'false', {
                 API_PROXY: `http://localhost:${PUERTO_API_E2E}`,
               }),
             ]

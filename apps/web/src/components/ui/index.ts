@@ -13,3 +13,4 @@ export { EmptyState } from './EmptyState';
 export { Spinner, Cargando, Esqueleto } from './Spinner';
 export { Alerta } from './Alerta';
 export { PageHeader } from './PageHeader';
+export { Paginacion } from './Paginacion';

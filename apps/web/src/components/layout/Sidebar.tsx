@@ -2,7 +2,9 @@ import { NavLink } from 'react-router';
 import { MapPin, X } from 'lucide-react';
 import clsx from 'clsx';
 import type { Usuario } from '@/types';
-import { MENU, ROLES, rutaInicio } from '@/config/permisos';
+import { ROLES, rutaInicio } from '@/config/permisos';
+import { usePermisos } from '@/hooks';
+import { itemsDelMenu } from '@/lib/permisos';
 import { nombreSede } from '@/config/catalogos';
 
 interface Props {
@@ -11,9 +13,13 @@ interface Props {
   onCerrar: () => void;
 }
 
-/** Menú lateral azul, generado desde config/permisos.ts. En celular es un panel deslizable. */
+/**
+ * Menú lateral azul: los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
+ * Inicio y Mi perfil. En celular es un panel deslizable.
+ */
 export function Sidebar({ usuario, abierto, onCerrar }: Props) {
-  const items = MENU.filter((m) => m.roles.includes(usuario.rol));
+  const { permisos } = usePermisos();
+  const items = itemsDelMenu(permisos);
   return (
     <>
       <div

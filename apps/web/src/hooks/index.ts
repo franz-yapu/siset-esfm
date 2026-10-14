@@ -2,7 +2,10 @@ import { useCallback, useContext, useEffect, useRef, useState, type DependencyLi
 import { AuthContext, type ApiAuth } from '@/context/AuthContext';
 import { ToastContext, type ApiToast } from '@/context/ToastContext';
 import type { Usuario } from '@/types';
-import { puedeVer } from '@/config/permisos';
+import type { IdMenu } from '@/config/permisos';
+import { usePermisos } from './usePermisos';
+
+export { usePermisos, type ApiPermisos } from './usePermisos';
 
 export function useAuth(): ApiAuth {
   const ctx = useContext(AuthContext);
@@ -23,9 +26,9 @@ export function useToast(): ApiToast {
   return ctx;
 }
 
-export function usePermiso(permiso: string): boolean {
-  const { usuario } = useAuth();
-  return usuario ? puedeVer(usuario.rol, permiso) : false;
+/** ¿El usuario puede abrir esta pantalla? Según mis-permisos (SDD S1.11 §2.3). */
+export function usePermiso(id: IdMenu): boolean {
+  return usePermisos().puedeAbrir(id);
 }
 
 const EVENTO_CAMBIO = 'siset:cambio';

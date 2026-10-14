@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from '@/hooks';
-import { rutaInicio } from '@/config/permisos';
+import { rutaInicio, type IdRuta } from '@/config/permisos';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { Cargando } from '@/components/ui';
@@ -36,8 +36,8 @@ import { EmitirDictamen } from '@/pages/coordinador/EmitirDictamen';
 import { Reportes } from '@/pages/reportes/Reportes';
 import { MisTramites, MiTramite } from '@/pages/estudiante/MisTramites';
 
-/** Ruta protegida por el permiso de config/permisos.ts (si no lo tiene: P-04). */
-const P = (permiso: string, el: ReactNode) => <ProtectedRoute permiso={permiso}>{el}</ProtectedRoute>;
+/** Ruta protegida por el permiso de PERMISO_RUTA, según mis-permisos (si no lo tiene: P-04, SDD S1.11). */
+const P = (permiso: IdRuta, el: ReactNode) => <ProtectedRoute permiso={permiso}>{el}</ProtectedRoute>;
 
 /** Cada rol tiene su propio inicio; se protegen con el rol exacto. */
 function Inicio({ rol, children }: { rol: string; children: ReactNode }) {
@@ -135,9 +135,9 @@ export function App() {
         <Route path="/entregas" element={P('entregas', <FirmaEntrega />)} />
 
         <Route path="/files" element={P('files', <Files />)} />
-        <Route path="/files/nuevo" element={P('form-file', <FormFile />)} />
+        <Route path="/files/nuevo" element={P('nuevo-file', <FormFile />)} />
         <Route path="/files/:id" element={P('detalle-file', <DetalleFile />)} />
-        <Route path="/files/:id/editar" element={P('form-file', <FormFile />)} />
+        <Route path="/files/:id/editar" element={P('editar-file', <FormFile />)} />
         <Route path="/revision" element={P('revision', <Revision />)} />
         <Route path="/emision" element={P('emision', <Emision />)} />
         <Route path="/carga-masiva" element={P('carga', <CargaMasiva />)} />
