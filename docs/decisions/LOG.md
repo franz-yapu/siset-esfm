@@ -517,3 +517,14 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    y en la cabecera de P-41, en los dos modos. El rojo sin bloqueo se muestra como "Requisito observado".
 3. La regla vive en la API y en la web (para el mock); una tabla de casos común las mantiene iguales.
 4. Cuándo un requisito pendiente pasa a "atrasado" (rojo) lo define **D-31**, en la hoja desde el 2026-10-14.
+
+## DEC-032 — Inicio de Kardex con datos reales y sin cuentas de egresado
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.12 (aprobado) + D-08 · **Estado:** activa
+
+1. El inicio de Kardex (P-15) lee los files de `filesService`: total, bloqueados, en rojo y la lista de los que
+   están en rojo ("File bloqueado" o "Requisito observado"). Con la API oculta los indicadores y accesos de
+   trámites, pases e impresiones hasta S3.x–S5.x; en la demo siguen.
+2. La demo ya no tiene cuentas de egresado, ni la ruta `/egresado`, ni su inicio (D-08). El rol sigue existiendo
+   sin permisos (DEC-015 #2) y su inicio apunta a `/seguimiento`. Cierra DEC-022 P2.
+3. Los inicios de SEC_DIR, SEC_COORD, COORDINADOR y del estudiante se conectan con S3.x y S2.7.

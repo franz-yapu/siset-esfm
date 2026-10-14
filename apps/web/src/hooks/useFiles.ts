@@ -33,3 +33,18 @@ export function useMutacionFiles<A, R>(fn: (a: A) => Promise<R>) {
     },
   });
 }
+
+/** Indicadores de files del inicio de Kardex: solo el `total` de cada consulta (S1.12 §2.1). */
+export const useResumenFiles = () =>
+  useQuery({
+    queryKey: [...claveFiles, 'resumen'],
+    queryFn: async () => {
+      const [todos, bloqueados, rojos, atencion] = await Promise.all([
+        filesService.listar({ porPagina: 1 }),
+        filesService.listar({ bloqueado: true, porPagina: 1 }),
+        filesService.listar({ semaforo: 'ROJO', porPagina: 1 }),
+        filesService.listar({ semaforo: 'ROJO', porPagina: 20 }),
+      ]);
+      return { total: todos.total, bloqueados: bloqueados.total, rojos: rojos.total, atencion: atencion.datos };
+    },
+  });

@@ -2,7 +2,7 @@
 
 - **Ticket:** S1.12 (backlog 2026-10-12: "Paneles de inicio por rol"). Se crea en ClickUp al aprobar este SDD.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/prototipo-pantallas.md` P-10..P-15 (inicios por rol)
@@ -74,11 +74,11 @@ Con `filesService.listar` y `porPagina: 1`, se lee solo el `total` de cada consu
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.12/SDD.md`, Estado = Aprobado; ticket S1.12 en ClickUp.
-- [ ] Inicio de Kardex con files de la API; demo intacta.
-- [ ] Sin cuentas de egresado en la demo.
-- [ ] DEC-032; tests del §4 y quality gate en verde.
-- [ ] Commit `S1.12 …` en `feat/S1.12-inicio-kardex`.
+- [x] SDD en `docs/sdd/S1.12/SDD.md`, Estado = Aprobado; ticket S1.12 en ClickUp.
+- [x] Inicio de Kardex con files de la API; demo intacta.
+- [x] Sin cuentas de egresado en la demo.
+- [x] DEC-032; tests del §4 y quality gate en verde.
+- [x] Commit `S1.12 …` en `feat/S1.12-inicio-kardex`.
 
 ---
 
