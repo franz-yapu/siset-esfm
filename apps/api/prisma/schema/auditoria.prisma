@@ -1,5 +1,5 @@
 // Módulo dueño: auditoria (ADR-0001). Solo inserción por triggers (ADR-0003);
-// los permisos de BD llegan en S6.4. Modelo v1: docs/product/modelo-datos.md.
+// la app (siset_app) no tiene UPDATE/DELETE/TRUNCATE sobre esta tabla (S6.4). Modelo v1: docs/product/modelo-datos.md.
 
 model LogAuditoria {
   id           Int      @id @default(autoincrement())
@@ -20,5 +20,7 @@ model LogAuditoria {
   @@index([fecha(sort: Desc)])
   @@index([usuarioId, fecha(sort: Desc)])
   @@index([modulo, fecha(sort: Desc)])
+  /// Historial de un registro: "quién editó este file" (DEC-007 #4, S6.4).
+  @@index([entidad, entidadId, fecha(sort: Desc)])
   @@map("log_auditoria")
 }

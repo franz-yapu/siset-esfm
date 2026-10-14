@@ -1,31 +1,35 @@
 /** Acciones registrables. Se amplía con un PR, nunca con texto libre (SDD S0.7 §2.10). */
-export type AccionAuditoria =
-  | 'CREAR'
-  | 'EDITAR'
-  | 'DAR_DE_BAJA'
-  | 'REACTIVAR'
-  | 'CAMBIAR_ESTADO'
-  | 'LOGIN'
-  | 'LOGIN_FALLIDO'
-  | 'LOGOUT'
-  | 'CAMBIAR_PASSWORD'
-  | 'RESTABLECER_PASSWORD'
-  | 'BLOQUEO_CUENTA'
-  | 'REUSO_SESION'
-  | 'EXPORTAR'
-  | 'IMPRIMIR';
+export const ACCIONES_AUDITORIA = [
+  'CREAR',
+  'EDITAR',
+  'DAR_DE_BAJA',
+  'REACTIVAR',
+  'CAMBIAR_ESTADO',
+  'LOGIN',
+  'LOGIN_FALLIDO',
+  'LOGOUT',
+  'CAMBIAR_PASSWORD',
+  'RESTABLECER_PASSWORD',
+  'BLOQUEO_CUENTA',
+  'REUSO_SESION',
+  'EXPORTAR',
+  'IMPRIMIR',
+] as const;
+export type AccionAuditoria = (typeof ACCIONES_AUDITORIA)[number];
 
-export type ModuloAuditoria =
-  | 'SEGURIDAD'
-  | 'PERSONAS'
-  | 'CATALOGOS'
-  | 'FILES'
-  | 'HOJAS_RUTA'
-  | 'PASES'
-  | 'DICTAMENES'
-  | 'DOCUMENTOS'
-  | 'REPORTES'
-  | 'AUDITORIA';
+export const MODULOS_AUDITORIA = [
+  'SEGURIDAD',
+  'PERSONAS',
+  'CATALOGOS',
+  'FILES',
+  'HOJAS_RUTA',
+  'PASES',
+  'DICTAMENES',
+  'DOCUMENTOS',
+  'REPORTES',
+  'AUDITORIA',
+] as const;
+export type ModuloAuditoria = (typeof MODULOS_AUDITORIA)[number];
 
 export interface EventoAuditoria {
   accion: AccionAuditoria;

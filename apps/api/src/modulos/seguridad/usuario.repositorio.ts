@@ -51,3 +51,9 @@ export const bloquearCuenta = (cliente: Cliente, id: number, hasta: Date) =>
 /** Contraseña nueva: ya no hace falta cambiarla (SDD S1.5 §2.3). */
 export const actualizarPassword = (cliente: Cliente, id: number, passwordHash: string) =>
   cliente.usuario.update({ where: { id }, data: { passwordHash, debeCambiarPassword: false }, select: { id: true } });
+
+/** CI y persona de varios usuarios, para mostrar quién hizo cada evento (SDD S6.4 §2.3). */
+export const describirUsuarios = (cliente: Cliente, ids: number[]) =>
+  ids.length === 0
+    ? Promise.resolve([])
+    : cliente.usuario.findMany({ where: { id: { in: ids } }, select: { id: true, username: true, personaId: true } });

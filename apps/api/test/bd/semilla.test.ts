@@ -16,7 +16,7 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('es idempotente: dos corridas dejan los mismos conteos', async () => {
     const primera = await sembrar(bd, KARDEX_DE_PRUEBA);
     const segunda = await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5 });
+    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 6 });
     // Los archivos comparten la base y otros tests crean usuarios con eventos en la
     // bitácora, que no se pueden borrar (ADR-0003): se cuenta "al menos uno".
     expect(primera.personas).toBeGreaterThanOrEqual(1);
@@ -48,5 +48,17 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('con complemento, el username es CI-COMPLEMENTO', async () => {
     await sembrar(bd, { ...KARDEX_DE_PRUEBA, ci: '9000002', complemento: '1A' });
     expect(await bd.usuario.count({ where: { username: '9000002-1A' } })).toBe(1);
+  });
+
+  it('siembra el catálogo provisional de requisitos con año y nivel (SDD S2.1 v1.1)', async () => {
+    const tclo = await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TCLO_INTERMEDIO' } });
+    expect(tclo).toMatchObject({ anioFormacion: 2, nivel: 'INTERMEDIO', obligatorio: true, activo: true });
+    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'CERT_NOTAS' } })).anioFormacion).toBeNull();
+  });
+
+  it('no pisa un requisito que Kardex editó', async () => {
+    await bd.requisitoTipo.update({ where: { codigo: 'TACFI_1' }, data: { nombre: 'Nombre editado' } });
+    await sembrar(bd, KARDEX_DE_PRUEBA);
+    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_1' } })).nombre).toBe('Nombre editado');
   });
 });

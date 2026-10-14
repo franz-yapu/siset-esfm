@@ -17,9 +17,10 @@ import {
 } from '@/compartido/http';
 import { crearLogger } from '@/compartido/logger';
 import { leerParametrosEnteros } from '@/modulos/catalogos';
-import { buscarNombreCompleto } from '@/modulos/personas';
+import { buscarNombreCompleto, buscarNombresCompletos } from '@/modulos/personas';
+import { crearModuloAuditoria } from '@/modulos/auditoria';
 import { crearModuloSalud } from '@/modulos/salud';
-import { crearModuloAuth } from '@/modulos/seguridad';
+import { crearAutenticar, crearAutorizar, crearModuloAuth, describirUsuarios } from '@/modulos/seguridad';
 
 export interface DependenciasApp {
   bd: ClienteBd;
@@ -51,6 +52,18 @@ export function crearApp({
   app.use(express.json({ limit: config.jsonLimite }));
   app.use(cookieParser()); // la cookie del refresh (SDD S1.5 §2.5)
 
+  const autenticar = crearAutenticar(config.jwtSecreto);
+  const autorizar = crearAutorizar();
+  // La raíz une seguridad y personas para la bitácora: auditoria no importa a ninguno (ADR-0001).
+  const describir = async (ids: number[]) => {
+    const usuarios = await describirUsuarios(bd, ids);
+    const nombres = await buscarNombresCompletos(
+      bd,
+      usuarios.map((u) => u.personaId),
+    );
+    return new Map(usuarios.map((u) => [u.id, { usuario: u.username, nombre: nombres.get(u.personaId) ?? '' }]));
+  };
+
   const modulos: ModuloHttp[] = [
     crearModuloSalud({ bd, version }),
     // La raíz une seguridad con personas: seguridad no importa a personas (SDD S1.3 §2.4).
@@ -60,6 +73,12 @@ export function crearApp({
       nombreDe: buscarNombreCompleto,
       leerParametros: leerParametrosEnteros,
       loginLimitePorMinuto: config.loginLimitePorMinuto,
+    }),
+    crearModuloAuditoria({
+      bd,
+      autenticar,
+      autorizarLectura: autorizar('auditoria', 'leer'),
+      describirUsuarios: describir,
     }),
     ...modulosExtra,
   ];

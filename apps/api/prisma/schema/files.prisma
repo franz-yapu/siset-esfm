@@ -1,0 +1,69 @@
+// Módulo dueño: files (ADR-0001). Modelo v1: docs/product/modelo-datos.md §files; SDD S2.1 v1.1.
+// matricula y resultado_anual llegan con S2.3 (D-07).
+
+enum CondicionEstudiante {
+  ESTUDIANTE
+  EGRESADO
+
+  @@map("condicion_estudiante")
+}
+
+enum EstadoRequisito {
+  PENDIENTE
+  COMPLETO
+  OBSERVADO
+
+  @@map("estado_requisito")
+}
+
+/// Niveles del TCLO (D-04). Lo usa el catálogo de requisitos.
+enum NivelTclo {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+
+  @@map("nivel_tclo")
+}
+
+/// Expediente del estudiante o egresado que custodia Kardex.
+model FileAcademico {
+  id               Int                 @id @default(autoincrement())
+  personaId        Int                 @unique @map("persona_id")
+  /// Código que asigna la escuela: texto libre y único hasta conocer su formato (D-13).
+  codigoEstudiante String              @unique @map("codigo_estudiante") @db.VarChar(20)
+  especialidadId   Int                 @map("especialidad_id")
+  anioIngreso      Int                 @map("anio_ingreso") @db.SmallInt
+  condicion        CondicionEstudiante @default(ESTUDIANTE)
+  bloqueado        Boolean             @default(false)
+  motivoBloqueo    String?             @map("motivo_bloqueo") @db.VarChar(255)
+  activo           Boolean             @default(true)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  persona          Persona             @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  especialidad     Especialidad        @relation(fields: [especialidadId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  requisitos       RequisitoFile[]
+
+  @@index([especialidadId])
+  @@map("file_academico")
+}
+
+/// Estado de cada requisito del catálogo en un file.
+model RequisitoFile {
+  id              Int             @id @default(autoincrement())
+  fileId          Int             @map("file_id")
+  requisitoTipoId Int             @map("requisito_tipo_id")
+  estado          EstadoRequisito @default(PENDIENTE)
+  /// Fecha del documento o de su recepción física.
+  fecha           DateTime?       @db.Date
+  nroDocumento    String?         @map("nro_documento") @db.VarChar(40)
+  observacion     String?         @db.VarChar(255)
+  registradoPor   Int?            @map("registrado_por")
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  file            FileAcademico   @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  requisitoTipo   RequisitoTipo   @relation(fields: [requisitoTipoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  usuario         Usuario?        @relation(fields: [registradoPor], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([fileId, requisitoTipoId])
+  @@index([requisitoTipoId])
+  @@map("requisito_file")
+}

@@ -40,23 +40,23 @@ Los permisos **no** están en la base: van en el archivo de política de Casbin 
 
 ### `catalogos`
 
-| Tabla                    | Columnas clave                                                                                                              | Ticket      |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `sede`                   | `codigo` (LA_PAZ, ANCOCAGUA), `nombre`, `direccion`, `activo`                                                               | S0.11       |
-| `especialidad`           | `nombre` (único), `activo`                                                                                                  | S0.11       |
-| `requisito_tipo`         | `codigo` (TACFI, TCLO, CERT_NOTAS…), `nombre`, `obligatorio`, `requiere_nivel`, `activo`                                    | S2.1        |
-| `tipo_tramite`           | `codigo`, `nombre`, `plantilla_documento`, `activo`                                                                         | S2.1 / S3.x |
-| `tipo_tramite_requisito` | PK (`tipo_tramite_id`, `requisito_tipo_id`)                                                                                 | S2.1 / S3.x |
-| `parametro`              | `clave` (PK), `valor`, `descripcion`: `MAX_UF_REPROBADAS`, `DIAS_ALERTA_TRAMITE`, `MAX_INTENTOS_LOGIN`, `MIN_BLOQUEO_LOGIN` | S1.1 / S2.1 |
+| Tabla                    | Columnas clave                                                                                                                                                                                                        | Ticket      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `sede`                   | `codigo` (LA_PAZ, ANCOCAGUA), `nombre`, `direccion`, `activo`                                                                                                                                                         | S0.11       |
+| `especialidad`           | `nombre` (único), `activo`                                                                                                                                                                                            | S0.11       |
+| `requisito_tipo`         | `codigo` (TACFI_1, TCLO_BASICO, CERT_NOTAS…), `nombre`, `descripcion`, `anio_formacion` (1–5, nullable), `nivel` (`nivel_tclo`, nullable), `obligatorio`, `activo`: una fila por requisito concreto (D-04, S2.1 v1.1) | S2.1        |
+| `tipo_tramite`           | `codigo`, `nombre`, `plantilla_documento`, `activo`                                                                                                                                                                   | S2.1 / S3.x |
+| `tipo_tramite_requisito` | PK (`tipo_tramite_id`, `requisito_tipo_id`)                                                                                                                                                                           | S2.1 / S3.x |
+| `parametro`              | `clave` (PK), `valor`, `descripcion`: `MAX_UF_REPROBADAS`, `DIAS_ALERTA_TRAMITE`, `MAX_INTENTOS_LOGIN`, `MIN_BLOQUEO_LOGIN`                                                                                           | S1.1 / S2.1 |
 
 ### `files`
 
-| Tabla             | Columnas clave                                                                                                                                                   | Restricciones                                                                          | Ticket |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------ |
-| `file_academico`  | `persona_id` (único), `codigo_estudiante` (único), `especialidad_id`, `anio_ingreso`, `condicion` (ESTUDIANTE/EGRESADO), `bloqueado`, `motivo_bloqueo`, `activo` | `CHECK` motivo si está bloqueado                                                       | S2.1   |
-| `matricula`       | `file_id`, `anio_formacion` (1–5), `gestion`, `estado`                                                                                                           | `UNIQUE (file_id, anio_formacion, gestion)`: permite repetir un año (corrige E3, D-07) | S2.1   |
-| `resultado_anual` | `file_id`, `anio_formacion`, `gestion`, `resultado`, `uf_reprobadas`, `fuente`, `registrado_por`                                                                 | `UNIQUE (file_id, anio_formacion, gestion)` (E3)                                       | S2.1   |
-| `requisito_file`  | `file_id`, `requisito_tipo_id`, `estado` (PENDIENTE/COMPLETO/OBSERVADO), `fecha`, `nro_documento`, `nivel` (TCLO), `observacion`, `registrado_por`               | `UNIQUE (file_id, requisito_tipo_id)`; `CHECK` completo ⇒ fecha y responsable          | S2.1   |
+| Tabla             | Columnas clave                                                                                                                                                                        | Restricciones                                                                          | Ticket |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------ |
+| `file_academico`  | `persona_id` (único), `codigo_estudiante` (único), `especialidad_id`, `anio_ingreso`, `condicion` (ESTUDIANTE/EGRESADO), `bloqueado`, `motivo_bloqueo`, `activo`                      | `CHECK` motivo si está bloqueado                                                       | S2.1   |
+| `matricula`       | `file_id`, `anio_formacion` (1–5), `gestion`, `estado`                                                                                                                                | `UNIQUE (file_id, anio_formacion, gestion)`: permite repetir un año (corrige E3, D-07) | S2.1   |
+| `resultado_anual` | `file_id`, `anio_formacion`, `gestion`, `resultado`, `uf_reprobadas`, `fuente`, `registrado_por`                                                                                      | `UNIQUE (file_id, anio_formacion, gestion)` (E3)                                       | S2.1   |
+| `requisito_file`  | `file_id`, `requisito_tipo_id`, `estado` (PENDIENTE/COMPLETO/OBSERVADO), `fecha`, `nro_documento`, `observacion`, `registrado_por` (el nivel del TCLO está en el catálogo, S2.1 v1.1) | `UNIQUE (file_id, requisito_tipo_id)`; `CHECK` completo ⇒ fecha y responsable          | S2.1   |
 
 **Semáforo y bloqueo por UF:** la regla vive en el **servicio de `files`**, probada con Vitest (motor
 `do-not-touch`, RNF-07). No se crea la vista `v_file_semaforo`, para no tener la regla en dos lugares.
