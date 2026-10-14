@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S6.4** (`868mh1kx2`, https://app.clickup.com/t/868mh1kx2).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Depende de:** S1.6 (`autorizar('auditoria', 'leer')`). La parte de la base (§2.1) no depende de nada y puede ir antes.
 - **Fuentes de verdad citadas:**

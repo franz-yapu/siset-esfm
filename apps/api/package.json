@@ -14,6 +14,7 @@
     "bd:migrar": "prisma migrate dev",
     "bd:desplegar": "prisma migrate deploy",
     "bd:seed": "prisma db seed",
+    "bd:rol-app": "tsx prisma/configurar-rol-app.ts",
     "test:bd": "vitest run --config vitest.bd.config.ts"
   },
   "dependencies": {

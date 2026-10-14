@@ -260,3 +260,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. Con `cpw: true`, toda ruta con `autorizar` responde 403 `CAMBIO_PASSWORD_REQUERIDO`.
 5. Lo ajeno responde 403. Las denegaciones van al log de pino, no a la bitácora.
 6. `GET /auth/mis-permisos` es la fuente del menú de la web (S1.11).
+
+## DEC-017 — Rol de BD de la app, convención de paginación y consulta de la bitácora
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S6.4 (aprobado) · **Estado:** activa
+
+1. **La API se conecta como `siset_app`**: lee y escribe las tablas de negocio, pero en `log_auditoria` solo
+   `SELECT` e `INSERT`, y no ve `_prisma_migrations`. Las migraciones y el seed siguen con el dueño (`siset`).
+   La contraseña la pone el despliegue (`npm run bd:rol-app`, con `APP_DB_PASSWORD`); el repo solo crea el rol
+   `NOLOGIN`. Toda tabla nueva de solo inserción repite el `REVOKE` en su migración. Cierra DEC-008 #2.
+2. **Convención de paginación de la API:** `?pagina=&porPagina=` (máx. 100, por defecto 50) →
+   `{ datos, pagina, porPagina, total }` (`compartido/http/paginacion.ts`).
+3. **`GET /api/v1/auditoria`** (solo KARDEX): filtros por usuario, módulo, acción, fechas (hora de La Paz,
+   inclusivas) y entidad + id; orden `fecha DESC, id DESC`. Consultar la bitácora no genera eventos.
+4. Índice `(entidad, entidad_id, fecha DESC)` para el historial de un registro.
