@@ -3,6 +3,7 @@ import { ErrorApp } from '@/compartido/errores';
 import { datosValidos } from '@/compartido/http';
 import { esquemasCambiarPassword, esquemasLogin, type RespuestaLogin } from './auth.esquemas';
 import { sesionDe } from './autenticar';
+import { permisosDe } from './autorizacion.politica';
 import { CODIGO_SESION_INVALIDA, type ResultadoLogin, type ServicioAuth } from './auth.servicio';
 
 export const COOKIE_REFRESH = 'siset_refresh';
@@ -57,5 +58,10 @@ export const crearControladorAuth = (servicio: ServicioAuth) => {
     );
   };
 
-  return { login, refrescar, logout, cambiarPassword };
+  const misPermisos: RequestHandler = (_req, res) => {
+    const { rol } = sesionDe(res);
+    res.json({ rol, permisos: permisosDe(rol) });
+  };
+
+  return { login, refrescar, logout, cambiarPassword, misPermisos };
 };
