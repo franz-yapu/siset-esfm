@@ -14,7 +14,7 @@ SISET — 27 dudas (D-01 a D-27) para validar con Kardex y Coordinación
 
 Documento elaborado a partir del borrador de tesis "requerimientos SISET". Las decisiones provisionales se marcan con su código de duda (D-xx).
 
-Hay 27 dudas: 11 cerradas (D-06 con DEC-009; D-04, D-07, D-12, D-13, D-14, D-15, D-19, D-20, D-22 y D-27 con DEC-019), 12 respondidas en la hoja el 2026-10-13 (pendientes de cerrar con su DEC) y 4 abiertas, todas internas (D-01, D-02, D-17 y D-23). La escuela ya respondió todas las preguntas de la hoja; 5 son bloqueantes y deben cerrarse con Kardex y Coordinación en el Sprint 0 (12–16 oct 2026). Mientras tanto, el PRD aplica la propuesta provisional de cada fila.
+Hay 27 dudas: 11 cerradas (D-06 con DEC-009; D-04, D-07, D-12, D-13, D-14, D-15, D-19, D-20, D-22 y D-27 con DEC-019), 12 respondidas en la hoja el 2026-10-13 (pendientes de cerrar con su DEC) y 4 abiertas, todas internas (D-01, D-02, D-17 y D-23). La escuela ya respondió todas las preguntas de la hoja (2026-10-14). Las 12 respondidas aplican su respuesta; las 4 internas las cierra el equipo.
 
 **Dónde responde el cliente:** en la hoja de Google
 [SISET — Preguntas para la escuela](https://docs.google.com/spreadsheets/d/1VvGHzB_VmHTSW9Zi2nNd407qpnATUjiQSE24IyGjAj8/edit)
