@@ -6,7 +6,7 @@ import type { CodigoRol } from '@/modulos/seguridad/autorizacion.politica';
  * obliga a decidir quién entra. La comparten `http/matriz-rutas.test.ts` (denegaciones, sin base)
  * y `bd/matriz-rutas.test.ts` (celdas permitidas, con base).
  */
-export type Metodo = 'get' | 'post' | 'patch';
+export type Metodo = 'get' | 'post' | 'patch' | 'put';
 
 export interface FilaRuta {
   metodo: Metodo;
@@ -22,6 +22,7 @@ export interface FilaRuta {
 const SOLO_KARDEX = ['KARDEX'] as const;
 /** Leen files: el personal (DEC-015). ESTUDIANTE solo tiene `leer_propio` ("mi file", S2.7). */
 const PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
+const LEEN_REQUISITOS = ['SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
 const ID_INEXISTENTE = 999_999;
 
 export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
@@ -65,6 +66,26 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     cuerpo: {},
     permitidos: SOLO_KARDEX,
   })),
+  // Requisitos (SDD S2.4, DEC-015): leen SEC_COORD, COORDINADOR y KARDEX; SEC_DIR no; registra KARDEX.
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/{id}/requisitos',
+    ruta: `/files/${ID_INEXISTENTE}/requisitos`,
+    permitidos: LEEN_REQUISITOS,
+  },
+  {
+    metodo: 'put',
+    documentada: '/api/v1/files/{id}/requisitos/{codigo}',
+    ruta: `/files/${ID_INEXISTENTE}/requisitos/TACFI_1`,
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/catalogos/requisitos',
+    ruta: '/catalogos/requisitos',
+    permitidos: LEEN_REQUISITOS,
+  },
   {
     metodo: 'get',
     documentada: '/api/v1/catalogos/especialidades',

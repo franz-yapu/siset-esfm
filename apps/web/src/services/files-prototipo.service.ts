@@ -1,17 +1,9 @@
-import type {
-  CodigoRequisito,
-  ColorSemaforo,
-  FileAcademico,
-  Matricula,
-  Requisito,
-  ResultadoAnual,
-  Usuario,
-} from '@/types';
+import type { ColorSemaforo, FileAcademico, Matricula, ResultadoAnual, Usuario } from '@/types';
 import { auditar, copia, db } from '@/mocks/db';
 import { ESPECIALIDADES } from '@/config/catalogos';
 import { delay } from '@/lib/formato';
 import { ErrorNegocio } from '@/lib/transiciones';
-import { motivoBloqueoPorUf, NOMBRE_REQUISITO, nombreCompleto, semaforoFile, superaLimite } from '@/lib/reglas';
+import { motivoBloqueoPorUf, nombreCompleto, semaforoFile, superaLimite } from '@/lib/reglas';
 import { LATENCIA } from './_comun';
 
 export interface FiltrosFiles {
@@ -168,16 +160,6 @@ export const filesPrototipoService = {
   },
 
   /** RF-05 / RF-06: TACFI (recepción física), TCLO (nivel + N.º), certificado de notas. */
-  async registrarRequisito(id: number, codigo: CodigoRequisito, datos: Requisito, u: Usuario): Promise<FileAcademico> {
-    await delay(LATENCIA);
-    const f = buscar(id);
-    const antes = { ...f.requisitos[codigo] };
-    f.requisitos[codigo] = { ...datos, estado: 'COMPLETO' };
-    auditar(u.nombre, 'Files', `Registrar ${NOMBRE_REQUISITO[codigo]}`, f.codigo, antes, { ...f.requisitos[codigo] });
-    return copia(f);
-  },
-
-  /** RF-07 CA3: bloquear o desbloquear siempre exige motivo y queda en bitácora. */
   /** Mini bitácora del file (pestaña Historial de P-41). */
   async historial(id: number) {
     await delay(LATENCIA);

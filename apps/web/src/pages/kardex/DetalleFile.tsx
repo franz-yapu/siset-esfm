@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAsync, usePermiso, useToast, useUsuario } from '@/hooks';
+import { useAsync, usePermiso, usePermisos, useToast, useUsuario } from '@/hooks';
 import { claveFiles, useEspecialidades, useFile, useMutacionFiles } from '@/hooks/useFiles';
 import type { DatosCrearFile } from '@/types/files';
 import { filesService } from '@/services/files.service';
@@ -17,8 +17,9 @@ import { CabeceraFile } from '@/components/file/CabeceraFile';
 import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
 import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
 import { BloqueoFile } from '@/components/file/BloqueoFile';
+import { RequisitosFile } from '@/components/file/RequisitosFile';
 
-type Tab = 'datos' | 'historial-api' | TabDemo;
+type Tab = 'datos' | 'requisitos' | 'historial-api' | TabDemo;
 
 /** Historial del file desde la bitácora (solo KARDEX la lee, DEC-015). */
 function HistorialFile({ fileId }: { fileId: number }) {
@@ -52,7 +53,7 @@ function HistorialFile({ fileId }: { fileId: number }) {
 
 /**
  * P-41 · Detalle del file (S2.10). Datos personales y académicos contra GET/PATCH /files; bloqueo y desbloqueo
- * (S2.6, D-07b). Matrículas, resultados, requisitos y trámites solo en la demo (DEC-028).
+ * (S2.6, D-07b); requisitos (S2.4). Matrículas, resultados y trámites solo en la demo (DEC-028).
  */
 export function DetalleFile() {
   const { id = '' } = useParams();
@@ -63,6 +64,10 @@ export function DetalleFile() {
   const demo = todoMock();
   const editable = usePermiso('editar-file');
   const leeBitacora = usePermiso('bitacora');
+  const { puede } = usePermisos();
+  // SEC_DIR no ve requisitos (DEC-015); solo KARDEX los registra.
+  const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' });
+  const registraRequisitos = puede({ recurso: 'requisitos', accion: 'editar' });
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
   const { data: especialidades = [] } = useEspecialidades();
@@ -94,11 +99,11 @@ export function DetalleFile() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'datos', label: 'Datos personales' },
+    ...(leeRequisitos ? ([{ id: 'requisitos', label: 'Requisitos' }] as const) : []),
     ...(demo
       ? ([
           { id: 'matriculas', label: 'Matrículas' },
           { id: 'resultados', label: 'Resultados anuales' },
-          { id: 'requisitos', label: 'Requisitos' },
           { id: 'tramites', label: 'Trámites' },
           { id: 'historial', label: 'Historial' },
         ] as const)
@@ -115,8 +120,7 @@ export function DetalleFile() {
       />
       {!demo && (
         <Alerta tipo="info" className="mb-4">
-          Matrículas y requisitos (TACFI, TCLO y certificados) se habilitan en una próxima versión, cuando la escuela
-          confirme sus reglas.
+          Las matrículas se habilitan en una próxima versión, cuando la escuela confirme si se registran (D-30).
         </Alerta>
       )}
       <Card>
@@ -130,8 +134,9 @@ export function DetalleFile() {
             onGuardar={guardar}
           />
         )}
+        {tab === 'requisitos' && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
-        {tab !== 'datos' && tab !== 'historial-api' && (
+        {tab !== 'datos' && tab !== 'requisitos' && tab !== 'historial-api' && (
           <SeccionesDemoFile fileId={f.id} tab={tab} editable={editable} onCambio={alCambiar} />
         )}
       </Card>

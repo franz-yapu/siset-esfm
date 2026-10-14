@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { CodigoRequisito, FileAcademico, NivelTclo, Requisito, ResultadoAnual } from '@/types';
-import { hoy, ordinal } from '@/lib/formato';
-import { LIMITE_UF, NOMBRE_REQUISITO } from '@/lib/reglas';
+import type { FileAcademico, ResultadoAnual } from '@/types';
+import { ordinal } from '@/lib/formato';
+import { LIMITE_UF } from '@/lib/reglas';
 import { Alerta, Button, Input, Modal, Select } from '@/components/ui';
 
 interface Base {
@@ -124,89 +124,6 @@ export function ModalResultado({
             desbloquearlo.
           </Alerta>
         )}
-      </div>
-    </Modal>
-  );
-}
-
-export function ModalRequisito({
-  codigo,
-  onCerrar,
-  onGuardar,
-  ocupado,
-  responsable,
-}: Base & { codigo: CodigoRequisito; responsable: string; onGuardar: (r: Requisito) => void }) {
-  const [fechaR, setFechaR] = useState(hoy());
-  const [nro, setNro] = useState('');
-  const [nivel, setNivel] = useState<NivelTclo>('Intermedio');
-  const necesitaNro = codigo !== 'TACFI';
-  const error = necesitaNro && !nro.trim() ? 'Obligatorio' : null;
-  const [enviado, setEnviado] = useState(false);
-  const titulo =
-    codigo === 'TACFI'
-      ? 'Registrar recepción física de TACFI'
-      : codigo === 'TCLO'
-        ? 'Registrar certificado TCLO'
-        : 'Registrar certificado de notas';
-  const guardar = () => {
-    setEnviado(true);
-    if (error) return;
-    onGuardar({
-      estado: 'COMPLETO',
-      fecha: fechaR,
-      ...(necesitaNro ? { nro: nro.trim() } : { responsable }),
-      ...(codigo === 'TCLO' ? { nivel } : {}),
-    });
-  };
-  return (
-    <Modal
-      open
-      onClose={onCerrar}
-      title={titulo}
-      size="sm"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onCerrar}>
-            Cancelar
-          </Button>
-          <Button loading={ocupado} onClick={guardar}>
-            Registrar
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        {codigo === 'TCLO' && (
-          <Select
-            label="Nivel acreditado"
-            value={nivel}
-            onChange={(e) => setNivel(e.target.value as NivelTclo)}
-            hint="D-04: el nivel exigido aún está por definir"
-          >
-            <option>Básico</option>
-            <option>Intermedio</option>
-            <option>Avanzado</option>
-          </Select>
-        )}
-        {necesitaNro && (
-          <Input
-            label={`N.º de ${codigo === 'TCLO' ? 'certificado' : 'documento'}`}
-            value={nro}
-            onChange={(e) => setNro(e.target.value)}
-            error={enviado ? error : null}
-          />
-        )}
-        <Input
-          label={codigo === 'TACFI' ? 'Fecha de recepción' : 'Fecha'}
-          type="date"
-          value={fechaR}
-          max={hoy()}
-          onChange={(e) => setFechaR(e.target.value)}
-        />
-        {codigo === 'TACFI' && <Input label="Responsable" value={responsable} disabled />}
-        <p className="text-xs text-slate-500">
-          El requisito {NOMBRE_REQUISITO[codigo]} pasará a “Completo” y el semáforo se actualizará al instante.
-        </p>
       </div>
     </Modal>
   );

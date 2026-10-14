@@ -492,3 +492,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    `DESBLOQUEAR` (`POST /files/:id/bloqueo` y `/desbloqueo`, solo KARDEX).
 3. El motivo y la resolución son texto libre hasta la respuesta de **D-29**. Las matrículas esperan **D-30**; el
    viejo S2.3 (resultados anuales) no aplica.
+
+## DEC-030 — Requisitos del file
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S2.4 (aprobado) + respuestas D-04, D-04b y D-07b · **Estado:** activa
+
+1. `GET /files/:id/requisitos` (el catálogo activo con el estado de cada requisito; sin registro = PENDIENTE) y
+   `PUT /files/:id/requisitos/:codigo` (solo KARDEX). COMPLETO exige fecha; OBSERVADO exige observación: es la
+   defensa del TCLO reprobada o no presentada, que se reprograma (D-04b). Quien registra lo pone la API.
+2. Cada cambio se registra como `EDITAR` del file, con el código del requisito y solo lo que cambió: aparece en el
+   historial del file.
+3. `GET /catalogos/requisitos` con permiso `requisitos`/`leer`. Administrar el catálogo queda para cuando llegue
+   la lista de D-18.
+4. La pestaña Requisitos de P-41 está conectada en los dos modos (agrupada por año). SEC_DIR no la ve (DEC-015).
+   Se borraron la pestaña de requisitos del prototipo y su modal.
