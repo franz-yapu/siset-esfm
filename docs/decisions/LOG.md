@@ -312,9 +312,9 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 8. **Repreguntas agregadas a la hoja:** D-07b, D-12b (¿aceptan un servidor externo?), D-04b, D-13b (formato de
    los 152 files) y D-14b (quién restablece contraseñas).
 
-## DEC-019 — Respuestas a las repreguntas del 2026-10-14
+## DEC-019 — Respuestas de la hoja del 2026-10-14 (repreguntas y últimas dudas)
 
-**Fecha:** 2026-10-14 · **Fuente:** hoja "SISET — Preguntas para la escuela" (D-04b, D-07b, D-12b, D-13b, D-14b) · **Estado:** activa
+**Fecha:** 2026-10-14 · **Fuente:** hoja "SISET — Preguntas para la escuela" (D-04b, D-07b, D-12b, D-13b, D-14b, D-15, D-19, D-20, D-22, D-27) · **Estado:** activa
 
 1. **Servidor externo autorizado (D-12b):** la escuela ya tiene la autorización. El piloto puede usar datos
    reales en un servidor en la nube. El despliegue (S0.12/S0.13) sigue esperando el flujo completo de un rol.
@@ -328,3 +328,10 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    de D-07 (bloqueo por resultado anual); se aplica en el SDD de S2.3.
 5. **Carga manual de los 152 files (D-13b):** los registra el responsable de Sistemas y Archivo Kardex de
    Ancocagua. La carga masiva por Excel (S2.8) deja de ser necesaria para el piloto.
+6. **Confirmadas las propuestas de D-15** (2 sedes, Kardex en Ancocagua; la ESFM también tiene la UA Corpa, que
+   sería una sede más si entra después), **D-19** (sin alertas en v1.0), **D-22** (sin escaneos) y **D-27**
+   (administra el Responsable de Sistemas y Archivo Kardex de Ancocagua; sin rol ADMIN).
+7. **Panel del Coordinador (D-20):** solo trámites en cola o entregados, y los que esperan su firma o visto
+   bueno. Reduce los KPIs de RF-13 para ese rol; se aplica en el SDD de S6.x. La línea base de tiempos queda sin
+   respuesta: se mide a mano durante el piloto si hace falta para la tesis.
+8. La escuela ya respondió todas las preguntas de la hoja. Solo quedan abiertas las 4 dudas internas.
