@@ -528,3 +528,20 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 2. La demo ya no tiene cuentas de egresado, ni la ruta `/egresado`, ni su inicio (D-08). El rol sigue existiendo
    sin permisos (DEC-015 #2) y su inicio apunta a `/seguimiento`. Cierra DEC-022 P2.
 3. Los inicios de SEC_DIR, SEC_COORD, COORDINADOR y del estudiante se conectan con S3.x y S2.7.
+
+## DEC-033 — Módulo de hojas de ruta: dos flujos según el valorado
+
+**Fecha:** 2026-10-14 · **Fuente:** brief del módulo (`docs/planning/2026-10-14 - Brief-modulo-hojas-ruta.md`), aprobado por el responsable + respuestas D-05, D-08, D-09, D-11, D-20 y D-21 · **Estado:** activa (provisional en lo que dependa de D-32 a D-35)
+
+1. Reemplaza el flujo único de 11 estados del prototipo y de `business-rules.md`. Hay **dos flujos** según el tipo:
+   **con valorado** (historial académico, legalización de historial): Recibido → Avisado a Kardex → En impresión →
+   Impreso → Firma de Dirección Académica → Firma de Dirección General → Listo → Entregado; **sin valorado**
+   (certificados de notas y de excelencia de años pasados): Recibido → Avisado a Kardex → En impresión → Firma del
+   Coordinador → Remitido a Calahumana → Listo → Entregado.
+2. Los **4 tipos** de trámite de D-21, con `requiere_valorado`. Solo trámites de egresados (D-09), sin cuenta (D-08).
+3. **No hay dictamen** (D-11): S4.7 y S4.9 pasan a ser el paso "Firma del Coordinador". **S4.5** ("Mis trámites")
+   se elimina. **S3.6, S3.10** (pases) y **S4.6** (revisión de Kardex) esperan D-34 y D-35; mientras tanto, sin
+   estado Observado y sin bandeja de pases.
+4. Los pasos que ocurren en Calahumana los anota Secretaría de Dirección (provisional, D-33). Un file bloqueado
+   impide registrar e imprimir (DEC-029).
+5. Orden: S3.1 + S3.3 (un SDD) → S3.2 → S3.4 + S3.8 + S3.9 → S3.5 → S4.1–S4.3.
