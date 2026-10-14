@@ -14,27 +14,29 @@ model Rol {
 }
 
 model Usuario {
-  id                  Int            @id @default(autoincrement())
-  personaId           Int            @unique @map("persona_id")
-  rolId               Int            @map("rol_id")
+  id                    Int             @id @default(autoincrement())
+  personaId             Int             @unique @map("persona_id")
+  rolId                 Int             @map("rol_id")
   /// Sede del personal; NULL para estudiante y egresado (D-24).
-  sedeId              Int?           @map("sede_id")
+  sedeId                Int?            @map("sede_id")
   /// CI o CI-complemento (D-14, D-25).
-  username            String         @unique @db.VarChar(40)
-  passwordHash        String         @map("password_hash") @db.VarChar(100)
-  activo              Boolean        @default(true)
-  intentosFallidos    Int            @default(0) @map("intentos_fallidos") @db.SmallInt
-  bloqueadoHasta      DateTime?      @map("bloqueado_hasta") @db.Timestamptz(6)
-  debeCambiarPassword Boolean        @default(true) @map("debe_cambiar_password")
-  ultimoAcceso        DateTime?      @map("ultimo_acceso") @db.Timestamptz(6)
-  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
-  persona             Persona        @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  rol                 Rol            @relation(fields: [rolId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  sede                Sede?          @relation(fields: [sedeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  username              String          @unique @db.VarChar(40)
+  passwordHash          String          @map("password_hash") @db.VarChar(100)
+  activo                Boolean         @default(true)
+  intentosFallidos      Int             @default(0) @map("intentos_fallidos") @db.SmallInt
+  bloqueadoHasta        DateTime?       @map("bloqueado_hasta") @db.Timestamptz(6)
+  debeCambiarPassword   Boolean         @default(true) @map("debe_cambiar_password")
+  ultimoAcceso          DateTime?       @map("ultimo_acceso") @db.Timestamptz(6)
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  persona               Persona         @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  rol                   Rol             @relation(fields: [rolId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sede                  Sede?           @relation(fields: [sedeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   /// back-relation (ADR-0001: no usar desde otro módulo)
-  registrosAuditoria  LogAuditoria[]
-  refreshTokens       RefreshToken[]
+  registrosAuditoria    LogAuditoria[]
+  refreshTokens         RefreshToken[]
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  requisitosRegistrados RequisitoFile[]
 
   @@index([rolId])
   @@index([sedeId])

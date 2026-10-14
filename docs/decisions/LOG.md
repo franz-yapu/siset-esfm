@@ -261,6 +261,20 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 5. Lo ajeno responde 403. Las denegaciones van al log de pino, no a la bitácora.
 6. `GET /auth/mis-permisos` es la fuente del menú de la web (S1.11).
 
+## DEC-016 — Tablas del file y catálogo de requisitos por año y nivel
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S2.1 v1.1 (aprobado) + respuesta de D-04 · **Estado:** activa
+
+1. S2.1 crea `file_academico`, `requisito_file` y `requisito_tipo`. **No** crea `matricula` ni
+   `resultado_anual` (esperan D-07, S2.3) ni `tipo_tramite`/`tipo_tramite_requisito` (esperan D-21/D-05, S3.x).
+2. **Catálogo con una fila por requisito concreto**, con `anio_formacion` y `nivel` (D-04): `TACFI_1`, `TACFI_2`,
+   `TCLO_BASICO`, `TCLO_INTERMEDIO`, `TCLO_AVANZADO` y `CERT_NOTAS`. Supone una defensa del TCLO por año
+   (repregunta D-04b). Agregar requisitos (D-18, unos 30) no cambia el esquema. El nivel ya no va en
+   `requisito_file`.
+3. Enums de PostgreSQL para la condición del estudiante, el estado del requisito y el nivel del TCLO.
+4. `codigo_estudiante` es texto libre y único hasta conocer el formato de la escuela (D-13b).
+5. El seed no pisa requisitos editados por Kardex. La web (`TACFI`, `TCLO`, `CERT_NOTAS`) se alinea en S2.10.
+
 ## DEC-017 — Rol de BD de la app, convención de paginación y consulta de la bitácora
 
 **Fecha:** 2026-10-13 · **Fuente:** SDD de S6.4 (aprobado) · **Estado:** activa
@@ -274,3 +288,25 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 3. **`GET /api/v1/auditoria`** (solo KARDEX): filtros por usuario, módulo, acción, fechas (hora de La Paz,
    inclusivas) y entidad + id; orden `fecha DESC, id DESC`. Consultar la bitácora no genera eventos.
 4. Índice `(entidad, entidad_id, fecha DESC)` para el historial de un registro.
+
+## DEC-018 — Respuestas de la hoja del 2026-10-13: qué cambia
+
+**Fecha:** 2026-10-13 · **Fuente:** hoja "SISET — Preguntas para la escuela" + responsable del proyecto · **Estado:** activa
+
+1. **Doble verificación (D-03): sí, con app TOTP** (código de 6 dígitos, app gratuita; sin servidor de correo).
+   Se exige **desde el sistema completo**, cuando entren los estudiantes; el piloto de noviembre es solo con el
+   personal (DEC-009). Ticket nuevo en el Sprint 2, unas 8–10 h.
+2. **Intentos con un CI inexistente (D-26): se registran** en la bitácora con `usuario_id` nulo y el CI
+   intentado en `entidad_id` (nunca la contraseña). Cambia DEC-012 #1 / S1.3. Ticket nuevo pequeño (S1.3b).
+3. **Egresados sin cuenta (D-08):** sus trámites son externos; el seguimiento será público (N.º de trámite + CI).
+   Aplicado en DEC-015 (EGRESADO sin permisos).
+4. **El Coordinador solo firma (D-11):** no hay un dictamen como decisión propia. El módulo de dictamen
+   (S4.x) se replantea como paso de firma; se revisa en el SDD de S4.x, sin efecto en el piloto.
+5. **Kardex no carga notas (D-07):** las cargan los docentes en un sistema del Ministerio. La respuesta quedó
+   incompleta; se repreguntó (D-07b). S2.3 sigue esperando.
+6. **Catálogo de requisitos por año y nivel (D-04):** 2 TACFI (1.º y 2.º) y TCLO con niveles básico, intermedio
+   y avanzado de 1.º a 3.º. Aplicado en S2.1 v1.1. Se repreguntó si son 1 o 3 defensas por año (D-04b).
+7. Confirmadas las propuestas de **D-09** (sin hoja de ruta de estudiantes), **D-16** (validan Coordinación y
+   Kardex), **D-24** (una sede por persona; Coordinación y Kardex en Ancocagua) y **D-25** (CI como usuario).
+8. **Repreguntas agregadas a la hoja:** D-07b, D-12b (¿aceptan un servidor externo?), D-04b, D-13b (formato de
+   los 152 files) y D-14b (quién restablece contraseñas).
