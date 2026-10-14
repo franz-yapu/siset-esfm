@@ -35,9 +35,9 @@ const aUsuario = ({ debeCambiarPassword, ultimoAcceso, ...u }: RespuestaLogin['u
  * lo que define el PRD §5.
  */
 export const authApi: typeof authMock = {
-  async login(usuario: string, clave: string): Promise<Usuario> {
+  async login(usuario: string, password: string): Promise<Usuario> {
     // `password`, no `clave`: así lo tapa la redacción de logs y bitácora (DEC-011).
-    const { data } = await api.post<RespuestaLogin>('/auth/login', { usuario, password: clave });
+    const { data } = await api.post<RespuestaLogin>('/auth/login', { usuario, password });
     guardarAccessToken(data.accessToken);
     return aUsuario(data.usuario);
   },
@@ -53,10 +53,12 @@ export const authApi: typeof authMock = {
     throw pendienteS1('Restaurar la sesión');
   },
 
-  async cambiarClave(_u: Usuario, _nueva: string): Promise<void> {
+  /** Cierra todas las sesiones y devuelve una nueva sin la obligación de cambiarla (SDD S1.5 §2.3, S1.9 §2.3). */
+  async cambiarPassword(_u: Usuario, passwordActual: string, passwordNueva: string): Promise<Usuario> {
     void _u;
-    void _nueva;
-    throw pendienteS1('Cambiar la contraseña');
+    const { data } = await api.post<RespuestaLogin>('/auth/cambiar-password', { passwordActual, passwordNueva });
+    guardarAccessToken(data.accessToken);
+    return aUsuario(data.usuario);
   },
 
   usuariosDemo(): Usuario[] {

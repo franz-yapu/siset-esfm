@@ -351,3 +351,23 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 5. Acción nueva de bitácora: **`DESBLOQUEAR_CUENTA`**. `EDITAR` guarda solo los campos que cambiaron; una
    edición sin cambios reales no escribe ni registra nada.
 6. Si el CI ya es de una persona sin cuenta, **se reutiliza esa persona sin cambiar sus datos**.
+
+## DEC-021 — Login, cambio de contraseña y sesión real en la web
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.9 y S1.10 (aprobados) + responsable del proyecto · **Estado:** activa
+
+1. **La web nunca dice "cuenta bloqueada":** muestra el 401 genérico de la API (DEC-012/013) y un aviso fijo, sin
+   números, de que varios intentos bloquean la cuenta. El mock se alinea con la API.
+2. **P-03 pide la contraseña actual** (contrato de DEC-014); la web no guarda la contraseña escrita en el login.
+   `authService.cambiarClave` pasa a `cambiarPassword` y devuelve el usuario de la sesión nueva.
+3. **La sesión se restaura con `POST /auth/refresh` al arrancar.** La web no guarda ni el id ni el token; solo la
+   hora de la última actividad, en `localStorage`.
+4. **El refresh es de vuelo único** por pestaña y usa un Web Lock (`siset-refresh`) entre pestañas, para no disparar
+   el reuso de DEC-014 #3. Un 401 reintenta una sola vez; si el refresh falla, la sesión se pierde y se vuelve al
+   login con el motivo.
+5. **Inactividad:** 15 min (RNF-02), aviso 60 s antes, compartida entre pestañas y revisada también al arrancar. Las
+   peticiones a la API no cuentan como actividad. El cierre usa `POST /auth/logout` (`LOGOUT` en la bitácora).
+6. **Contrato de `useAuth()`** del SDD de S1.10 §2.1, con `cambiarPassword` y `motivoCierre`; el contexto vacía la
+   caché de React Query al iniciar, cerrar o perder la sesión.
+7. **La inactividad también la controlará la API** (rechazar el refresh tras 15 min sin latido de la web): ticket
+   aparte después del piloto, decidido por el responsable.

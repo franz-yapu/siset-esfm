@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S1.9** (`868mh1kwe`, https://app.clickup.com/t/868mh1kwe).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-01 (CA1 login con CI + contraseña, CA2 bloqueo por intentos), RNF-02

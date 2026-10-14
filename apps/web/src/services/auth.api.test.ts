@@ -68,9 +68,45 @@ describe('authApi (SDD S0.8 §2.4)', () => {
     });
   });
 
-  it('obtener y cambiarClave quedan pendientes de S1.x; sin usuarios demo', async () => {
+  it('cambiarPassword hace POST /auth/cambiar-password, guarda el token nuevo y devuelve el usuario sin cpw (SDD S1.9 §2.3)', async () => {
+    guardarAccessToken('jwt-viejo');
+    const peticiones = capturar(200, {
+      accessToken: 'jwt-nuevo',
+      expiraEn: '2026-10-14T12:15:00.000Z',
+      usuario: {
+        id: 1,
+        usuario: '1234567',
+        nombre: 'Ana',
+        rol: 'KARDEX',
+        sedeId: 2,
+        activo: true,
+        debeCambiarPassword: false,
+        ultimoAcceso: '2026-10-14T12:00:00.000Z',
+      },
+    } satisfies RespuestaLogin);
+    const u = await authApi.cambiarPassword({} as Usuario, 'temporal-1.', 'nueva.clave-2');
+    expect(u).toMatchObject({ id: 1, debeCambiarClave: false, ultimoAcceso: '2026-10-14T12:00:00.000Z' });
+    expect(peticiones[0]).toMatchObject({ method: 'post', url: '/auth/cambiar-password' });
+    expect(peticiones[0].headers.get('Authorization')).toBe('Bearer jwt-viejo');
+    expect(JSON.parse(peticiones[0].data as string)).toEqual({
+      passwordActual: 'temporal-1.',
+      passwordNueva: 'nueva.clave-2',
+    });
+    expect(obtenerAccessToken()).toBe('jwt-nuevo');
+  });
+
+  it('cambiarPassword con 422 rechaza con PASSWORD_ACTUAL_INCORRECTA y deja el token como estaba', async () => {
+    guardarAccessToken('jwt-viejo');
+    capturar(422, { error: { code: 'PASSWORD_ACTUAL_INCORRECTA', message: 'La contraseña actual no es correcta.' } });
+    await expect(authApi.cambiarPassword({} as Usuario, 'mala', 'nueva.clave-2')).rejects.toMatchObject({
+      codigo: 'PASSWORD_ACTUAL_INCORRECTA',
+      estado: 422,
+    });
+    expect(obtenerAccessToken()).toBe('jwt-viejo');
+  });
+
+  it('obtener queda pendiente de S1.10; sin usuarios demo', async () => {
     await expect(authApi.obtener(1)).rejects.toMatchObject({ codigo: 'NO_IMPLEMENTADO' });
-    await expect(authApi.cambiarClave({} as Usuario, 'x')).rejects.toMatchObject({ codigo: 'NO_IMPLEMENTADO' });
     expect(authApi.usuariosDemo()).toEqual([]);
   });
 });

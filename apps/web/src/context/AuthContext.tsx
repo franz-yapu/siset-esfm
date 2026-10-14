@@ -8,12 +8,14 @@ const CLAVE = 'siset.sesion';
 export interface ApiAuth {
   usuario: Usuario | null;
   cargando: boolean;
-  login: (usuario: string, clave: string) => Promise<Usuario>;
+  login: (usuario: string, password: string) => Promise<Usuario>;
   logout: () => Promise<void>;
   /** Selector "Ver como" (solo demo): cambia de usuario sin cerrar sesión. */
   verComo: (id: number) => Promise<void>;
   /** Vuelve a leer el usuario (ej. después de cambiar la contraseña). */
   refrescar: () => Promise<void>;
+  /** Cambia la propia contraseña y se queda con la sesión nueva que devuelve la API (SDD S1.9 §2.4). */
+  cambiarPassword: (passwordActual: string, passwordNueva: string) => Promise<Usuario>;
   /** Incrementa al reiniciar los datos de demo; el layout remonta las pantallas. */
   version: number;
   reiniciar: () => Promise<void>;
@@ -53,11 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUsuario(u);
         if (!u) guardarSesion(null);
       })
+      // En modo API `obtener` todavía no existe (S1.10): se vuelve al login en vez de quedar colgado.
+      .catch(() => guardarSesion(null))
       .finally(() => setCargando(false));
   }, []);
 
-  const login = useCallback(async (u: string, c: string) => {
-    const real = await authService.login(u, c);
+  const login = useCallback(async (u: string, password: string) => {
+    const real = await authService.login(u, password);
     guardarSesion(real.id);
     setUsuario(real);
     return real;
@@ -81,6 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(await authService.obtener(usuario.id));
   }, [usuario]);
 
+  const cambiarPassword = useCallback(
+    async (passwordActual: string, passwordNueva: string) => {
+      if (!usuario) throw new Error('Sin sesión');
+      const nuevo = await authService.cambiarPassword(usuario, passwordActual, passwordNueva);
+      setUsuario(nuevo);
+      return nuevo;
+    },
+    [usuario],
+  );
+
   const reiniciar = useCallback(async () => {
     reiniciarDemo();
     if (usuario) setUsuario(await authService.obtener(usuario.id));
@@ -88,8 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [usuario]);
 
   const api = useMemo<ApiAuth>(
-    () => ({ usuario, cargando, login, logout, verComo, refrescar, version, reiniciar }),
-    [usuario, cargando, login, logout, verComo, refrescar, version, reiniciar],
+    () => ({ usuario, cargando, login, logout, verComo, refrescar, cambiarPassword, version, reiniciar }),
+    [usuario, cargando, login, logout, verComo, refrescar, cambiarPassword, version, reiniciar],
   );
 
   return <AuthContext.Provider value={api}>{children}</AuthContext.Provider>;

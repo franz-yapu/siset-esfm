@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S1.10** (`868mh1kwk`, https://app.clickup.com/t/868mh1kwk).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Rama:** se implementa encima de S1.9, en `feat/S1.9-login-conectado` (comparten `AuthContext`, `auth.*.ts`
   y `Login.tsx`). El ticket nombra `feat/S1.10-sesion-real`; se usa una sola rama para no pelear los mismos
