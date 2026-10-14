@@ -370,4 +370,4 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 6. **Contrato de `useAuth()`** del SDD de S1.10 §2.1, con `cambiarPassword` y `motivoCierre`; el contexto vacía la
    caché de React Query al iniciar, cerrar o perder la sesión.
 7. **La inactividad también la controlará la API** (rechazar el refresh tras 15 min sin latido de la web): ticket
-   aparte después del piloto, decidido por el responsable.
+   aparte (S2.16, ClickUp 868mhbkd8) después del piloto, decidido por el responsable.

@@ -200,13 +200,13 @@ restauración al recargar (S1.10).
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.9/SDD.md`, Estado = Aprobado.
-- [ ] P-01 muestra los errores de la API sin revelar si la cuenta existe o está bloqueada.
-- [ ] P-03 cambia la contraseña contra la API pidiendo la actual, y entra al inicio sin volver al login.
-- [ ] El modo demo hace lo mismo con el mock.
-- [ ] Eventos `LOGIN`/`LOGIN_FALLIDO`/`BLOQUEO_CUENTA`/`CAMBIAR_PASSWORD` los registra la API (ya probado en S1.3–S1.5); nada nuevo en la web.
-- [ ] Tests del §4 en verde; quality gate (`calidad`, `base-de-datos`, `e2e`, `docker`) en verde.
-- [ ] Commit `S1.9 …` en `feat/S1.9-login-conectado`.
+- [x] SDD en `docs/sdd/S1.9/SDD.md`, Estado = Aprobado.
+- [x] P-01 muestra los errores de la API sin revelar si la cuenta existe o está bloqueada.
+- [x] P-03 cambia la contraseña contra la API pidiendo la actual, y entra al inicio sin volver al login.
+- [x] El modo demo hace lo mismo con el mock.
+- [x] Eventos `LOGIN`/`LOGIN_FALLIDO`/`BLOQUEO_CUENTA`/`CAMBIAR_PASSWORD` los registra la API (ya probado en S1.3–S1.5); nada nuevo en la web.
+- [x] Tests del §4 en verde; quality gate (`calidad`, `base-de-datos`, `e2e`, `docker`) en verde.
+- [x] Commit `S1.9 …` en `feat/S1.9-login-conectado`.
 
 ---
 

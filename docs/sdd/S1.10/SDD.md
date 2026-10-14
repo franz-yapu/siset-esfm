@@ -293,14 +293,14 @@ unit; el E2E multi-pestaña es frágil y la API ya revoca la sesión de todos mo
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.10/SDD.md`, Estado = Aprobado.
-- [ ] Recargar con sesión vigente no pide login; no queda ningún id ni token en `sessionStorage`/`localStorage` (solo la hora de la última actividad).
-- [ ] Ningún flujo de la web dispara dos refresh con la misma cookie (tests del §4).
-- [ ] 15 min sin actividad cierran la sesión con aviso a los 14 min, también tras cerrar y reabrir el navegador.
-- [ ] El contrato de §2.1 publicado y compatible con los consumidores actuales.
-- [ ] El cierre por inactividad deja `LOGOUT` en la bitácora (lo registra la API).
-- [ ] Tests del §4 en verde; quality gate en verde.
-- [ ] Commit `S1.10 …` en `feat/S1.9-login-conectado` (encima de S1.9).
+- [x] SDD en `docs/sdd/S1.10/SDD.md`, Estado = Aprobado.
+- [x] Recargar con sesión vigente no pide login; no queda ningún id ni token en `sessionStorage`/`localStorage` (solo la hora de la última actividad).
+- [x] Ningún flujo de la web dispara dos refresh con la misma cookie (tests del §4).
+- [x] 15 min sin actividad cierran la sesión con aviso a los 14 min, también tras cerrar y reabrir el navegador.
+- [x] El contrato de §2.1 publicado y compatible con los consumidores actuales.
+- [x] El cierre por inactividad deja `LOGOUT` en la bitácora (lo registra la API).
+- [x] Tests del §4 en verde; quality gate en verde.
+- [x] Commit `S1.10 …` en `feat/S1.9-login-conectado` (encima de S1.9).
 
 ---
 

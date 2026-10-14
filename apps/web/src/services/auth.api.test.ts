@@ -105,8 +105,47 @@ describe('authApi (SDD S0.8 §2.4)', () => {
     expect(obtenerAccessToken()).toBe('jwt-viejo');
   });
 
-  it('obtener queda pendiente de S1.10; sin usuarios demo', async () => {
-    await expect(authApi.obtener(1)).rejects.toMatchObject({ codigo: 'NO_IMPLEMENTADO' });
+  it('restaurar hace POST /auth/refresh, guarda el token y devuelve el usuario (SDD S1.10 §2.2)', async () => {
+    const peticiones = capturar(200, {
+      accessToken: 'jwt-restaurado',
+      expiraEn: '2026-10-14T12:15:00.000Z',
+      usuario: {
+        id: 3,
+        usuario: '1234567',
+        nombre: 'Ana',
+        rol: 'SEC_DIR',
+        sedeId: 1,
+        activo: true,
+        debeCambiarPassword: false,
+        ultimoAcceso: null,
+      },
+    } satisfies RespuestaLogin);
+    expect(await authApi.restaurar()).toMatchObject({ id: 3, rol: 'SEC_DIR', debeCambiarClave: false });
+    expect(peticiones).toHaveLength(1);
+    expect(peticiones[0]).toMatchObject({ method: 'post', url: '/auth/refresh' });
+    expect(obtenerAccessToken()).toBe('jwt-restaurado');
+  });
+
+  it('restaurar sin sesión (401) o sin red devuelve null', async () => {
+    capturar(401, { error: { code: 'SESION_INVALIDA', message: 'Su sesión terminó.' } });
+    expect(await authApi.restaurar()).toBeNull();
+    api.defaults.adapter = async (c) => {
+      throw new AxiosError('Network Error', 'ERR_NETWORK', c);
+    };
+    expect(await authApi.restaurar()).toBeNull();
+  });
+
+  it('logout sin red igual resuelve y borra el token', async () => {
+    guardarAccessToken('jwt-de-prueba');
+    api.defaults.adapter = async (c) => {
+      throw new AxiosError('Network Error', 'ERR_NETWORK', c);
+    };
+    await expect(authApi.logout(null)).resolves.toBeUndefined();
+    expect(obtenerAccessToken()).toBeNull();
+  });
+
+  it('"Ver como" no existe con la API; sin usuarios demo', async () => {
+    await expect(authApi.verComo(1)).rejects.toMatchObject({ codigo: 'NO_DISPONIBLE' });
     expect(authApi.usuariosDemo()).toEqual([]);
   });
 });

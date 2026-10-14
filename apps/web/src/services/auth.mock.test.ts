@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '@/mocks/db';
 import { CLAVE_DEMO } from '@/mocks/usuarios';
 import { aIso } from '@/lib/formato';
@@ -47,5 +47,36 @@ describe('authMock alineado con la API (SDD S1.9)', () => {
     expect(kardex().debeCambiarClave).toBe(false);
     await expect(authMock.login('kardex', 'tercera.clave-3')).resolves.toMatchObject({ id: u.id });
     await expect(authMock.login('kardex', 'otra.clave-9')).rejects.toMatchObject({ codigo: 'CREDENCIALES_INVALIDAS' });
+  });
+});
+
+describe('authMock: sesión simulada de la demo (SDD S1.10 §2.2)', () => {
+  const memoria = new Map<string, string>();
+  vi.stubGlobal('sessionStorage', {
+    getItem: (k: string) => memoria.get(k) ?? null,
+    setItem: (k: string, v: string) => void memoria.set(k, v),
+    removeItem: (k: string) => void memoria.delete(k),
+  });
+  beforeEach(() => memoria.clear());
+
+  it('sin sesión, restaurar devuelve null', async () => {
+    expect(await authMock.restaurar()).toBeNull();
+  });
+
+  it('login deja la sesión, restaurar la recupera y logout la borra', async () => {
+    const u = await authMock.login('secdir', CLAVE_DEMO);
+    expect(await authMock.restaurar()).toMatchObject({ id: u.id });
+    await authMock.logout(null);
+    expect(await authMock.restaurar()).toBeNull();
+  });
+
+  it('verComo pasa la sesión a otro usuario; un id inexistente no la cambia', async () => {
+    const u = await authMock.login('secdir', CLAVE_DEMO);
+    const otro = kardex();
+    expect(await authMock.verComo(otro.id)).toMatchObject({ id: otro.id });
+    expect(await authMock.restaurar()).toMatchObject({ id: otro.id });
+    expect(await authMock.verComo(999_999)).toBeNull();
+    expect(await authMock.restaurar()).toMatchObject({ id: otro.id });
+    expect(u.id).not.toBe(otro.id);
   });
 });
