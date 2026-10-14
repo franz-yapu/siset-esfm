@@ -1,5 +1,5 @@
 import type { ClienteBd } from '../src/compartido/bd';
-import { esquemaPassword, hashPassword } from '../src/modulos/seguridad';
+import { esquemaPassword, hashPassword, usernameDe } from '../src/modulos/seguridad';
 
 // Valores copiados de apps/web/src/config/{permisos,catalogos}.ts (mismos códigos
 // y nombres que el prototipo). La API no importa del frontend; el test
@@ -113,9 +113,6 @@ export function leerKardexInicial(entorno: Entorno = process.env): KardexInicial
     sede: sede as CodigoSede,
   };
 }
-
-/** Nombre de usuario: el CI, con el complemento si lo hay (SDD S0.11 §2.4). */
-export const usernameDe = (ci: string, complemento: string): string => (complemento ? `${ci}-${complemento}` : ci);
 
 export interface ResultadoSemilla {
   roles: number;

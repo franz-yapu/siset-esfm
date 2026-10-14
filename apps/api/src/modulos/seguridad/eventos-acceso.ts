@@ -66,3 +66,18 @@ export const registrarReusoSesion = (cliente: Cliente, usuarioId: number, sesion
 /** Lo hace Kardex: el autor sale del contexto de la petición; el afectado va en entidad_id. */
 export const registrarRestablecimientoPassword = (cliente: Cliente, usuarioAfectadoId: number) =>
   registrar(cliente, 'RESTABLECER_PASSWORD', usuarioAfectadoId, undefined);
+
+/** Kardex quita el bloqueo por intentos (SDD S1.8 §2.1): el autor sale del contexto. */
+export const registrarDesbloqueo = (
+  cliente: Cliente,
+  usuarioAfectadoId: number,
+  antes: { bloqueadoHasta: Date; intentosFallidos: number },
+) =>
+  registrarEvento(cliente, {
+    accion: 'DESBLOQUEAR_CUENTA',
+    modulo: 'SEGURIDAD',
+    entidad: 'usuario',
+    entidadId: usuarioAfectadoId,
+    antes,
+    despues: { bloqueadoHasta: null, intentosFallidos: 0 },
+  });

@@ -1,4 +1,4 @@
-import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
+import type { ClienteBd, Prisma, TransaccionBd } from '@/compartido/bd';
 
 type Cliente = ClienteBd | TransaccionBd;
 
@@ -57,3 +57,65 @@ export const describirUsuarios = (cliente: Cliente, ids: number[]) =>
   ids.length === 0
     ? Promise.resolve([])
     : cliente.usuario.findMany({ where: { id: { in: ids } }, select: { id: true, username: true, personaId: true } });
+
+// API de usuarios (SDD S1.8). Nunca seleccionan `passwordHash`.
+
+const SELECCION_DETALLE = {
+  id: true,
+  username: true,
+  personaId: true,
+  sedeId: true,
+  activo: true,
+  intentosFallidos: true,
+  bloqueadoHasta: true,
+  debeCambiarPassword: true,
+  ultimoAcceso: true,
+  rol: { select: { codigo: true } },
+} as const;
+
+export const buscarUsuarioDetalle = (cliente: Cliente, id: number) =>
+  cliente.usuario.findUnique({ where: { id }, select: SELECCION_DETALLE });
+
+export type UsuarioDetalleBd = NonNullable<Awaited<ReturnType<typeof buscarUsuarioDetalle>>>;
+
+/** Todos los que cumplen el filtro: el orden por apellido lo pone el servicio con los datos de personas. */
+export const listarUsuarios = (cliente: Cliente, where: Prisma.UsuarioWhereInput) =>
+  cliente.usuario.findMany({ where, select: SELECCION_DETALLE });
+
+export const tieneUsuario = async (cliente: Cliente, personaId: number): Promise<boolean> =>
+  (await cliente.usuario.findUnique({ where: { personaId }, select: { id: true } })) !== null;
+
+export const buscarRolId = async (cliente: Cliente, codigo: string): Promise<number> =>
+  (await cliente.rol.findUniqueOrThrow({ where: { codigo }, select: { id: true } })).id;
+
+export interface NuevoUsuario {
+  personaId: number;
+  rolId: number;
+  sedeId: number;
+  username: string;
+  passwordHash: string;
+}
+
+/** Siempre con `debeCambiarPassword`: la contraseña es una temporal (SDD S1.8 §2.3). */
+export const crearUsuario = (cliente: Cliente, datos: NuevoUsuario) =>
+  cliente.usuario.create({ data: { ...datos, debeCambiarPassword: true }, select: { id: true } });
+
+export type CambiosUsuario = Partial<
+  Pick<
+    Prisma.UsuarioUncheckedUpdateInput,
+    'rolId' | 'sedeId' | 'activo' | 'passwordHash' | 'debeCambiarPassword' | 'bloqueadoHasta' | 'intentosFallidos'
+  >
+>;
+
+export const actualizarUsuario = (cliente: Cliente, id: number, cambios: CambiosUsuario) =>
+  cliente.usuario.update({ where: { id }, data: cambios, select: { id: true } });
+
+/** KARDEX activos sin contar a `exceptoId`: si da 0, la operación dejaría al sistema sin administrador (D-27). */
+export const contarOtrosKardexActivos = (cliente: Cliente, exceptoId: number) =>
+  cliente.usuario.count({ where: { activo: true, rol: { codigo: 'KARDEX' }, id: { not: exceptoId } } });
+
+/**
+ * Serializa en la transacción las operaciones que pueden quitar un KARDEX activo: así dos Kardex
+ * no se dan de baja mutuamente a la vez (SDD S1.8 §6). Se libera solo al terminar la transacción.
+ */
+export const bloquearCambiosDeKardex = (tx: TransaccionBd) => tx.$executeRaw`SELECT pg_advisory_xact_lock(180001)`;

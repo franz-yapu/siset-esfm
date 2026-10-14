@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { crearClienteBd } from '@/compartido/bd';
-import { leerKardexInicial, usernameDe } from '../prisma/semilla';
+import { usernameDe } from '@/modulos/seguridad';
+import { leerKardexInicial } from '../prisma/semilla';
 
 describe('leerKardexInicial', () => {
   const valido = { SEED_KARDEX_CI: '1000001', SEED_KARDEX_PASSWORD: 'clave-1234' };
