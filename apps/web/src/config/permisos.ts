@@ -36,68 +36,85 @@ export const ROLES: Record<Rol, { nombre: string; inicio: string; badge: string 
   KARDEX: { nombre: 'Kardex', inicio: '/kardex', badge: 'bg-indigo-50 text-indigo-700 ring-indigo-300' },
 };
 
+/** Recursos y acciones de la política de la API (`autorizacion.politica.ts`); un test de paridad los compara. */
+export const RECURSOS = [
+  'usuarios',
+  'files',
+  'requisitos',
+  'hojas-ruta',
+  'pases',
+  'dictamenes',
+  'documentos',
+  'reportes',
+  'auditoria',
+] as const;
+export const ACCIONES = ['crear', 'leer', 'leer_propio', 'editar'] as const;
+export type Recurso = (typeof RECURSOS)[number];
+export type Accion = (typeof ACCIONES)[number];
+export interface Permiso {
+  recurso: Recurso;
+  accion: Accion;
+}
+
+/**
+ * Permiso de la política que exige cada pantalla (SDD S1.11 §2.2, DEC-022). Quién lo tiene lo dice
+ * `GET /auth/mis-permisos`: la web no guarda roles por pantalla. Una bandeja exige la acción que se hace
+ * en ella; el detalle hereda el permiso de su lista; Inicio y Mi perfil solo piden sesión.
+ */
+export const PERMISO_RUTA = {
+  'mi-file': { recurso: 'files', accion: 'leer_propio' },
+  // Hoy nadie lo tiene: los egresados no tienen cuenta (D-08); su seguimiento es público.
+  'mis-tramites': { recurso: 'hojas-ruta', accion: 'leer_propio' },
+  'nueva-hr': { recurso: 'hojas-ruta', accion: 'crear' },
+  'hojas-ruta': { recurso: 'hojas-ruta', accion: 'leer' },
+  'detalle-hr': { recurso: 'hojas-ruta', accion: 'leer' },
+  caratula: { recurso: 'hojas-ruta', accion: 'leer' },
+  pases: { recurso: 'pases', accion: 'crear' },
+  // Puente hasta S3.x: firma y entrega es de SEC_DIR, pero su permiso propio todavía no está en la política.
+  entregas: { recurso: 'hojas-ruta', accion: 'crear' },
+  files: { recurso: 'files', accion: 'leer' },
+  'detalle-file': { recurso: 'files', accion: 'leer' },
+  'nuevo-file': { recurso: 'files', accion: 'crear' },
+  'editar-file': { recurso: 'files', accion: 'editar' },
+  revision: { recurso: 'hojas-ruta', accion: 'editar' },
+  dictamenes: { recurso: 'dictamenes', accion: 'crear' },
+  'emitir-dictamen': { recurso: 'dictamenes', accion: 'crear' },
+  emision: { recurso: 'documentos', accion: 'crear' },
+  carga: { recurso: 'files', accion: 'crear' },
+  reportes: { recurso: 'reportes', accion: 'leer' },
+  usuarios: { recurso: 'usuarios', accion: 'leer' },
+  bitacora: { recurso: 'auditoria', accion: 'leer' },
+} as const satisfies Record<string, Permiso>;
+
+export type IdRuta = keyof typeof PERMISO_RUTA;
+/** `inicio` y `perfil` solo piden sesión; el resto, el permiso de su ruta. */
+export type IdMenu = IdRuta | 'inicio' | 'perfil';
+
 export interface ItemMenu {
-  id: string;
+  id: IdMenu;
   etiqueta: string;
   ruta: string;
   icono: LucideIcon;
-  roles: Rol[];
 }
-
-const TODOS: Rol[] = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
-const PERSONAL_FILES: Rol[] = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
 
 /** Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. */
 export const MENU: ItemMenu[] = [
-  { id: 'inicio', etiqueta: 'Inicio', ruta: '', icono: Home, roles: TODOS },
-  {
-    id: 'mi-file',
-    etiqueta: 'Mi file académico',
-    ruta: '/mi-file',
-    icono: FolderOpen,
-    roles: ['ESTUDIANTE', 'EGRESADO'],
-  },
-  { id: 'mis-tramites', etiqueta: 'Mis trámites', ruta: '/mis-tramites', icono: FileText, roles: ['EGRESADO'] },
-  { id: 'nueva-hr', etiqueta: 'Nueva hoja de ruta', ruta: '/hojas-ruta/nueva', icono: FilePlus2, roles: ['SEC_DIR'] },
-  { id: 'hojas-ruta', etiqueta: 'Hojas de ruta', ruta: '/hojas-ruta', icono: Route, roles: PERSONAL_FILES },
-  {
-    id: 'pases',
-    etiqueta: 'Bandeja de pases',
-    ruta: '/pases',
-    icono: ArrowLeftRight,
-    roles: ['SEC_DIR', 'SEC_COORD', 'KARDEX'],
-  },
-  { id: 'entregas', etiqueta: 'Firma y entrega', ruta: '/entregas', icono: PenLine, roles: ['SEC_DIR'] },
-  { id: 'files', etiqueta: 'Files académicos', ruta: '/files', icono: Users2, roles: PERSONAL_FILES },
-  { id: 'revision', etiqueta: 'Revisión de trámites', ruta: '/revision', icono: ClipboardCheck, roles: ['KARDEX'] },
-  { id: 'dictamenes', etiqueta: 'Dictámenes', ruta: '/dictamenes', icono: Gavel, roles: ['COORDINADOR'] },
-  { id: 'emision', etiqueta: 'Emisión de documentos', ruta: '/emision', icono: Printer, roles: ['KARDEX'] },
-  { id: 'carga', etiqueta: 'Carga masiva', ruta: '/carga-masiva', icono: Upload, roles: ['KARDEX'] },
-  {
-    id: 'reportes',
-    etiqueta: 'Reportes',
-    ruta: '/reportes',
-    icono: BarChart3,
-    roles: ['SEC_DIR', 'COORDINADOR', 'KARDEX'],
-  },
-  { id: 'usuarios', etiqueta: 'Usuarios', ruta: '/usuarios', icono: UserCog, roles: ['KARDEX'] },
-  { id: 'bitacora', etiqueta: 'Bitácora', ruta: '/bitacora', icono: ScrollText, roles: ['KARDEX'] },
-  { id: 'perfil', etiqueta: 'Mi perfil', ruta: '/perfil', icono: UserCircle, roles: TODOS },
+  { id: 'inicio', etiqueta: 'Inicio', ruta: '', icono: Home },
+  { id: 'mi-file', etiqueta: 'Mi file académico', ruta: '/mi-file', icono: FolderOpen },
+  { id: 'mis-tramites', etiqueta: 'Mis trámites', ruta: '/mis-tramites', icono: FileText },
+  { id: 'nueva-hr', etiqueta: 'Nueva hoja de ruta', ruta: '/hojas-ruta/nueva', icono: FilePlus2 },
+  { id: 'hojas-ruta', etiqueta: 'Hojas de ruta', ruta: '/hojas-ruta', icono: Route },
+  { id: 'pases', etiqueta: 'Bandeja de pases', ruta: '/pases', icono: ArrowLeftRight },
+  { id: 'entregas', etiqueta: 'Firma y entrega', ruta: '/entregas', icono: PenLine },
+  { id: 'files', etiqueta: 'Files académicos', ruta: '/files', icono: Users2 },
+  { id: 'revision', etiqueta: 'Revisión de trámites', ruta: '/revision', icono: ClipboardCheck },
+  { id: 'dictamenes', etiqueta: 'Dictámenes', ruta: '/dictamenes', icono: Gavel },
+  { id: 'emision', etiqueta: 'Emisión de documentos', ruta: '/emision', icono: Printer },
+  { id: 'carga', etiqueta: 'Carga masiva', ruta: '/carga-masiva', icono: Upload },
+  { id: 'reportes', etiqueta: 'Reportes', ruta: '/reportes', icono: BarChart3 },
+  { id: 'usuarios', etiqueta: 'Usuarios', ruta: '/usuarios', icono: UserCog },
+  { id: 'bitacora', etiqueta: 'Bitácora', ruta: '/bitacora', icono: ScrollText },
+  { id: 'perfil', etiqueta: 'Mi perfil', ruta: '/perfil', icono: UserCircle },
 ];
 
 export const rutaInicio = (rol: Rol): string => ROLES[rol].inicio;
-
-/** Roles que pueden abrir una ruta: las rutas de detalle heredan los permisos de su lista. */
-export const PERMISOS_RUTA: Record<string, Rol[]> = {
-  ...Object.fromEntries(MENU.filter((m) => m.ruta).map((m) => [m.id, m.roles])),
-  'detalle-hr': PERSONAL_FILES,
-  caratula: PERSONAL_FILES,
-  'detalle-file': PERSONAL_FILES,
-  'form-file': ['KARDEX'],
-  'emitir-dictamen': ['COORDINADOR'],
-};
-
-export const puedeVer = (rol: Rol, permiso: string): boolean => PERMISOS_RUTA[permiso]?.includes(rol) ?? false;
-
-/** Solo KARDEX edita files; el resto del personal los ve en solo lectura. */
-export const puedeEditarFiles = (rol: Rol): boolean => rol === 'KARDEX';

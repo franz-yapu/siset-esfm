@@ -352,6 +352,44 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    edición sin cambios reales no escribe ni registra nada.
 6. Si el CI ya es de una persona sin cuenta, **se reutiliza esa persona sin cambiar sus datos**.
 
+## DEC-021 — Login, cambio de contraseña y sesión real en la web
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.9 y S1.10 (aprobados) + responsable del proyecto · **Estado:** activa
+
+1. **La web nunca dice "cuenta bloqueada":** muestra el 401 genérico de la API (DEC-012/013) y un aviso fijo, sin
+   números, de que varios intentos bloquean la cuenta. El mock se alinea con la API.
+2. **P-03 pide la contraseña actual** (contrato de DEC-014); la web no guarda la contraseña escrita en el login.
+   `authService.cambiarClave` pasa a `cambiarPassword` y devuelve el usuario de la sesión nueva.
+3. **La sesión se restaura con `POST /auth/refresh` al arrancar.** La web no guarda ni el id ni el token; solo la
+   hora de la última actividad, en `localStorage`.
+4. **El refresh es de vuelo único** por pestaña y usa un Web Lock (`siset-refresh`) entre pestañas, para no disparar
+   el reuso de DEC-014 #3. Un 401 reintenta una sola vez; si el refresh falla, la sesión se pierde y se vuelve al
+   login con el motivo.
+5. **Inactividad:** 15 min (RNF-02), aviso 60 s antes, compartida entre pestañas y revisada también al arrancar. Las
+   peticiones a la API no cuentan como actividad. El cierre usa `POST /auth/logout` (`LOGOUT` en la bitácora).
+6. **Contrato de `useAuth()`** del SDD de S1.10 §2.1, con `cambiarPassword` y `motivoCierre`; el contexto vacía la
+   caché de React Query al iniciar, cerrar o perder la sesión.
+7. **La inactividad también la controlará la API** (rechazar el refresh tras 15 min sin latido de la web): ticket
+   aparte (S2.16, ClickUp 868mhbkd8) después del piloto, decidido por el responsable.
+
+## DEC-022 — La web arma rutas y menú con la política de la API
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.11 v1.1 (aprobado) · **Estado:** activa
+
+1. **La web no guarda roles por pantalla.** Cada ruta declara el permiso `{ recurso, accion }` que exige
+   (`PERMISO_RUTA` en `apps/web/src/config/permisos.ts`) y quién lo tiene lo dice `GET /auth/mis-permisos`.
+   Inicio y Mi perfil solo piden sesión.
+2. **Una bandeja de trabajo exige la acción que se hace en ella** (`pases/crear`, `dictamenes/crear`); una alta o
+   edición exige `crear` o `editar`; el detalle hereda el permiso de su lista.
+3. **Mock y API usan la misma matriz** (`mocks/politica.ts`, con test de paridad contra la de la API). El modo de
+   los permisos sigue al de `auth`.
+4. Sin permiso → **P-04 en la misma URL**. Si no se pueden cargar los permisos, se falla cerrado con Reintentar.
+5. Un **403 de la API en una llamada de datos** se muestra como error de la pantalla, no navega a P-04.
+6. **Firma y entrega es de SEC_DIR** (respuesta del responsable). Su permiso se agrega a la política en S3.x;
+   mientras tanto la web usa `hojas-ruta/crear` como puente.
+7. El **EGRESADO** (sin permisos, D-08) queda con Inicio y Mi perfil, también en la demo. Su usuario de prueba y su
+   inicio se quitan en S1.12.
+
 ## DEC-023 — Pantalla de usuarios conectada a la API
 
 **Fecha:** 2026-10-14 · **Fuente:** SDD de S1.13 (aprobado) + responsable del proyecto · **Estado:** activa
