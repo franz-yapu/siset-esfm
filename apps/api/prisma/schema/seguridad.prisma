@@ -45,17 +45,21 @@ model Usuario {
 
 /// Sesiones activas: refresh token rotativo (SDD S1.1 §2.1).
 model RefreshToken {
-  id         Int       @id @default(autoincrement())
-  usuarioId  Int       @map("usuario_id")
+  id               Int            @id @default(autoincrement())
+  usuarioId        Int            @map("usuario_id")
   /// SHA-256 en hexadecimal del token; el token en claro nunca se guarda (RNF-01).
-  tokenHash  String    @unique @map("token_hash") @db.Char(64)
-  expiraEn   DateTime  @map("expira_en") @db.Timestamptz(6)
-  revocadoEn DateTime? @map("revocado_en") @db.Timestamptz(6)
-  ip         String?   @db.Inet
-  userAgent  String?   @map("user_agent") @db.VarChar(255)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  tokenHash        String         @unique @map("token_hash") @db.Char(64)
+  expiraEn         DateTime       @map("expira_en") @db.Timestamptz(6)
+  revocadoEn       DateTime?      @map("revocado_en") @db.Timestamptz(6)
+  ip               String?        @db.Inet
+  userAgent        String?        @map("user_agent") @db.VarChar(255)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// El token que lo reemplazó al rotar. No nulo ⇔ se revocó por rotación (SDD S1.15 §2.1, DEC-026).
+  reemplazadoPorId Int?           @map("reemplazado_por_id")
   /// CASCADE: excepción documentada en modelo-datos.md §Convenciones (DEC-006).
-  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  usuario          Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  reemplazadoPor   RefreshToken?  @relation("ReemplazoRefresh", fields: [reemplazadoPorId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  reemplaza        RefreshToken[] @relation("ReemplazoRefresh")
 
   @@index([usuarioId])
   @@map("refresh_token")

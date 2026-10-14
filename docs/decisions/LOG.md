@@ -242,6 +242,7 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    por intentos, no.
 3. **Reuso** de un refresh ya rotado (también la carrera de dos refresh simultáneos): se revocan todas las
    sesiones del usuario y se registra la acción nueva **`REUSO_SESION`** (S0.7 prevé ampliar la lista).
+   _Reemplazado por DEC-026 (2026-10-14): ventana de gracia para el token recién rotado cuya cadena sigue vigente._
 4. El cambio de contraseña revoca todas las sesiones y emite una nueva con `cpw: false`. La nueva debe ser
    distinta de la actual y cumplir DEC-011. Tiene su propio conteo de rate limit (10/min por IP).
 5. **`autenticar`** (módulo `seguridad`) verifica el Bearer (solo HS256, emisor `siset`) sin consultar la
@@ -438,3 +439,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 6. **Hallazgo:** navegar o recargar mientras un refresh está en vuelo puede perder la cookie rotada; la siguiente
    carga se toma como reuso (DEC-014 #3) y se cierran todas las sesiones del usuario. Ticket S1.15 (ClickUp 868mhch6a; API: tolerar
    por unos segundos el token recién rotado).
+
+## DEC-026 — Refresh con ventana de gracia (reemplaza DEC-014 #3)
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.15 v1.2 (aprobado) + ADR-0004 · **Estado:** activa
+
+1. Un refresh con un token **revocado por rotación** hace ≤ `SEG_GRACIA_REFRESH` s (10, en `parametro`) no es
+   reuso si su **cadena de rotación termina en un token vigente**: se revoca ese último, se emite uno nuevo con el
+   mismo vencimiento y toda la cadena apunta al nuevo; si otra petición gana la carrera, se reintenta (hasta 10).
+   Cubre la recarga con un refresh en vuelo, las cargas abortadas que llegan tarde y los refresh simultáneos.
+2. Fuera de la ventana, o si la cadena terminó en logout, cambio de contraseña, baja o reuso, el reuso sigue
+   igual: todas las sesiones revocadas y `REUSO_SESION`.
+3. `refresh_token.reemplazado_por_id` (FK `SET NULL`, segunda excepción a DEC-006) marca la revocación por rotación.
+4. El arreglo es de la API; la web no cambia. E10 (`api-real`) lo prueba: falla 3 de 3 veces sin la gracia.

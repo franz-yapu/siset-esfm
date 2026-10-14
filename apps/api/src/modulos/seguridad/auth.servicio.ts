@@ -17,9 +17,12 @@ import { firmarAccessToken } from './jwt';
 import { compararPassword, hashPassword } from './password';
 import {
   buscarRefreshTokenPorHash,
+  buscarRefreshTokenPorId,
   crearRefreshToken,
+  marcarReemplazo,
   revocarRefreshToken,
   revocarRefreshTokensDeUsuario,
+  type RefreshTokenBd,
 } from './refresh-token.repositorio';
 import { hashDeToken } from './token';
 import {
@@ -37,11 +40,11 @@ export const DURACION_REFRESH_MS = 8 * 60 * 60_000;
 
 export type NombreDe = (cliente: ClienteBd | TransaccionBd, personaId: number) => Promise<string>;
 
-type ParametroLogin = 'MAX_INTENTOS_LOGIN' | 'MIN_BLOQUEO_LOGIN';
-export type LeerParametros = (
+type ParametroAuth = 'MAX_INTENTOS_LOGIN' | 'MIN_BLOQUEO_LOGIN' | 'SEG_GRACIA_REFRESH';
+export type LeerParametros = <C extends ParametroAuth>(
   cliente: ClienteBd | TransaccionBd,
-  claves: readonly ParametroLogin[],
-) => Promise<Record<ParametroLogin, number>>;
+  claves: readonly C[],
+) => Promise<Record<C, number>>;
 
 export interface DependenciasAuth {
   bd: ClienteBd;
@@ -102,7 +105,7 @@ export function crearServicioAuth({
     }
 
     return bd.$transaction(async (tx) => {
-      const sesion = await emitirSesion(tx, u, momento, new Date(momento.getTime() + DURACION_REFRESH_MS));
+      const { sesion } = await emitirSesion(tx, u, momento, new Date(momento.getTime() + DURACION_REFRESH_MS));
       await registrarAcceso(tx, u.id, momento);
       await registrarLogin(tx, u.id);
       return sesion;
@@ -118,7 +121,7 @@ export function crearServicioAuth({
     u: UsuarioBd,
     momento: Date,
     refreshExpiraEn: Date,
-  ): Promise<ResultadoLogin> {
+  ): Promise<{ sesion: ResultadoLogin; refreshId: number }> {
     const { token: accessToken, expiraEn } = await firmarAccessToken(
       { usuarioId: u.id, rol: u.rol.codigo, sedeId: u.sedeId, debeCambiarPassword: u.debeCambiarPassword },
       jwtSecreto,
@@ -126,20 +129,21 @@ export function crearServicioAuth({
     );
     const refreshToken = randomBytes(32).toString('base64url');
     const contexto = obtenerContexto();
-    await crearRefreshToken(tx, {
+    const { id: refreshId } = await crearRefreshToken(tx, {
       usuarioId: u.id,
       tokenHash: hashDeToken(refreshToken),
       expiraEn: refreshExpiraEn,
       ip: contexto?.ip ?? null,
       userAgent: contexto?.userAgent ?? null,
     });
-    return {
+    const sesion: ResultadoLogin = {
       accessToken,
       expiraEn: expiraEn.toISOString(),
       refreshToken,
       refreshExpiraEn,
       usuario: await usuarioSesion(tx, u),
     };
+    return { sesion, refreshId };
   }
 
   const usuarioSesion = async (cliente: TransaccionBd, u: UsuarioBd): Promise<UsuarioSesion> => ({
@@ -162,28 +166,90 @@ export function crearServicioAuth({
     throw sesionInvalida();
   }
 
+  /** El dueño del refresh, si sigue activo. Dado de baja: pierde todas sus sesiones (SDD S1.5 §2.2). */
+  async function usuarioActivo(usuarioId: number, momento: Date): Promise<UsuarioBd> {
+    const u = await buscarUsuarioPorId(bd, usuarioId);
+    if (!u?.activo) {
+      // Bloqueado por intentos: sigue (SDD S1.5 §2.2).
+      await revocarRefreshTokensDeUsuario(bd, usuarioId, momento);
+      throw sesionInvalida();
+    }
+    return u;
+  }
+
+  /**
+   * Revoca `revocar` (atómico), emite un refresh nuevo con el vencimiento de `fila` y deja a `apuntar`
+   * apuntando al nuevo. Devuelve null si otra petición revocó `revocar` antes.
+   */
+  const rotar = (u: UsuarioBd, fila: RefreshTokenBd, revocar: number, apuntar: number[], momento: Date) =>
+    bd.$transaction(async (tx) => {
+      if (!(await revocarRefreshToken(tx, revocar, momento))) return null;
+      const { sesion, refreshId } = await emitirSesion(tx, u, momento, fila.expiraEn);
+      await marcarReemplazo(tx, apuntar, refreshId);
+      return sesion;
+    });
+
+  /** Máximo de eslabones que se siguen: en 10 s una cadena legítima tiene muy pocos. */
+  const MAX_CADENA = 20;
+  /** Reintentos de la gracia cuando otra petición gana la carrera por el último token. */
+  const MAX_INTENTOS_GRACIA = 10;
+
+  /**
+   * Sigue la cadena de rotación desde `fila` hasta el último token. Devuelve los ids de la cadena (el último al
+   * final) solo si ese último sigue vigente; null si la cadena terminó en una revocación que no es rotación
+   * (logout, cambio de contraseña, baja o reuso).
+   */
+  async function cadenaVigente(fila: RefreshTokenBd): Promise<number[] | null> {
+    const cadena = [fila.id];
+    let siguiente = fila.reemplazadoPorId;
+    while (siguiente !== null && cadena.length <= MAX_CADENA) {
+      const t = await buscarRefreshTokenPorId(bd, siguiente);
+      if (!t) return null;
+      cadena.push(t.id);
+      if (t.reemplazadoPorId === null) return t.revocadoEn ? null : cadena;
+      siguiente = t.reemplazadoPorId;
+    }
+    return null;
+  }
+
+  /**
+   * Gracia (SDD S1.15 v1.2 §2.3, DEC-026): un token revocado por rotación hace ≤ SEG_GRACIA_REFRESH s no es
+   * reuso si su cadena de rotación termina en un token vigente (el navegador cortó o atrasó la respuesta al
+   * recargar). Se revoca ese último, se emite otro con el mismo vencimiento y toda la cadena apunta al nuevo.
+   * Si otra petición gana la carrera (las cargas abortadas llegan juntas), se vuelve a leer la cadena, que ya
+   * apunta al token ganador, hasta MAX_INTENTOS_GRACIA veces. Devuelve null si es reuso.
+   */
+  async function refrescarConGracia(hash: string, momento: Date): Promise<ResultadoLogin | null> {
+    const { SEG_GRACIA_REFRESH } = await leerParametros(bd, ['SEG_GRACIA_REFRESH']);
+    for (let intento = 0; intento < MAX_INTENTOS_GRACIA; intento++) {
+      const fila = await buscarRefreshTokenPorHash(bd, hash);
+      if (!fila?.revocadoEn || fila.reemplazadoPorId === null) return null;
+      if (momento.getTime() - fila.revocadoEn.getTime() > SEG_GRACIA_REFRESH * 1000) return null;
+      if (fila.expiraEn <= momento) throw sesionInvalida();
+      const cadena = await cadenaVigente(fila);
+      if (!cadena) return null;
+      const u = await usuarioActivo(fila.usuarioId, momento);
+      const sesion = await rotar(u, fila, cadena.at(-1)!, cadena, momento);
+      if (sesion) return sesion;
+    }
+    return null;
+  }
+
   /** Rota el refresh: revoca el viejo y emite uno nuevo con el MISMO vencimiento (DEC-012). */
   async function refrescar(token: string | undefined): Promise<ResultadoLogin> {
     if (!token) throw sesionInvalida();
     const momento = ahora();
-    const fila = await buscarRefreshTokenPorHash(bd, hashDeToken(token));
+    const hash = hashDeToken(token);
+    const fila = await buscarRefreshTokenPorHash(bd, hash);
     if (!fila) throw sesionInvalida();
-    if (fila.revocadoEn) return revocarPorReuso(fila.usuarioId, momento);
-    if (fila.expiraEn <= momento) throw sesionInvalida();
-
-    const u = await buscarUsuarioPorId(bd, fila.usuarioId);
-    if (!u?.activo) {
-      // Dado de baja: pierde todas sus sesiones. Bloqueado por intentos: sigue (SDD S1.5 §2.2).
-      await revocarRefreshTokensDeUsuario(bd, fila.usuarioId, momento);
-      throw sesionInvalida();
+    if (!fila.revocadoEn) {
+      if (fila.expiraEn <= momento) throw sesionInvalida();
+      const u = await usuarioActivo(fila.usuarioId, momento);
+      const sesion = await rotar(u, fila, fila.id, [fila.id], momento);
+      if (sesion) return sesion;
+      // Otra petición lo rotó en el mismo instante: puede ser la carrera de dos pestañas (gracia).
     }
-
-    const sesion = await bd.$transaction(async (tx) => {
-      // Atómico: si otra petición lo revocó antes, esto es un reuso.
-      if (!(await revocarRefreshToken(tx, fila.id, momento))) return null;
-      return emitirSesion(tx, u, momento, fila.expiraEn);
-    });
-    return sesion ?? revocarPorReuso(fila.usuarioId, momento);
+    return (await refrescarConGracia(hash, momento)) ?? revocarPorReuso(fila.usuarioId, momento);
   }
 
   /** Revoca la sesión de la cookie si sigue activa y registra LOGOUT. Nunca falla (SDD S1.5 §2.3). */
@@ -216,7 +282,7 @@ export function crearServicioAuth({
     return bd.$transaction(async (tx) => {
       await actualizarPassword(tx, u.id, hash);
       await revocarRefreshTokensDeUsuario(tx, u.id, momento);
-      const sesion = await emitirSesion(
+      const { sesion } = await emitirSesion(
         tx,
         { ...u, debeCambiarPassword: false },
         momento,

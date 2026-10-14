@@ -58,3 +58,31 @@ test.describe('E8 y E9 · login fallido y bloqueo', () => {
     });
   });
 });
+
+test('E10 · recargar dos veces seguidas sin esperar no cierra la sesión ni registra reuso (S1.15)', async ({
+  page,
+  request,
+}) => {
+  const { KARDEX, SEC_COORD } = credenciales();
+  const token = await tokenDe(request, KARDEX.usuario, KARDEX.password);
+  const reusos = async () => {
+    const r = await request.get(`${API_E2E}/auditoria`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { accion: 'REUSO_SESION', usuarioId: SEC_COORD.id },
+    });
+    expect(r.status()).toBe(200);
+    return ((await r.json()) as { total: number }).total;
+  };
+  const antes = await reusos();
+  await entrarComo(page, 'SEC_COORD');
+
+  // Navegar, recargar y volver a navegar sin esperar a que termine la restauración: con DEC-014 #3 sin
+  // gracia, esto perdía la cookie rotada y cerraba la sesión (reproducido en 2 de 4 corridas).
+  for (const ruta of ['/files', '/usuarios', '/files']) {
+    await page.goto(ruta);
+    await page.reload();
+    await expect(page).toHaveURL(new RegExp(`${ruta}$`));
+  }
+  await expect(page.getByRole('complementary', { name: 'Menú principal' })).toBeVisible();
+  expect(await reusos()).toBe(antes);
+});

@@ -18,8 +18,18 @@ export const crearRefreshToken = (cliente: Cliente, datos: NuevoRefreshToken) =>
 export const buscarRefreshTokenPorHash = (cliente: Cliente, tokenHash: string) =>
   cliente.refreshToken.findUnique({
     where: { tokenHash },
-    select: { id: true, usuarioId: true, expiraEn: true, revocadoEn: true },
+    select: { id: true, usuarioId: true, expiraEn: true, revocadoEn: true, reemplazadoPorId: true },
   });
+
+/** Un eslabón de la cadena de rotación (SDD S1.15 §2.3). */
+export const buscarRefreshTokenPorId = (cliente: Cliente, id: number) =>
+  cliente.refreshToken.findUnique({ where: { id }, select: { id: true, revocadoEn: true, reemplazadoPorId: true } });
+
+export type RefreshTokenBd = NonNullable<Awaited<ReturnType<typeof buscarRefreshTokenPorHash>>>;
+
+/** Rotación: los `ids` quedan apuntando al token que los reemplazó (SDD S1.15 §2.2–2.3). */
+export const marcarReemplazo = (cliente: Cliente, ids: number[], nuevoId: number) =>
+  cliente.refreshToken.updateMany({ where: { id: { in: ids } }, data: { reemplazadoPorId: nuevoId } });
 
 /**
  * Revoca la sesión solo si sigue activa; es atómico. `false` significa que ya
