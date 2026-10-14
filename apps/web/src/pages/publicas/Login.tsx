@@ -1,40 +1,67 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
+import type { Usuario } from '@/types';
+import type { MotivoCierre } from '@/context/AuthContext';
+import { ErrorApi } from '@/lib/errores';
 import { authService } from '@/services/auth.service';
 import { todoMock } from '@/services/_modo';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
 
+/** Tras un 401 se avisa del bloqueo sin números ni decir si pasó: la API no lo revela (DEC-013, SDD S1.9 §2.1). */
+const AVISO_BLOQUEO =
+  'Varios intentos fallidos seguidos bloquean la cuenta por un tiempo. Si no puedes entrar, acércate a Kardex.';
+
+const MENSAJE_CIERRE: Record<MotivoCierre, string> = {
+  INACTIVIDAD: 'Tu sesión se cerró tras 15 minutos sin actividad. Vuelve a ingresar.',
+  SESION_VENCIDA: 'Tu sesión terminó. Vuelve a ingresar.',
+};
+
+/** Ruta interna de la que vino el usuario (la pone ProtectedRoute), o null (SDD S1.10 §2.7). */
+const rutaDeOrigen = (estado: unknown): string | null => {
+  const desde = typeof estado === 'object' && estado !== null ? (estado as Record<string, unknown>).desde : null;
+  return typeof desde === 'string' && desde.startsWith('/') && !desde.startsWith('//') && desde !== '/login'
+    ? desde
+    : null;
+};
+
 /** P-01 · Login (CI o usuario + contraseña). */
 export function Login() {
-  const { usuario, login } = useAuth();
+  const { usuario, login, motivoCierre } = useAuth();
   const nav = useNavigate();
+  const desde = rutaDeOrigen(useLocation().state);
+  const destino = (u: Usuario) => (u.debeCambiarClave ? '/cambiar-clave' : (desde ?? rutaInicio(u.rol)));
+  const [escribio, setEscribio] = useState(false);
   const [user, setUser] = useState('');
-  const [clave, setClave] = useState('');
+  const [password, setPassword] = useState('');
   const [ver, setVer] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ mensaje: string; avisoBloqueo: boolean } | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  if (usuario) return <Navigate to={usuario.debeCambiarClave ? '/cambiar-clave' : rutaInicio(usuario.rol)} replace />;
+  if (usuario) return <Navigate to={destino(usuario)} replace />;
 
   const enviar = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!user.trim() || !clave) {
-      setError('Ingresa tu CI o usuario y tu contraseña');
+    if (!user.trim() || !password) {
+      setError({ mensaje: 'Ingresa tu CI o usuario y tu contraseña', avisoBloqueo: false });
       return;
     }
     setCargando(true);
     try {
-      const u = await login(user, clave);
-      nav(u.debeCambiarClave ? '/cambiar-clave' : rutaInicio(u.rol), { replace: true });
+      const u = await login(user, password);
+      nav(destino(u), { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al ingresar');
+      setPassword('');
+      setError({
+        mensaje: err instanceof Error ? err.message : 'Error al ingresar',
+        avisoBloqueo: err instanceof ErrorApi && err.codigo === 'CREDENCIALES_INVALIDAS',
+      });
     } finally {
       setCargando(false);
     }
@@ -66,10 +93,14 @@ export function Login() {
           <form onSubmit={enviar} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm" noValidate>
             <h2 className="mb-5 text-lg font-semibold text-slate-900">Iniciar sesión</h2>
             <div className="space-y-4">
+              {motivoCierre && !escribio && !error && <Alerta tipo="info">{MENSAJE_CIERRE[motivoCierre]}</Alerta>}
               <Input
                 label="CI o usuario"
                 value={user}
-                onChange={(e) => setUser(e.target.value)}
+                onChange={(e) => {
+                  setUser(e.target.value);
+                  setEscribio(true);
+                }}
                 autoComplete="username"
                 autoFocus
                 inputMode="text"
@@ -78,8 +109,8 @@ export function Login() {
                 <Input
                   label="Contraseña"
                   type={ver ? 'text' : 'password'}
-                  value={clave}
-                  onChange={(e) => setClave(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                 />
                 <button
@@ -91,7 +122,12 @@ export function Login() {
                   {ver ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
-              {error && <Alerta tipo="error">{error}</Alerta>}
+              {error && (
+                <Alerta tipo="error">
+                  {error.mensaje}
+                  {error.avisoBloqueo && <p className="mt-1 text-xs">{AVISO_BLOQUEO}</p>}
+                </Alerta>
+              )}
               <Button type="submit" loading={cargando} icon={LogIn} className="w-full">
                 Ingresar
               </Button>
@@ -110,7 +146,7 @@ export function Login() {
             <UsuariosPrueba
               onElegir={(u) => {
                 setUser(u);
-                setClave('demo123');
+                setPassword('demo123');
                 setError(null);
               }}
             />
