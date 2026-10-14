@@ -5,7 +5,7 @@ import { Printer } from 'lucide-react';
 import type { Entrega } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import type { Accion } from '@/lib/transiciones';
 import { nombreSede } from '@/config/catalogos';
 import { ESTADOS } from '@/config/estados';
@@ -32,7 +32,7 @@ export function DetalleHojaRuta() {
   const [modal, setModal] = useState<Accion | null>(null);
   const { data, loading, error, reload } = useAsync(async () => {
     const h = await hojasRutaService.obtener(nro);
-    return { h, f: await filesService.obtener(h.fileId) };
+    return { h, f: await filesPrototipoService.obtener(h.fileId) };
   }, [nro]);
 
   if (loading && !data) return <Cargando />;

@@ -5,13 +5,13 @@ import clsx from 'clsx';
 import type { Dictamen } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { dictamenesService } from '@/services/dictamenes.service';
 import { fileHabilitado, requisitosPendientes } from '@/lib/reglas';
 import { ESTADOS } from '@/config/estados';
 import { Alerta, Button, Card, Cargando, PageHeader, Tabs, Textarea, Timeline } from '@/components/ui';
 import { TablaRequisitos, TablaResultados } from '@/components/file/TablasFile';
-import { CabeceraFile } from '@/components/file/CabeceraFile';
+import { CabeceraFile, cabeceraDePrototipo } from '@/components/file/CabeceraFile';
 
 /** P-51 · Emitir dictamen (COORDINADOR). */
 export function EmitirDictamen() {
@@ -25,7 +25,7 @@ export function EmitirDictamen() {
   const [tab, setTab] = useState('requisitos');
   const { data, loading, error } = useAsync(async () => {
     const h = await hojasRutaService.obtener(nro);
-    return { h, f: await filesService.obtener(h.fileId) };
+    return { h, f: await filesPrototipoService.obtener(h.fileId) };
   }, [nro]);
 
   if (loading) return <Cargando />;
@@ -58,7 +58,7 @@ export function EmitirDictamen() {
       )}
       <div className="grid gap-4 xl:grid-cols-5">
         <div className="min-w-0 space-y-4 xl:col-span-3">
-          <CabeceraFile file={f} />
+          <CabeceraFile file={cabeceraDePrototipo(f)} />
           <Card>
             <Tabs
               activa={tab}

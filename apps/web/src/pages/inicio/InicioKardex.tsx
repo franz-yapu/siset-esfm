@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router';
 import { ArrowLeftRight, ClipboardCheck, Lock, Printer, Search, UserCog } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
 import { reportesService } from '@/services/reportes.service';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { pasesService } from '@/services/pases.service';
 import { diasDesde, diasTexto } from '@/lib/formato';
@@ -34,7 +34,7 @@ export function InicioKardex() {
     () =>
       Promise.all([
         reportesService.resumenInicio(),
-        filesService.listar({ soloBloqueados: true }),
+        filesPrototipoService.listar({ soloBloqueados: true }),
         hojasRutaService.listar({ estado: 'OBSERVADO' }),
         pasesService.porRecibir(2),
       ]),

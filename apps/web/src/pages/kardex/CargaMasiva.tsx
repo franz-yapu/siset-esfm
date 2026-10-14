@@ -2,7 +2,7 @@ import { useState, type DragEvent } from 'react';
 import { CheckCircle2, Download, FileSpreadsheet, Upload, XCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast, useUsuario } from '@/hooks';
-import { filesService, type DatosFile } from '@/services/files.service';
+import { filesPrototipoService, type DatosFile } from '@/services/files-prototipo.service';
 import { Alerta, Button, Card, DataTable, PageHeader } from '@/components/ui';
 
 type Fila = DatosFile & { fila: number; error?: string };
@@ -49,7 +49,7 @@ export function CargaMasiva() {
   const importar = async () => {
     setImportando(true);
     try {
-      setResumen(await filesService.importar(FILAS, u));
+      setResumen(await filesPrototipoService.importar(FILAS, u));
     } finally {
       setImportando(false);
     }

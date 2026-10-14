@@ -2,8 +2,12 @@
 
 - **Tickets:** ClickUp **S2.9** (`868mh1kxz`, https://app.clickup.com/t/868mh1kxz) y **S2.10** (`868mh1ky6`, https://app.clickup.com/t/868mh1ky6). Comparten diseño (el servicio de files), por eso van en un solo SDD.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (al implementar): P-41 no suma un botón "Editar": la pestaña de datos se edita en el lugar, como en el
+    prototipo, y P-42 se usa para el alta (la ruta `/files/:id/editar` sigue). Lo que solo existe en la demo pasa
+    a `components/file/SeccionesDemoFile.tsx`. `CabeceraFile` recibe los datos ya armados (también la usan
+    "mi file" y el dictamen). Un solo commit para los dos tickets.
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-04; `docs/product/prototipo-pantallas.md` P-40 (búsqueda), P-41 (detalle), P-42 (nuevo/editar)
   2. `docs/decisions/LOG.md` — DEC-017 (paginación), DEC-021 (sesión), DEC-022 (permisos de la web), DEC-023 (el mock imita el contrato de la API; TanStack Query; errores por campo), DEC-027 (API de files)
@@ -109,12 +113,12 @@
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S2.9-S2.10/SDD.md`, Estado = Aprobado.
-- [ ] P-40, P-41 y P-42 contra la API; demo intacta.
-- [ ] Secciones de requisitos, matrículas, resultados, bloqueo y semáforo ocultas en modo API, con aviso.
-- [ ] Tests del §4 en verde; quality gate en verde.
-- [ ] DEC-028 en `LOG.md`.
-- [ ] Commits `S2.9 …` y `S2.10 …` en `feat/S2.9-S2.10-files-conectados`.
+- [x] SDD en `docs/sdd/S2.9-S2.10/SDD.md`, Estado = Aprobado.
+- [x] P-40, P-41 y P-42 contra la API; demo intacta.
+- [x] Secciones de requisitos, matrículas, resultados, bloqueo y semáforo ocultas en modo API, con aviso.
+- [x] Tests del §4 en verde; quality gate en verde.
+- [x] DEC-028 en `LOG.md`.
+- [x] Commit `S2.9 y S2.10 …` en `feat/S2.9-S2.10-files-conectados` (uno solo: los dos tickets tocan los mismos archivos).
 
 ---
 

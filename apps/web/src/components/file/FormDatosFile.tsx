@@ -1,76 +1,79 @@
 import { useState, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
-import type { FileAcademico } from '@/types';
-import type { DatosFile } from '@/services/files.service';
-import { ESPECIALIDADES } from '@/config/catalogos';
-import { Button, Input, Select } from '@/components/ui';
+import type { CondicionFile, DatosCrearFile, Especialidad, FileDetalle } from '@/types/files';
+import { erroresDelFormularioFile, normalizarDatosFile, validarDatosFile, type CampoFile } from '@/lib/files';
+import { Alerta, Button, Input, Select } from '@/components/ui';
 
-type Errores = Partial<Record<keyof DatosFile, string>>;
-
-const vacio: DatosFile = {
+const vacio = (): DatosCrearFile => ({
   ci: '',
+  complemento: '',
   nombres: '',
-  apellidos: '',
-  codigo: '',
-  especialidad: '',
-  anioIngreso: new Date().getFullYear(),
-  condicion: 'ESTUDIANTE',
+  apellidoPaterno: '',
+  apellidoMaterno: '',
   fechaNacimiento: '',
   celular: '',
-  correo: '',
-};
+  email: '',
+  codigo: '',
+  especialidadId: 0,
+  anioIngreso: new Date().getFullYear(),
+  condicion: 'ESTUDIANTE',
+});
 
-const validar = (d: DatosFile): Errores => {
-  const e: Errores = {};
-  if (!/^\d{5,10}(-[0-9A-Z]{1,2})?$/.test(d.ci.trim())) e.ci = 'CI inválido (solo números, ej. 7012345 o 7012345-1A)';
-  if (!d.nombres.trim()) e.nombres = 'Obligatorio';
-  if (!d.apellidos.trim()) e.apellidos = 'Obligatorio';
-  if (!/^EST-\d{4}-\d{4}$/.test(d.codigo.trim())) e.codigo = 'Formato EST-AAAA-NNNN';
-  if (!d.especialidad) e.especialidad = 'Elige una especialidad';
-  if (d.anioIngreso < 2000 || d.anioIngreso > new Date().getFullYear()) e.anioIngreso = 'Año fuera de rango';
-  if (d.celular && !/^[67]\d{7}$/.test(d.celular)) e.celular = '8 dígitos, empieza con 6 o 7';
-  if (d.correo && !/^\S+@\S+\.\S+$/.test(d.correo)) e.correo = 'Correo inválido';
-  return e;
-};
+/** Los datos de un file existente, en la forma del formulario. */
+export const datosDeFile = (f: FileDetalle): DatosCrearFile => ({
+  ci: f.ci,
+  complemento: f.complemento,
+  nombres: f.nombres,
+  apellidoPaterno: f.apellidoPaterno ?? '',
+  apellidoMaterno: f.apellidoMaterno ?? '',
+  fechaNacimiento: f.fechaNacimiento ?? '',
+  celular: f.celular ?? '',
+  email: f.email ?? '',
+  codigo: f.codigo,
+  especialidadId: f.especialidadId,
+  anioIngreso: f.anioIngreso,
+  condicion: f.condicion,
+});
 
 interface Props {
-  inicial?: FileAcademico;
-  conCuenta?: boolean;
+  inicial?: FileDetalle;
+  especialidades: Especialidad[];
   soloLectura?: boolean;
-  onGuardar: (d: DatosFile, crearCuenta: boolean) => Promise<void>;
+  /** Recibe los datos ya normalizados. Si lanza un error de la API, se muestra en su campo. */
+  onGuardar: (d: DatosCrearFile) => Promise<void>;
 }
 
-/** Formulario de datos personales del file (P-42 y pestaña "Datos personales" de P-41). */
-export function FormDatosFile({ inicial, conCuenta, soloLectura, onGuardar }: Props) {
-  const [d, setD] = useState<DatosFile>(
-    inicial
-      ? {
-          ci: inicial.ci,
-          nombres: inicial.nombres,
-          apellidos: inicial.apellidos,
-          codigo: inicial.codigo,
-          especialidad: inicial.especialidad,
-          anioIngreso: inicial.anioIngreso,
-          condicion: inicial.condicion,
-          fechaNacimiento: inicial.fechaNacimiento ?? '',
-          celular: inicial.celular ?? '',
-          correo: inicial.correo ?? '',
-        }
-      : vacio,
-  );
-  const [cuenta, setCuenta] = useState(true);
+/**
+ * Formulario del file (P-42 y pestaña "Datos personales" de P-41), con el contrato de la API (SDD
+ * S2.9-S2.10 §2.5). Al editar, el CI y el complemento no se cambian (DEC-027 #1).
+ */
+export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar }: Props) {
+  const editando = Boolean(inicial);
+  const [d, setD] = useState<DatosCrearFile>(() => (inicial ? datosDeFile(inicial) : vacio()));
   const [enviado, setEnviado] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const errores = enviado ? validar(d) : {};
-  const set = (p: Partial<DatosFile>) => setD({ ...d, ...p });
+  const [deApi, setDeApi] = useState<{ campos: Partial<Record<CampoFile, string>>; general: string | null }>({
+    campos: {},
+    general: null,
+  });
+  const errores = { ...(enviado ? validarDatosFile(normalizarDatosFile(d)) : {}), ...deApi.campos };
+  const set = (p: Partial<DatosCrearFile>) => {
+    setD({ ...d, ...p });
+    // Al corregir un campo, su error de la API deja de valer.
+    setDeApi((a) => ({ ...a, campos: Object.fromEntries(Object.entries(a.campos).filter(([k]) => !(k in p))) }));
+  };
 
   const enviar = async (e: FormEvent) => {
     e.preventDefault();
     setEnviado(true);
-    if (Object.keys(validar(d)).length) return;
+    const datos = normalizarDatosFile(d);
+    if (Object.keys(validarDatosFile(datos)).length) return;
     setGuardando(true);
+    setDeApi({ campos: {}, general: null });
     try {
-      await onGuardar(d, conCuenta ? cuenta : false);
+      await onGuardar(datos);
+    } catch (err) {
+      setDeApi(erroresDelFormularioFile(err));
     } finally {
       setGuardando(false);
     }
@@ -78,19 +81,34 @@ export function FormDatosFile({ inicial, conCuenta, soloLectura, onGuardar }: Pr
 
   return (
     <form onSubmit={enviar} noValidate>
+      {deApi.general && (
+        <Alerta tipo="error" className="mb-4">
+          {deApi.general}
+        </Alerta>
+      )}
       <fieldset disabled={soloLectura} className="grid gap-4 md:grid-cols-2">
-        <Input
-          label="CI"
-          value={d.ci}
-          onChange={(e) => set({ ci: e.target.value })}
-          error={errores.ci}
-          inputMode="numeric"
-        />
+        <div className="grid grid-cols-[1fr_7rem] gap-3">
+          <Input
+            label="CI"
+            value={d.ci}
+            onChange={(e) => set({ ci: e.target.value })}
+            error={errores.ci}
+            inputMode="numeric"
+            disabled={editando}
+            hint={editando ? 'El CI no se edita.' : undefined}
+          />
+          <Input
+            label="Complemento"
+            value={d.complemento}
+            onChange={(e) => set({ complemento: e.target.value.toUpperCase() })}
+            error={errores.complemento}
+            disabled={editando}
+          />
+        </div>
         <Input
           label="Código de estudiante"
-          placeholder="EST-2026-0001"
           value={d.codigo}
-          onChange={(e) => set({ codigo: e.target.value.toUpperCase() })}
+          onChange={(e) => set({ codigo: e.target.value })}
           error={errores.codigo}
         />
         <Input
@@ -99,21 +117,30 @@ export function FormDatosFile({ inicial, conCuenta, soloLectura, onGuardar }: Pr
           onChange={(e) => set({ nombres: e.target.value })}
           error={errores.nombres}
         />
-        <Input
-          label="Apellidos"
-          value={d.apellidos}
-          onChange={(e) => set({ apellidos: e.target.value })}
-          error={errores.apellidos}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Apellido paterno"
+            value={d.apellidoPaterno ?? ''}
+            onChange={(e) => set({ apellidoPaterno: e.target.value })}
+            error={errores.apellidoPaterno}
+          />
+          <Input
+            label="Apellido materno"
+            value={d.apellidoMaterno ?? ''}
+            onChange={(e) => set({ apellidoMaterno: e.target.value })}
+            error={errores.apellidoMaterno}
+          />
+        </div>
         <Input
           label="Fecha de nacimiento"
           type="date"
-          value={d.fechaNacimiento}
+          value={d.fechaNacimiento ?? ''}
           onChange={(e) => set({ fechaNacimiento: e.target.value })}
+          error={errores.fechaNacimiento}
         />
         <Input
           label="Celular"
-          value={d.celular}
+          value={d.celular ?? ''}
           onChange={(e) => set({ celular: e.target.value })}
           error={errores.celular}
           inputMode="tel"
@@ -121,19 +148,21 @@ export function FormDatosFile({ inicial, conCuenta, soloLectura, onGuardar }: Pr
         <Input
           label="Correo"
           type="email"
-          value={d.correo}
-          onChange={(e) => set({ correo: e.target.value })}
-          error={errores.correo}
+          value={d.email ?? ''}
+          onChange={(e) => set({ email: e.target.value })}
+          error={errores.email}
         />
         <Select
           label="Especialidad"
-          value={d.especialidad}
-          onChange={(e) => set({ especialidad: e.target.value })}
-          error={errores.especialidad}
+          value={d.especialidadId}
+          onChange={(e) => set({ especialidadId: Number(e.target.value) })}
+          error={errores.especialidadId}
         >
-          <option value="">Elige…</option>
-          {ESPECIALIDADES.map((x) => (
-            <option key={x}>{x}</option>
+          <option value={0}>Elige…</option>
+          {especialidades.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.nombre}
+            </option>
           ))}
         </Select>
         <Input
@@ -146,28 +175,11 @@ export function FormDatosFile({ inicial, conCuenta, soloLectura, onGuardar }: Pr
         <Select
           label="Condición"
           value={d.condicion}
-          onChange={(e) => set({ condicion: e.target.value as DatosFile['condicion'] })}
+          onChange={(e) => set({ condicion: e.target.value as CondicionFile })}
         >
           <option value="ESTUDIANTE">Estudiante</option>
           <option value="EGRESADO">Egresado</option>
         </Select>
-        {conCuenta && (
-          <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm md:col-span-2">
-            <input
-              type="checkbox"
-              className="mt-0.5 size-4 accent-primario"
-              checked={cuenta}
-              onChange={(e) => setCuenta(e.target.checked)}
-            />
-            <span>
-              <span className="font-medium">Crear cuenta de acceso</span>
-              <br />
-              <span className="text-slate-500">
-                Usuario = CI, contraseña temporal. Deberá cambiarla en su primer ingreso.
-              </span>
-            </span>
-          </label>
-        )}
       </fieldset>
       {!soloLectura && (
         <div className="mt-5 flex justify-end">

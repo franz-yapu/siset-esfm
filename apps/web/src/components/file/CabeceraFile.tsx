@@ -1,12 +1,33 @@
 import type { ReactNode } from 'react';
-import type { FileAcademico } from '@/types';
+import type { ColorSemaforo, FileAcademico } from '@/types';
 import { iniciales } from '@/lib/formato';
 import { nombreCompleto, semaforoFile } from '@/lib/reglas';
 import { Alerta, Badge, Semaforo } from '@/components/ui';
 
-/** Cabecera del file (P-20 y P-41): iniciales, datos y semáforo global. */
-export function CabeceraFile({ file: f, acciones }: { file: FileAcademico; acciones?: ReactNode }) {
-  const nombre = nombreCompleto(f);
+/** Lo que muestra la cabecera: sirve para el file de la API y para el del prototipo (DEC-028). */
+export interface DatosCabeceraFile {
+  nombre: string;
+  ci: string;
+  codigo: string;
+  especialidad: string;
+  anioIngreso: number;
+  condicion: 'ESTUDIANTE' | 'EGRESADO';
+  bloqueado: boolean;
+  motivoBloqueo?: string | null;
+  /** Solo con el modelo del prototipo: el semáforo de la API llega con S2.5. */
+  semaforo?: ColorSemaforo;
+}
+
+/** La cabecera de un file del prototipo, con su semáforo. */
+export const cabeceraDePrototipo = (f: FileAcademico): DatosCabeceraFile => ({
+  ...f,
+  nombre: nombreCompleto(f),
+  semaforo: semaforoFile(f),
+});
+
+/** Cabecera del file (P-20 y P-41): iniciales, datos y, si lo hay, el semáforo global. */
+export function CabeceraFile({ file: f, acciones }: { file: DatosCabeceraFile; acciones?: ReactNode }) {
+  const nombre = f.nombre;
   const datos: [string, ReactNode][] = [
     ['CI', f.ci],
     ['Código', f.codigo],
@@ -17,7 +38,7 @@ export function CabeceraFile({ file: f, acciones }: { file: FileAcademico; accio
     <div className="mb-5 space-y-3">
       {f.bloqueado && (
         <Alerta tipo="bloqueo" titulo="File bloqueado">
-          {f.motivoBloqueo}. No se puede dictaminar ni emitir documentos. Acércate a Kardex.
+          {f.motivoBloqueo ? `${f.motivoBloqueo}. ` : ''}No se puede dictaminar ni emitir documentos. Acércate a Kardex.
         </Alerta>
       )}
       <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
@@ -39,7 +60,7 @@ export function CabeceraFile({ file: f, acciones }: { file: FileAcademico; accio
           </dl>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
-          <Semaforo color={semaforoFile(f)} size="lg" />
+          {f.semaforo && <Semaforo color={f.semaforo} size="lg" />}
           {acciones}
         </div>
       </div>
