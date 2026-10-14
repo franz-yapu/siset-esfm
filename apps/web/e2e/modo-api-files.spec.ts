@@ -46,6 +46,7 @@ const file = (id: number, nombre: string) => ({
   condicion: 'ESTUDIANTE',
   bloqueado: false,
   motivoBloqueo: null,
+  semaforo: 'AMARILLO',
 });
 
 const responder = (r: Route, status: number, cuerpo: unknown) =>
@@ -78,13 +79,16 @@ test('P-40 en modo API: filtros y página van a GET /files', async ({ page }) =>
   await entrar(page);
   await page.getByRole('link', { name: 'Files académicos' }).first().click();
   await expect(page.getByRole('row', { name: /Ana Mamani/ })).toBeVisible();
-  // En modo API no hay semáforo (llega con S2.5).
-  await expect(page.getByRole('columnheader', { name: 'Semáforo' })).toHaveCount(0);
+  // Desde S2.5 el semáforo viene de la API y también se muestra en modo API.
+  await expect(page.getByRole('columnheader', { name: 'Semáforo' })).toBeVisible();
 
   await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
   await page.getByLabel('Buscar').fill('mamani');
   await expect.poll(() => pedidos.at(-1)?.get('texto')).toBe('mamani');
   expect(pedidos.at(-1)?.get('especialidadId')).toBe('2');
+
+  await page.getByLabel('Semáforo').selectOption('ROJO');
+  await expect.poll(() => pedidos.at(-1)?.get('semaforo')).toBe('ROJO');
 
   await page.getByRole('button', { name: 'Página siguiente' }).click();
   await expect(page.getByRole('row', { name: /Zoe Mamani/ })).toBeVisible();

@@ -43,6 +43,7 @@ const detalle: FileDetalle = {
   condicion: 'ESTUDIANTE',
   bloqueado: false,
   motivoBloqueo: null,
+  semaforo: 'AMARILLO',
 };
 
 describe('filesApi (SDD S2.9-S2.10 §2.1)', () => {

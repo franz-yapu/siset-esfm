@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { ColorSemaforo, FileAcademico } from '@/types';
 import { iniciales } from '@/lib/formato';
 import { nombreCompleto, semaforoFile } from '@/lib/reglas';
+import { textoSemaforo } from '@/lib/semaforo';
 import { Alerta, Badge, Semaforo } from '@/components/ui';
 
 /** Lo que muestra la cabecera: sirve para el file de la API y para el del prototipo (DEC-028). */
@@ -60,7 +61,7 @@ export function CabeceraFile({ file: f, acciones }: { file: DatosCabeceraFile; a
           </dl>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
-          {f.semaforo && <Semaforo color={f.semaforo} size="lg" />}
+          {f.semaforo && <Semaforo color={f.semaforo} texto={textoSemaforo(f.semaforo, f.bloqueado)} size="lg" />}
           {acciones}
         </div>
       </div>

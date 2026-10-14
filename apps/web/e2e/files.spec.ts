@@ -113,6 +113,8 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await modal.getByLabel('Observación').fill('No se presentó; se reprograma');
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(tarjeta.getByText('No se presentó; se reprograma')).toBeVisible();
+    // El semáforo de la cabecera cambia al instante (RF-06 CA2, S2.5): rojo por el requisito observado.
+    await expect(page.getByText('Requisito observado').first()).toBeVisible();
 
     await tarjeta.getByRole('button', { name: 'Actualizar' }).click();
     await modal.getByLabel('Estado').selectOption('COMPLETO');
@@ -121,6 +123,7 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(tarjeta.getByText('N.º: TCLO-0451')).toBeVisible();
     await expect(tarjeta.getByText('Completo')).toBeVisible();
+    await expect(page.getByText('Requisitos pendientes').first()).toBeVisible();
     expect(problemas).toEqual([]);
   });
 });

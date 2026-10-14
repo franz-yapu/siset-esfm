@@ -32,7 +32,9 @@ Estados: `REGISTRADO → EN_TRANSITO → RECIBIDO → EN_REVISION ⇄ OBSERVADO 
 ## File académico, semáforo y bloqueo (RF-07, D-04, D-07, D-18)
 
 - Requisitos en catálogo parametrizable `requisito_tipo` (TACFI, TCLO, CERT_NOTAS…), editable por Kardex.
-- Semáforo por requisito y global: verde (completo), amarillo (pendiente/parcial), rojo (faltante obligatorio o bloqueo).
+- Semáforo por requisito y global (DEC-031, calculado en la API; provisional hasta D-31). Solo cuentan los
+  requisitos obligatorios. Rojo: file bloqueado o algún requisito OBSERVADO. Amarillo: algún requisito pendiente.
+  Verde: todos completos. Cuándo un pendiente pasa a "atrasado" (rojo) lo define D-31.
 - TCLO pasa a "Completo" solo con el nivel exigido (D-04, por definir).
 - Notas: Kardex **no registra notas**; las cargan los docentes en un sistema del Ministerio (D-07). Reprobar no
   obliga a repetir TACFI ni TCLO (D-07b).

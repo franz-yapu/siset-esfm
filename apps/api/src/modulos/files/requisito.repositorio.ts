@@ -16,6 +16,15 @@ const SELECCION = {
 export const listarRequisitosDelFile = (cliente: Cliente, fileId: number) =>
   cliente.requisitoFile.findMany({ where: { fileId }, select: SELECCION });
 
+/** Estado de cada requisito registrado en varios files, en una consulta (semáforo del listado, SDD S2.5 §2.2). */
+export const listarEstadosDeFiles = (cliente: Cliente, fileIds: number[]) =>
+  fileIds.length === 0
+    ? Promise.resolve([])
+    : cliente.requisitoFile.findMany({
+        where: { fileId: { in: fileIds } },
+        select: { fileId: true, requisitoTipoId: true, estado: true },
+      });
+
 export type RequisitoFileBd = Awaited<ReturnType<typeof listarRequisitosDelFile>>[number];
 
 export interface DatosRequisitoFile {

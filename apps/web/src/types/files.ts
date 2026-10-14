@@ -1,6 +1,8 @@
 // Contrato de /api/v1/files y /catalogos/especialidades (SDD S2.2 §2.2, DEC-027). Lo usan P-40, P-41 y P-42;
 // el resto de las pantallas sigue con el modelo del prototipo (`FileAcademico`) hasta su ticket (DEC-028).
 
+import type { ColorSemaforo } from './index';
+
 export type CondicionFile = 'ESTUDIANTE' | 'EGRESADO';
 
 export interface Especialidad {
@@ -27,6 +29,8 @@ export interface FileDetalle {
   condicion: CondicionFile;
   bloqueado: boolean;
   motivoBloqueo: string | null;
+  /** Calculado por la API (SDD S2.5, DEC-031). */
+  semaforo: ColorSemaforo;
 }
 
 export interface DatosCrearFile {
@@ -53,6 +57,7 @@ export interface FiltrosFiles {
   anioIngreso?: number;
   condicion?: CondicionFile;
   bloqueado?: boolean;
+  semaforo?: ColorSemaforo;
   pagina?: number;
   porPagina?: number;
 }

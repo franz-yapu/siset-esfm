@@ -18,7 +18,7 @@ export function crearModuloFiles({
   obtenerRequisitosActivos,
   describirUsuarios,
   ...deps
-}: DependenciasFiles &
+}: Omit<DependenciasFiles, 'obtenerRequisitosActivos'> &
   Omit<DependenciasRequisitos, 'bd'> & {
     autenticar: RequestHandler;
     autorizar: AutorizarFiles;
@@ -27,7 +27,13 @@ export function crearModuloFiles({
   const requisitos = crearServicioRequisitos({ bd: deps.bd, obtenerRequisitosActivos, describirUsuarios });
   return {
     router: Router()
-      .use(crearRutasFiles(crearControladorFiles(crearServicioFiles(deps)), autenticar, autorizar))
+      .use(
+        crearRutasFiles(
+          crearControladorFiles(crearServicioFiles({ ...deps, obtenerRequisitosActivos })),
+          autenticar,
+          autorizar,
+        ),
+      )
       .use(crearRutasRequisitos(requisitos, autenticar, autorizarRequisitos)),
     openapi: { ...openapiFiles, ...openapiRequisitos },
   };

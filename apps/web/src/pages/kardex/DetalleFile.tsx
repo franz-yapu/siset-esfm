@@ -5,11 +5,9 @@ import { useAsync, usePermiso, usePermisos, useToast, useUsuario } from '@/hooks
 import { claveFiles, useEspecialidades, useFile, useMutacionFiles } from '@/hooks/useFiles';
 import type { DatosCrearFile } from '@/types/files';
 import { filesService } from '@/services/files.service';
-import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { bitacoraService } from '@/services/bitacora.service';
 import { todoMock } from '@/services/_modo';
 import { cambiosDeFile } from '@/lib/files';
-import { semaforoFile } from '@/lib/reglas';
 import { fechaHora } from '@/lib/formato';
 import { ACCIONES, esAccion } from '@/config/auditoria';
 import { Alerta, Card, Cargando, DataTable, Tabs } from '@/components/ui';
@@ -71,18 +69,10 @@ export function DetalleFile() {
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
   const { data: especialidades = [] } = useEspecialidades();
-  // En la demo, la cabecera muestra el semáforo del prototipo.
-  const { data: prototipo, reload } = useAsync(
-    () => (demo ? filesPrototipoService.obtener(fileId) : Promise.resolve(undefined)),
-    [fileId, demo],
-  );
   const editar = useMutacionFiles((d: DatosCrearFile) =>
     filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
   );
-  const alCambiar = () => {
-    reload();
-    void cliente.invalidateQueries({ queryKey: claveFiles });
-  };
+  const alCambiar = () => void cliente.invalidateQueries({ queryKey: claveFiles });
 
   if (isLoading) return <Cargando />;
   if (error || !f) return <Alerta tipo="error">{error?.message ?? 'El file no existe.'}</Alerta>;
@@ -94,7 +84,6 @@ export function DetalleFile() {
     }
     await editar.mutateAsync(d);
     toast.success('Datos actualizados');
-    reload();
   };
 
   const tabs: { id: Tab; label: string }[] = [
@@ -114,10 +103,7 @@ export function DetalleFile() {
 
   return (
     <>
-      <CabeceraFile
-        file={{ ...f, semaforo: prototipo ? semaforoFile(prototipo) : undefined }}
-        acciones={editable && <BloqueoFile file={f} />}
-      />
+      <CabeceraFile file={f} acciones={editable && <BloqueoFile file={f} />} />
       {!demo && (
         <Alerta tipo="info" className="mb-4">
           Las matrículas se habilitan en una próxima versión, cuando la escuela confirme si se registran (D-30).

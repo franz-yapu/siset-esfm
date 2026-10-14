@@ -506,3 +506,14 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    la lista de D-18.
 4. La pestaña Requisitos de P-41 está conectada en los dos modos (agrupada por año). SEC_DIR no la ve (DEC-015).
    Se borraron la pestaña de requisitos del prototipo y su modal.
+
+## DEC-031 — Semáforo del file calculado en la API
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S2.5 v1.1 (aprobado) · **Estado:** activa (regla provisional hasta D-31)
+
+1. El semáforo se calcula en la API y no se guarda. Solo cuentan los requisitos obligatorios y activos.
+   **Rojo:** file bloqueado o algún requisito OBSERVADO. **Amarillo:** alguno pendiente. **Verde:** todos completos.
+2. `semaforo` en `FileDetalle` y filtro `GET /files?semaforo=`. La web lo muestra en la búsqueda (columna y filtro)
+   y en la cabecera de P-41, en los dos modos. El rojo sin bloqueo se muestra como "Requisito observado".
+3. La regla vive en la API y en la web (para el mock); una tabla de casos común las mantiene iguales.
+4. Cuándo un requisito pendiente pasa a "atrasado" (rojo) lo define **D-31**, en la hoja desde el 2026-10-14.

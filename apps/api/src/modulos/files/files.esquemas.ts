@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { esquemaPagina, esquemaPaginacion } from '@/compartido/http';
+import { COLORES_SEMAFORO } from './semaforo';
 
 // Contratos de /files (SDD S2.2 §2.2). Los largos son los de las tablas persona y file_academico.
 
@@ -94,6 +95,8 @@ export const esquemaFiltrosFiles = z.object({
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
     .optional(),
+  /** Calculado (SDD S2.5): se filtra después de calcularlo. */
+  semaforo: z.enum(COLORES_SEMAFORO).optional(),
   ...esquemaPaginacion,
 });
 
@@ -153,6 +156,8 @@ export const esquemaFileDetalle = z
     condicion: z.enum(CONDICIONES),
     bloqueado: z.boolean(),
     motivoBloqueo: z.string().nullable(),
+    /** Calculado, no se guarda (SDD S2.5, DEC-031; provisional hasta D-31). */
+    semaforo: z.enum(COLORES_SEMAFORO),
   })
   .meta({ id: 'FileDetalle', description: 'File académico con los datos de la persona.' });
 
