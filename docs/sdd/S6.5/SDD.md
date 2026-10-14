@@ -2,8 +2,15 @@
 
 - **Ticket:** ClickUp **S6.5** (`868mh1kx8`, https://app.clickup.com/t/868mh1kx8).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (al implementar): el paginador (`components/ui/Paginacion.tsx`) y el tipo `Pagina<T>` (`types/pagina.ts`)
+    son los compartidos con S1.13 (rama `chore/paginacion-compartida`), no propios; el paginador muestra
+    "51–100 de 1342" y "Página 2 de 27". El test de sincronía importa el archivo de la API con `?raw` en vez de
+    leerlo con `node:fs` (la web no tiene los tipos de Node). En el E2E del mock, "el otro usuario" es SEC_DIR
+    recibiendo un pase (`CAMBIAR_ESTADO` con antes y después): el segundo KARDEX del mock está dado de baja.
+    `ServicioBitacora` vive en `bitacora.api.ts`; se agrega `describirEntidad` para el chip "Historial de".
+    La decisión queda como DEC-024.
 - **Depende de:** S6.4 (`GET /auditoria`, en `main`), S1.8 (`GET /usuarios`, en `main`). Supone que S1.10 deja el
   token y el refresh automático funcionando en `lib/api.ts` (este ticket no toca ese archivo).
 - **Fuentes de verdad citadas:**
@@ -111,7 +118,7 @@ export interface ServicioBitacora {
 }
 ```
 
-- `Pagina<T>` se define en `types/bitacora.ts` por ahora. Si S1.13 crea un tipo de paginación común antes de que esto se implemente, se usa ese y se borra este (§6).
+- `Pagina<T>` es el tipo compartido de `types/pagina.ts` (v1.1).
 - `bitacora.api.ts` arma los parámetros **sin los vacíos** (no manda `modulo=`), con `pagina` y `porPagina`, y devuelve `data` tal cual: el contrato ya es el de la API. Los errores llegan como `ErrorApi` por el interceptor de `lib/api.ts`.
 - `buscarUsuarios` en modo API llama a `GET /usuarios?texto=…&porPagina=10` y se queda con `{ id, usuario, nombre }`. Se llama desde `bitacora.api.ts` y no desde `usuarios.service.ts` para no depender del archivo que está cambiando S1.13. Kardex tiene `usuarios/leer` (DEC-015). Solo devuelve personal (DEC-020 #1): cuando haya estudiantes con cuenta, entran solos por la misma API.
 
@@ -153,7 +160,7 @@ Copia de las listas cerradas de `auditoria.esquemas.ts`, con su etiqueta. La pan
 Motivos de `LOGIN_FALLIDO` (`despues.motivo`): `PASSWORD_INCORRECTA` → "contraseña incorrecta", `CUENTA_BLOQUEADA` → "cuenta bloqueada", `CUENTA_INACTIVA` → "cuenta dada de baja", `CI_INEXISTENTE` → "CI no registrado". La celda de acción muestra "Intento de ingreso fallido · CI no registrado".
 
 - Las etiquetas son `Record<AccionAuditoria, …>`: si la API agrega un código y alguien lo copia a la lista de la web, TypeScript obliga a ponerle etiqueta.
-- **Sincronía con la API:** un test de Vitest lee `apps/api/src/modulos/auditoria/auditoria.esquemas.ts` como texto, extrae los dos arreglos y los compara con los de la web. Si alguien agrega una acción en la API (como `DESBLOQUEAR_CUENTA` hoy) y no en la web, la CI falla en `calidad`. Se eligió esto y no un paquete compartido porque son dos listas cortas y montar un paquete del monorepo es más trabajo que el problema.
+- **Sincronía con la API:** un test de Vitest importa `apps/api/src/modulos/auditoria/auditoria.esquemas.ts` como texto (`?raw`), extrae los dos arreglos y los compara con los de la web. Si alguien agrega una acción en la API (como `DESBLOQUEAR_CUENTA` hoy) y no en la web, la CI falla en `calidad`. Se eligió esto y no un paquete compartido porque son dos listas cortas y montar un paquete del monorepo es más trabajo que el problema.
 - Si igual llega un código desconocido (versiones desfasadas en un despliegue), se muestra el código crudo; la pantalla no se rompe.
 
 ### 2.3 Pantalla P-48
@@ -239,26 +246,26 @@ La API devuelve UTC (`2026-10-20T14:03:11.000Z`). `fechaHora` de `lib/formato.ts
 
 ## 3 · Cambios por archivo/módulo
 
-| Archivo                                                    | Cambio                                                                                                                                         |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/web/src/types/bitacora.ts`                           | **Nuevo** (§2.1). `RegistroBitacora` de `types/index.ts` queda como está: es el almacén del mock.                                              |
-| `apps/web/src/config/auditoria.ts`                         | **Nuevo** (§2.2): `ACCIONES_AUDITORIA`, `MODULOS_AUDITORIA`, etiquetas, tonos, motivos.                                                        |
-| `apps/web/src/services/bitacora.service.ts`                | **Reescrito**: selector `usaApi('bitacora') ? bitacoraApi : bitacoraMock`. Sale `opciones()` (solo lo usaba P-48).                             |
-| `apps/web/src/services/bitacora.api.ts`                    | **Nuevo** (§2.1).                                                                                                                              |
-| `apps/web/src/services/bitacora.mock.ts`                   | **Nuevo** (§2.4).                                                                                                                              |
-| `apps/web/src/pages/kardex/Bitacora.tsx`                   | **Reescrito** (§2.3).                                                                                                                          |
-| `apps/web/src/pages/kardex/bitacora/ModalDetalle.tsx`      | **Nuevo** (§2.3).                                                                                                                              |
-| `apps/web/src/pages/kardex/bitacora/BuscadorUsuario.tsx`   | **Nuevo** (§2.5).                                                                                                                              |
-| `apps/web/src/pages/kardex/bitacora/presentacion.ts`       | **Nuevo** (§2.6, §2.7).                                                                                                                        |
-| `apps/web/src/components/ui/Paginacion.tsx`, `ui/index.ts` | **Nuevo** paginador de servidor (`pagina`, `porPagina`, `total`, `onCambiar`). Una línea en `index.ts`. Si S1.13 ya trae uno, se usa ese (§6). |
-| `apps/web/src/config/auditoria.test.ts`                    | **Nuevo**: sincronía con la API (§2.2).                                                                                                        |
-| `apps/web/src/services/bitacora.mock.test.ts`              | **Nuevo** (§4).                                                                                                                                |
-| `apps/web/src/services/bitacora.api.test.ts`               | **Nuevo** (§4), con el mismo estilo que `auth.api.test.ts`.                                                                                    |
-| `apps/web/src/pages/kardex/bitacora/presentacion.test.ts`  | **Nuevo** (§4).                                                                                                                                |
-| `apps/web/e2e/bitacora.spec.ts`                            | **Nuevo**: E2E en modo mock (DoD).                                                                                                             |
-| `apps/web/e2e/modo-api-bitacora.spec.ts`                   | **Nuevo**: E2E en modo API con `page.route` (entra en el proyecto `api` por el nombre).                                                        |
-| `apps/web/playwright.config.ts`                            | El servidor del proyecto `api` pasa de `VITE_USAR_API=auth` a `auth,bitacora`. Una línea.                                                      |
-| `docs/decisions/LOG.md`                                    | DEC nueva (§7); el número se pone al aprobar, porque otros tickets en paralelo también agregan entradas.                                       |
+| Archivo                                                        | Cambio                                                                                                             |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `apps/web/src/types/bitacora.ts`                               | **Nuevo** (§2.1). `RegistroBitacora` de `types/index.ts` queda como está: es el almacén del mock.                  |
+| `apps/web/src/config/auditoria.ts`                             | **Nuevo** (§2.2): `ACCIONES_AUDITORIA`, `MODULOS_AUDITORIA`, etiquetas, tonos, motivos.                            |
+| `apps/web/src/services/bitacora.service.ts`                    | **Reescrito**: selector `usaApi('bitacora') ? bitacoraApi : bitacoraMock`. Sale `opciones()` (solo lo usaba P-48). |
+| `apps/web/src/services/bitacora.api.ts`                        | **Nuevo** (§2.1).                                                                                                  |
+| `apps/web/src/services/bitacora.mock.ts`                       | **Nuevo** (§2.4).                                                                                                  |
+| `apps/web/src/pages/kardex/Bitacora.tsx`                       | **Reescrito** (§2.3).                                                                                              |
+| `apps/web/src/pages/kardex/bitacora/ModalDetalle.tsx`          | **Nuevo** (§2.3).                                                                                                  |
+| `apps/web/src/pages/kardex/bitacora/BuscadorUsuario.tsx`       | **Nuevo** (§2.5).                                                                                                  |
+| `apps/web/src/pages/kardex/bitacora/presentacion.ts`           | **Nuevo** (§2.6, §2.7).                                                                                            |
+| `apps/web/src/components/ui/Paginacion.tsx`, `types/pagina.ts` | **Sin cambios**: se usan los compartidos con S1.13 (v1.1).                                                         |
+| `apps/web/src/config/auditoria.test.ts`                        | **Nuevo**: sincronía con la API (§2.2).                                                                            |
+| `apps/web/src/services/bitacora.mock.test.ts`                  | **Nuevo** (§4).                                                                                                    |
+| `apps/web/src/services/bitacora.api.test.ts`                   | **Nuevo** (§4), con el mismo estilo que `auth.api.test.ts`.                                                        |
+| `apps/web/src/pages/kardex/bitacora/presentacion.test.ts`      | **Nuevo** (§4).                                                                                                    |
+| `apps/web/e2e/bitacora.spec.ts`                                | **Nuevo**: E2E en modo mock (DoD).                                                                                 |
+| `apps/web/e2e/modo-api-bitacora.spec.ts`                       | **Nuevo**: E2E en modo API con `page.route` (entra en el proyecto `api` por el nombre).                            |
+| `apps/web/playwright.config.ts`                                | El servidor del proyecto `api` pasa de `VITE_USAR_API=auth` a `auth,bitacora`. Una línea.                          |
+| `docs/decisions/LOG.md`                                        | DEC-024 (§7).                                                                                                      |
 
 No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `components/layout/*`, `config/permisos.ts`, `services/usuarios.*`, `services/auth.*`, `mocks/db.ts`, `types/index.ts`, ni nada de `apps/api`.
 
@@ -291,7 +298,7 @@ No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `componen
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S6.5/SDD.md`, Estado = Aprobado.
+- [x] SDD en `docs/sdd/S6.5/SDD.md`, Estado = Aprobado.
 - [ ] P-48 funciona en modo mock y en modo API con el mismo contrato.
 - [ ] Filtros por fecha, usuario, módulo, acción y registro; paginación en el servidor; filtros en la URL.
 - [ ] Ningún código crudo en pantalla para las acciones y módulos conocidos.
@@ -299,7 +306,7 @@ No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `componen
 - [ ] Test de sincronía de las listas con la API en verde.
 - [ ] Toda escritura y evento de acceso registra su evento (DEC-007): **no aplica escritura nueva**, la pantalla solo lee y consultar no genera eventos (DEC-017 #3).
 - [ ] Tests del §4 en verde; quality gate en verde (`calidad`, `base-de-datos`, `e2e`, `docker`).
-- [ ] DEC nueva en `LOG.md`.
+- [x] DEC-024 en `LOG.md`.
 - [ ] Commit `S6.5 …` en la rama `feat/S6.5-pantalla-bitacora`.
 
 ---
@@ -309,7 +316,7 @@ No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `componen
 | Riesgo                                                                                                                                                                                                                       | Gravedad                                                        | Mitigación                                                                                                                                                                                                         |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`entidad = 'usuario'` mezcla dos cosas en `entidadId`**: el id del usuario (casi todos los eventos) y el CI intentado (DEC-018 #2). El "historial de" un usuario con id 1234 traería también los intentos con el CI "1234" | Baja (los CI tienen 7–8 dígitos y los ids del piloto son pocos) | La pantalla los distingue al mostrarlos (§2.6). Arreglo de fondo en la API, fuera de este ticket: registrar esos intentos con otra entidad (por ejemplo `ci_intentado`). Se propone como ticket técnico en la DEC. |
-| Otro ticket (S1.13) crea su propio paginador o tipo `Pagina<T>` al mismo tiempo                                                                                                                                              | Media                                                           | Antes de implementar se revisa `main`; si ya existe uno, se usa ese. Si los dos llegan juntos, el segundo PR unifica.                                                                                              |
+| Otro ticket (S1.13) crea su propio paginador o tipo `Pagina<T>` al mismo tiempo                                                                                                                                              | Resuelto                                                        | v1.1: los dos tickets usan el paginador y el tipo compartidos de `chore/paginacion-compartida`.                                                                                                                    |
 | `playwright.config.ts` y `components/ui/index.ts` son archivos compartidos                                                                                                                                                   | Baja                                                            | El cambio es de una línea en cada uno; conflicto fácil de resolver.                                                                                                                                                |
 | La lista de acciones de la web queda atrás de la API                                                                                                                                                                         | Baja                                                            | El test de sincronía falla en la CI; mientras tanto la pantalla muestra el código crudo sin romperse.                                                                                                              |
 | El buscador de usuarios solo encuentra al personal                                                                                                                                                                           | Baja en el piloto (DEC-009)                                     | El atajo de clic en la fila filtra por cualquier usuario. Cuando haya estudiantes con cuenta, `GET /usuarios` los devolverá y el buscador los encuentra sin cambios.                                               |
@@ -321,7 +328,7 @@ No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `componen
 
 - **Para la escuela:** ninguna. D-26 y D-27 ya están respondidas y esta pantalla no depende de ninguna duda abierta.
 - **Para el responsable (técnicas, decididas acá; confirmar al aprobar):** ninguna que bloquee.
-- **DEC nueva (va a `LOG.md` al aprobar):**
+- **DEC-024 (en `LOG.md`):**
   1. Los servicios de la web exponen el **contrato de la API también en modo mock**; el mock traduce al leer y no cambia el almacén del prototipo.
   2. Las listas cerradas de acciones y módulos se copian a la web con su etiqueta en español, y un test las mantiene iguales a las de la API.
   3. P-48 pagina en el servidor (50 por página) y guarda los filtros en la URL.
