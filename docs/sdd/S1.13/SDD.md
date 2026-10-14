@@ -227,21 +227,21 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 
 ## 3 · Cambios por archivo/módulo
 
-| Archivo                                                                                  | Cambio                                                                              |
-| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `apps/web/src/types/usuarios.ts`                                                         | **Nuevo** (§2.1).                                                                   |
-| `apps/web/src/services/usuarios.service.ts`                                              | Pasa a ser solo el selector mock/API + la interfaz `ServicioUsuarios` (§2.2).       |
-| `apps/web/src/services/usuarios.mock.ts`                                                 | **Nuevo**: el mock actual adaptado al contrato (§2.3).                              |
-| `apps/web/src/services/usuarios.api.ts`                                                  | **Nuevo** (§2.2).                                                                   |
-| `apps/web/src/mocks/usuarios.ts`                                                         | `UsuarioMock` y datos personales en el seed del personal. `CLAVE_DEMO` sigue igual. |
-| `apps/web/src/mocks/db.ts`                                                               | Solo el tipo: `usuarios: UsuarioMock[]`.                                            |
-| `apps/web/src/lib/usuarios.ts`                                                           | **Nuevo** (§2.6).                                                                   |
-| `apps/web/src/hooks/useUsuarios.ts`                                                      | **Nuevo** (§2.5).                                                                   |
-| `apps/web/src/pages/kardex/Usuarios.tsx`                                                 | Reescrita con TanStack Query, filtros de servidor, nuevas acciones (§2.4).          |
-| `apps/web/src/components/usuarios/{ModalUsuario,ModalPasswordTemporal}.tsx`    | **Nuevos** (salen de la página para que quede corta). Paginador: el compartido (v1.1). `components/ui/Modal.tsx`: + prop `cerrable` (v1.1). |
-| `apps/web/src/services/usuarios.{api,mock}.test.ts`, `apps/web/src/lib/usuarios.test.ts` | **Nuevos** (§4).                                                                    |
-| `apps/web/e2e/usuarios.spec.ts`                                                          | **Nuevo** (§4).                                                                     |
-| `docs/decisions/LOG.md`                                                                  | Una DEC al aprobar (§7).                                                            |
+| Archivo                                                                                  | Cambio                                                                                                                                      |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/src/types/usuarios.ts`                                                         | **Nuevo** (§2.1).                                                                                                                           |
+| `apps/web/src/services/usuarios.service.ts`                                              | Pasa a ser solo el selector mock/API + la interfaz `ServicioUsuarios` (§2.2).                                                               |
+| `apps/web/src/services/usuarios.mock.ts`                                                 | **Nuevo**: el mock actual adaptado al contrato (§2.3).                                                                                      |
+| `apps/web/src/services/usuarios.api.ts`                                                  | **Nuevo** (§2.2).                                                                                                                           |
+| `apps/web/src/mocks/usuarios.ts`                                                         | `UsuarioMock` y datos personales en el seed del personal. `CLAVE_DEMO` sigue igual.                                                         |
+| `apps/web/src/mocks/db.ts`                                                               | Solo el tipo: `usuarios: UsuarioMock[]`.                                                                                                    |
+| `apps/web/src/lib/usuarios.ts`                                                           | **Nuevo** (§2.6).                                                                                                                           |
+| `apps/web/src/hooks/useUsuarios.ts`                                                      | **Nuevo** (§2.5).                                                                                                                           |
+| `apps/web/src/pages/kardex/Usuarios.tsx`                                                 | Reescrita con TanStack Query, filtros de servidor, nuevas acciones (§2.4).                                                                  |
+| `apps/web/src/components/usuarios/{ModalUsuario,ModalPasswordTemporal}.tsx`              | **Nuevos** (salen de la página para que quede corta). Paginador: el compartido (v1.1). `components/ui/Modal.tsx`: + prop `cerrable` (v1.1). |
+| `apps/web/src/services/usuarios.{api,mock}.test.ts`, `apps/web/src/lib/usuarios.test.ts` | **Nuevos** (§4).                                                                                                                            |
+| `apps/web/e2e/usuarios.spec.ts`                                                          | **Nuevo** (§4).                                                                                                                             |
+| `docs/decisions/LOG.md`                                                                  | Una DEC al aprobar (§7).                                                                                                                    |
 
 **No se tocan**: `auth.*`, `context/AuthContext.tsx`, `lib/api.ts`, `lib/sesion.ts`, `Login`/`CambiarClave` (S1.9/S1.10); `components/layout`, `config/permisos.ts` (S1.11); bitácora (S6.5); `types/index.ts`; `_modo.ts` (ya incluye `'usuarios'`); `components/ui/DataTable.tsx`; nada de `apps/api`.
 
@@ -258,7 +258,7 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 | `usuariosMock.editar` con `ci` en los cambios → `VALIDACION`; solo cambia lo enviado                                                                                                                                                                                                              | Unit   | DEC-020 #3              |
 | Todo `UsuarioDetalle` que devuelve el mock tiene exactamente las claves del contrato de la API (sin `correo`, sin `debeCambiarClave`)                                                                                                                                                             | Unit   | §2.1                    |
 | `validarDatosUsuario`: cada regla con su mensaje (CI con letras, complemento largo, sin apellidos, correo inválido, sin sede)                                                                                                                                                                     | Unit   | §2.6                    |
-| `erroresDelFormulario`: `body.ci` → `ci`; ruta desconocida → aviso general; error que no es `VALIDACION` → vacío                                                                                                                                                                                       | Unit   | §2.6                    |
+| `erroresDelFormulario`: `body.ci` → `ci`; ruta desconocida → aviso general; error que no es `VALIDACION` → vacío                                                                                                                                                                                  | Unit   | §2.6                    |
 | **E2E (mock)**: Kardex entra → `/usuarios` → "Nuevo usuario" → llena el formulario → ve el modal con la temporal → sale → entra con el CI y la temporal → lo manda a cambiar la contraseña                                                                                                        | E2E    | DoD del ticket          |
 | **E2E (mock)**: filtrar por estado Bloqueado → desbloquear → el estado pasa a Activo; restablecer muestra la temporal; dar de baja pide la confirmación de P-47                                                                                                                                   | E2E    | §2.4                    |
 | **Prueba manual en el stack Docker** (`VITE_USAR_API=true`): Kardex del seed crea un usuario, la persona entra con la temporal y cambia la contraseña; la bitácora tiene `CREAR` y el cambio. Se deja el paso a paso y el resultado en el PR                                                      | Manual | DoD (API real)          |
@@ -269,16 +269,16 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.13/SDD.md`, Estado = Aprobado.
-- [ ] La pantalla funciona igual con `VITE_USAR_API=false` y con `auth,usuarios`/`true`.
-- [ ] Crear y restablecer muestran la temporal **una sola vez**; no queda en caché, almacenamiento ni consola.
-- [ ] Desbloquear disponible; CI no editable; errores de la API debajo de cada campo.
-- [ ] Ninguna pantalla importa `mocks/` ni `usuarios.mock.ts`/`usuarios.api.ts` directo (solo `usuarios.service.ts`).
-- [ ] Tests del §4 en verde, incluido el E2E "crea y entra" (mock) y la prueba manual con la API documentada en el PR.
-- [ ] Eventos de bitácora: los escribe la API (S1.8); verificado en la prueba manual.
-- [ ] TypeScript estricto sin `any`; quality gate (`calidad`, `base-de-datos`, `e2e`, `docker`) en verde.
-- [ ] DEC nueva en `LOG.md`.
-- [ ] Commit `S1.13 …` en la rama `feat/S1.13-pantalla-usuarios`.
+- [x] SDD en `docs/sdd/S1.13/SDD.md`, Estado = Aprobado.
+- [x] La pantalla funciona igual con `VITE_USAR_API=false` y con `auth,usuarios`/`true`.
+- [x] Crear y restablecer muestran la temporal **una sola vez**; no queda en caché, almacenamiento ni consola.
+- [x] Desbloquear disponible; CI no editable; errores de la API debajo de cada campo.
+- [x] Ninguna pantalla importa `mocks/` ni `usuarios.mock.ts`/`usuarios.api.ts` directo (solo `usuarios.service.ts`).
+- [x] Tests del §4 en verde, incluido el E2E "crea y entra" (mock) y la prueba manual con la API documentada en el PR.
+- [x] Eventos de bitácora: los escribe la API (S1.8); verificado en la prueba manual.
+- [x] TypeScript estricto sin `any`; quality gate (`calidad`, `base-de-datos`, `e2e`, `docker`) en verde.
+- [x] DEC nueva en `LOG.md`.
+- [x] Commit `S1.13 …` en la rama `feat/S1.13-pantalla-usuarios`.
 
 ---
 
