@@ -5,3 +5,5 @@ export { COSTO_BCRYPT, compararPassword, hashPassword } from './password';
 export { esquemaPassword, MENSAJES_PASSWORD } from './password.esquemas';
 export { crearModuloAuth } from './auth.modulo';
 export { crearAutenticar, sesionDe, type SesionUsuario } from './autenticar';
+export { crearAutorizar, type Autorizar, type PermisoConcedido } from './autorizar';
+export { ACCIONES, POLITICA, RECURSOS, type Accion, type Recurso } from './autorizacion.politica';

@@ -91,3 +91,12 @@ Una línea por permiso: `p, KARDEX, files, editar`. Es la **única fuente de per
   - Jerarquía de roles y RBAC con dominios por sede, por ser exagerados para 6 roles y 2 sedes.
 - **Pendiente:** la matriz inicial de permisos la valida la persona que defina D-16 ("¿quién valida la matriz RBAC?"). Mientras tanto, se parte de `PERMISOS_RUTA` del prototipo.
 - **Se implementa en:** S1.x (middleware `autorizar` y política), junto con la autenticación.
+
+## Enmienda (2026-10-13, S1.6)
+
+- **La política vive en `apps/api/src/modulos/seguridad/autorizacion.politica.ts`** y no en `politica.csv`.
+  La API se empaqueta con tsdown en un solo `dist/servidor.mjs` y el contenedor solo copia `dist/`: un
+  `.csv` al lado del código no llegaría. Además, al ser TypeScript, un rol, recurso o acción mal escrito no
+  compila. Sigue siendo una línea por permiso, revisada en los PR; Casbin la recibe como líneas
+  `p, ROL, recurso, accion` con `StringAdapter`. El modelo, la negación por defecto y "nada de permisos en
+  la base" no cambian. Ver SDD S1.6 §2.1 y DEC-015.

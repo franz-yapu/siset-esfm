@@ -5,6 +5,7 @@ import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/
 import {
   esquemaCambiarPassword,
   esquemaLogin,
+  esquemaMisPermisos,
   esquemaRespuestaLogin,
   esquemasCambiarPassword,
   esquemasLogin,
@@ -33,6 +34,8 @@ export const crearRutasAuth = (
     .post('/auth/login', limitarLogin(limitePorMinuto), validar(esquemasLogin), controlador.login)
     .post('/auth/refresh', controlador.refrescar)
     .post('/auth/logout', controlador.logout)
+    // Sin autorizar: cualquiera con sesión, incluso con cpw (SDD S1.6 §2.5).
+    .get('/auth/mis-permisos', autenticar, controlador.misPermisos)
     // Su propio conteo del rate limit: frena a quien prueba contraseñas actuales con un token robado.
     .post(
       '/auth/cambiar-password',
@@ -108,6 +111,18 @@ export const openapiAuth: ZodOpenApiPathsObject = {
         '401': error('Falta el access token o no es válido (NO_AUTENTICADO).'),
         '422': error('La contraseña actual no es correcta (PASSWORD_ACTUAL_INCORRECTA).'),
         '429': error('Más de 10 intentos por minuto desde la misma IP (DEMASIADAS_PETICIONES).'),
+      },
+    },
+  },
+  '/api/v1/auth/mis-permisos': {
+    get: {
+      tags: ['Sesión'],
+      summary: 'Permisos del rol de la sesión',
+      description: 'Sale de la misma política que aplica la API (ADR-0002): la web arma el menú con esto.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': { description: 'Rol y permisos.', content: { 'application/json': { schema: esquemaMisPermisos } } },
+        '401': error('Falta el access token o no es válido (NO_AUTENTICADO).'),
       },
     },
   },

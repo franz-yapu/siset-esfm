@@ -248,6 +248,19 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    base, deja la sesión en `res.locals` y el usuario en el contexto de la petición. S1.6 lo reutiliza.
 6. Logout siempre responde 204; la cookie se borra en logout y en todo refresh rechazado.
 
+## DEC-015 — Autorización: política del PRD, tipada, y `cpw` obligatorio
+
+**Fecha:** 2026-10-13 · **Fuente:** SDD de S1.6 v1.1 (aprobado) + respuestas D-08 y D-16 · **Estado:** activa
+
+1. La política inicial es la **matriz RBAC del PRD §2** (recurso × acción), no `PERMISOS_RUTA` del prototipo.
+   Diferencias con el prototipo, para que las revisen Coordinación y Kardex (D-16): SEC_DIR no ve
+   requisitos; COORDINADOR puede leer pases; "Firma y entrega" se modelará como `hojas-ruta`/`editar` en S3.x.
+2. **EGRESADO no tiene permisos**: los egresados no tendrán cuenta (D-08).
+3. La política vive en `politica.ts`, tipada (enmienda de ADR-0002).
+4. Con `cpw: true`, toda ruta con `autorizar` responde 403 `CAMBIO_PASSWORD_REQUERIDO`.
+5. Lo ajeno responde 403. Las denegaciones van al log de pino, no a la bitácora.
+6. `GET /auth/mis-permisos` es la fuente del menú de la web (S1.11).
+
 ## DEC-018 — Respuestas de la hoja del 2026-10-13: qué cambia
 
 **Fecha:** 2026-10-13 · **Fuente:** hoja "SISET — Preguntas para la escuela" + responsable del proyecto · **Estado:** activa

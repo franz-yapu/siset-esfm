@@ -28,8 +28,8 @@ export class ErrorNoAutenticado extends ErrorApp {
 
 export class ErrorProhibido extends ErrorApp {
   readonly estado = 403;
-  constructor(mensaje = 'No tiene permiso para realizar esta acción.') {
-    super(mensaje, 'PROHIBIDO');
+  constructor(mensaje = 'No tiene permiso para realizar esta acción.', codigo = 'PROHIBIDO') {
+    super(mensaje, codigo);
   }
 }
 
