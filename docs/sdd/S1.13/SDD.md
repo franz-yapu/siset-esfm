@@ -2,8 +2,15 @@
 
 - **Ticket:** ClickUp **S1.13** (`868mh1kwv`, https://app.clickup.com/t/868mh1kwv).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (al implementar):
+    - El paginador y `Pagina<T>` son los compartidos con S6.5 (`components/ui/Paginacion.tsx`, `types/pagina.ts`, rama `chore/paginacion-compartida`), no uno propio.
+    - `Modal` suma la prop opcional `cerrable` (por defecto `true`); con `false` no muestra la X ni cierra con Esc o con un clic afuera. La usa el modal de la temporal.
+    - Las mutaciones usan `gcTime: 0` además de `reset()`, para que la temporal no quede en el caché de mutaciones.
+    - `erroresPorCampo` pasa a llamarse `erroresDelFormulario` y devuelve `{ campos, general }`; también ubica `USUARIO_EXISTENTE` y `SEDE_INEXISTENTE`.
+    - En la propia fila se deshabilita cambiar el rol (no solo quitarse KARDEX), como hace la API (`No puede cambiar su propio rol`).
+    - La decisión es DEC-023. Las preguntas del §7 se cerraron con la propuesta.
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-03 (CA1 crea, edita, da de baja y reactiva; CA2 baja lógica; CA3 CI único; CA4 el reseteo obliga a cambiar la contraseña)
   2. `docs/product/prototipo-pantallas.md` §P-47 (tabla, filtros, modal, texto de la confirmación de baja)
@@ -174,7 +181,7 @@ Hoy `usuarios.service.ts` es el mock; se mueve a `usuarios.mock.ts` y se adapta:
 
 **Filtros** (fila arriba de la tabla): Buscar (CI o nombre, con espera de 300 ms antes de pedir), Rol (los 4 del personal), Sede (`SEDES`), Estado (Activo/Inactivo/Bloqueado ↔ `ACTIVO`/`INACTIVO`/`BLOQUEADO`). Cambiar un filtro vuelve a la página 1. Un texto vacío no se manda (la API pide mínimo 1 carácter).
 
-**Tabla** (`DataTable` sin buscador propio y con `pageSize = porPagina`, porque la página ya viene cortada del servidor): CI / Usuario · Nombre · Rol · Sede · Estado (badge con los 3 colores de hoy) · Último acceso · Acciones. El subtítulo dice `total` usuarios. Debajo, un **paginador** de servidor ("Anterior · página X de Y · Siguiente") en `components/usuarios/Paginador.tsx`; `porPagina = 20`. Mientras llega la página siguiente se mantiene la anterior (`placeholderData: keepPreviousData`).
+**Tabla** (`DataTable` sin buscador propio y con `pageSize = porPagina`, porque la página ya viene cortada del servidor): CI / Usuario · Nombre · Rol · Sede · Estado (badge con los 3 colores de hoy) · Último acceso · Acciones. El subtítulo dice `total` usuarios. Debajo, el **paginador** de servidor compartido (`components/ui/Paginacion.tsx`, v1.1); `porPagina = 20`. Mientras llega la página siguiente se mantiene la anterior (`placeholderData: keepPreviousData`).
 
 **Acciones por fila:**
 
@@ -212,7 +219,7 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 ### 2.6 Validación y errores del formulario (`lib/usuarios.ts`, nuevo)
 
 - `validarDatosUsuario(d, modo)` repite las reglas de `usuarios.esquemas.ts` con los mismos mensajes: CI de 4 a 15 dígitos; complemento hasta 5 letras o dígitos (se pasa a mayúsculas); nombres obligatorios (≤ 80); al menos un apellido (≤ 60 cada uno); correo válido (≤ 120); celular ≤ 20; sede obligatoria. Devuelve `Partial<Record<Campo, string>>`. La usan el formulario (antes de enviar) y el mock (para responder `VALIDACION` igual que la API).
-- `erroresPorCampo(e: ErrorApi)`: si `codigo === 'VALIDACION'` y `detalles` es un arreglo de `{ ruta, mensaje }`, toma el último tramo de `ruta` (`body.apellidoPaterno` → `apellidoPaterno`) y lo pone debajo de ese campo; lo que no corresponde a un campo va al aviso general del modal.
+- `erroresDelFormulario(e)` (v1.1; antes `erroresPorCampo`): si `codigo === 'VALIDACION'` y `detalles` es un arreglo de `{ ruta, mensaje }`, toma el último tramo de `ruta` (`body.apellidoPaterno` → `apellidoPaterno`) y lo pone debajo de ese campo; lo que no corresponde a un campo va al aviso general del modal.
 - Errores de negocio en el modal: `USUARIO_EXISTENTE` se pone debajo del CI; `SEDE_INEXISTENTE` debajo de la sede; `OPERACION_SOBRE_SI_MISMO` y `ULTIMO_KARDEX` como aviso arriba (el mensaje de la API se muestra tal cual, ya está en español). Fuera del modal (baja, reactivar, desbloquear), toast con el mensaje.
 - La validación del cliente es una ayuda; la que manda es la de la API.
 
@@ -231,7 +238,7 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 | `apps/web/src/lib/usuarios.ts`                                                           | **Nuevo** (§2.6).                                                                   |
 | `apps/web/src/hooks/useUsuarios.ts`                                                      | **Nuevo** (§2.5).                                                                   |
 | `apps/web/src/pages/kardex/Usuarios.tsx`                                                 | Reescrita con TanStack Query, filtros de servidor, nuevas acciones (§2.4).          |
-| `apps/web/src/components/usuarios/{ModalUsuario,ModalPasswordTemporal,Paginador}.tsx`    | **Nuevos** (salen de la página para que quede corta).                               |
+| `apps/web/src/components/usuarios/{ModalUsuario,ModalPasswordTemporal}.tsx`    | **Nuevos** (salen de la página para que quede corta). Paginador: el compartido (v1.1). `components/ui/Modal.tsx`: + prop `cerrable` (v1.1). |
 | `apps/web/src/services/usuarios.{api,mock}.test.ts`, `apps/web/src/lib/usuarios.test.ts` | **Nuevos** (§4).                                                                    |
 | `apps/web/e2e/usuarios.spec.ts`                                                          | **Nuevo** (§4).                                                                     |
 | `docs/decisions/LOG.md`                                                                  | Una DEC al aprobar (§7).                                                            |
@@ -251,7 +258,7 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 | `usuariosMock.editar` con `ci` en los cambios → `VALIDACION`; solo cambia lo enviado                                                                                                                                                                                                              | Unit   | DEC-020 #3              |
 | Todo `UsuarioDetalle` que devuelve el mock tiene exactamente las claves del contrato de la API (sin `correo`, sin `debeCambiarClave`)                                                                                                                                                             | Unit   | §2.1                    |
 | `validarDatosUsuario`: cada regla con su mensaje (CI con letras, complemento largo, sin apellidos, correo inválido, sin sede)                                                                                                                                                                     | Unit   | §2.6                    |
-| `erroresPorCampo`: `body.ci` → `ci`; ruta desconocida → aviso general; error que no es `VALIDACION` → vacío                                                                                                                                                                                       | Unit   | §2.6                    |
+| `erroresDelFormulario`: `body.ci` → `ci`; ruta desconocida → aviso general; error que no es `VALIDACION` → vacío                                                                                                                                                                                       | Unit   | §2.6                    |
 | **E2E (mock)**: Kardex entra → `/usuarios` → "Nuevo usuario" → llena el formulario → ve el modal con la temporal → sale → entra con el CI y la temporal → lo manda a cambiar la contraseña                                                                                                        | E2E    | DoD del ticket          |
 | **E2E (mock)**: filtrar por estado Bloqueado → desbloquear → el estado pasa a Activo; restablecer muestra la temporal; dar de baja pide la confirmación de P-47                                                                                                                                   | E2E    | §2.4                    |
 | **Prueba manual en el stack Docker** (`VITE_USAR_API=true`): Kardex del seed crea un usuario, la persona entra con la temporal y cambia la contraseña; la bitácora tiene `CREAR` y el cambio. Se deja el paso a paso y el resultado en el PR                                                      | Manual | DoD (API real)          |
@@ -295,7 +302,8 @@ useAccionesUsuario(); // useMutation por acción; onSuccess → invalidateQuerie
 - **Para el responsable (decisión de flujo, con propuesta):**
   1. **Cuentas de estudiantes en la lista de P-47.** La API lista todas las cuentas; hoy en la base solo hay personal, pero cuando lleguen las de estudiantes (S2.x) aparecerán acá. Propuesta: se listan, sin "Editar" (sus datos se corrigen desde el file), con restablecer/desbloquear/baja disponibles para Kardex (D-14b). Si se prefiere que P-47 sea solo del personal, se agrega un filtro fijo y nada más cambia.
   2. **Correo institucional del Ministerio (D-14).** Hoy el correo es opcional (como en la API). Propuesta: sigue opcional hasta que haya recuperación por correo; no bloquea el piloto.
-- **DEC nueva (va a `LOG.md` al aprobar; el número se asigna al mergear para no chocar con otros tickets en paralelo):**
+- **Cerradas con la propuesta (2026-10-14):** las cuentas de estudiantes, cuando lleguen en S2.x, aparecerán en P-47 sin "Editar", y Kardex podrá restablecer, desbloquear y dar de baja (hoy no se implementa nada más); el correo sigue opcional.
+- **DEC-023 (en `LOG.md`):**
   1. El mock de cada servicio que pasa a la API imita su contrato (tipos, códigos de error, paginación); la pantalla es una sola.
   2. P-47 muestra la contraseña temporal una sola vez, en un modal que solo se cierra explícitamente, y no la guarda en ningún lado. En modo demo la temporal es `CLAVE_DEMO`.
   3. P-47 es la primera pantalla con TanStack Query: claves por recurso (`['usuarios', filtros]`), invalidación al escribir, `keepPreviousData` para la paginación de servidor.

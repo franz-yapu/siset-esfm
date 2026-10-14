@@ -4,9 +4,33 @@ import { haceDias } from '@/lib/formato';
 /** En el prototipo la contraseña de todos es "demo123". */
 export const CLAVE_DEMO = 'demo123';
 
-export const seedUsuarios = (): Usuario[] => [
+/**
+ * Cuenta del mock con los datos personales que la API guarda en `persona`
+ * (SDD S1.13 §2.3). Son opcionales para que `auth.mock` y `files.service`
+ * sigan usando `Usuario` sin cambios.
+ */
+export type UsuarioMock = Usuario & {
+  ci?: string;
+  complemento?: string;
+  nombres?: string;
+  apellidoPaterno?: string | null;
+  apellidoMaterno?: string | null;
+  celular?: string | null;
+};
+
+/** Datos personales del personal de la demo (el `usuario` de la demo se queda: lo usan los botones de prueba). */
+const persona = (
+  ci: string,
+  nombres: string,
+  apellidoPaterno: string | null,
+  apellidoMaterno: string | null,
+  celular: string | null = null,
+) => ({ ci, complemento: '', nombres, apellidoPaterno, apellidoMaterno, celular });
+
+export const seedUsuarios = (): UsuarioMock[] => [
   // Personal
   {
+    ...persona('4812345', 'María', 'Quispe', 'Mamani', '71234501'),
     id: 1,
     usuario: 'kardex',
     nombre: 'María Quispe Mamani',
@@ -17,6 +41,7 @@ export const seedUsuarios = (): Usuario[] => [
     ultimoAcceso: haceDias(0, '08:05'),
   },
   {
+    ...persona('3456789', 'Rosa', 'Choque', 'Apaza', '71234502'),
     id: 2,
     usuario: 'secdir',
     nombre: 'Rosa Choque Apaza',
@@ -27,6 +52,7 @@ export const seedUsuarios = (): Usuario[] => [
     ultimoAcceso: haceDias(0, '08:30'),
   },
   {
+    ...persona('5123456', 'Ana', 'Ticona', 'Laura', '71234503'),
     id: 3,
     usuario: 'seccoord',
     nombre: 'Ana Ticona Laura',
@@ -37,6 +63,7 @@ export const seedUsuarios = (): Usuario[] => [
     ultimoAcceso: haceDias(1, '16:10'),
   },
   {
+    ...persona('4398765', 'Pedro', 'Huanca', null, '71234504'),
     id: 4,
     usuario: 'coordinador',
     nombre: 'Lic. Pedro Huanca',
@@ -47,6 +74,7 @@ export const seedUsuarios = (): Usuario[] => [
     ultimoAcceso: haceDias(1, '11:45'),
   },
   {
+    ...persona('6234567', 'Jorge', 'Mendoza', 'Cruz'),
     id: 5,
     usuario: 'jmendoza',
     nombre: 'Jorge Mendoza Cruz',
@@ -57,6 +85,7 @@ export const seedUsuarios = (): Usuario[] => [
     ultimoAcceso: haceDias(64, '10:00'),
   },
   {
+    ...persona('3987654', 'Carmen', 'Vargas', 'Poma'),
     id: 6,
     usuario: 'cvargas',
     nombre: 'Carmen Vargas Poma',

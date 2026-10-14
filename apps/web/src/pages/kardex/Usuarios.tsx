@@ -1,110 +1,205 @@
-import { useState } from 'react';
-import { KeyRound, Pencil, UserCheck, UserPlus, UserX } from 'lucide-react';
-import type { Rol, Usuario } from '@/types';
-import { useAccion, useAsync, useUsuario } from '@/hooks';
+import { useEffect, useState } from 'react';
+import { KeyRound, LockOpen, Pencil, UserCheck, UserPlus, UserX } from 'lucide-react';
 import {
-  estadoUsuario,
-  usuariosService,
-  type DatosUsuario,
+  ESTADOS_USUARIO,
+  ROLES_PERSONAL,
+  esRolPersonal,
   type EstadoUsuario,
-  type FiltrosUsuarios,
-} from '@/services/usuarios.service';
+  type RolPersonal,
+  type UsuarioConPassword,
+  type UsuarioDetalle,
+} from '@/types/usuarios';
+import { useToast, useUsuario } from '@/hooks';
+import { useMutacionUsuarios, useUsuarios } from '@/hooks/useUsuarios';
+import { usuariosService } from '@/services/usuarios.service';
 import { ROLES } from '@/config/permisos';
 import { SEDES, sedeCorta } from '@/config/catalogos';
 import { fechaHora } from '@/lib/formato';
-import { Badge, Button, DataTable, Input, Modal, PageHeader, RolBadge, Select } from '@/components/ui';
+import { Alerta, Badge, Button, DataTable, Input, PageHeader, Paginacion, RolBadge, Select } from '@/components/ui';
 import { Confirmar } from '@/components/hojas/Confirmar';
+import { ModalUsuario } from '@/components/usuarios/ModalUsuario';
+import { ModalPasswordTemporal } from '@/components/usuarios/ModalPasswordTemporal';
 
-const ESTILO_ESTADO: Record<EstadoUsuario, string> = {
-  Activo: 'bg-green-50 text-green-700 ring-green-300',
-  Inactivo: 'bg-slate-100 text-slate-600 ring-slate-300',
-  Bloqueado: 'bg-red-50 text-red-700 ring-red-300',
+const POR_PAGINA = 20;
+/** Espera antes de buscar mientras se escribe. */
+const ESPERA_BUSQUEDA = 300;
+
+const ESTADO: Record<EstadoUsuario, { texto: string; clase: string }> = {
+  ACTIVO: { texto: 'Activo', clase: 'bg-green-50 text-green-700 ring-green-300' },
+  INACTIVO: { texto: 'Inactivo', clase: 'bg-slate-100 text-slate-600 ring-slate-300' },
+  BLOQUEADO: { texto: 'Bloqueado', clase: 'bg-red-50 text-red-700 ring-red-300' },
 };
 
-type Pendiente = { tipo: 'reset' | 'baja' | 'alta'; u: Usuario } | null;
+type TipoAccion = 'restablecer' | 'desbloquear' | 'baja' | 'alta';
+type Pendiente = { tipo: TipoAccion; u: UsuarioDetalle } | null;
 
-/** P-47 · Usuarios (KARDEX). */
+const TITULO: Record<TipoAccion, string> = {
+  restablecer: 'Restablecer contraseña',
+  desbloquear: 'Desbloquear cuenta',
+  baja: 'Dar de baja',
+  alta: 'Reactivar usuario',
+};
+
+const EXITO: Record<Exclude<TipoAccion, 'restablecer'>, string> = {
+  desbloquear: 'Cuenta desbloqueada',
+  baja: 'Usuario dado de baja',
+  alta: 'Usuario reactivado',
+};
+
+interface Temporal {
+  usuario: string;
+  nombre: string;
+  passwordTemporal: string;
+}
+
+const aTemporal = (r: UsuarioConPassword): Temporal => ({
+  usuario: r.usuario.usuario,
+  nombre: r.usuario.nombre,
+  passwordTemporal: r.passwordTemporal,
+});
+
+/** P-47 · Usuarios (KARDEX), conectada a /api/v1/usuarios (SDD S1.13). */
 export function Usuarios() {
   const yo = useUsuario();
-  const [f, setF] = useState<FiltrosUsuarios>({ texto: '', rol: '', estado: '' });
-  const [form, setForm] = useState<Usuario | 'nuevo' | null>(null);
+  const toast = useToast();
+  const [texto, setTexto] = useState('');
+  const [buscado, setBuscado] = useState('');
+  const [rol, setRol] = useState<RolPersonal | ''>('');
+  const [sedeId, setSedeId] = useState<number | ''>('');
+  const [estado, setEstado] = useState<EstadoUsuario | ''>('');
+  const [pagina, setPagina] = useState(1);
+  const [form, setForm] = useState<UsuarioDetalle | 'nuevo' | null>(null);
   const [pend, setPend] = useState<Pendiente>(null);
-  const { ejecutar, ocupado } = useAccion();
-  const { data = [], loading, reload } = useAsync(() => usuariosService.listar(f), [f.texto, f.rol, f.estado]);
+  const [temporal, setTemporal] = useState<Temporal | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setBuscado(texto.trim());
+      setPagina(1);
+    }, ESPERA_BUSQUEDA);
+    return () => clearTimeout(t);
+  }, [texto]);
+
+  const { data, isPending, isFetching, error } = useUsuarios({
+    ...(buscado ? { texto: buscado } : {}),
+    ...(rol ? { rol } : {}),
+    ...(sedeId ? { sedeId } : {}),
+    ...(estado ? { estado } : {}),
+    pagina,
+    porPagina: POR_PAGINA,
+  });
+
+  const accion = useMutacionUsuarios(
+    ({ tipo, u }: { tipo: TipoAccion; u: UsuarioDetalle }): Promise<UsuarioDetalle | UsuarioConPassword> => {
+      if (tipo === 'restablecer') return usuariosService.restablecerPassword(u.id, yo);
+      if (tipo === 'desbloquear') return usuariosService.desbloquear(u.id, yo);
+      return tipo === 'baja' ? usuariosService.darDeBaja(u.id, yo) : usuariosService.reactivar(u.id, yo);
+    },
+  );
+
+  const filtrar =
+    <T,>(set: (v: T) => void) =>
+    (v: T) => {
+      set(v);
+      setPagina(1);
+    };
 
   const confirmar = async () => {
     if (!pend) return;
-    const { tipo, u } = pend;
-    const ok = await ejecutar(
-      () =>
-        tipo === 'reset'
-          ? usuariosService.resetearClave(u.id, yo)
-          : usuariosService.cambiarActivo(u.id, tipo === 'alta', yo),
-      tipo === 'reset'
-        ? `Contraseña reseteada: ${u.usuario} deberá cambiarla al ingresar`
-        : tipo === 'alta'
-          ? 'Usuario reactivado'
-          : 'Usuario dado de baja',
-    );
-    if (ok) {
+    const { tipo } = pend;
+    try {
+      const r = await accion.mutateAsync(pend);
       setPend(null);
-      reload();
+      if ('passwordTemporal' in r) setTemporal(aTemporal(r));
+      else if (tipo !== 'restablecer') toast.success(EXITO[tipo]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error inesperado');
     }
   };
+
+  /** Descarta la contraseña: deja de existir en el estado y en la mutación (SDD S1.13 §2.4). */
+  const cerrarTemporal = () => {
+    setTemporal(null);
+    accion.reset();
+  };
+
+  const filas = data?.datos ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <>
       <PageHeader
         titulo="Usuarios"
-        subtitulo={`${data.length} usuarios`}
+        subtitulo={`${total} usuarios`}
         acciones={
           <Button icon={UserPlus} onClick={() => setForm('nuevo')}>
             Nuevo usuario
           </Button>
         }
       />
-      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-3">
+      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-4">
         <Input
           label="Buscar"
-          placeholder="CI, usuario o nombre"
-          value={f.texto}
-          onChange={(e) => setF({ ...f, texto: e.target.value })}
+          placeholder="CI o nombre"
+          value={texto}
+          maxLength={80}
+          onChange={(e) => setTexto(e.target.value)}
         />
-        <Select label="Rol" value={f.rol} onChange={(e) => setF({ ...f, rol: e.target.value as Rol | '' })}>
+        <Select label="Rol" value={rol} onChange={(e) => filtrar(setRol)(e.target.value as RolPersonal | '')}>
           <option value="">Todos</option>
-          {(Object.keys(ROLES) as Rol[]).map((r) => (
+          {ROLES_PERSONAL.map((r) => (
             <option key={r} value={r}>
               {ROLES[r].nombre}
             </option>
           ))}
         </Select>
         <Select
+          label="Sede"
+          value={sedeId}
+          onChange={(e) => filtrar(setSedeId)(e.target.value ? Number(e.target.value) : '')}
+        >
+          <option value="">Todas</option>
+          {SEDES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.nombre}
+            </option>
+          ))}
+        </Select>
+        <Select
           label="Estado"
-          value={f.estado}
-          onChange={(e) => setF({ ...f, estado: e.target.value as EstadoUsuario | '' })}
+          value={estado}
+          onChange={(e) => filtrar(setEstado)(e.target.value as EstadoUsuario | '')}
         >
           <option value="">Todos</option>
-          <option>Activo</option>
-          <option>Inactivo</option>
-          <option>Bloqueado</option>
+          {ESTADOS_USUARIO.map((s) => (
+            <option key={s} value={s}>
+              {ESTADO[s].texto}
+            </option>
+          ))}
         </Select>
       </div>
+
+      {error && (
+        <Alerta tipo="error" className="mb-4">
+          {error.message}
+        </Alerta>
+      )}
+
       <DataTable
-        data={data}
-        loading={loading}
+        data={filas}
+        loading={isPending}
         rowKey={(u) => u.id}
+        pageSize={POR_PAGINA}
         columns={[
           {
             key: 'usuario',
             header: 'CI / Usuario',
-            sortValue: (u) => u.usuario,
             render: (u) => <code>{u.usuario}</code>,
           },
           {
             key: 'nombre',
             header: 'Nombre',
             principal: true,
-            sortValue: (u) => u.nombre,
             render: (u) => <span className="font-medium">{u.nombre}</span>,
           },
           { key: 'rol', header: 'Rol', render: (u) => <RolBadge rol={u.rol} /> },
@@ -112,35 +207,46 @@ export function Usuarios() {
           {
             key: 'estado',
             header: 'Estado',
-            render: (u) => <Badge className={ESTILO_ESTADO[estadoUsuario(u)]}>{estadoUsuario(u)}</Badge>,
+            render: (u) => <Badge className={ESTADO[u.estado].clase}>{ESTADO[u.estado].texto}</Badge>,
           },
           {
             key: 'acceso',
             header: 'Último acceso',
-            sortValue: (u) => u.ultimoAcceso ?? '',
-            render: (u) => fechaHora(u.ultimoAcceso),
+            render: (u) => fechaHora(u.ultimoAcceso ?? undefined),
           },
           {
             key: 'acciones',
             header: '',
             render: (u) => (
               <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  icon={Pencil}
-                  onClick={() => setForm(u)}
-                  aria-label="Editar"
-                  title="Editar"
-                />
+                {esRolPersonal(u.rol) && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={Pencil}
+                    onClick={() => setForm(u)}
+                    aria-label="Editar"
+                    title="Editar"
+                  />
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
                   icon={KeyRound}
-                  onClick={() => setPend({ tipo: 'reset', u })}
-                  aria-label="Resetear contraseña"
-                  title="Resetear contraseña"
+                  onClick={() => setPend({ tipo: 'restablecer', u })}
+                  aria-label="Restablecer contraseña"
+                  title="Restablecer contraseña"
                 />
+                {u.estado === 'BLOQUEADO' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={LockOpen}
+                    onClick={() => setPend({ tipo: 'desbloquear', u })}
+                    aria-label="Desbloquear"
+                    title="Desbloquear"
+                  />
+                )}
                 {u.activo ? (
                   <Button
                     size="sm"
@@ -149,7 +255,7 @@ export function Usuarios() {
                     disabled={u.id === yo.id}
                     onClick={() => setPend({ tipo: 'baja', u })}
                     aria-label="Dar de baja"
-                    title="Dar de baja"
+                    title={u.id === yo.id ? 'No puede darse de baja a sí mismo' : 'Dar de baja'}
                     className="text-red-600"
                   />
                 ) : (
@@ -168,26 +274,31 @@ export function Usuarios() {
           },
         ]}
       />
+      <div className="mt-3">
+        <Paginacion pagina={pagina} porPagina={POR_PAGINA} total={total} onCambiar={setPagina} cargando={isFetching} />
+      </div>
 
       {form && (
         <ModalUsuario
           usuario={form === 'nuevo' ? null : form}
+          yo={yo}
           onCerrar={() => setForm(null)}
-          onGuardado={() => {
+          onCreado={(r) => {
             setForm(null);
-            reload();
+            toast.success('Usuario creado');
+            setTemporal(aTemporal(r));
           }}
+          onEditado={() => setForm(null)}
         />
       )}
+      {temporal && <ModalPasswordTemporal {...temporal} onCerrar={cerrarTemporal} />}
       <Confirmar
         abierto={pend !== null}
-        cargando={ocupado}
+        cargando={accion.isPending}
         onCerrar={() => setPend(null)}
         onConfirmar={confirmar}
         peligro={pend?.tipo === 'baja'}
-        titulo={
-          pend?.tipo === 'reset' ? 'Resetear contraseña' : pend?.tipo === 'baja' ? 'Dar de baja' : 'Reactivar usuario'
-        }
+        titulo={pend ? TITULO[pend.tipo] : ''}
         textoConfirmar={pend?.tipo === 'baja' ? 'Dar de baja' : 'Confirmar'}
       >
         {pend?.tipo === 'baja' && (
@@ -195,119 +306,23 @@ export function Usuarios() {
             El usuario <strong>{pend.u.nombre}</strong> no podrá ingresar. Sus registros se conservan.
           </>
         )}
-        {pend?.tipo === 'reset' && (
+        {pend?.tipo === 'restablecer' && (
           <>
-            Se asignará una contraseña temporal a <strong>{pend.u.nombre}</strong> y deberá cambiarla en su próximo
-            ingreso.
+            Se generará una contraseña temporal para <strong>{pend.u.nombre}</strong>. Deberá cambiarla en su próximo
+            ingreso y se cerrarán sus sesiones abiertas.
+          </>
+        )}
+        {pend?.tipo === 'desbloquear' && (
+          <>
+            <strong>{pend.u.nombre}</strong> podrá volver a intentar ingresar.
           </>
         )}
         {pend?.tipo === 'alta' && (
           <>
-            <strong>{pend?.u.nombre}</strong> podrá volver a ingresar al sistema.
+            <strong>{pend.u.nombre}</strong> podrá volver a ingresar al sistema.
           </>
         )}
       </Confirmar>
     </>
-  );
-}
-
-function ModalUsuario({
-  usuario,
-  onCerrar,
-  onGuardado,
-}: {
-  usuario: Usuario | null;
-  onCerrar: () => void;
-  onGuardado: () => void;
-}) {
-  const yo = useUsuario();
-  const { ejecutar, ocupado } = useAccion();
-  const [d, setD] = useState<DatosUsuario>(
-    usuario
-      ? {
-          usuario: usuario.usuario,
-          nombre: usuario.nombre,
-          correo: usuario.correo ?? '',
-          rol: usuario.rol,
-          sedeId: usuario.sedeId,
-        }
-      : { usuario: '', nombre: '', correo: '', rol: 'SEC_COORD', sedeId: 2 },
-  );
-  const [enviado, setEnviado] = useState(false);
-  const personal = d.rol !== 'ESTUDIANTE' && d.rol !== 'EGRESADO';
-  const err = {
-    usuario: !d.usuario.trim() ? 'Obligatorio' : null,
-    nombre: !d.nombre.trim() ? 'Obligatorio' : null,
-    correo: d.correo && !/^\S+@\S+\.\S+$/.test(d.correo) ? 'Correo inválido' : null,
-  };
-  const guardar = async () => {
-    setEnviado(true);
-    if (err.usuario || err.nombre || err.correo) return;
-    const datos = { ...d, sedeId: personal ? d.sedeId : null };
-    const ok = await ejecutar(
-      () => (usuario ? usuariosService.editar(usuario.id, datos, yo) : usuariosService.crear(datos, yo)),
-      usuario ? 'Usuario actualizado' : 'Usuario creado (deberá cambiar su contraseña al ingresar)',
-    );
-    if (ok) onGuardado();
-  };
-  return (
-    <Modal
-      open
-      onClose={onCerrar}
-      title={usuario ? 'Editar usuario' : 'Nuevo usuario'}
-      footer={
-        <>
-          <Button variant="secondary" onClick={onCerrar}>
-            Cancelar
-          </Button>
-          <Button loading={ocupado} onClick={guardar}>
-            Guardar
-          </Button>
-        </>
-      }
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          label="Nombre completo"
-          className="sm:col-span-2"
-          value={d.nombre}
-          onChange={(e) => setD({ ...d, nombre: e.target.value })}
-          error={enviado ? err.nombre : null}
-        />
-        <Input
-          label="CI / usuario"
-          value={d.usuario}
-          onChange={(e) => setD({ ...d, usuario: e.target.value })}
-          error={enviado ? err.usuario : null}
-        />
-        <Input
-          label="Correo"
-          type="email"
-          value={d.correo}
-          onChange={(e) => setD({ ...d, correo: e.target.value })}
-          error={enviado ? err.correo : null}
-        />
-        <Select label="Rol" value={d.rol} onChange={(e) => setD({ ...d, rol: e.target.value as Rol })}>
-          {(Object.keys(ROLES) as Rol[]).map((r) => (
-            <option key={r} value={r}>
-              {ROLES[r].nombre}
-            </option>
-          ))}
-        </Select>
-        <Select
-          label="Sede"
-          value={d.sedeId ?? ''}
-          disabled={!personal}
-          onChange={(e) => setD({ ...d, sedeId: Number(e.target.value) })}
-        >
-          {!personal && <option value="">—</option>}
-          {SEDES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nombre}
-            </option>
-          ))}
-        </Select>
-      </div>
-    </Modal>
   );
 }
