@@ -7,6 +7,7 @@ import {
   registrarBloqueo,
   registrarCambioPassword,
   registrarLogin,
+  registrarLoginCiInexistente,
   registrarLoginFallido,
   registrarLogout,
   registrarReusoSesion,
@@ -81,7 +82,8 @@ export function crearServicioAuth({
     const u = await buscarUsuarioParaLogin(bd, usuario);
     if (!u) {
       await compararPassword(password, await ficticio());
-      throw credencialesInvalidas(); // D-26 (provisional): sin evento
+      await registrarLoginCiInexistente(bd, usuario); // D-26 (S1.3b)
+      throw credencialesInvalidas();
     }
 
     // La contraseña se compara siempre primero: el tiempo no revela el estado de la cuenta.

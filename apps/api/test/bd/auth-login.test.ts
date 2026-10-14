@@ -132,12 +132,21 @@ describe('POST /api/v1/auth/login (SDD S1.3)', () => {
     expect(await bd.refreshToken.count({ where: { usuarioId: anaId } })).toBe(sesiones);
   });
 
-  it('CI inexistente: el mismo 401 y ningún evento en la bitácora (D-26)', async () => {
-    const eventos = await bd.logAuditoria.count();
-    const r = await login('9999999');
+  it('CI inexistente: el mismo 401 y un LOGIN_FALLIDO sin usuario, con el CI y sin la contraseña (D-26, S1.3b)', async () => {
+    const r = await login(' 9999999-1a ', 'secreta-que-no-debe-guardarse');
     expect(r.status).toBe(401);
     expect(r.body).toEqual(ERROR_401);
-    expect(await bd.logAuditoria.count()).toBe(eventos);
+    const e = await ultimoEvento();
+    expect(e).toMatchObject({
+      accion: 'LOGIN_FALLIDO',
+      modulo: 'SEGURIDAD',
+      usuarioId: null,
+      entidad: 'usuario',
+      entidadId: '9999999-1A',
+      datosAntes: null,
+      datosDespues: { motivo: 'CI_INEXISTENTE' },
+    });
+    expect(JSON.stringify(e)).not.toContain('secreta-que-no-debe-guardarse');
   });
 
   it('cuenta inactiva con contraseña correcta: el mismo 401 y CUENTA_INACTIVA', async () => {
