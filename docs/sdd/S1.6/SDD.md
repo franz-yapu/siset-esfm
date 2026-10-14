@@ -2,8 +2,8 @@
 
 - **Ticket:** ClickUp **S1.6** (`868mh1kw0`, https://app.clickup.com/t/868mh1kw0).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-13
+- **Estado:** Aprobado (2026-10-13)
+- **Versión:** 1.1 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §2 (roles y **matriz RBAC**), RF-02 (CA1 menú por rol, CA2 403 por URL directa, CA3 "propio" en el backend), RF-03
   2. `docs/adr/0002-autorizacion-casbin.md` (Casbin, modelo RBAC simple, política versionada, pruebas obligatorias)
@@ -230,3 +230,9 @@ Sale de `POLITICA` filtrada por el rol del token. Es lo que hace que la web y la
   4. Lo ajeno responde 403 (no 404).
   5. Las denegaciones van al log, no a la bitácora.
   6. `GET /auth/mis-permisos` es la fuente del menú de la web.
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-13):** la escuela respondió D-08 (los egresados no tendrán cuenta; sus trámites son externos) y D-16 (validan la matriz Coordinación y Kardex). **EGRESADO queda sin permisos** en la política y en la matriz del test: las filas `leer_propio` de EGRESADO de §2.2 ya no se aplican. Lo demás del diseño no cambia. Además, los archivos de `autorizacion/` quedan planos en `seguridad/` (`autorizacion.modelo.ts`, `autorizacion.politica.ts`, `autorizacion.enforcer.ts`, `autorizar.ts`), porque la regla de fronteras de ADR-0001 no permite rutas `../` dentro de un módulo.
