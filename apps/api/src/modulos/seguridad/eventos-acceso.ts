@@ -3,11 +3,11 @@ import { registrarEvento, type AccionAuditoria } from '@/modulos/auditoria';
 
 // Eventos de acceso (DEC-007, DEC-011, SDD S1.7 §2.4). Solo reciben datos tipados y
 // acotados: no hay forma de pasarles una contraseña o un token. Exigen un usuarioId:
-// el intento con un CI inexistente no se anota (propuesta provisional de D-26).
+// el intento con un CI inexistente tiene su propia función (D-26, S1.3b).
 
 type Cliente = ClienteBd | TransaccionBd;
 
-export type MotivoLoginFallido = 'PASSWORD_INCORRECTA' | 'CUENTA_BLOQUEADA' | 'CUENTA_INACTIVA';
+export type MotivoLoginFallido = 'PASSWORD_INCORRECTA' | 'CUENTA_BLOQUEADA' | 'CUENTA_INACTIVA' | 'CI_INEXISTENTE';
 
 const registrar = (
   cliente: Cliente,
@@ -27,6 +27,21 @@ const registrar = (
 
 export const registrarLogin = (cliente: Cliente, usuarioId: number) =>
   registrar(cliente, 'LOGIN', usuarioId, usuarioId);
+
+/**
+ * Intento con un CI que no existe (D-26 respondida, S1.3b): sin usuario, y el CI intentado
+ * (ya normalizado por el esquema del login) en entidad_id. Nunca la contraseña.
+ */
+export const registrarLoginCiInexistente = (cliente: Cliente, ciIntentado: string) =>
+  registrarEvento(cliente, {
+    accion: 'LOGIN_FALLIDO',
+    modulo: 'SEGURIDAD',
+    entidad: 'usuario',
+    entidadId: ciIntentado,
+    // null explícito: si no, registrarEvento tomaría el usuario del contexto.
+    usuarioId: null,
+    despues: { motivo: 'CI_INEXISTENTE' satisfies MotivoLoginFallido },
+  });
 
 export const registrarLoginFallido = (
   cliente: Cliente,

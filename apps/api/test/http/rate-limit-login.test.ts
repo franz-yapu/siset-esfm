@@ -3,9 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { appDePrueba, bdFalsa } from './utilidades';
 import type { ClienteBd } from '@/compartido/bd';
 
-// BD falsa: ningún usuario existe, así cada login responde 401 sin PostgreSQL.
+// BD falsa: ningún usuario existe, así cada login responde 401 sin PostgreSQL. El intento
+// con un CI inexistente se anota en la bitácora (S1.3b): `logAuditoria.create` no hace nada.
 const bdSinUsuarios = (): ClienteBd =>
-  ({ ...bdFalsa(), usuario: { findUnique: async () => null } }) as unknown as ClienteBd;
+  ({
+    ...bdFalsa(),
+    usuario: { findUnique: async () => null },
+    logAuditoria: { create: async () => ({ id: 1 }) },
+  }) as unknown as ClienteBd;
 
 const login = (app: ReturnType<typeof appDePrueba>, ip?: string, cuerpo: object = { usuario: '1', password: 'x' }) => {
   const r = request(app).post('/api/v1/auth/login');

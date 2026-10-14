@@ -297,7 +297,8 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    Se exige **desde el sistema completo**, cuando entren los estudiantes; el piloto de noviembre es solo con el
    personal (DEC-009). Ticket nuevo en el Sprint 2, unas 8–10 h.
 2. **Intentos con un CI inexistente (D-26): se registran** en la bitácora con `usuario_id` nulo y el CI
-   intentado en `entidad_id` (nunca la contraseña). Cambia DEC-012 #1 / S1.3. Ticket nuevo pequeño (S1.3b).
+   intentado en `entidad_id` (nunca la contraseña) y `datos_despues = { motivo: 'CI_INEXISTENTE' }`. Cambia
+   DEC-012 #1 / S1.3. Implementado en S1.3b.
 3. **Egresados sin cuenta (D-08):** sus trámites son externos; el seguimiento será público (N.º de trámite + CI).
    Aplicado en DEC-015 (EGRESADO sin permisos).
 4. **El Coordinador solo firma (D-11):** no hay un dictamen como decisión propia. El módulo de dictamen

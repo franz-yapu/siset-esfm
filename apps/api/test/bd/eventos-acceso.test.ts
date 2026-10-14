@@ -4,6 +4,7 @@ import {
   registrarBloqueo,
   registrarCambioPassword,
   registrarLogin,
+  registrarLoginCiInexistente,
   registrarLoginFallido,
   registrarLogout,
   registrarRestablecimientoPassword,
@@ -80,5 +81,18 @@ describe('eventos de acceso (SDD S1.7 §2.4)', () => {
       }),
     ).rejects.toThrow('falló la creación de la sesión');
     expect(await bd.logAuditoria.count()).toBe(antes);
+  });
+
+  it('registrarLoginCiInexistente guarda usuario nulo aunque el contexto tenga uno (S1.3b)', async () => {
+    await conContexto({ idPeticion: 'req-ci', ip: '198.51.100.7', userAgent: 'nav/1', usuarioId: kardexId }, () =>
+      registrarLoginCiInexistente(bd, '5550000-2B'),
+    );
+    expect(await ultimo()).toMatchObject({
+      accion: 'LOGIN_FALLIDO',
+      usuarioId: null,
+      entidadId: '5550000-2B',
+      ip: '198.51.100.7',
+      datosDespues: { motivo: 'CI_INEXISTENTE' },
+    });
   });
 });

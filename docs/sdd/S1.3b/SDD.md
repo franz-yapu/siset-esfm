@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S1.3b** (`868mh2z11`, https://app.clickup.com/t/868mh2z11).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-13)
 - **Versión:** 1.0 · **Fecha:** 2026-10-13
 - **Fuentes de verdad citadas:**
   1. `docs/product/dudas.md` D-26 (respondida en la hoja el 2026-10-13: **sí**, por auditoría)
