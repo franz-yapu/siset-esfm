@@ -20,13 +20,12 @@ test.describe('rutas por rol y P-04 en modo mock (SDD S1.11 §2.4)', () => {
     await expect(menu(page).filter({ hasText: 'Bandeja de pases' })).toHaveCount(0);
   });
 
-  test('el estudiante ve su file y el egresado solo Inicio y Mi perfil (D-08)', async ({ page }) => {
+  test('el estudiante ve su file; no hay cuenta de egresado (D-08, S1.12)', async ({ page }) => {
     await iniciarSesion(page, USUARIOS_POR_ROL.ESTUDIANTE);
     await expect(menu(page).filter({ hasText: 'Mi file académico' })).toBeVisible();
-
-    await page.context().clearCookies();
-    await page.evaluate(() => sessionStorage.clear());
-    await iniciarSesion(page, USUARIOS_POR_ROL.EGRESADO);
-    await expect(menu(page)).toHaveText(['Inicio', 'Mi perfil']);
+    // "Ver como" no ofrece Egresado: los egresados siguen su trámite en /seguimiento, sin cuenta.
+    await expect(
+      page.getByRole('combobox', { name: 'Ver como' }).getByRole('option', { name: 'Egresado' }),
+    ).toHaveCount(0);
   });
 });

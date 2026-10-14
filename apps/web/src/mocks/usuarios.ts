@@ -147,35 +147,5 @@ export const seedUsuarios = (): UsuarioMock[] => [
     activo: true,
     fileId: 8,
   },
-  // Egresados
-  {
-    id: 21,
-    usuario: '6098765',
-    nombre: 'Lucía Flores Alanoca',
-    rol: 'EGRESADO',
-    sedeId: null,
-    activo: true,
-    fileId: 9,
-    ultimoAcceso: haceDias(1, '20:15'),
-  },
-  {
-    id: 22,
-    usuario: '6087654',
-    nombre: 'Marco Antonio Quispe Ramos',
-    rol: 'EGRESADO',
-    sedeId: null,
-    activo: true,
-    fileId: 10,
-  },
-  { id: 23, usuario: '6076543', nombre: 'Elena Cruz Mamani', rol: 'EGRESADO', sedeId: null, activo: true, fileId: 11 },
-  {
-    id: 24,
-    usuario: '6065432',
-    nombre: 'Víctor Hugo Tarqui Paco',
-    rol: 'EGRESADO',
-    sedeId: null,
-    activo: true,
-    fileId: 12,
-  },
-  { id: 25, usuario: '6054321', nombre: 'Betty Yujra Calle', rol: 'EGRESADO', sedeId: null, activo: true, fileId: 13 },
+  // Sin egresados: no tienen cuenta (D-08, DEC-032); su trámite se sigue en /seguimiento.
 ];

@@ -9,7 +9,6 @@ export const CLAVE_DEMO = readFileSync(new URL('../src/mocks/usuarios.ts', impor
 /** Un usuario de prueba por rol (tabla de la sección 2 de la spec del prototipo). */
 export const USUARIOS_POR_ROL = {
   ESTUDIANTE: '7012345',
-  EGRESADO: '6098765',
   SEC_DIR: 'secdir',
   SEC_COORD: 'seccoord',
   COORDINADOR: 'coordinador',

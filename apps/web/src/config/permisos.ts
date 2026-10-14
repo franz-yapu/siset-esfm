@@ -21,7 +21,8 @@ import type { Rol } from '@/types';
 
 export const ROLES: Record<Rol, { nombre: string; inicio: string; badge: string }> = {
   ESTUDIANTE: { nombre: 'Estudiante', inicio: '/estudiante', badge: 'bg-teal-50 text-teal-700 ring-teal-300' },
-  EGRESADO: { nombre: 'Egresado', inicio: '/egresado', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-300' },
+  // Sin cuenta (D-08, DEC-032): si una entrara, va al seguimiento público.
+  EGRESADO: { nombre: 'Egresado', inicio: '/seguimiento', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-300' },
   SEC_DIR: { nombre: 'Secretaría de Dirección', inicio: '/sec-dir', badge: 'bg-sky-50 text-sky-700 ring-sky-300' },
   SEC_COORD: {
     nombre: 'Secretaría de Coordinación',

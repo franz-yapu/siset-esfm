@@ -11,7 +11,6 @@ import { CambiarClave } from '@/pages/publicas/CambiarClave';
 import { NoEncontrado } from '@/pages/publicas/NoAutorizado';
 import { MiPerfil } from '@/pages/perfil/MiPerfil';
 import { InicioEstudiante } from '@/pages/inicio/InicioEstudiante';
-import { InicioEgresado } from '@/pages/inicio/InicioEgresado';
 import { InicioSecDir } from '@/pages/inicio/InicioSecDir';
 import { InicioSecCoord } from '@/pages/inicio/InicioSecCoord';
 import { InicioCoordinador } from '@/pages/inicio/InicioCoordinador';
@@ -79,14 +78,6 @@ export function App() {
           element={
             <Inicio rol="ESTUDIANTE">
               <InicioEstudiante />
-            </Inicio>
-          }
-        />
-        <Route
-          path="/egresado"
-          element={
-            <Inicio rol="EGRESADO">
-              <InicioEgresado />
             </Inicio>
           }
         />
