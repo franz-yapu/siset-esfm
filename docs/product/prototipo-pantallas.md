@@ -117,11 +117,14 @@ Estudiante y egresado entran con su **CI**; el personal entra con su usuario.
 
 ✓ = aparece en su menú lateral · — = no tiene acceso (si escribe la URL, ve la pantalla 403)
 
+El menú y el acceso salen de la política de la API (`GET /auth/mis-permisos`, DEC-015 y DEC-022). El EGRESADO no tiene
+cuenta (D-08), así que solo ve Inicio y Mi perfil; su seguimiento es público.
+
 | Sección del menú      | Pantalla                  | ESTUDIANTE | EGRESADO | SEC_DIR      | SEC_COORD    | COORDINADOR  | KARDEX |
 | --------------------- | ------------------------- | ---------- | -------- | ------------ | ------------ | ------------ | ------ |
 | Inicio                | P-10 a P-15 (una por rol) | ✓          | ✓        | ✓            | ✓            | ✓            | ✓      |
-| Mi file académico     | P-20                      | ✓          | ✓        | —            | —            | —            | —      |
-| Mis trámites          | P-21                      | —          | ✓        | —            | —            | —            | —      |
+| Mi file académico     | P-20                      | ✓          | —        | —            | —            | —            | —      |
+| Mis trámites          | P-21                      | —          | —        | —            | —            | —            | —      |
 | Nueva hoja de ruta    | P-30                      | —          | —        | ✓            | —            | —            | —      |
 | Hojas de ruta         | P-31                      | —          | —        | ✓            | ✓            | ✓            | ✓      |
 | Bandeja de pases      | P-33                      | —          | —        | ✓            | ✓            | —            | ✓      |

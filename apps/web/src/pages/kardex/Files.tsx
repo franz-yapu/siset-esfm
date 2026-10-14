@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Lock, UserPlus } from 'lucide-react';
 import type { ColorSemaforo } from '@/types';
-import { useAsync, useUsuario } from '@/hooks';
+import { useAsync, usePermiso } from '@/hooks';
 import { filesService, type FiltrosFiles } from '@/services/files.service';
 import { ESPECIALIDADES } from '@/config/catalogos';
-import { puedeEditarFiles } from '@/config/permisos';
 import { nombreCompleto, semaforoFile } from '@/lib/reglas';
 import { ordinal } from '@/lib/formato';
 import { Button, DataTable, Input, PageHeader, Select, Semaforo } from '@/components/ui';
 
 /** P-40 · Files académicos (KARDEX edita; el resto del personal solo ve). */
 export function Files() {
-  const u = useUsuario();
+  const editable = usePermiso('editar-file');
+  const puedeCrear = usePermiso('nuevo-file');
   const nav = useNavigate();
   const [params] = useSearchParams();
   const [f, setF] = useState<FiltrosFiles>({
@@ -32,9 +32,9 @@ export function Files() {
     <>
       <PageHeader
         titulo="Files académicos"
-        subtitulo={puedeEditarFiles(u.rol) ? `${data.length} files` : `${data.length} files · solo lectura`}
+        subtitulo={editable ? `${data.length} files` : `${data.length} files · solo lectura`}
         acciones={
-          puedeEditarFiles(u.rol) && (
+          puedeCrear && (
             <Button icon={UserPlus} onClick={() => nav('/files/nuevo')}>
               Nuevo file
             </Button>

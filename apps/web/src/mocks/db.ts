@@ -1,12 +1,12 @@
-import type { Dictamen, DocumentoEmitido, FileAcademico, HojaRuta, RegistroBitacora, Usuario } from '@/types';
+import type { Dictamen, DocumentoEmitido, FileAcademico, HojaRuta, RegistroBitacora } from '@/types';
 import { ahora } from '@/lib/formato';
-import { seedUsuarios } from './usuarios';
+import { seedUsuarios, type UsuarioMock } from './usuarios';
 import { seedFiles } from './files';
 import { seedDictamenes, seedDocumentos, seedHojasRuta } from './hojasRuta';
 import { ipDe, seedBitacora } from './bitacora';
 
 interface Store {
-  usuarios: Usuario[];
+  usuarios: UsuarioMock[];
   files: FileAcademico[];
   hojasRuta: HojaRuta[];
   dictamenes: Dictamen[];

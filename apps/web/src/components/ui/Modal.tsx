@@ -10,6 +10,8 @@ interface Props {
   footer?: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   children: ReactNode;
+  /** `false`: solo se cierra con un botón del pie (sin Esc, sin la X ni clic afuera). */
+  cerrable?: boolean;
 }
 
 const ANCHO = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-3xl', xl: 'max-w-5xl' };
@@ -17,11 +19,13 @@ const ENFOCABLES =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Ventana modal accesible: Esc cierra y el foco queda atrapado dentro. */
-export function Modal({ open, title, onClose, footer, size = 'md', children }: Props) {
+export function Modal({ open, title, onClose, footer, size = 'md', children, cerrable = true }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const cerrar = useRef(onClose);
+  const puedeCerrar = useRef(cerrable);
   useEffect(() => {
     cerrar.current = onClose;
+    puedeCerrar.current = cerrable;
   });
 
   useEffect(() => {
@@ -30,7 +34,7 @@ export function Modal({ open, title, onClose, footer, size = 'md', children }: P
     const panel = ref.current;
     (panel?.querySelector<HTMLElement>('[data-autofocus]') ?? panel?.querySelector<HTMLElement>(ENFOCABLES))?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') cerrar.current();
+      if (e.key === 'Escape' && puedeCerrar.current) cerrar.current();
       if (e.key !== 'Tab' || !panel) return;
       const els = [...panel.querySelectorAll<HTMLElement>(ENFOCABLES)];
       if (!els.length) return;
@@ -56,7 +60,7 @@ export function Modal({ open, title, onClose, footer, size = 'md', children }: P
   return createPortal(
     <div
       className="no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      onMouseDown={(e) => cerrable && e.target === e.currentTarget && onClose()}
     >
       <div
         ref={ref}
@@ -69,14 +73,16 @@ export function Modal({ open, title, onClose, footer, size = 'md', children }: P
           <h2 id="modal-titulo" className="text-base font-semibold text-slate-900">
             {title}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Cerrar"
-          >
-            <X className="size-5" />
-          </button>
+          {cerrable && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              aria-label="Cerrar"
+            >
+              <X className="size-5" />
+            </button>
+          )}
         </header>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
         {footer && (
