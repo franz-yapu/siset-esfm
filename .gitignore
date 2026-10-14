@@ -13,3 +13,6 @@ apps/api/src/compartido/bd/generado/
 # E2E de la web (SDD S0.8)
 dist-e2e-*/
 test-results/
+
+# Credenciales del E2E contra la API real (SDD S1.14)
+apps/web/e2e/.auth/

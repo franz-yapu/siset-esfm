@@ -16,6 +16,7 @@
     "prisma.config.ts",
     "tsdown.config.ts",
     "vitest.config.ts",
-    "vitest.bd.config.ts"
+    "vitest.bd.config.ts",
+    "vitest.cobertura.config.ts"
   ]
 }
