@@ -330,12 +330,17 @@ describe('PATCH /api/v1/files/:id', () => {
 
 describe('GET /api/v1/catalogos/especialidades', () => {
   it('solo las activas, ordenadas por nombre', async () => {
+    // Se borra al final: el test del seed cuenta las especialidades.
     const inactiva = await bd.especialidad.create({ data: { nombre: 'Zz Especialidad inactiva', activo: false } });
-    const r = await como('get', '/catalogos/especialidades', undefined, 'SEC_DIR');
-    expect(r.status).toBe(200);
-    const nombres = (r.body as { nombre: string }[]).map((e) => e.nombre);
-    expect(nombres).toContain('Matemática');
-    expect(nombres).not.toContain(inactiva.nombre);
-    expect(nombres).toEqual([...nombres].sort((a, b) => a.localeCompare(b, 'es')));
+    try {
+      const r = await como('get', '/catalogos/especialidades', undefined, 'SEC_DIR');
+      expect(r.status).toBe(200);
+      const nombres = (r.body as { nombre: string }[]).map((e) => e.nombre);
+      expect(nombres).toContain('Matemática');
+      expect(nombres).not.toContain(inactiva.nombre);
+      expect(nombres).toEqual([...nombres].sort((a, b) => a.localeCompare(b, 'es')));
+    } finally {
+      await bd.especialidad.delete({ where: { id: inactiva.id } });
+    }
   });
 });
