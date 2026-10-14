@@ -5,11 +5,12 @@ const bd = clienteDeTest();
 afterAll(() => bd.$disconnect());
 
 describe('parametro (SDD S1.1 §2.2, DEC-010)', () => {
-  it('una base recién migrada tiene los parámetros de login', async () => {
+  it('una base recién migrada tiene los parámetros de login y de sesión', async () => {
     const filas = await bd.parametro.findMany({ orderBy: { clave: 'asc' }, select: { clave: true, valor: true } });
     expect(filas).toEqual([
       { clave: 'MAX_INTENTOS_LOGIN', valor: '5' },
       { clave: 'MIN_BLOQUEO_LOGIN', valor: '15' },
+      { clave: 'SEG_GRACIA_REFRESH', valor: '10' },
     ]);
   });
 

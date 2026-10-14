@@ -46,6 +46,7 @@ describe('repositorio de refresh tokens (SDD S1.1 §2.3)', () => {
       usuarioId: kardexId,
       expiraEn: EXPIRA,
       revocadoEn: null,
+      reemplazadoPorId: null,
     });
   });
 

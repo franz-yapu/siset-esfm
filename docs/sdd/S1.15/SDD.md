@@ -2,8 +2,25 @@
 
 - **Ticket:** ClickUp **S1.15** (`868mhch6a`, https://app.clickup.com/t/868mhch6a).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.2 · **Fecha:** 2026-10-14
+  - 1.2 (al implementar, por el E2E en paralelo): la condición "el sucesor no se usó" no alcanza. Una carga
+    abortada puede llegar a la API después de que otra carga ya usó el sucesor, y eso se tomaba como reuso
+    (6 `REUSO_SESION` en 3 corridas completas). Nueva regla (§2.3): dentro de la ventana se **sigue la cadena de
+    rotación** hasta el último token; si ese último está vigente, es gracia. Si terminó en logout, cambio de
+    contraseña, baja o reuso, sigue siendo reuso. Además, cuando otra petición gana la carrera por el último token, la
+    gracia **reintenta** hasta 10 veces, en vez de 1: con cinco refresh simultáneos perdía dos veces seguidas. Con
+    esto, 0 reusos en 3 corridas completas en paralelo. El §2.4 cede un poco más: quien robó la cookie y la usa
+    dentro de los 10 s entra aunque el usuario ya haya usado su sucesor; pasados los 10 s, el reuso se detecta
+    igual. Es el "reuse interval" estándar. Se reemplazó el test "sucesor ya usado → reuso" por dos: dentro de la
+    ventana → 200, fuera → reuso. Se sumaron "la cadena terminó en logout → reuso" y "cinco simultáneos → todos 200".
+  - 1.1 (al implementar): la FK `reemplazado_por_id` es `SET NULL` y queda como segunda excepción a RESTRICT de
+    DEC-006 (con RESTRICT, el CASCADE desde `usuario` fallaría con la cadena de tokens); `modelo-datos.md` y el
+    test de FK lo registran. Sin la línea de log de §2.3: el servicio no tiene logger inyectado y la gracia
+    se ve en la base (`reemplazado_por_id`). El perdedor de una carrera en la rotación normal también pasa por
+    la gracia (la carrera de dos pestañas da 200 a las dos). Se actualizaron dos tests de S1.5 que esperaban
+    reuso dentro de la ventana. E10 navega, recarga y vuelve a navegar: es el patrón que reproduce el bug
+    (falla 3 de 3 sin la gracia); dos recargas seguidas solas no lo reproducían.
 - **Fuentes de verdad citadas:**
   1. `docs/decisions/LOG.md` — DEC-014 #3 (reuso → revocar todas las sesiones + `REUSO_SESION`), DEC-021 #4 (la web hace un solo refresh a la vez), DEC-025 #6 (el hallazgo)
   2. `docs/do-not-touch.md` (tokens de auth: ADR + pruebas negativas por rol)
@@ -145,13 +162,13 @@ la ventana" mueven `revocado_en` en la base.
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.15/SDD.md`, Estado = Aprobado.
-- [ ] ADR-0004 y DEC-026 escritos; DEC-014 #3 marcado como reemplazado.
-- [ ] Recargar dos veces seguidas no cierra la sesión ni registra `REUSO_SESION` (E10 en verde).
-- [ ] El reuso real se sigue detectando (casos del §4).
-- [ ] Matriz HTTP de S1.14 en verde (pruebas negativas por rol, `do-not-touch.md`).
-- [ ] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
-- [ ] Commit `S1.15 …` en `feat/S1.15-refresh-tolerante`.
+- [x] SDD en `docs/sdd/S1.15/SDD.md`, Estado = Aprobado.
+- [x] ADR-0004 y DEC-026 escritos; DEC-014 #3 marcado como reemplazado.
+- [x] Recargar dos veces seguidas no cierra la sesión ni registra `REUSO_SESION` (E10 en verde).
+- [x] El reuso real se sigue detectando (casos del §4).
+- [x] Matriz HTTP de S1.14 en verde (pruebas negativas por rol, `do-not-touch.md`).
+- [x] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
+- [x] Commit `S1.15 …` en `feat/S1.15-refresh-tolerante`.
 
 ---
 

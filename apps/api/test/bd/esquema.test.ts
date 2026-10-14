@@ -37,14 +37,20 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
     expect(columnas.filter((c) => c.data_type !== 'integer')).toEqual([]);
   });
 
-  it('todas las FK son RESTRICT, salvo refresh_token.usuario_id: CASCADE al borrar (DEC-006)', async () => {
+  it('todas las FK son RESTRICT, salvo las excepciones documentadas (DEC-006, DEC-026)', async () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(10);
-    const excepcion = 'refresh_token_usuario_id_fkey';
-    expect(fks.find((fk) => fk.conname === excepcion)).toMatchObject({ del: 'c', upd: 'r' });
-    expect(fks.filter((fk) => fk.conname !== excepcion && (fk.del !== 'r' || fk.upd !== 'r'))).toEqual([]);
+    expect(fks.length).toBe(11);
+    // CASCADE: los tokens se van con su usuario. SET NULL: la cadena de rotación entre tokens (S1.15).
+    const excepciones: Record<string, { del: string; upd: string }> = {
+      refresh_token_usuario_id_fkey: { del: 'c', upd: 'r' },
+      refresh_token_reemplazado_por_id_fkey: { del: 'n', upd: 'r' },
+    };
+    for (const [nombre, reglas] of Object.entries(excepciones)) {
+      expect(fks.find((fk) => fk.conname === nombre)).toMatchObject(reglas);
+    }
+    expect(fks.filter((fk) => !(fk.conname in excepciones) && (fk.del !== 'r' || fk.upd !== 'r'))).toEqual([]);
   });
 
   it('impide duplicar un CI sin complemento y permite complementos distintos (E1)', async () => {
