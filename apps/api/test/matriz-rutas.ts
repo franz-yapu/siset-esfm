@@ -38,17 +38,20 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     cuerpo: {},
     permitidos: SOLO_KARDEX,
   },
-  ...(['baja', 'reactivar', 'restablecer-password', 'desbloquear'] as const).map(
-    (accion): FilaRuta => ({
-      metodo: 'post',
-      documentada: `/api/v1/usuarios/{id}/${accion}`,
-      ruta: `/usuarios/${ID_INEXISTENTE}/${accion}`,
-      permitidos: SOLO_KARDEX,
-    }),
-  ),
+  ...(['baja', 'reactivar', 'restablecer-password', 'desbloquear'] as const).map((accion): FilaRuta => ({
+    metodo: 'post',
+    documentada: `/api/v1/usuarios/{id}/${accion}`,
+    ruta: `/usuarios/${ID_INEXISTENTE}/${accion}`,
+    permitidos: SOLO_KARDEX,
+  })),
   { metodo: 'get', documentada: '/api/v1/auditoria', ruta: '/auditoria', permitidos: SOLO_KARDEX },
   // Sin `autorizar`: la web arma el menú con esto aun con cpw (DEC-015 #6, SDD S1.6 §2.5).
-  { metodo: 'get', documentada: '/api/v1/auth/mis-permisos', ruta: '/auth/mis-permisos', permitidos: 'cualquier-sesion' },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/auth/mis-permisos',
+    ruta: '/auth/mis-permisos',
+    permitidos: 'cualquier-sesion',
+  },
   // Es justamente lo que se hace con cpw (DEC-014 #4). Cuerpo inválido → 400, no cambia nada.
   {
     metodo: 'post',

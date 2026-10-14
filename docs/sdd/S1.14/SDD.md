@@ -2,8 +2,13 @@
 
 - **Ticket:** ClickUp **S1.14** (`868mh1kwy`, https://app.clickup.com/t/868mh1kwy).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (al implementar, con S1.10 y S1.11 ya en main): E1–E9 corren sin `fixme`. E2 corrige `/dictamenes` a solo
+    COORDINADOR (DEC-022 #2). E8 y E9 aceptan el aviso fijo de S1.9 debajo del 401 genérico (`toContainText`).
+    Las pruebas esperan a que la sesión termine de restaurarse antes de navegar o recargar (`irA`/`recargar`),
+    porque navegar con un refresh en vuelo puede perder la cookie rotada y disparar `REUSO_SESION`: hallazgo
+    reportado como ticket S1.15. La web contra la API real usa `VITE_USAR_API=auth,usuarios,bitacora`.
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` §6 (riesgo R6 "acceso indebido vía URL o IDs" → "pruebas E2E por rol"; DoD: pruebas de API en CI, cobertura del servicio ≥ 70 %, permisos verificados por rol con prueba negativa)
   2. `docs/product/business-rules.md` §Seguridad y acceso (5 intentos → 15 min, rate limit 10/min, "propio" en backend)
@@ -281,15 +286,15 @@ Si alguna no se cumple, se versiona este SDD, no se adapta el producto.
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.14/SDD.md`, Estado = Aprobado.
-- [ ] La matriz HTTP cubre todas las rutas de `/api/v1` (el guardián lo asegura) para los 6 roles, sin token, token inválido y `cpw`.
-- [ ] Recorrido de aceptación en verde, con la secuencia de eventos en la bitácora.
-- [ ] Cobertura de `src/modulos/seguridad` ≥ 70 % en CI.
-- [ ] E1–E9 en verde contra la API real en el job `e2e` (después de S1.10 y S1.11).
-- [ ] `npm run e2e` sin `E2E_API_REAL` y el job `docker` siguen iguales.
-- [ ] Sin cambios en código de producto; hallazgos reportados a su dueño.
-- [ ] Quality gate: `calidad`, `base-de-datos`, `e2e`, `docker` en verde.
-- [ ] Commit `S1.14 …` en `feat/S1.14-pruebas-auth`.
+- [x] SDD en `docs/sdd/S1.14/SDD.md`, Estado = Aprobado.
+- [x] La matriz HTTP cubre todas las rutas de `/api/v1` (el guardián lo asegura) para los 6 roles, sin token, token inválido y `cpw`.
+- [x] Recorrido de aceptación en verde, con la secuencia de eventos en la bitácora.
+- [x] Cobertura de `src/modulos/seguridad` ≥ 70 % en CI.
+- [x] E1–E9 en verde contra la API real en el job `e2e` (después de S1.10 y S1.11).
+- [x] `npm run e2e` sin `E2E_API_REAL` y el job `docker` siguen iguales.
+- [x] Sin cambios en código de producto; hallazgos reportados a su dueño.
+- [x] Quality gate: `calidad`, `base-de-datos`, `e2e`, `docker` en verde.
+- [x] Commit `S1.14 …` en `feat/S1.14-pruebas-auth`.
 
 ---
 
@@ -309,7 +314,7 @@ Si alguna no se cumple, se versiona este SDD, no se adapta el producto.
 
 ## 7 · Preguntas abiertas
 
-1. **Texto de PI-01 y CPA-01.** No está en el repo (es de la tesis). Este SDD infiere del ticket: login ok/fallido/bloqueo, 403 por rol y URL directa. ¿Puede el responsable pegar el texto literal (o confirmar la inferencia)? Si CPA-01 pide algo más que no sea MFA, entra en la versión 1.1. La MFA queda fuera por DEC-018 #1.
+1. **Texto de PI-01 y CPA-01.** Cerrada (2026-10-14): el responsable confirmó usar la inferencia del ticket (login ok/fallido/bloqueo, 403 por rol y URL directa). La MFA queda fuera por DEC-018 #1.
 2. _(Técnica, decidida aquí, se informa)_ El job `e2e` pasa a necesitar PostgreSQL. No cambia el nombre de los checks requeridos.
 
-Al aprobar, se registra en `docs/decisions/LOG.md` un DEC con: la matriz HTTP y su guardián, la cobertura de `seguridad` en CI y el job `e2e` contra la API real.
+Registrado como **DEC-025** en `docs/decisions/LOG.md`: la matriz HTTP y su guardián, la cobertura de `seguridad` en CI y el job `e2e` contra la API real.

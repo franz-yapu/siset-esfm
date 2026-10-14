@@ -1,21 +1,21 @@
 import { expect, test } from '@playwright/test';
-import { entrarComo, INICIO, ROLES_PERSONAL, vistaDenegada, type RolPersonal } from './utilidades';
+import { entrarComo, INICIO, irA, recargar, ROLES_PERSONAL, vistaDenegada, type RolPersonal } from './utilidades';
 
 /**
- * URL directa contra la API real (SDD S1.14 §2.5, R6). E2–E4 y E6 dependen de S1.10 (sesión real que se
- * restaura con el refresh) y S1.11 (rutas por rol con /auth/mis-permisos): en main la web todavía no
- * restaura la sesión de la API ni usa sus permisos, así que quedan en `test.fixme` hasta que se mergeen
- * esos dos tickets. Al mergearlos, se quita el `fixme` (SDD S1.14 §2.7).
+ * URL directa contra la API real (SDD S1.14 §2.5, R6): sesión real de S1.10 (se restaura con el refresh)
+ * y rutas por rol de S1.11 (/auth/mis-permisos).
  */
-const PENDIENTE_S1_10_S1_11 = 'Espera S1.10 (sesión real) y S1.11 (rutas por rol): ver SDD S1.14 §2.7.';
 
-/** Ruta → roles que la ven, escrita a mano desde DEC-015 (PRD §2). El resto ve la vista 403. */
+/**
+ * Ruta → roles que la ven, escrita a mano desde DEC-015 (PRD §2) y DEC-022 (una bandeja exige la acción que se
+ * hace en ella: dictámenes pide `dictamenes/crear`, solo del COORDINADOR). El resto ve la vista 403.
+ */
 const RUTAS: { ruta: string; titulo: RegExp; pasan: readonly RolPersonal[] }[] = [
   { ruta: '/usuarios', titulo: /usuarios/i, pasan: ['KARDEX'] },
   { ruta: '/bitacora', titulo: /bitácora/i, pasan: ['KARDEX'] },
   { ruta: '/files', titulo: /files/i, pasan: ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] },
   { ruta: '/reportes', titulo: /reportes/i, pasan: ['SEC_DIR', 'COORDINADOR', 'KARDEX'] },
-  { ruta: '/dictamenes', titulo: /dictámenes/i, pasan: ['COORDINADOR', 'KARDEX'] },
+  { ruta: '/dictamenes', titulo: /dictámenes/i, pasan: ['COORDINADOR'] },
 ];
 
 /** Etiquetas del menú que solo ve KARDEX. */
@@ -34,8 +34,6 @@ test.describe('E1 · sin sesión', () => {
 
 for (const rol of ROLES_PERSONAL) {
   test.describe(`E2–E4 · ${rol}`, () => {
-    test.fixme(true, PENDIENTE_S1_10_S1_11);
-
     test.beforeEach(async ({ page }) => {
       await entrarComo(page, rol);
       await expect(page).toHaveURL(new RegExp(`${INICIO[rol]}$`));
@@ -43,7 +41,7 @@ for (const rol of ROLES_PERSONAL) {
 
     test('E2 · cada ruta: la pantalla o la vista 403 en la misma URL', async ({ page }) => {
       for (const { ruta, titulo, pasan } of RUTAS) {
-        await page.goto(ruta);
+        await irA(page, ruta);
         await expect(page, ruta).toHaveURL(new RegExp(`${ruta}$`));
         if (pasan.includes(rol)) {
           await expect(vistaDenegada(page), ruta).toHaveCount(0);
@@ -54,7 +52,7 @@ for (const rol of ROLES_PERSONAL) {
       }
       // El inicio de otro rol lleva al propio.
       const ajeno = rol === 'KARDEX' ? '/sec-dir' : '/kardex';
-      await page.goto(ajeno);
+      await irA(page, ajeno);
       await expect(page).toHaveURL(new RegExp(`${INICIO[rol]}$`));
     });
 
@@ -68,15 +66,15 @@ for (const rol of ROLES_PERSONAL) {
     });
 
     test('E4 · al recargar sigue la sesión y sigue la vista 403', async ({ page }) => {
-      await page.goto('/files');
-      await page.reload();
+      await irA(page, '/files');
+      await recargar(page);
       await expect(page).toHaveURL(/\/files$/);
       await expect(vistaDenegada(page)).toHaveCount(0);
 
       const prohibida = rol === 'KARDEX' ? null : '/usuarios';
       if (prohibida) {
-        await page.goto(prohibida);
-        await page.reload();
+        await irA(page, prohibida);
+        await recargar(page);
         await expect(page).toHaveURL(new RegExp(`${prohibida}$`));
         await expect(vistaDenegada(page)).toBeVisible();
       }
@@ -85,8 +83,6 @@ for (const rol of ROLES_PERSONAL) {
 }
 
 test.describe('E6 · contraseña por cambiar', () => {
-  test.fixme(true, PENDIENTE_S1_10_S1_11);
-
   test('con la temporal, toda URL protegida lleva a /cambiar-clave', async ({ page }) => {
     await entrarComo(page, 'TEMPORAL');
     await expect(page).toHaveURL(/\/cambiar-clave$/);

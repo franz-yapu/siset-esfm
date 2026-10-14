@@ -123,8 +123,9 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
       // El refresh de una sesión cerrada cuenta como reuso (DEC-014 #3: el token ya estaba revocado).
       'REUSO_SESION',
     ]);
-    expect(delSecDir.filter((e) => e.accion === 'LOGIN_FALLIDO').map((e) => (e.despues as { motivo: string }).motivo))
-      .toEqual([...Array<string>(5).fill('PASSWORD_INCORRECTA'), 'CUENTA_BLOQUEADA']);
+    expect(
+      delSecDir.filter((e) => e.accion === 'LOGIN_FALLIDO').map((e) => (e.despues as { motivo: string }).motivo),
+    ).toEqual([...Array<string>(5).fill('PASSWORD_INCORRECTA'), 'CUENTA_BLOQUEADA']);
 
     const deKardex = await bitacora(`usuarioId=${kardexId}`);
     expect(deKardex.map((e) => e.accion)).toEqual(['LOGIN', 'CAMBIAR_PASSWORD', 'CREAR', 'DESBLOQUEAR_CUENTA']);

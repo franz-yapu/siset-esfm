@@ -79,13 +79,35 @@ jobs:
         run: npm run bd:seed -w @siset/api
       - name: Seed otra vez (idempotencia)
         run: npm run bd:seed -w @siset/api
-      - name: Tests de base de datos
-        run: npm run test:bd -w @siset/api
+      - name: Tests de base de datos (con cobertura de seguridad ≥ 70 %, SDD S1.14)
+        run: npm run test:cobertura -w @siset/api
 
   e2e:
     name: e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
+    # PostgreSQL para el proyecto `api-real`: la web contra la API de verdad (SDD S1.14 §2.4).
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: siset
+          POSTGRES_PASSWORD: siset_ci
+          POSTGRES_DB: siset
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U siset -d siset"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # Base efímera del runner: no son secretos.
+      DATABASE_URL: postgresql://siset:siset_ci@localhost:5432/siset
+      SEED_KARDEX_CI: '9000001'
+      SEED_KARDEX_PASSWORD: ci-12345678
+      JWT_SECRET: ci-secreto-del-runner-de-32-caracteres-o-mas
+      E2E_API_REAL: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -93,7 +115,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: E2E (Playwright con el Chrome del runner)
+      - name: Migraciones y seed
+        run: npm run bd:desplegar -w @siset/api && npm run bd:seed -w @siset/api
+      - name: E2E (Playwright con el Chrome del runner; mock, modo API y API real)
         run: npm run e2e
       - name: Reporte de Playwright
         if: failure()

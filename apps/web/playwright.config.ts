@@ -12,7 +12,13 @@ const API_REAL = !BASE_EXTERNA && process.env.E2E_API_REAL === '1';
 const PUERTO_API_E2E = 3100;
 const PUERTO_WEB_API_REAL = 4182;
 
-const servidor = (puerto: number, salida: string, usarApi: string, demo = 'true', extra: Record<string, string> = {}) => ({
+const servidor = (
+  puerto: number,
+  salida: string,
+  usarApi: string,
+  demo = 'true',
+  extra: Record<string, string> = {},
+) => ({
   command: `npx vite build --outDir ${salida} --emptyOutDir && npx vite preview --outDir ${salida} --port ${puerto} --strictPort`,
   url: `http://localhost:${puerto}`,
   env: { VITE_USAR_API: usarApi, VITE_DEMO: demo, ...extra },

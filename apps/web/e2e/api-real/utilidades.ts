@@ -49,3 +49,18 @@ export async function tokenDe(request: APIRequestContext, usuario: string, passw
 
 /** Vista P-04 de S1.11: "Acceso denegado" en la misma URL. */
 export const vistaDenegada = (page: Page) => page.getByRole('heading', { name: 'Acceso denegado' });
+
+/**
+ * Va a una URL y espera a que la sesión termine de restaurarse (menú visible o login). Navegar con un
+ * refresh en vuelo puede perder la cookie rotada y disparar REUSO_SESION (bug abierto: ticket S1.15).
+ */
+export async function irA(page: Page, ruta: string): Promise<void> {
+  await page.goto(ruta);
+  await expect(page.getByRole('navigation').or(page.getByLabel('CI o usuario')).first()).toBeVisible();
+}
+
+/** Recarga con la misma espera que `irA`. */
+export async function recargar(page: Page): Promise<void> {
+  await page.reload();
+  await expect(page.getByRole('navigation').or(page.getByLabel('CI o usuario')).first()).toBeVisible();
+}

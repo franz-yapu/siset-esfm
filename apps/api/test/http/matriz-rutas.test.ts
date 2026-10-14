@@ -62,11 +62,14 @@ describe('matriz HTTP: denegaciones (SDD S1.14 §2.1, R6)', () => {
     expect(r.body.error.code).toBe('PROHIBIDO');
   });
 
-  it.each(conCpw)('$clave · $rol con la contraseña por cambiar → 403 CAMBIO_PASSWORD_REQUERIDO', async ({ fila, rol }) => {
-    const r = await pedir(fila, await tokenDe(rol, true));
-    expect(r.status).toBe(403);
-    expect(r.body.error.code).toBe('CAMBIO_PASSWORD_REQUERIDO');
-  });
+  it.each(conCpw)(
+    '$clave · $rol con la contraseña por cambiar → 403 CAMBIO_PASSWORD_REQUERIDO',
+    async ({ fila, rol }) => {
+      const r = await pedir(fila, await tokenDe(rol, true));
+      expect(r.status).toBe(403);
+      expect(r.body.error.code).toBe('CAMBIO_PASSWORD_REQUERIDO');
+    },
+  );
 
   it('ESTUDIANTE y EGRESADO no entran a ninguna ruta del personal', () => {
     const delPersonal = RUTAS_PROTEGIDAS.filter((f) => f.permitidos !== 'cualquier-sesion');
