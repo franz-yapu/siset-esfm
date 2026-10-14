@@ -35,6 +35,7 @@ const SELECCION_PERSONA = {
   nombres: true,
   apellidoPaterno: true,
   apellidoMaterno: true,
+  fechaNacimiento: true,
   email: true,
   celular: true,
 } as const;
@@ -46,11 +47,13 @@ export interface DatosPersona {
   nombres: string;
   apellidoPaterno: string | null;
   apellidoMaterno: string | null;
+  /** Opcional al crear: la cuenta del personal no lo pide; el file sí (SDD S2.2). */
+  fechaNacimiento?: Date | null;
   email: string | null;
   celular: string | null;
 }
 
-export type Persona = DatosPersona & { id: number };
+export type Persona = DatosPersona & { id: number; fechaNacimiento: Date | null };
 
 /** Lo que se puede editar de una persona: todo menos el CI y el complemento (DEC-020 #3). */
 export type CambiosPersona = Partial<Omit<DatosPersona, 'ci' | 'complemento'>>;
@@ -101,5 +104,11 @@ export async function buscarIdsPorNombre(cliente: ClienteBd | TransaccionBd, tex
     },
     select: { id: true },
   });
+  return filas.map((f) => f.id);
+}
+
+/** Ids de las personas cuyo CI contiene el texto (búsqueda de files, SDD S2.2 §2.2). */
+export async function buscarIdsPorCi(cliente: ClienteBd | TransaccionBd, texto: string): Promise<number[]> {
+  const filas = await cliente.persona.findMany({ where: { ci: { contains: texto.trim() } }, select: { id: true } });
   return filas.map((f) => f.id);
 }
