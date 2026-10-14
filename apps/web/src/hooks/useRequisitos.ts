@@ -1,0 +1,28 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { DatosRequisito } from '@/types/requisitos';
+import type { Usuario } from '@/types';
+import { requisitosService } from '@/services/requisitos.service';
+import { avisarCambio } from './index';
+import { claveFiles } from './useFiles';
+
+// TanStack Query para la pestaña de requisitos de P-41 (SDD S2.4 §2.4).
+
+export const useRequisitos = (fileId: number, habilitado = true) =>
+  useQuery({
+    queryKey: [...claveFiles, 'requisitos', fileId],
+    queryFn: () => requisitosService.listar(fileId),
+    enabled: habilitado && fileId > 0,
+  });
+
+/** Registrar invalida todo lo del file (requisitos e historial). */
+export function useRegistrarRequisito(fileId: number, actor: Usuario) {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: ({ codigo, datos }: { codigo: string; datos: DatosRequisito }) =>
+      requisitosService.registrar(fileId, codigo, datos, actor),
+    onSuccess: async () => {
+      avisarCambio();
+      await cliente.invalidateQueries({ queryKey: claveFiles });
+    },
+  });
+}

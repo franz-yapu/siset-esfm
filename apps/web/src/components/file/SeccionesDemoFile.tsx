@@ -1,29 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus } from 'lucide-react';
-import type { CodigoRequisito, Requisito, ResultadoAnual } from '@/types';
+import type { ResultadoAnual } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { CODIGOS_REQUISITO, NOMBRE_REQUISITO, semaforoRequisito, superaLimite } from '@/lib/reglas';
+import { superaLimite } from '@/lib/reglas';
 import { fecha, fechaHora } from '@/lib/formato';
-import { Button, Cargando, DataTable, EstadoBadge, Semaforo } from '@/components/ui';
+import { Button, Cargando, DataTable, EstadoBadge } from '@/components/ui';
 import { TablaMatriculas, TablaResultados } from './TablasFile';
-import { ModalMatricula, ModalRequisito, ModalResultado } from './ModalesFile';
+import { ModalMatricula, ModalResultado } from './ModalesFile';
 
 // Secciones de P-41 que solo existen en la demo (SDD S2.9-S2.10 §2.4, DEC-028): leen el modelo del
-// prototipo. Con la API se ocultan: matrículas (D-30), resultados (D-07: no aplican) y requisitos (S2.4;
-// D-04, D-18). Este archivo desaparece cuando esas pantallas se conecten.
+// prototipo. Con la API se ocultan: matrículas (D-30) y resultados (D-07: no aplican). Los requisitos ya
+// están conectados (S2.4, `RequisitosFile`). Este archivo desaparece cuando esas pantallas se conecten.
 
-export type TabDemo = 'matriculas' | 'resultados' | 'requisitos' | 'tramites' | 'historial';
+export type TabDemo = 'matriculas' | 'resultados' | 'tramites' | 'historial';
 
-type ModalAbierto = 'matricula' | 'resultado' | CodigoRequisito | null;
-
-const ACCION_REQ: Record<CodigoRequisito, string> = {
-  TACFI: 'Registrar recepción física',
-  TCLO: 'Registrar certificado',
-  CERT_NOTAS: 'Registrar',
-};
+type ModalAbierto = 'matricula' | 'resultado' | null;
 
 interface Props {
   fileId: number;
@@ -64,8 +58,6 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
       () => filesPrototipoService.registrarResultado(f.id, r, u),
       superaLimite(r) ? 'Resultado registrado: el file quedó BLOQUEADO' : 'Resultado registrado',
     );
-  const requisito = (c: CodigoRequisito, r: Requisito) =>
-    hacer(() => filesPrototipoService.registrarRequisito(f.id, c, r, u), `${NOMBRE_REQUISITO[c]} registrado`);
 
   return (
     <>
@@ -92,42 +84,6 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
           )}
           <TablaResultados file={f} />
         </>
-      )}
-      {tab === 'requisitos' && (
-        <div className="grid gap-3 md:grid-cols-3">
-          {CODIGOS_REQUISITO.map((c) => {
-            const r = f.requisitos[c];
-            return (
-              <div key={c} className="flex flex-col rounded-lg border border-slate-200 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-semibold text-slate-900">{NOMBRE_REQUISITO[c]}</h3>
-                  <Semaforo
-                    color={semaforoRequisito(r)}
-                    texto={r.estado === 'COMPLETO' ? 'Completo' : 'Pendiente'}
-                    size="sm"
-                  />
-                </div>
-                <dl className="mt-2 flex-1 space-y-0.5 text-sm text-slate-600">
-                  {r.nivel && <div>Nivel: {r.nivel}</div>}
-                  {r.nro && <div>N.º: {r.nro}</div>}
-                  {r.fecha && <div>Fecha: {fecha(r.fecha)}</div>}
-                  {r.responsable && <div>Recibido por: {r.responsable}</div>}
-                  {r.estado === 'PENDIENTE' && <div className="text-amber-700">Aún no registrado</div>}
-                </dl>
-                {editable && (
-                  <Button
-                    size="sm"
-                    variant={r.estado === 'PENDIENTE' ? 'primary' : 'secondary'}
-                    className="mt-3"
-                    onClick={() => setModal(c)}
-                  >
-                    {r.estado === 'PENDIENTE' ? ACCION_REQ[c] : 'Actualizar'}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </div>
       )}
       {tab === 'tramites' && (
         <DataTable
@@ -181,15 +137,6 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
       )}
       {modal === 'resultado' && (
         <ModalResultado file={f} ocupado={ocupado} onCerrar={() => setModal(null)} onGuardar={resultado} />
-      )}
-      {(modal === 'TACFI' || modal === 'TCLO' || modal === 'CERT_NOTAS') && (
-        <ModalRequisito
-          codigo={modal}
-          responsable={u.nombre}
-          ocupado={ocupado}
-          onCerrar={() => setModal(null)}
-          onGuardar={(r) => requisito(modal, r)}
-        />
       )}
     </>
   );

@@ -21,6 +21,7 @@ import {
   leerParametrosEnteros,
   nombreEspecialidadActiva,
   nombresEspecialidades,
+  obtenerRequisitosActivos,
 } from '@/modulos/catalogos';
 import { crearModuloFiles } from '@/modulos/files';
 import {
@@ -120,8 +121,17 @@ export function crearApp({
         obtenerPersonas,
       },
       especialidades: { nombreEspecialidadActiva, nombresEspecialidades },
+      // Requisitos del file (SDD S2.4): el catálogo es de catalogos; quién registró, de seguridad + personas.
+      autorizarRequisitos: { leer: autorizar('requisitos', 'leer'), editar: autorizar('requisitos', 'editar') },
+      obtenerRequisitosActivos,
+      describirUsuarios: describir,
     }),
-    crearModuloCatalogos({ bd, autenticar, autorizarLectura: autorizar('files', 'leer') }),
+    crearModuloCatalogos({
+      bd,
+      autenticar,
+      autorizarLectura: autorizar('files', 'leer'),
+      autorizarRequisitos: autorizar('requisitos', 'leer'),
+    }),
     crearModuloAuditoria({
       bd,
       autenticar,

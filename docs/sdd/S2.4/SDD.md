@@ -2,7 +2,7 @@
 
 - **Ticket:** S2.4 (backlog 2026-10-12: "API de requisitos: TACFI, TCLO, certificado de notas"). Se crea en ClickUp al aprobar este SDD.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/dudas.md` **D-04** (2 TACFI artísticos, en 1.º y 2.º; TCLO con defensas de 1.º a 3.º en niveles básico, intermedio y avanzado; requisitos para defender el diseño metodológico), **D-04b** (una defensa por año; si se reprueba o no se presenta, se programa al año siguiente y debe aprobar las dos; la extemporánea solo antes de la defensa del diseño metodológico), **D-07b** (reprobar no obliga a repetir TACFI ni TCLO), **D-18** (unos 30 requisitos, la lista llega después)
@@ -127,11 +127,11 @@ Orden: año de formación (los sin año al final) y código.
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S2.4/SDD.md`, Estado = Aprobado; ticket S2.4 en ClickUp.
-- [ ] Rutas, eventos y pestaña conectados; demo y API con el mismo comportamiento.
-- [ ] DEC-030 en `LOG.md`.
-- [ ] Tests del §4 y quality gate en verde.
-- [ ] Commit `S2.4 …` en `feat/S2.4-requisitos`.
+- [x] SDD en `docs/sdd/S2.4/SDD.md`, Estado = Aprobado; ticket S2.4 en ClickUp.
+- [x] Rutas, eventos y pestaña conectados; demo y API con el mismo comportamiento.
+- [x] DEC-030 en `LOG.md`.
+- [x] Tests del §4 y quality gate en verde.
+- [x] Commit `S2.4 …` en `feat/S2.4-requisitos`.
 
 ---
 
