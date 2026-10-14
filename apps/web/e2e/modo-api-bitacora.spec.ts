@@ -35,9 +35,19 @@ const evento = (id: number, p: Record<string, unknown>) => ({
 const responder = (ruta: Route, status: number, cuerpo: unknown) =>
   ruta.fulfill({ status, contentType: 'application/json', body: JSON.stringify(cuerpo) });
 
-/** Entra como Kardex y abre la bitácora por el menú (sin recargar: la sesión real llega con S1.10). */
+/** El menú y las rutas salen de GET /auth/mis-permisos (S1.11). */
+const PERMISOS_KARDEX = {
+  rol: 'KARDEX',
+  permisos: [
+    { recurso: 'usuarios', accion: 'leer' },
+    { recurso: 'auditoria', accion: 'leer' },
+  ],
+};
+
+/** Entra como Kardex y abre la bitácora por el menú (sin recargar: el token vive en memoria). */
 async function entrarABitacora(page: Page) {
   await page.route('**/api/v1/auth/login', (r) => responder(r, 200, KARDEX));
+  await page.route('**/api/v1/auth/mis-permisos', (r) => responder(r, 200, PERMISOS_KARDEX));
   await page.goto('/login');
   await page.getByLabel('CI o usuario').fill('1234567');
   await page.getByLabel('Contraseña', { exact: true }).fill('clave-1234');

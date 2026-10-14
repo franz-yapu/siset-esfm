@@ -299,15 +299,15 @@ No se tocan: `lib/api.ts`, `lib/sesion.ts`, `context/AuthContext.tsx`, `componen
 ## 5 · Definition of Done
 
 - [x] SDD en `docs/sdd/S6.5/SDD.md`, Estado = Aprobado.
-- [ ] P-48 funciona en modo mock y en modo API con el mismo contrato.
-- [ ] Filtros por fecha, usuario, módulo, acción y registro; paginación en el servidor; filtros en la URL.
-- [ ] Ningún código crudo en pantalla para las acciones y módulos conocidos.
-- [ ] E2E: Kardex ve el login y la edición hechos por otro usuario.
-- [ ] Test de sincronía de las listas con la API en verde.
-- [ ] Toda escritura y evento de acceso registra su evento (DEC-007): **no aplica escritura nueva**, la pantalla solo lee y consultar no genera eventos (DEC-017 #3).
-- [ ] Tests del §4 en verde; quality gate en verde (`calidad`, `base-de-datos`, `e2e`, `docker`).
+- [x] P-48 funciona en modo mock y en modo API con el mismo contrato.
+- [x] Filtros por fecha, usuario, módulo, acción y registro; paginación en el servidor; filtros en la URL.
+- [x] Ningún código crudo en pantalla para las acciones y módulos conocidos.
+- [x] E2E: Kardex ve el login y la edición hechos por otro usuario.
+- [x] Test de sincronía de las listas con la API en verde.
+- [x] Toda escritura y evento de acceso registra su evento (DEC-007): **no aplica escritura nueva**, la pantalla solo lee y consultar no genera eventos (DEC-017 #3).
+- [x] Tests del §4 en verde; quality gate en verde (`calidad`, `base-de-datos`, `e2e`, `docker`).
 - [x] DEC-024 en `LOG.md`.
-- [ ] Commit `S6.5 …` en la rama `feat/S6.5-pantalla-bitacora`.
+- [x] Commit `S6.5 …` en la rama `feat/S6.5-pantalla-bitacora`.
 
 ---
 
