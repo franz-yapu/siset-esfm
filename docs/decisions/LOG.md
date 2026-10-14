@@ -420,3 +420,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 6. **Ticket técnico pendiente:** los intentos con un CI inexistente (DEC-018 #2) usan `entidad = 'usuario'` con el
    CI en `entidad_id`, mezclado con los ids de usuario. La pantalla los distingue; el arreglo de fondo es
    registrarlos con una entidad propia (por ejemplo `ci_intentado`).
+
+## DEC-025 — Pruebas de acceso: matriz HTTP, cobertura y E2E contra la API real
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.14 v1.1 (aprobado) + responsable del proyecto · **Estado:** activa
+
+1. **Matriz HTTP:** cada ruta real de `/api/v1` × los 6 roles, sin token, token inválido y `cpw`. Las celdas
+   rechazadas corren sin base (job `calidad`) y las permitidas, con base (`base-de-datos`). Un **guardián**
+   compara la matriz con `openapi.json`: una ruta nueva sin su fila hace fallar el CI.
+2. **Recorrido de aceptación de la API:** con el Kardex del seed, de `cpw` a crear un SEC_DIR, 403, bloqueo,
+   desbloqueo y logout, revisando la secuencia de eventos en la bitácora.
+3. **Cobertura** de `src/modulos/seguridad` ≥ 70 % en el job `base-de-datos` (`test:cobertura`, DoD del PRD §6).
+4. **E2E contra la API real** (proyecto Playwright `api-real`, `E2E_API_REAL=1`): el job `e2e` suma PostgreSQL,
+   migraciones y seed. La preparación crea por la API una cuenta por rol, de forma idempotente. Los nombres de
+   los checks no cambian; el job `docker` no cambia.
+5. PI-01 y CPA-01 se cubren con la inferencia del ticket, confirmada por el responsable.
+6. **Hallazgo:** navegar o recargar mientras un refresh está en vuelo puede perder la cookie rotada; la siguiente
+   carga se toma como reuso (DEC-014 #3) y se cierran todas las sesiones del usuario. Ticket S1.15 (ClickUp 868mhch6a; API: tolerar
+   por unos segundos el token recién rotado).
