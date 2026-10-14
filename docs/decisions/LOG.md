@@ -311,3 +311,20 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    Kardex), **D-24** (una sede por persona; Coordinación y Kardex en Ancocagua) y **D-25** (CI como usuario).
 8. **Repreguntas agregadas a la hoja:** D-07b, D-12b (¿aceptan un servidor externo?), D-04b, D-13b (formato de
    los 152 files) y D-14b (quién restablece contraseñas).
+
+## DEC-019 — Respuestas a las repreguntas del 2026-10-14
+
+**Fecha:** 2026-10-14 · **Fuente:** hoja "SISET — Preguntas para la escuela" (D-04b, D-07b, D-12b, D-13b, D-14b) · **Estado:** activa
+
+1. **Servidor externo autorizado (D-12b):** la escuela ya tiene la autorización. El piloto puede usar datos
+   reales en un servidor en la nube. El despliegue (S0.12/S0.13) sigue esperando el flujo completo de un rol.
+2. **Kardex restablece las contraseñas (D-14b):** confirma la propuesta. No hay recuperación por correo en v1.0.
+3. **Una defensa del TCLO por año (D-04b):** confirma DEC-016 #2. Si se reprueba o no se presenta, queda
+   **pendiente** y se programa al año siguiente junto con la del año en curso; la defensa fuera de fecha solo vale
+   antes de la defensa de diseño metodológico. S2.x debe permitir requisitos pendientes de años anteriores.
+4. **Reprobar no repite requisitos ni bloquea por sí solo (D-07b):** quien reprueba no retoma TACFI ni TCLO. El
+   **bloqueo** del estudiante lo causa el **permiso obligatorio por una gestión** (por reprobación o porque no
+   existe su especialidad) y dura hasta que una resolución defina su situación. Cambia la propuesta provisional
+   de D-07 (bloqueo por resultado anual); se aplica en el SDD de S2.3.
+5. **Carga manual de los 152 files (D-13b):** los registra el responsable de Sistemas y Archivo Kardex de
+   Ancocagua. La carga masiva por Excel (S2.8) deja de ser necesaria para el piloto.
