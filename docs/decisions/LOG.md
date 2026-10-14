@@ -371,3 +371,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    caché de React Query al iniciar, cerrar o perder la sesión.
 7. **La inactividad también la controlará la API** (rechazar el refresh tras 15 min sin latido de la web): ticket
    aparte (S2.16, ClickUp 868mhbkd8) después del piloto, decidido por el responsable.
+
+## DEC-022 — La web arma rutas y menú con la política de la API
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S1.11 v1.1 (aprobado) · **Estado:** activa
+
+1. **La web no guarda roles por pantalla.** Cada ruta declara el permiso `{ recurso, accion }` que exige
+   (`PERMISO_RUTA` en `apps/web/src/config/permisos.ts`) y quién lo tiene lo dice `GET /auth/mis-permisos`.
+   Inicio y Mi perfil solo piden sesión.
+2. **Una bandeja de trabajo exige la acción que se hace en ella** (`pases/crear`, `dictamenes/crear`); una alta o
+   edición exige `crear` o `editar`; el detalle hereda el permiso de su lista.
+3. **Mock y API usan la misma matriz** (`mocks/politica.ts`, con test de paridad contra la de la API). El modo de
+   los permisos sigue al de `auth`.
+4. Sin permiso → **P-04 en la misma URL**. Si no se pueden cargar los permisos, se falla cerrado con Reintentar.
+5. Un **403 de la API en una llamada de datos** se muestra como error de la pantalla, no navega a P-04.
+6. **Firma y entrega es de SEC_DIR** (respuesta del responsable). Su permiso se agrega a la política en S3.x;
+   mientras tanto la web usa `hojas-ruta/crear` como puente.
+7. El **EGRESADO** (sin permisos, D-08) queda con Inicio y Mi perfil, también en la demo. Su usuario de prueba y su
+   inicio se quitan en S1.12.

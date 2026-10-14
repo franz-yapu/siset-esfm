@@ -22,6 +22,8 @@ for (const [rol, usuario] of Object.entries(USUARIOS_POR_ROL)) {
 
     for (const ruta of enlaces) {
       await visitar(ruta);
+      // Lo que ofrece el menú se puede abrir (SDD S1.11): el menú y las rutas usan los mismos permisos.
+      await expect(page.locator('h1').first(), `${ruta} no es 403`).not.toHaveText('Acceso denegado');
       const detalle = await page
         .locator('main a[href^="/"]')
         .evaluateAll(
