@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Lock, LockOpen, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { CodigoRequisito, Requisito, ResultadoAnual } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { filesPrototipoService } from '@/services/files-prototipo.service';
@@ -9,10 +9,10 @@ import { CODIGOS_REQUISITO, NOMBRE_REQUISITO, semaforoRequisito, superaLimite } 
 import { fecha, fechaHora } from '@/lib/formato';
 import { Button, Cargando, DataTable, EstadoBadge, Semaforo } from '@/components/ui';
 import { TablaMatriculas, TablaResultados } from './TablasFile';
-import { ModalBloqueo, ModalMatricula, ModalRequisito, ModalResultado } from './ModalesFile';
+import { ModalMatricula, ModalRequisito, ModalResultado } from './ModalesFile';
 
 // Secciones de P-41 que solo existen en la demo (SDD S2.9-S2.10 §2.4, DEC-028): leen el modelo del
-// prototipo. Con la API se ocultan hasta S2.3 (matrículas, resultados, bloqueo; D-07b) y S2.4 (requisitos;
+// prototipo. Con la API se ocultan: matrículas (D-30), resultados (D-07: no aplican) y requisitos (S2.4;
 // D-04, D-18). Este archivo desaparece cuando esas pantallas se conecten.
 
 export type TabDemo = 'matriculas' | 'resultados' | 'requisitos' | 'tramites' | 'historial';
@@ -189,50 +189,6 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
           ocupado={ocupado}
           onCerrar={() => setModal(null)}
           onGuardar={(r) => requisito(modal, r)}
-        />
-      )}
-    </>
-  );
-}
-
-/** Bloquear o desbloquear en la demo (con la API llega con S2.3, D-07b). */
-export function BotonBloqueoDemo({
-  fileId,
-  bloqueado,
-  onCambio,
-}: {
-  fileId: number;
-  bloqueado: boolean;
-  onCambio: () => void;
-}) {
-  const u = useUsuario();
-  const [abierto, setAbierto] = useState(false);
-  const { ejecutar, ocupado } = useAccion();
-  return (
-    <>
-      <Button
-        size="sm"
-        variant={bloqueado ? 'success' : 'danger'}
-        icon={bloqueado ? LockOpen : Lock}
-        onClick={() => setAbierto(true)}
-      >
-        {bloqueado ? 'Desbloquear' : 'Bloquear'}
-      </Button>
-      {abierto && (
-        <ModalBloqueo
-          bloquear={!bloqueado}
-          ocupado={ocupado}
-          onCerrar={() => setAbierto(false)}
-          onGuardar={async (m) => {
-            const ok = await ejecutar(
-              () => filesPrototipoService.cambiarBloqueo(fileId, !bloqueado, m, u),
-              bloqueado ? 'File desbloqueado' : 'File bloqueado',
-            );
-            if (ok) {
-              setAbierto(false);
-              onCambio();
-            }
-          }}
         />
       )}
     </>

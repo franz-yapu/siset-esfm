@@ -1,6 +1,13 @@
 import type { RequestHandler } from 'express';
 import { datosValidos } from '@/compartido/http';
-import { esquemasCrearFile, esquemasEditarFile, esquemasListarFiles, esquemasUnFile } from './files.esquemas';
+import {
+  esquemasBloquearFile,
+  esquemasCrearFile,
+  esquemasDesbloquearFile,
+  esquemasEditarFile,
+  esquemasListarFiles,
+  esquemasUnFile,
+} from './files.esquemas';
 import type { ServicioFiles } from './files.servicio';
 
 export const crearControladorFiles = (servicio: ServicioFiles) => {
@@ -21,5 +28,15 @@ export const crearControladorFiles = (servicio: ServicioFiles) => {
     res.json(await servicio.editar(params.id, body));
   };
 
-  return { listar, obtener, crear, editar };
+  const bloquear: RequestHandler = async (_req, res) => {
+    const { params, body } = datosValidos(res, esquemasBloquearFile);
+    res.json(await servicio.bloquear(params.id, body.motivo));
+  };
+
+  const desbloquear: RequestHandler = async (_req, res) => {
+    const { params, body } = datosValidos(res, esquemasDesbloquearFile);
+    res.json(await servicio.desbloquear(params.id, body.resolucion));
+  };
+
+  return { listar, obtener, crear, editar, bloquear, desbloquear };
 };

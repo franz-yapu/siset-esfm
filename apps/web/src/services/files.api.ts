@@ -29,6 +29,14 @@ export const filesApi: ServicioFiles = {
     return (await api.patch<FileDetalle>(`/files/${id}`, c)).data;
   },
 
+  async bloquear(id: number, motivo: string): Promise<FileDetalle> {
+    return (await api.post<FileDetalle>(`/files/${id}/bloqueo`, { motivo })).data;
+  },
+
+  async desbloquear(id: number, resolucion: string): Promise<FileDetalle> {
+    return (await api.post<FileDetalle>(`/files/${id}/desbloqueo`, { resolucion })).data;
+  },
+
   async especialidades(): Promise<Especialidad[]> {
     return (await api.get<Especialidad[]>('/catalogos/especialidades')).data;
   },

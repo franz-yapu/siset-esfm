@@ -480,3 +480,15 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 3. El formulario del file ya no crea la cuenta del estudiante (llega con S2.15).
 4. Errores por campo con una utilidad común (`lib/formularios.ts`) para usuarios y files. `CabeceraFile` recibe
    los datos ya armados; el semáforo es opcional.
+
+## DEC-029 — Bloqueo del file por permiso obligatorio
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S2.6 (aprobado) + respuesta D-07b · **Estado:** activa
+
+1. Kardex bloquea y desbloquea el file a mano: el bloqueo pide un **motivo** (el permiso obligatorio por una
+   gestión, D-07b) y el desbloqueo, el **número de la resolución**. No hay bloqueo automático por UF reprobadas.
+   Se corrigieron RF-07 (M2, CA2 y CA3) del PRD y `business-rules.md`.
+2. La resolución queda en la bitácora (`DESBLOQUEAR`), no en el file: sin migración. Acciones nuevas `BLOQUEAR` y
+   `DESBLOQUEAR` (`POST /files/:id/bloqueo` y `/desbloqueo`, solo KARDEX).
+3. El motivo y la resolución son texto libre hasta la respuesta de **D-29**. Las matrículas esperan **D-30**; el
+   viejo S2.3 (resultados anuales) no aplica.

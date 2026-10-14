@@ -38,5 +38,13 @@ export const crearFile = (cliente: Cliente, datos: NuevoFile) =>
 
 export type CambiosFile = Partial<Omit<NuevoFile, 'personaId'>>;
 
+/** Bloqueo con su motivo, o desbloqueo (motivo nulo): el CHECK ck_file_motivo lo exige así. */
+export const cambiarBloqueo = (cliente: Cliente, id: number, motivo: string | null) =>
+  cliente.fileAcademico.update({
+    where: { id },
+    data: { bloqueado: motivo !== null, motivoBloqueo: motivo },
+    select: { id: true },
+  });
+
 export const actualizarFile = (cliente: Cliente, id: number, cambios: CambiosFile) =>
   cliente.fileAcademico.update({ where: { id }, data: cambios, select: { id: true } });

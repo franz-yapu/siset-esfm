@@ -5,6 +5,7 @@ import { registrarEvento } from '@/modulos/auditoria';
 import {
   actualizarFile,
   buscarFile,
+  cambiarBloqueo,
   crearFile,
   listarFiles,
   tieneFile,
@@ -189,6 +190,42 @@ export function crearServicioFiles({ bd, personas, especialidades }: Dependencia
           despues: d,
         });
         return d;
+      });
+    },
+
+    /** D-07b, SDD S2.6 §2.1: Kardex bloquea por el permiso obligatorio de una gestión. */
+    async bloquear(id: number, motivo: string): Promise<FileDetalle> {
+      return bd.$transaction(async (tx) => {
+        const { f } = await cargar(tx, id);
+        if (f.bloqueado) throw new ErrorNegocio('El file ya está bloqueado.', 'ESTADO_SIN_CAMBIO');
+        await cambiarBloqueo(tx, id, motivo);
+        await registrarEvento(tx, {
+          accion: 'BLOQUEAR',
+          modulo: 'FILES',
+          entidad: 'file_academico',
+          entidadId: id,
+          antes: { bloqueado: false },
+          despues: { bloqueado: true, motivo },
+        });
+        return (await cargar(tx, id)).d;
+      });
+    },
+
+    /** La resolución que define la situación del estudiante queda en la bitácora, no en el file (§2.1). */
+    async desbloquear(id: number, resolucion: string): Promise<FileDetalle> {
+      return bd.$transaction(async (tx) => {
+        const { f } = await cargar(tx, id);
+        if (!f.bloqueado) throw new ErrorNegocio('El file no está bloqueado.', 'ESTADO_SIN_CAMBIO');
+        await cambiarBloqueo(tx, id, null);
+        await registrarEvento(tx, {
+          accion: 'DESBLOQUEAR',
+          modulo: 'FILES',
+          entidad: 'file_academico',
+          entidadId: id,
+          antes: { bloqueado: true, motivo: f.motivoBloqueo },
+          despues: { bloqueado: false, resolucion },
+        });
+        return (await cargar(tx, id)).d;
       });
     },
 

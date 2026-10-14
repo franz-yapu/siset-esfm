@@ -58,6 +58,13 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     cuerpo: {},
     permitidos: SOLO_KARDEX,
   },
+  ...(['bloqueo', 'desbloqueo'] as const).map((accion): FilaRuta => ({
+    metodo: 'post',
+    documentada: `/api/v1/files/{id}/${accion}`,
+    ruta: `/files/${ID_INEXISTENTE}/${accion}`,
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  })),
   {
     metodo: 'get',
     documentada: '/api/v1/catalogos/especialidades',

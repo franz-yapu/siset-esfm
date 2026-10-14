@@ -85,6 +85,17 @@ describe('filesApi (SDD S2.9-S2.10 §2.1)', () => {
     expect(p[0]).toMatchObject({ method: 'get', url: '/catalogos/especialidades' });
   });
 
+  it('bloquear y desbloquear van a sus rutas con su cuerpo (S2.6)', async () => {
+    let p = capturar(200, { ...detalle, bloqueado: true });
+    await filesApi.bloquear(12, 'Permiso obligatorio', actor);
+    expect(p[0]).toMatchObject({ method: 'post', url: '/files/12/bloqueo' });
+    expect(JSON.parse(p[0].data as string)).toEqual({ motivo: 'Permiso obligatorio' });
+    p = capturar(200, detalle);
+    await filesApi.desbloquear(12, 'RA-045/2026', actor);
+    expect(p[0]).toMatchObject({ method: 'post', url: '/files/12/desbloqueo' });
+    expect(JSON.parse(p[0].data as string)).toEqual({ resolucion: 'RA-045/2026' });
+  });
+
   it('los errores de la API llegan como ErrorApi con su código', async () => {
     capturar(409, { error: { code: 'CODIGO_EXISTENTE', message: 'Ya existe un file con ese código de estudiante.' } });
     await expect(filesApi.crear({ ...detalle }, actor)).rejects.toMatchObject({

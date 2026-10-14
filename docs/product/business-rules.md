@@ -34,9 +34,13 @@ Estados: `REGISTRADO → EN_TRANSITO → RECIBIDO → EN_REVISION ⇄ OBSERVADO 
 - Requisitos en catálogo parametrizable `requisito_tipo` (TACFI, TCLO, CERT_NOTAS…), editable por Kardex.
 - Semáforo por requisito y global: verde (completo), amarillo (pendiente/parcial), rojo (faltante obligatorio o bloqueo).
 - TCLO pasa a "Completo" solo con el nivel exigido (D-04, por definir).
-- Notas: se registra el resultado anual (APROBADO/REPROBADO + n.º de UF reprobadas), no cada nota (D-07).
-- UF reprobadas > límite configurable → file **BLOQUEADO**: no se puede ingresar trámite, dictaminar ni emitir.
-- Desbloqueo exige motivo y queda en bitácora.
+- Notas: Kardex **no registra notas**; las cargan los docentes en un sistema del Ministerio (D-07). Reprobar no
+  obliga a repetir TACFI ni TCLO (D-07b).
+- **Bloqueo (D-07b, DEC-029):** Kardex bloquea el file, con un motivo, cuando el estudiante recibe el **permiso
+  obligatorio por una gestión** (por reprobación o porque no existe su especialidad para reincorporarse). Un file
+  **BLOQUEADO** no puede ingresar trámite, dictaminar ni emitir.
+- El desbloqueo exige el **número de la resolución** que define la situación del estudiante y queda en la
+  bitácora, con quién y cuándo. No hay bloqueo automático por UF reprobadas.
 
 ## Dictamen y emisión (RF-12, RF-13, D-11)
 

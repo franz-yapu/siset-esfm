@@ -62,4 +62,27 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.goBack();
     await expect(page.getByLabel('Condición')).toHaveValue('EGRESADO');
   });
+
+  test('Kardex bloquea por permiso obligatorio y desbloquea con la resolución (S2.6)', async ({ page }) => {
+    const problemas = vigilarConsola(page);
+    await irAFiles(page);
+    await page.getByLabel('Buscar').fill('7012345');
+    await page.getByRole('row', { name: /Juan Carlos/ }).click();
+
+    await page.getByRole('button', { name: 'Bloquear', exact: true }).click();
+    const modal = page.getByRole('dialog', { name: 'Bloquear file' });
+    await modal.getByRole('button', { name: /por reprobación/ }).click();
+    await modal.getByRole('button', { name: 'Bloquear', exact: true }).click();
+    await expect(page.getByText('File bloqueado').first()).toBeVisible();
+    await expect(page.getByText(/Permiso obligatorio por una gestión, por reprobación/).first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Desbloquear', exact: true }).click();
+    const otro = page.getByRole('dialog', { name: 'Desbloquear file' });
+    await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
+    await expect(otro.getByText('Escriba el número de la resolución')).toBeVisible();
+    await otro.getByLabel('Número de resolución').fill('RA-045/2026');
+    await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Bloquear', exact: true })).toBeVisible();
+    expect(problemas).toEqual([]);
+  });
 });

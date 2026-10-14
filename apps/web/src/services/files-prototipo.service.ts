@@ -178,20 +178,6 @@ export const filesPrototipoService = {
   },
 
   /** RF-07 CA3: bloquear o desbloquear siempre exige motivo y queda en bitácora. */
-  async cambiarBloqueo(id: number, bloquear: boolean, motivo: string, u: Usuario): Promise<FileAcademico> {
-    await delay(LATENCIA);
-    if (!motivo.trim()) throw new ErrorNegocio('El motivo es obligatorio');
-    const f = buscar(id);
-    const antes = { bloqueado: f.bloqueado, motivo: f.motivoBloqueo ?? null };
-    f.bloqueado = bloquear;
-    f.motivoBloqueo = bloquear ? motivo.trim() : undefined;
-    auditar(u.nombre, 'Files', bloquear ? 'Bloquear file' : 'Desbloquear file', f.codigo, antes, {
-      bloqueado: bloquear,
-      motivo: motivo.trim(),
-    });
-    return copia(f);
-  },
-
   /** Mini bitácora del file (pestaña Historial de P-41). */
   async historial(id: number) {
     await delay(LATENCIA);
