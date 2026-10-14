@@ -6,18 +6,21 @@ const bd = clienteDeTest();
 beforeAll(() => sembrar(bd, KARDEX_DE_PRUEBA));
 afterAll(() => bd.$disconnect());
 
-describe('migraciones del modelo v1 (SDD S0.11, S1.1)', () => {
-  it('crea exactamente las 8 tablas: las 6 de S0.11 más parametro y refresh_token (S1.1)', async () => {
+describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
+  it('crea exactamente las 11 tablas: S0.11, S1.1 (parametro, refresh_token) y S2.1 (file y requisitos)', async () => {
     const filas = await bd.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'
       ORDER BY table_name`;
     expect(filas.map((f) => f.table_name)).toEqual([
       'especialidad',
+      'file_academico',
       'log_auditoria',
       'parametro',
       'persona',
       'refresh_token',
+      'requisito_file',
+      'requisito_tipo',
       'rol',
       'sede',
       'usuario',
@@ -38,7 +41,7 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1)', () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(5);
+    expect(fks.length).toBe(10);
     const excepcion = 'refresh_token_usuario_id_fkey';
     expect(fks.find((fk) => fk.conname === excepcion)).toMatchObject({ del: 'c', upd: 'r' });
     expect(fks.filter((fk) => fk.conname !== excepcion && (fk.del !== 'r' || fk.upd !== 'r'))).toEqual([]);
