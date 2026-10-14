@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ACCIONES, RECURSOS } from './autorizacion.politica';
 import { esquemaPassword } from './password.esquemas';
 
 // Contrato de POST /auth/login (SDD S1.3 §2.1).
@@ -55,3 +56,11 @@ export const esquemaCambiarPassword = z
   .meta({ id: 'CambiarPassword', description: 'Contraseña actual y nueva (mín. 8, con letras, números y símbolos).' });
 
 export const esquemasCambiarPassword = { body: esquemaCambiarPassword };
+
+/** GET /auth/mis-permisos (SDD S1.6 §2.5): de aquí arma la web su menú. */
+export const esquemaMisPermisos = z
+  .object({
+    rol: z.string().meta({ example: 'KARDEX' }),
+    permisos: z.array(z.object({ recurso: z.enum(RECURSOS), accion: z.enum(ACCIONES) })),
+  })
+  .meta({ id: 'MisPermisos', description: 'Permisos del rol de la sesión, según la política de autorización.' });
