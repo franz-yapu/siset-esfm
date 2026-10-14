@@ -2,8 +2,16 @@
 
 - **Ticket:** ClickUp **S1.11** (`868mh1kwp`, https://app.clickup.com/t/868mh1kwp).
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
+  - 1.1 (aprobación e implementación): el responsable decide P1 (firma y entrega es de SEC_DIR; puente
+    `hojas-ruta/crear` hasta S3.x) y P2 (el EGRESADO de la demo se queda con Inicio y Mi perfil; su usuario y su
+    inicio se quitan en S1.12). La decisión es **DEC-022**. Desvíos al implementar: el test "cada ruta de `App.tsx`
+    usa un id de `PERMISO_RUTA`" lo reemplaza el tipo `IdRuta` (el compilador lo verifica); `usePermisos` lee
+    `AuthContext` directo para no importar en círculo `hooks/index.ts`; el e2e de modo API se llama
+    `modo-api-permisos.spec.ts` (el proyecto `api` de Playwright toma los archivos `modo-api*`); `recorrido.spec.ts`
+    además exige que ningún ítem del menú abra P-04; en `Files.tsx` el botón "Nuevo file" usa `nuevo-file` y el
+    "solo lectura" usa `editar-file`.
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-02 (CA1 el menú muestra solo los módulos del rol; CA2 la API responde 403 aunque se llame por URL directa)
   2. `docs/decisions/LOG.md` — DEC-015 (política del PRD, no `PERMISOS_RUTA`; EGRESADO sin permisos; `GET /auth/mis-permisos` es la fuente del menú), DEC-018 #3 (D-08), DEC-019 #5 (D-13b)
@@ -218,13 +226,13 @@ S1.11 no escribe datos de negocio ni genera eventos de acceso: leer los permisos
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S1.11/SDD.md`, Estado = Aprobado.
-- [ ] La web no tiene ninguna lista de roles por pantalla: `rg "roles:" apps/web/src/config` vacío; `puedeVer` y `PERMISOS_RUTA` borrados.
-- [ ] Menú y rutas salen de `mis-permisos` en modo API y de la misma matriz en modo mock; test de paridad en verde.
-- [ ] URL directa sin permiso → P-04 en la misma URL (e2e).
-- [ ] Error al cargar permisos → falla cerrado con Reintentar.
-- [ ] `prototipo-pantallas.md` §3 y la DEC nueva actualizados.
-- [ ] Quality gate en verde (lint, typecheck, Vitest, Playwright).
+- [x] SDD en `docs/sdd/S1.11/SDD.md`, Estado = Aprobado.
+- [x] La web no tiene ninguna lista de roles por pantalla: `rg "roles:" apps/web/src/config` vacío; `puedeVer` y `PERMISOS_RUTA` borrados.
+- [x] Menú y rutas salen de `mis-permisos` en modo API y de la misma matriz en modo mock; test de paridad en verde.
+- [x] URL directa sin permiso → P-04 en la misma URL (e2e).
+- [x] Error al cargar permisos → falla cerrado con Reintentar.
+- [x] `prototipo-pantallas.md` §3 y la DEC nueva actualizados.
+- [x] Quality gate en verde (lint, typecheck, Vitest, Playwright).
 - [ ] Commit `S1.11 …` en `feat/S1.11-rutas-por-rol`.
 
 ---
@@ -254,14 +262,15 @@ S1.11 no escribe datos de negocio ni genera eventos de acceso: leer los permisos
 
 ### Para el responsable (flujo)
 
-- **P1 — "Firma y entrega":** el prototipo la da a SEC_DIR (La Paz), pero DEC-015 #1 la anota como `hojas-ruta/editar`, que hoy solo tiene KARDEX. ¿Quién firma y entrega? Propuesta: **SEC_DIR**, como en el prototipo; en S3.x se agrega a la política un permiso para SEC_DIR (no se toca ahora). Mientras tanto la web usa `hojas-ruta/crear` como puente.
-- **P2 — EGRESADO en la demo:** por D-08 el egresado no tiene cuenta, así que en la web queda solo con Inicio y Mi perfil, también en la demo. ¿Se acepta así para la demo del tutor, o se quita el usuario EGRESADO de los usuarios de prueba? Propuesta: aceptarlo ahora y quitar el usuario de prueba y su inicio en S1.12.
+- **P1 — "Firma y entrega":** _Respondida (2026-10-14): la hace SEC_DIR; su permiso se agrega a la política en S3.x._ el prototipo la da a SEC_DIR (La Paz), pero DEC-015 #1 la anota como `hojas-ruta/editar`, que hoy solo tiene KARDEX. ¿Quién firma y entrega? Propuesta: **SEC_DIR**, como en el prototipo; en S3.x se agrega a la política un permiso para SEC_DIR (no se toca ahora). Mientras tanto la web usa `hojas-ruta/crear` como puente.
+- **P2 — EGRESADO en la demo:** _Respondida (2026-10-14): se acepta así; el usuario y su inicio se quitan en S1.12._ por D-08 el egresado no tiene cuenta, así que en la web queda solo con Inicio y Mi perfil, también en la demo. ¿Se acepta así para la demo del tutor, o se quita el usuario EGRESADO de los usuarios de prueba? Propuesta: aceptarlo ahora y quitar el usuario de prueba y su inicio en S1.12.
 
-### DEC nueva (va a `LOG.md`)
+### DEC-022 (va a `LOG.md`)
 
 1. La web no guarda roles por pantalla: cada ruta declara el permiso `{ recurso, accion }` que exige, y quién lo tiene lo dice `GET /auth/mis-permisos`.
 2. Una bandeja de trabajo exige la acción que se hace en ella (`pases/crear`, `dictamenes/crear`); el detalle hereda el permiso de su lista.
 3. Mock y API usan la misma matriz; un test de paridad lo garantiza. El modo de los permisos sigue al de `auth`.
 4. Sin permiso → P-04 en la misma URL; si no se pueden cargar los permisos, se falla cerrado.
 5. Un 403 de la API en una llamada de datos se muestra como error de la pantalla, no navega a P-04.
-6. "Firma y entrega" usa `hojas-ruta/crear` como puente hasta S3.x (P1).
+6. "Firma y entrega" es de SEC_DIR (P1); la web usa `hojas-ruta/crear` como puente hasta que S3.x agregue su permiso a la política.
+7. El EGRESADO de la demo queda con Inicio y Mi perfil; su usuario de prueba y su inicio se quitan en S1.12 (P2).
