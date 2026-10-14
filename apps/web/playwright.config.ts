@@ -34,5 +34,7 @@ export default defineConfig({
         { name: 'mock', testIgnore: /modo-api/, use: { baseURL: 'http://localhost:4180' } },
         { name: 'api', testMatch: /modo-api/, use: { baseURL: 'http://localhost:4181' } },
       ],
-  webServer: BASE_EXTERNA ? [] : [servidor(4180, 'dist-e2e-mock', 'false'), servidor(4181, 'dist-e2e-api', 'auth')],
+  webServer: BASE_EXTERNA
+    ? []
+    : [servidor(4180, 'dist-e2e-mock', 'false'), servidor(4181, 'dist-e2e-api', 'auth,bitacora')],
 });

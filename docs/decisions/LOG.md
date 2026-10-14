@@ -404,3 +404,19 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. Los errores `VALIDACION` de la API se muestran debajo de cada campo, usando `detalles[].ruta`.
 5. Decisiones del responsable: cuando lleguen las cuentas de estudiantes (S2.x) aparecerán en P-47 sin "Editar",
    y Kardex podrá restablecer, desbloquear y dar de baja; el correo sigue opcional.
+
+## DEC-024 — Pantalla de bitácora conectada (P-48)
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S6.5 v1.1 (aprobado) · **Estado:** activa
+
+1. Los servicios de la web exponen **el contrato de la API también en modo mock**. El mock de la bitácora traduce
+   al leer y no cambia el almacén del prototipo (`db.bitacora`), que escriben los servicios mock de otros tickets.
+2. Las listas cerradas de acciones y módulos se copian a la web (`config/auditoria.ts`) con su etiqueta en
+   español, y un test las mantiene iguales a las de la API. Un código desconocido se muestra tal cual.
+3. P-48 pagina en el servidor (50 por página, con el paginador compartido) y guarda los filtros en la URL.
+4. El filtro por usuario usa `GET /usuarios?texto=` más el atajo de clic en la fila; no hay filtro "sin usuario".
+   Clic en "Registro afectado" filtra el historial de ese registro (entidad + id, DEC-007 #4).
+5. Las fechas de la bitácora se muestran siempre en hora de La Paz, con segundos.
+6. **Ticket técnico pendiente:** los intentos con un CI inexistente (DEC-018 #2) usan `entidad = 'usuario'` con el
+   CI en `entidad_id`, mezclado con los ids de usuario. La pantalla los distingue; el arreglo de fondo es
+   registrarlos con una entidad propia (por ejemplo `ci_intentado`).
