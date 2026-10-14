@@ -37,9 +37,11 @@ services:
     build:
       <<: *api-build
       target: build
-    command: ['npm', 'run', 'bd:desplegar', '-w', '@siset/api']
+    # Migraciones con el dueño de las tablas; después activa el rol de la app (S6.4).
+    command: ['sh', '-c', 'npm run bd:desplegar -w @siset/api && npm run bd:rol-app -w @siset/api']
     environment:
       DATABASE_URL: postgresql://siset:${POSTGRES_PASSWORD:-siset_dev}@db:5432/siset
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD en el .env de la raíz (ver .env.example)}
     depends_on:
       db:
         condition: service_healthy
@@ -54,7 +56,8 @@ services:
     tmpfs: [/tmp]
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://siset:${POSTGRES_PASSWORD:-siset_dev}@db:5432/siset
+      # Rol sin UPDATE/DELETE/TRUNCATE en la bitácora (ADR-0003 §2, S6.4).
+      DATABASE_URL: postgresql://siset_app:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD en el .env de la raíz (ver .env.example)}@db:5432/siset
       CORS_ORIGEN: ${WEB_ORIGEN:-http://localhost:8080}
       TRUST_PROXY: '1'
       LOG_LEVEL: info

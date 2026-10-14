@@ -30,6 +30,12 @@ if [ ! -f .env ]; then
     "\$(openssl rand -base64 32 | tr -d '/+=')" "$DOMINIO" "$DOMINIO" > .env
   echo "  .env creado (600)"
 fi
+# APP_DB_PASSWORD (S6.4): contraseña del rol siset_app. Nunca se imprime.
+if ! grep -q '^APP_DB_PASSWORD=' .env; then
+  umask 077
+  printf 'APP_DB_PASSWORD=%s\n' "\$(openssl rand -base64 32 | tr -d '/+=\n')" >> .env
+  echo "  APP_DB_PASSWORD agregado al .env"
+fi
 # JWT_SECRET (S1.3): se agrega también a un .env creado antes de S1.3. Nunca se imprime.
 if ! grep -q '^JWT_SECRET=' .env; then
   umask 077

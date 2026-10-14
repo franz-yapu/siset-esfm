@@ -7,3 +7,4 @@ export { crearModuloAuth } from './auth.modulo';
 export { crearAutenticar, sesionDe, type SesionUsuario } from './autenticar';
 export { crearAutorizar, type Autorizar, type PermisoConcedido } from './autorizar';
 export { ACCIONES, POLITICA, RECURSOS, type Accion, type Recurso } from './autorizacion.politica';
+export { describirUsuarios } from './usuario.repositorio';
