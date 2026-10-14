@@ -467,3 +467,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. `GET /api/v1/catalogos/especialidades` (solo activas), con permiso `files`/`leer`.
 5. El código de estudiante sigue obligatorio (DEC-016 #4) hasta la respuesta de **D-28**, en la hoja desde el
    2026-10-14. Si no hay respuesta antes de que Kardex cargue los files, se vuelve opcional.
+
+## DEC-028 — Búsqueda, detalle y formulario de files conectados
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S2.9-S2.10 (aprobado) · **Estado:** activa
+
+1. **El servicio de files de la web se parte en dos:** `files.service` con el contrato de la API (P-40, P-41 y
+   P-42) y `files-prototipo.service` para las otras 10 pantallas hasta su ticket. El mock del primero lee y
+   escribe el mismo almacén que el prototipo, así que en la demo un file nuevo aparece en todas las pantallas.
+2. Con la API, P-41 oculta matrículas, resultados, requisitos, trámites y el bloqueo, con un aviso, y P-40 oculta el
+   semáforo. En la demo siguen como en el prototipo (`SeccionesDemoFile`).
+3. El formulario del file ya no crea la cuenta del estudiante (llega con S2.15).
+4. Errores por campo con una utilidad común (`lib/formularios.ts`) para usuarios y files. `CabeceraFile` recibe
+   los datos ya armados; el semáforo es opcional.

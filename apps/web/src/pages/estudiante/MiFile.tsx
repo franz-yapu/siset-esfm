@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { useAsync, useUsuario } from '@/hooks';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { Alerta, Card, Cargando, Tabs } from '@/components/ui';
-import { CabeceraFile } from '@/components/file/CabeceraFile';
+import { CabeceraFile, cabeceraDePrototipo } from '@/components/file/CabeceraFile';
 import { TablaMatriculas, TablaRequisitos, TablaResultados } from '@/components/file/TablasFile';
 
 /** P-20 · Mi file académico (solo lectura, solo el propio). */
 export function MiFile() {
   const u = useUsuario();
   const [tab, setTab] = useState('matriculas');
-  const { data: f, loading, error } = useAsync(() => filesService.miFile(u), [u.id]);
+  const { data: f, loading, error } = useAsync(() => filesPrototipoService.miFile(u), [u.id]);
   if (loading) return <Cargando />;
   if (error || !f) return <Alerta tipo="error">{error}</Alerta>;
 
   return (
     <>
-      <CabeceraFile file={f} />
+      <CabeceraFile file={cabeceraDePrototipo(f)} />
       <Card>
         <Tabs
           activa={tab}

@@ -1,6 +1,6 @@
 import type { DatosCrearUsuario } from '@/types/usuarios';
 import { esRolPersonal } from '@/types/usuarios';
-import { ErrorApi } from './errores';
+import { erroresDeFormulario, type ErroresDeFormulario } from './formularios';
 
 // Reglas del formulario de usuarios (SDD S1.13 §2.6). Repiten las de
 // apps/api/src/modulos/seguridad/usuarios.esquemas.ts con los mismos mensajes:
@@ -55,39 +55,16 @@ export function validarDatosUsuario(d: DatosCrearUsuario): ErroresUsuario {
   return e;
 }
 
-const esCampo = (v: string): v is CampoUsuario => (CAMPOS as readonly string[]).includes(v);
-
 /** Errores que se muestran dentro del modal: por campo y uno general. */
-export interface ErroresFormulario {
-  campos: ErroresUsuario;
-  general: string | null;
-}
+export type ErroresFormulario = ErroresDeFormulario<CampoUsuario>;
 
 /**
  * Traduce un error de la API al formulario (SDD S1.13 §2.6): `VALIDACION` con
  * `detalles[].ruta` va debajo de cada campo; `USUARIO_EXISTENTE` al CI;
  * `SEDE_INEXISTENTE` a la sede; el resto, como aviso general.
  */
-export function erroresDelFormulario(e: unknown): ErroresFormulario {
-  const mensaje = e instanceof Error ? e.message : 'Ocurrió un error inesperado.';
-  if (!(e instanceof ErrorApi)) return { campos: {}, general: mensaje };
-  if (e.codigo === 'USUARIO_EXISTENTE') return { campos: { ci: e.message }, general: null };
-  if (e.codigo === 'SEDE_INEXISTENTE') return { campos: { sedeId: e.message }, general: null };
-  if (e.codigo !== 'VALIDACION') return { campos: {}, general: mensaje };
-
-  const campos: ErroresUsuario = {};
-  const sueltos: string[] = [];
-  for (const d of Array.isArray(e.detalles) ? (e.detalles as unknown[]) : []) {
-    if (typeof d !== 'object' || d === null) continue;
-    const { ruta, mensaje: m } = d as { ruta?: unknown; mensaje?: unknown };
-    if (typeof m !== 'string') continue;
-    const campo = typeof ruta === 'string' ? (ruta.split('.').at(-1) ?? '') : '';
-    if (esCampo(campo)) campos[campo] ??= m;
-    else sueltos.push(m);
-  }
-  const general = sueltos.length ? sueltos.join(' ') : Object.keys(campos).length ? null : mensaje;
-  return { campos, general };
-}
+export const erroresDelFormulario = (e: unknown): ErroresFormulario =>
+  erroresDeFormulario(e, CAMPOS, { USUARIO_EXISTENTE: 'ci', SEDE_INEXISTENTE: 'sedeId' });
 
 /** `usuario` de una cuenta nueva: CI o CI-COMPLEMENTO (D-25, igual que la API). */
 export const usuarioDe = (ci: string, complemento: string): string => (complemento ? `${ci}-${complemento}` : ci);

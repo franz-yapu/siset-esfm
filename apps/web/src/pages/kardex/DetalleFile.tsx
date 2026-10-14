@@ -1,236 +1,139 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { Lock, LockOpen, Plus } from 'lucide-react';
-import type { CodigoRequisito, Requisito, ResultadoAnual } from '@/types';
-import { useAccion, useAsync, usePermiso, useUsuario } from '@/hooks';
+import { useParams } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAsync, usePermiso, useToast, useUsuario } from '@/hooks';
+import { claveFiles, useEspecialidades, useFile, useMutacionFiles } from '@/hooks/useFiles';
+import type { DatosCrearFile } from '@/types/files';
 import { filesService } from '@/services/files.service';
-import { hojasRutaService } from '@/services/hojasRuta.service';
-import { CODIGOS_REQUISITO, NOMBRE_REQUISITO, semaforoRequisito, superaLimite } from '@/lib/reglas';
-import { fecha, fechaHora } from '@/lib/formato';
-import { Alerta, Button, Card, Cargando, DataTable, EstadoBadge, Semaforo, Tabs } from '@/components/ui';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
+import { bitacoraService } from '@/services/bitacora.service';
+import { todoMock } from '@/services/_modo';
+import { cambiosDeFile } from '@/lib/files';
+import { semaforoFile } from '@/lib/reglas';
+import { fechaHora } from '@/lib/formato';
+import { ACCIONES, esAccion } from '@/config/auditoria';
+import { Alerta, Card, Cargando, DataTable, Tabs } from '@/components/ui';
 import { CabeceraFile } from '@/components/file/CabeceraFile';
-import { TablaMatriculas, TablaResultados } from '@/components/file/TablasFile';
-import { FormDatosFile } from '@/components/file/FormDatosFile';
-import { ModalBloqueo, ModalMatricula, ModalRequisito, ModalResultado } from '@/components/file/ModalesFile';
+import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
+import { BotonBloqueoDemo, SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
 
-type ModalAbierto = 'matricula' | 'resultado' | 'bloqueo' | CodigoRequisito | null;
+type Tab = 'datos' | 'historial-api' | TabDemo;
 
-const ACCION_REQ: Record<CodigoRequisito, string> = {
-  TACFI: 'Registrar recepción física',
-  TCLO: 'Registrar certificado',
-  CERT_NOTAS: 'Registrar',
-};
-
-/** P-41 · Detalle del file. */
-export function DetalleFile() {
-  const { id = '' } = useParams();
-  const u = useUsuario();
-  const nav = useNavigate();
-  const editable = usePermiso('editar-file');
-  const [tab, setTab] = useState(editable ? 'requisitos' : 'datos');
-  const [modal, setModal] = useState<ModalAbierto>(null);
-  const { ejecutar, ocupado } = useAccion();
-  const fileId = Number(id);
-  const { data, loading, error, reload } = useAsync(
-    () => Promise.all([filesService.obtener(fileId), hojasRutaService.listar(), filesService.historial(fileId)]),
+/** Historial del file desde la bitácora (solo KARDEX la lee, DEC-015). */
+function HistorialFile({ fileId }: { fileId: number }) {
+  const { data, loading } = useAsync(
+    () => bitacoraService.listar({ entidad: 'file_academico', entidadId: String(fileId) }, 1, 50),
     [fileId],
   );
+  return (
+    <DataTable
+      data={data?.datos ?? []}
+      loading={loading}
+      rowKey={(r) => r.id}
+      vacio="Sin cambios registrados"
+      columns={[
+        { key: 'fecha', header: 'Fecha', principal: true, render: (r) => fechaHora(r.fecha) },
+        { key: 'usuario', header: 'Usuario', render: (r) => r.usuario?.nombre ?? '—' },
+        {
+          key: 'accion',
+          header: 'Acción',
+          render: (r) => (esAccion(r.accion) ? ACCIONES[r.accion].etiqueta : r.accion),
+        },
+        {
+          key: 'cambio',
+          header: 'Cambio',
+          render: (r) => <code className="text-xs break-all text-slate-500">{JSON.stringify(r.despues)}</code>,
+        },
+      ]}
+    />
+  );
+}
 
-  if (loading && !data) return <Cargando />;
-  if (error || !data) return <Alerta tipo="error">{error}</Alerta>;
-  const [f, todas, historial] = data;
-  const tramites = todas.filter((h) => h.fileId === f.id);
-
-  const hacer = async (fn: () => Promise<unknown>, msg: string) => {
-    if (await ejecutar(fn, msg)) {
-      setModal(null);
-      reload();
-    }
+/**
+ * P-41 · Detalle del file (S2.10). Datos personales y académicos contra GET/PATCH /files. Matrículas,
+ * resultados, requisitos, trámites y bloqueo solo en la demo hasta S2.3 y S2.4 (DEC-028).
+ */
+export function DetalleFile() {
+  const { id = '' } = useParams();
+  const fileId = Number(id);
+  const u = useUsuario();
+  const toast = useToast();
+  const cliente = useQueryClient();
+  const demo = todoMock();
+  const editable = usePermiso('editar-file');
+  const leeBitacora = usePermiso('bitacora');
+  const [tab, setTab] = useState<Tab>('datos');
+  const { data: f, isLoading, error } = useFile(fileId);
+  const { data: especialidades = [] } = useEspecialidades();
+  // En la demo, la cabecera muestra el semáforo del prototipo.
+  const { data: prototipo, reload } = useAsync(
+    () => (demo ? filesPrototipoService.obtener(fileId) : Promise.resolve(undefined)),
+    [fileId, demo],
+  );
+  const editar = useMutacionFiles((d: DatosCrearFile) =>
+    filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
+  );
+  const alCambiar = () => {
+    reload();
+    void cliente.invalidateQueries({ queryKey: claveFiles });
   };
-  const resultado = (r: ResultadoAnual) =>
-    hacer(
-      () => filesService.registrarResultado(f.id, r, u),
-      superaLimite(r) ? 'Resultado registrado: el file quedó BLOQUEADO' : 'Resultado registrado',
-    );
-  const requisito = (c: CodigoRequisito, r: Requisito) =>
-    hacer(() => filesService.registrarRequisito(f.id, c, r, u), `${NOMBRE_REQUISITO[c]} registrado`);
+
+  if (isLoading) return <Cargando />;
+  if (error || !f) return <Alerta tipo="error">{error?.message ?? 'El file no existe.'}</Alerta>;
+
+  const guardar = async (d: DatosCrearFile) => {
+    if (Object.keys(cambiosDeFile(datosDeFile(f), d)).length === 0) {
+      toast.success('Sin cambios');
+      return;
+    }
+    await editar.mutateAsync(d);
+    toast.success('Datos actualizados');
+    reload();
+  };
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'datos', label: 'Datos personales' },
+    ...(demo
+      ? ([
+          { id: 'matriculas', label: 'Matrículas' },
+          { id: 'resultados', label: 'Resultados anuales' },
+          { id: 'requisitos', label: 'Requisitos' },
+          { id: 'tramites', label: 'Trámites' },
+          { id: 'historial', label: 'Historial' },
+        ] as const)
+      : leeBitacora
+        ? ([{ id: 'historial-api', label: 'Historial' }] as const)
+        : []),
+  ];
 
   return (
     <>
       <CabeceraFile
-        file={f}
-        acciones={
-          editable && (
-            <Button
-              size="sm"
-              variant={f.bloqueado ? 'success' : 'danger'}
-              icon={f.bloqueado ? LockOpen : Lock}
-              onClick={() => setModal('bloqueo')}
-            >
-              {f.bloqueado ? 'Desbloquear' : 'Bloquear'}
-            </Button>
-          )
-        }
+        file={{ ...f, semaforo: prototipo ? semaforoFile(prototipo) : undefined }}
+        acciones={editable && demo && <BotonBloqueoDemo fileId={f.id} bloqueado={f.bloqueado} onCambio={alCambiar} />}
       />
+      {!demo && (
+        <Alerta tipo="info" className="mb-4">
+          Matrículas, resultados anuales, requisitos (TACFI, TCLO y certificados) y el bloqueo del file se habilitan en
+          una próxima versión, cuando la escuela confirme sus reglas.
+        </Alerta>
+      )}
       <Card>
-        <Tabs
-          activa={tab}
-          onChange={setTab}
-          className="mb-4"
-          tabs={[
-            { id: 'datos', label: 'Datos personales' },
-            { id: 'matriculas', label: 'Matrículas', count: f.matriculas.length },
-            { id: 'resultados', label: 'Resultados anuales', count: f.resultados.length },
-            { id: 'requisitos', label: 'Requisitos' },
-            { id: 'tramites', label: 'Trámites', count: tramites.length },
-            { id: 'historial', label: 'Historial' },
-          ]}
-        />
-
+        <Tabs activa={tab} onChange={(t) => setTab(t as Tab)} className="mb-4" tabs={tabs} />
         {tab === 'datos' && (
           <FormDatosFile
             key={JSON.stringify(f)}
             inicial={f}
+            especialidades={especialidades}
             soloLectura={!editable}
-            onGuardar={(d) => hacer(() => filesService.editar(f.id, d, u), 'Datos actualizados')}
+            onGuardar={guardar}
           />
         )}
-        {tab === 'matriculas' && (
-          <>
-            {editable && (
-              <div className="mb-3 flex justify-end">
-                <Button size="sm" icon={Plus} onClick={() => setModal('matricula')}>
-                  Registrar matrícula
-                </Button>
-              </div>
-            )}
-            <TablaMatriculas file={f} />
-          </>
-        )}
-        {tab === 'resultados' && (
-          <>
-            {editable && (
-              <div className="mb-3 flex justify-end">
-                <Button size="sm" icon={Plus} onClick={() => setModal('resultado')}>
-                  Registrar resultado
-                </Button>
-              </div>
-            )}
-            <TablaResultados file={f} />
-          </>
-        )}
-        {tab === 'requisitos' && (
-          <div className="grid gap-3 md:grid-cols-3">
-            {CODIGOS_REQUISITO.map((c) => {
-              const r = f.requisitos[c];
-              return (
-                <div key={c} className="flex flex-col rounded-lg border border-slate-200 p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-semibold text-slate-900">{NOMBRE_REQUISITO[c]}</h3>
-                    <Semaforo
-                      color={semaforoRequisito(r)}
-                      texto={r.estado === 'COMPLETO' ? 'Completo' : 'Pendiente'}
-                      size="sm"
-                    />
-                  </div>
-                  <dl className="mt-2 flex-1 space-y-0.5 text-sm text-slate-600">
-                    {r.nivel && <div>Nivel: {r.nivel}</div>}
-                    {r.nro && <div>N.º: {r.nro}</div>}
-                    {r.fecha && <div>Fecha: {fecha(r.fecha)}</div>}
-                    {r.responsable && <div>Recibido por: {r.responsable}</div>}
-                    {r.estado === 'PENDIENTE' && <div className="text-amber-700">Aún no registrado</div>}
-                  </dl>
-                  {editable && (
-                    <Button
-                      size="sm"
-                      variant={r.estado === 'PENDIENTE' ? 'primary' : 'secondary'}
-                      className="mt-3"
-                      onClick={() => setModal(c)}
-                    >
-                      {r.estado === 'PENDIENTE' ? ACCION_REQ[c] : 'Actualizar'}
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {tab === 'tramites' && (
-          <DataTable
-            data={tramites}
-            rowKey={(h) => h.nro}
-            vacio="Sin trámites"
-            onRowClick={(h) => nav(`/hojas-ruta/${h.nro}`)}
-            columns={[
-              {
-                key: 'nro',
-                header: 'N.º HR',
-                principal: true,
-                render: (h) => <span className="font-medium">{h.nro}</span>,
-              },
-              { key: 'tipo', header: 'Tipo' },
-              { key: 'ingreso', header: 'Ingreso', render: (h) => fecha(h.fechaIngreso) },
-              { key: 'estado', header: 'Estado', render: (h) => <EstadoBadge estado={h.estado} /> },
-            ]}
-          />
-        )}
-        {tab === 'historial' && (
-          <DataTable
-            data={historial}
-            rowKey={(r) => r.id}
-            vacio="Sin cambios registrados"
-            columns={[
-              { key: 'fecha', header: 'Fecha', principal: true, render: (r) => fechaHora(r.fecha) },
-              { key: 'usuario', header: 'Usuario' },
-              { key: 'accion', header: 'Acción' },
-              {
-                key: 'cambio',
-                header: 'Cambio',
-                render: (r) => <code className="text-xs break-all text-slate-500">{JSON.stringify(r.despues)}</code>,
-              },
-            ]}
-          />
+        {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
+        {tab !== 'datos' && tab !== 'historial-api' && (
+          <SeccionesDemoFile fileId={f.id} tab={tab} editable={editable} onCambio={alCambiar} />
         )}
       </Card>
-
-      {modal === 'matricula' && (
-        <ModalMatricula
-          file={f}
-          ocupado={ocupado}
-          onCerrar={() => setModal(null)}
-          onGuardar={(anio, gestion) =>
-            hacer(
-              () => filesService.registrarMatricula(f.id, { anio, gestion, estado: 'Vigente' }, u),
-              'Matrícula registrada',
-            )
-          }
-        />
-      )}
-      {modal === 'resultado' && (
-        <ModalResultado file={f} ocupado={ocupado} onCerrar={() => setModal(null)} onGuardar={resultado} />
-      )}
-      {modal === 'bloqueo' && (
-        <ModalBloqueo
-          bloquear={!f.bloqueado}
-          ocupado={ocupado}
-          onCerrar={() => setModal(null)}
-          onGuardar={(m) =>
-            hacer(
-              () => filesService.cambiarBloqueo(f.id, !f.bloqueado, m, u),
-              f.bloqueado ? 'File desbloqueado' : 'File bloqueado',
-            )
-          }
-        />
-      )}
-      {(modal === 'TACFI' || modal === 'TCLO' || modal === 'CERT_NOTAS') && (
-        <ModalRequisito
-          codigo={modal}
-          responsable={u.nombre}
-          ocupado={ocupado}
-          onCerrar={() => setModal(null)}
-          onGuardar={(r) => requisito(modal, r)}
-        />
-      )}
     </>
   );
 }

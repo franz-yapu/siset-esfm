@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { ArrowRight, FileText } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { semaforoFile, alertasFile } from '@/lib/reglas';
 import { fecha } from '@/lib/formato';
@@ -12,7 +12,7 @@ import { Saludo } from './comun';
 export function InicioEgresado() {
   const u = useUsuario();
   const { data, loading, error } = useAsync(
-    () => Promise.all([filesService.miFile(u), hojasRutaService.misTramites(u)]),
+    () => Promise.all([filesPrototipoService.miFile(u), hojasRutaService.misTramites(u)]),
     [u.id],
   );
   if (loading) return <Cargando />;

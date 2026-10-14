@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { CheckCircle2, Eye, Printer, Save, Search, Send, X } from 'lucide-react';
 import type { FileAcademico, HojaRutaConTitular, TipoTramite } from '@/types';
 import { useToast, useUsuario } from '@/hooks';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { TIPOS_TRAMITE } from '@/config/catalogos';
 import { alertasFile, nombreCompleto, semaforoFile } from '@/lib/reglas';
@@ -29,7 +29,7 @@ export function NuevaHojaRuta() {
   useEffect(() => {
     if (titular) return;
     let vivo = true;
-    filesService.buscarPorCi(ci).then((r) => {
+    filesPrototipoService.buscarPorCi(ci).then((r) => {
       if (vivo) setSugerencias(r);
     });
     return () => {

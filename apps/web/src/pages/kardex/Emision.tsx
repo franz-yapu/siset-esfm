@@ -3,7 +3,7 @@ import { Eye, Printer, RotateCcw } from 'lucide-react';
 import type { FileAcademico, HojaRutaConTitular, TipoDocumento } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { documentosService, NOMBRE_DOCUMENTO } from '@/services/documentos.service';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { fecha, fechaHora } from '@/lib/formato';
 import {
   Badge,
@@ -59,7 +59,7 @@ export function Emision() {
   const [porEmitir, emitidos] = data;
 
   const abrirPrevia = async (h: HojaRutaConTitular) =>
-    setPrevia({ h, f: await filesService.obtener(h.fileId), tipo: documentosService.tipoPara(h.tipo) });
+    setPrevia({ h, f: await filesPrototipoService.obtener(h.fileId), tipo: documentosService.tipoPara(h.tipo) });
 
   return (
     <>

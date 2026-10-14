@@ -1,38 +1,68 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Lock, UserPlus } from 'lucide-react';
-import type { ColorSemaforo } from '@/types';
-import { useAsync, usePermiso } from '@/hooks';
-import { filesService, type FiltrosFiles } from '@/services/files.service';
-import { ESPECIALIDADES } from '@/config/catalogos';
-import { nombreCompleto, semaforoFile } from '@/lib/reglas';
-import { ordinal } from '@/lib/formato';
-import { Button, DataTable, Input, PageHeader, Select, Semaforo } from '@/components/ui';
+import type { CondicionFile, FiltrosFiles } from '@/types/files';
+import { usePermiso } from '@/hooks';
+import { useEspecialidades, useFiles } from '@/hooks/useFiles';
+import { Alerta, Button, DataTable, Input, PageHeader, Paginacion, Select } from '@/components/ui';
 
-/** P-40 · Files académicos (KARDEX edita; el resto del personal solo ve). */
+const POR_PAGINA = 20;
+const ESPERA_BUSQUEDA = 300;
+
+/** Filtros y página en la URL: volver atrás desde un file no los pierde (SDD S2.9-S2.10 §2.3). */
+const filtrosDeUrl = (p: URLSearchParams): FiltrosFiles => ({
+  texto: p.get('texto') ?? undefined,
+  especialidadId: Number(p.get('especialidad')) || undefined,
+  anioIngreso: Number(p.get('anio')) || undefined,
+  condicion: (p.get('condicion') as CondicionFile | null) ?? undefined,
+  bloqueado: p.get('bloqueados') === '1' ? true : undefined,
+  pagina: Number(p.get('pagina')) || 1,
+  porPagina: POR_PAGINA,
+});
+
+const urlDeFiltros = (f: FiltrosFiles): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries({
+      texto: f.texto,
+      especialidad: f.especialidadId,
+      anio: f.anioIngreso,
+      condicion: f.condicion,
+      bloqueados: f.bloqueado ? '1' : undefined,
+      pagina: f.pagina && f.pagina > 1 ? f.pagina : undefined,
+    })
+      .filter(([, v]) => v !== undefined && v !== '')
+      .map(([k, v]) => [k, String(v)]),
+  );
+
+/** P-40 · Files académicos, contra GET /files (S2.9). KARDEX crea y edita; el resto del personal solo ve. */
 export function Files() {
   const editable = usePermiso('editar-file');
   const puedeCrear = usePermiso('nuevo-file');
   const nav = useNavigate();
-  const [params] = useSearchParams();
-  const [f, setF] = useState<FiltrosFiles>({
-    texto: '',
-    especialidad: '',
-    anio: 0,
-    semaforo: '',
-    soloBloqueados: params.get('bloqueados') === '1',
-  });
-  const { data = [], loading } = useAsync(
-    () => filesService.listar(f),
-    [f.texto, f.especialidad, f.anio, f.semaforo, f.soloBloqueados],
-  );
-  const set = (p: Partial<FiltrosFiles>) => setF({ ...f, ...p });
+  const [params, setParams] = useSearchParams();
+  const filtros = filtrosDeUrl(params);
+  const ir = (cambios: Partial<FiltrosFiles>) => setParams(urlDeFiltros({ ...filtros, pagina: 1, ...cambios }));
+
+  // El texto se escribe en local y se manda a la URL después de una pausa.
+  const [texto, setTexto] = useState(filtros.texto ?? '');
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (texto.trim() !== (filtros.texto ?? '')) ir({ texto: texto.trim() || undefined });
+    }, ESPERA_BUSQUEDA);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando cambia lo escrito
+  }, [texto]);
+
+  const { data: especialidades = [] } = useEspecialidades();
+  const { data, isLoading, isFetching, error } = useFiles(filtros);
+  const total = data?.total ?? 0;
+  const anioActual = new Date().getFullYear();
 
   return (
     <>
       <PageHeader
         titulo="Files académicos"
-        subtitulo={editable ? `${data.length} files` : `${data.length} files · solo lectura`}
+        subtitulo={editable ? `${total} files` : `${total} files · solo lectura`}
         acciones={
           puedeCrear && (
             <Button icon={UserPlus} onClick={() => nav('/files/nuevo')}>
@@ -45,70 +75,77 @@ export function Files() {
         <Input
           label="Buscar"
           placeholder="CI, nombre o código"
-          value={f.texto}
-          onChange={(e) => set({ texto: e.target.value })}
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
         />
-        <Select label="Especialidad" value={f.especialidad} onChange={(e) => set({ especialidad: e.target.value })}>
-          <option value="">Todas</option>
-          {ESPECIALIDADES.map((e) => (
-            <option key={e}>{e}</option>
-          ))}
-        </Select>
-        <Select label="Año de formación" value={f.anio} onChange={(e) => set({ anio: Number(e.target.value) })}>
-          <option value={0}>Todos</option>
-          {[1, 2, 3, 4, 5].map((a) => (
-            <option key={a} value={a}>
-              {ordinal(a)} año
+        <Select
+          label="Especialidad"
+          value={filtros.especialidadId ?? 0}
+          onChange={(e) => ir({ especialidadId: Number(e.target.value) || undefined })}
+        >
+          <option value={0}>Todas</option>
+          {especialidades.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nombre}
             </option>
           ))}
         </Select>
         <Select
-          label="Semáforo"
-          value={f.semaforo}
-          onChange={(e) => set({ semaforo: e.target.value as ColorSemaforo | '' })}
+          label="Año de ingreso"
+          value={filtros.anioIngreso ?? 0}
+          onChange={(e) => ir({ anioIngreso: Number(e.target.value) || undefined })}
         >
-          <option value="">Todos</option>
-          <option value="VERDE">Verde</option>
-          <option value="AMARILLO">Amarillo</option>
-          <option value="ROJO">Rojo</option>
+          <option value={0}>Todos</option>
+          {Array.from({ length: 8 }, (_, i) => anioActual + 1 - i).map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </Select>
+        <Select
+          label="Condición"
+          value={filtros.condicion ?? ''}
+          onChange={(e) => ir({ condicion: (e.target.value || undefined) as CondicionFile | undefined })}
+        >
+          <option value="">Todas</option>
+          <option value="ESTUDIANTE">Estudiante</option>
+          <option value="EGRESADO">Egresado</option>
         </Select>
         <label className="flex items-center gap-2 pb-2 text-sm text-slate-700">
           <input
             type="checkbox"
             className="size-4 accent-primario"
-            checked={f.soloBloqueados}
-            onChange={(e) => set({ soloBloqueados: e.target.checked })}
+            checked={Boolean(filtros.bloqueado)}
+            onChange={(e) => ir({ bloqueado: e.target.checked || undefined })}
           />
           Solo bloqueados
         </label>
       </div>
+      {error && (
+        <Alerta tipo="error" className="mb-4">
+          {error.message}
+        </Alerta>
+      )}
       <DataTable
-        data={data}
-        loading={loading}
+        data={data?.datos ?? []}
+        loading={isLoading}
         rowKey={(x) => x.id}
+        vacio="No hay files con esos filtros"
         onRowClick={(x) => nav(`/files/${x.id}`)}
         columns={[
-          { key: 'ci', header: 'CI', sortValue: (x) => x.ci },
+          { key: 'ci', header: 'CI', render: (x) => (x.complemento ? `${x.ci}-${x.complemento}` : x.ci) },
           {
             key: 'nombre',
             header: 'Nombre completo',
             principal: true,
-            sortValue: (x) => x.apellidos,
-            render: (x) => <span className="font-medium">{nombreCompleto(x)}</span>,
+            render: (x) => <span className="font-medium">{x.nombre}</span>,
           },
           { key: 'codigo', header: 'Código', ocultarEnMovil: true },
-          { key: 'esp', header: 'Especialidad', sortValue: (x) => x.especialidad, render: (x) => x.especialidad },
+          { key: 'especialidad', header: 'Especialidad' },
           {
             key: 'anio',
-            header: 'Año',
-            sortValue: (x) => x.matriculas.at(-1)?.anio ?? 0,
-            render: (x) => (x.condicion === 'EGRESADO' ? 'Egresado' : `${ordinal(x.matriculas.at(-1)?.anio ?? 1)}`),
-          },
-          {
-            key: 'sem',
-            header: 'Semáforo',
-            sortValue: (x) => ['VERDE', 'AMARILLO', 'ROJO'].indexOf(semaforoFile(x)),
-            render: (x) => <Semaforo color={semaforoFile(x)} size="sm" />,
+            header: 'Ingreso',
+            render: (x) => (x.condicion === 'EGRESADO' ? `${x.anioIngreso} · Egresado` : x.anioIngreso),
           },
           {
             key: 'bloq',
@@ -120,18 +157,19 @@ export function Files() {
                 <span className="text-slate-300">—</span>
               ),
           },
-          {
-            key: 'ver',
-            header: '',
-            ocultarEnMovil: true,
-            render: (x) => (
-              <Button size="sm" variant="ghost" onClick={() => nav(`/files/${x.id}`)}>
-                Ver
-              </Button>
-            ),
-          },
         ]}
       />
+      {data && total > 0 && (
+        <div className="mt-3">
+          <Paginacion
+            pagina={data.pagina}
+            porPagina={data.porPagina}
+            total={total}
+            cargando={isFetching}
+            onCambiar={(pagina) => setParams(urlDeFiltros({ ...filtros, pagina }))}
+          />
+        </div>
+      )}
     </>
   );
 }

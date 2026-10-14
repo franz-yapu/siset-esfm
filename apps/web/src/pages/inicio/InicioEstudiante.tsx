@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
 import { useAsync, useUsuario } from '@/hooks';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import {
   alertasFile,
   anioActual,
@@ -25,7 +25,7 @@ const MENSAJE = {
 /** P-10 · Inicio Estudiante. */
 export function InicioEstudiante() {
   const u = useUsuario();
-  const { data: f, loading, error } = useAsync(() => filesService.miFile(u), [u.id]);
+  const { data: f, loading, error } = useAsync(() => filesPrototipoService.miFile(u), [u.id]);
   if (loading) return <Cargando />;
   if (error || !f) return <Alerta tipo="error">{error}</Alerta>;
 

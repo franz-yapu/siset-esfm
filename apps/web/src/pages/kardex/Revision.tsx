@@ -4,7 +4,7 @@ import { CheckCircle2, Circle, Send, X } from 'lucide-react';
 import type { HojaRutaConTitular } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { filesService } from '@/services/files.service';
+import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { CODIGOS_REQUISITO, NOMBRE_REQUISITO } from '@/lib/reglas';
 import { diasDesde, diasTexto } from '@/lib/formato';
 import { Alerta, Button, Card, Cargando, DataTable, EstadoBadge, PageHeader, Semaforo, Tabs } from '@/components/ui';
@@ -100,7 +100,7 @@ function PanelRevision({
   const u = useUsuario();
   const { ejecutar, ocupado } = useAccion();
   const [observar, setObservar] = useState(false);
-  const { data: f, loading } = useAsync(() => filesService.obtener(h.fileId), [h.fileId]);
+  const { data: f, loading } = useAsync(() => filesPrototipoService.obtener(h.fileId), [h.fileId]);
   const acciones = hojasRutaService.acciones(h.nro, u);
   const correr = async (accion: (typeof acciones)[number]['accion'], obs?: string) => {
     if (
