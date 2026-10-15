@@ -73,7 +73,7 @@ export function BandejaPases() {
     <>
       <PageHeader
         titulo="Bandeja de pases"
-        subtitulo={`Sede: ${sede === 1 ? 'Sede Central La Paz' : 'UA Ancocagua'}`}
+        subtitulo={`Sede: ${sede === 1 ? 'Calahumana (La Paz)' : 'UA Ancocagua'}`}
       />
       <Card>
         <Tabs

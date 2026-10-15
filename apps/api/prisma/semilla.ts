@@ -24,7 +24,7 @@ export const DESCRIPCION_ROL: Record<(typeof ROLES)[number]['codigo'], string> =
 };
 
 export const SEDES = [
-  { codigo: 'LA_PAZ', nombre: 'Sede Central La Paz' },
+  { codigo: 'LA_PAZ', nombre: 'Calahumana (La Paz)' },
   { codigo: 'ANCOCAGUA', nombre: 'UA Ancocagua (Pucarani)' },
 ] as const;
 

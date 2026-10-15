@@ -9,7 +9,7 @@ import { useHojaRuta, useMutacionHojasRuta } from '@/hooks/useHojasRuta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ESTADOS_HR, sedeHr } from '@/config/estados-hoja-ruta';
 import { ErrorApi } from '@/lib/errores';
-import { fecha } from '@/lib/formato';
+import { fecha, hoy } from '@/lib/formato';
 import { urlSeguimiento } from '@/lib/qr';
 import {
   Alerta,
@@ -52,8 +52,8 @@ export function DetalleHojaRuta() {
 
   const correr = async (accion: AccionPosible, observacion: string | null) => {
     try {
-      await mover.mutateAsync({ accion, observacion });
-      toast.success(`Paso registrado: ${accion.etiqueta.toLowerCase()}`);
+      const nuevo = await mover.mutateAsync({ accion, observacion });
+      toast.success(`${nuevo.nro}: ${ESTADOS_HR[nuevo.estado].etiqueta}`);
       setModal(null);
       setObs('');
     } catch (e) {
@@ -65,8 +65,14 @@ export function DetalleHojaRuta() {
       } else toast.error(e instanceof Error ? e.message : 'Error');
     }
   };
-  const entregar = (e: Entrega) =>
-    modal ? correr(modal, `Entregado a ${e.entregadoA.toLowerCase()} (CI ${e.ciReceptor.trim()})`) : Promise.resolve();
+  // El paso queda con la hora en que se registra; si la entrega fue otro día, la fecha va en la observación (DEC-046).
+  const entregar = (e: Entrega) => {
+    const dia = e.fecha.slice(0, 10);
+    const cuando = dia === hoy() ? '' : ` el ${fecha(dia)}`;
+    return modal
+      ? correr(modal, `Entregado a ${e.entregadoA.toLowerCase()} (CI ${e.ciReceptor.trim()})${cuando}`)
+      : Promise.resolve();
+  };
 
   return (
     <>

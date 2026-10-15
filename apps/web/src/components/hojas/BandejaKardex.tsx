@@ -9,6 +9,7 @@ import { useRequisitos } from '@/hooks/useRequisitos';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ErrorApi } from '@/lib/errores';
 import { diasDesde, diasTexto } from '@/lib/formato';
+import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import {
   Alerta,
   Button,
@@ -139,8 +140,8 @@ function Panel({ fila, esperando, onCerrar }: { fila: FilaHojaRuta; esperando: s
   const confirmar = async () => {
     if (!paso) return;
     try {
-      await mover.mutateAsync({ accion: paso, observacion: obs.trim() || null });
-      toast.success(`Paso registrado en ${fila.nro}: ${paso.etiqueta.toLowerCase()}`);
+      const nuevo = await mover.mutateAsync({ accion: paso, observacion: obs.trim() || null });
+      toast.success(`${nuevo.nro}: ${ESTADOS_HR[nuevo.estado].etiqueta}`);
       onCerrar();
     } catch (e) {
       if (e instanceof ErrorApi && e.codigo === 'TRANSICION_INVALIDA') {

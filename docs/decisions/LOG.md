@@ -708,3 +708,14 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 2. La ingesta sigue exigiendo un file EGRESADO y sin bloqueo (D-09, DEC-029). Para el egresado de años anteriores sin
    file se preguntó D-40; mientras tanto, Kardex registra su file (datos básicos) antes de que Secretaría registre el
    trámite.
+
+## DEC-046 — Revisión en pantalla de Secretaría de Dirección: sedes, avisos y fecha de entrega
+
+**Fecha:** 2026-10-15 · **Fuente:** recorrido de SEC_DIR con Playwright (modo demo, sin SDD previo) · **Estado:** activa
+
+1. La sede de La Paz se llama **"Calahumana (La Paz)"** en la semilla y en el catálogo de la web (antes "Sede Central
+   La Paz", nombre del prototipo); así la nombra la escuela (D-05, D-15). La semilla actualiza el nombre en cada
+   despliegue. En las pantallas del personal, Ancocagua se muestra como "UA Ancocagua".
+2. El aviso al registrar un paso muestra el estado al que pasó el trámite ("HR-2026-000004: Entregado").
+3. Entrega: si la fecha elegida no es hoy, va en la observación del paso ("… el 14/10/2026"). El paso y la fecha de
+   cierre quedan con la hora del registro; guardar una fecha de entrega aparte queda para después del piloto.

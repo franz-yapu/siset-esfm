@@ -31,6 +31,6 @@ export const ESTADOS_HR: Record<EstadoHojaRuta, { etiqueta: string; badge: strin
 
 export const NOMBRE_SEDE: Record<string, string> = {
   LA_PAZ: 'Calahumana (La Paz)',
-  ANCOCAGUA: 'Ancocagua',
+  ANCOCAGUA: 'UA Ancocagua',
 };
 export const sedeHr = (codigo: string): string => NOMBRE_SEDE[codigo] ?? (codigo || '—');

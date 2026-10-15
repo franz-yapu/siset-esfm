@@ -1,7 +1,7 @@
 import type { Sede, TipoTramite } from '@/types';
 
 export const SEDES: Sede[] = [
-  { id: 1, codigo: 'LA_PAZ', nombre: 'Sede Central La Paz' },
+  { id: 1, codigo: 'LA_PAZ', nombre: 'Calahumana (La Paz)' },
   { id: 2, codigo: 'ANCOCAGUA', nombre: 'UA Ancocagua (Pucarani)' },
 ];
 
