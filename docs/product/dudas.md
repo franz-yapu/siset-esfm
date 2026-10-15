@@ -14,7 +14,7 @@ SISET — 38 dudas (D-01 a D-38) para validar con Kardex y Coordinación
 
 Documento elaborado a partir del borrador de tesis "requerimientos SISET". Las decisiones provisionales se marcan con su código de duda (D-xx).
 
-Hay 38 dudas (D-36 a D-38 agregadas el 2026-10-15, D-36 urgente para la presentación del viernes): 11 cerradas (D-06 con DEC-009; D-04, D-07, D-12, D-13, D-14, D-15, D-19, D-20, D-22 y D-27 con DEC-019), 12 respondidas en la hoja el 2026-10-13 (pendientes de cerrar con su DEC) y 12 abiertas: 4 internas (D-01, D-02, D-17 y D-23) y D-28 a D-35 (en la hoja desde el 2026-10-14). Las 12 respondidas aplican su respuesta; las 4 internas las cierra el equipo.
+Hay 38 dudas (D-36 a D-38 agregadas el 2026-10-15 y en la hoja, filas 38–40; D-36 urgente para la presentación del viernes): 11 cerradas (D-06 con DEC-009; D-04, D-07, D-12, D-13, D-14, D-15, D-19, D-20, D-22 y D-27 con DEC-019), 12 respondidas en la hoja el 2026-10-13 (pendientes de cerrar con su DEC) y 12 abiertas: 4 internas (D-01, D-02, D-17 y D-23) y D-28 a D-35 (en la hoja desde el 2026-10-14). Las 12 respondidas aplican su respuesta; las 4 internas las cierra el equipo.
 
 **Dónde responde el cliente:** en la hoja de Google
 [SISET — Preguntas para la escuela](https://docs.google.com/spreadsheets/d/1VvGHzB_VmHTSW9Zi2nNd407qpnATUjiQSE24IyGjAj8/edit)

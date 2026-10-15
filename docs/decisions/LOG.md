@@ -623,3 +623,18 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 3. Sin "Exportar PDF/Excel" por ahora: eran simulados; quedan para S6.3. Ya no se filtra por sede.
 4. SEC_COORD no registra pasos en el flujo de DEC-033: su inicio muestra, solo para ver, lo que está en Ancocagua
    (en impresión, impresos por firmar, por remitir) y los últimos trámites.
+
+## DEC-040 — Firmas del Coordinador en lugar de dictámenes
+
+**Fecha:** 2026-10-15 · **Fuente:** D-11 (respondida), DEC-033 (modo demo, sin SDD previo) · **Estado:** activa
+
+1. No hay dictamen: el Coordinador solo firma (D-11). La pantalla P-50 "Dictámenes" del prototipo pasa a ser
+   **"Firmas"** (`/firmas`): pestaña "Esperan tu firma" (certificados `IMPRESO` de los tipos sin valorado) y
+   "Firmados" (de `FIRMADO_COORDINADOR` en adelante). "Firmar" registra el paso `FIRMA_COORDINADOR` con
+   `POST /hojas-ruta/:nro/transiciones`, con observación opcional; la bitácora la registra la API (DEC-007).
+2. Sin endpoint nuevo: la pantalla arma las listas con `GET /hojas-ruta` por tipo y estado.
+3. El menú usa el permiso `dictamenes`/`crear` de la política porque solo el COORDINADOR lo tiene; renombrar el
+   recurso exige tocar la política de Casbin (ADR-0002) y queda para después de la presentación.
+4. Se borran `EmitirDictamen` (`/dictamenes/:nro`) y `dictamenesService`. El Coordinador no devuelve certificados
+   (D-37, propuesta). Las pantallas de Kardex "Revisión" y "Emisión" siguen con el prototipo que menciona el
+   dictamen hasta su propio flujo.

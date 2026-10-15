@@ -25,13 +25,7 @@ export function InicioCoordinador() {
     <>
       <Saludo nombre={u.nombre}>Coordinación Académica · UA Ancocagua</Saludo>
       <GrillaKpi>
-        <KpiCard
-          titulo="Esperan tu firma"
-          valor={r.firmar.length}
-          icono={PenLine}
-          color="violeta"
-          to="/hojas-ruta?estado=IMPRESO"
-        />
+        <KpiCard titulo="Esperan tu firma" valor={r.firmar.length} icono={PenLine} color="violeta" to="/firmas" />
         <KpiCard titulo="Trámites en curso" valor={r.enCurso} icono={Clock} color="ambar" to="/hojas-ruta" />
         <KpiCard
           titulo="Entregados"

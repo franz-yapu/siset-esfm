@@ -13,7 +13,7 @@ const NOMBRES: Record<string, string> = {
   entregas: 'Firma y entrega',
   files: 'Files académicos',
   revision: 'Revisión de trámites',
-  dictamenes: 'Dictámenes',
+  firmas: 'Firmas',
   emision: 'Emisión de documentos',
   'carga-masiva': 'Carga masiva',
   reportes: 'Reportes',

@@ -59,10 +59,10 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 - El desbloqueo exige el **número de la resolución** que define la situación del estudiante y queda en la
   bitácora, con quién y cuándo. No hay bloqueo automático por UF reprobadas.
 
-## Dictamen y emisión (RF-12, RF-13, D-11)
+## Firma del Coordinador y emisión (RF-12, RF-13, D-11, DEC-040)
 
-- Dictamen = APROBADO u OBSERVADO, con observación; solo trámites de egresado.
-- No se emite documento sin dictamen aprobado.
+- No hay dictamen (D-11): el Coordinador solo **firma** los certificados que Kardex imprimió (paso
+  `FIRMA_COORDINADOR` de la hoja de ruta, DEC-033). No los devuelve (D-37, propuesta).
 - Cada impresión registra n.º de valorado y usuario; reimprimir exige motivo.
 - Vista previa siempre con marca de agua "VISTA PREVIA".
 

@@ -181,8 +181,8 @@ export const notificaciones = (u: Usuario): Notificacion[] => {
     case 'COORDINADOR':
       add(
         n((h) => h.estado === 'EN_REVISION' && Boolean(h.enviadoDictamen)),
-        '# trámites esperan dictamen',
-        '/dictamenes',
+        '# certificados esperan tu firma',
+        '/firmas',
       );
       break;
     default: {

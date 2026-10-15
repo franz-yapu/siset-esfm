@@ -15,7 +15,7 @@ const MENU_ESPERADO: Record<Rol, IdMenu[]> = {
   EGRESADO: ['inicio', 'perfil'],
   SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'pases', 'entregas', 'files', 'reportes', 'perfil'],
   SEC_COORD: ['inicio', 'hojas-ruta', 'pases', 'files', 'perfil'],
-  COORDINADOR: ['inicio', 'hojas-ruta', 'files', 'dictamenes', 'reportes', 'perfil'],
+  COORDINADOR: ['inicio', 'hojas-ruta', 'files', 'firmas', 'reportes', 'perfil'],
   KARDEX: [
     'inicio',
     'hojas-ruta',
@@ -38,7 +38,6 @@ const OTRAS_RUTAS: Partial<Record<IdRuta, Rol[]>> = {
   'detalle-file': ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'],
   'nuevo-file': ['KARDEX'],
   'editar-file': ['KARDEX'],
-  'emitir-dictamen': ['COORDINADOR'],
   'mis-tramites': [],
 };
 

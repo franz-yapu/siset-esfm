@@ -58,6 +58,33 @@ export const useResumenHojasRuta = () =>
   });
 
 /**
+ * Los certificados (tipos sin valorado: los únicos que firma el Coordinador, D-05/D-11) en esos estados, los más
+ * antiguos primero. La API filtra por un tipo y un estado a la vez.
+ */
+async function certificados(estados: readonly EstadoHojaRuta[]) {
+  const tipos = (await hojasRutaService.tipos()).filter((t) => !t.requiereValorado);
+  const paginas = await Promise.all(
+    tipos.flatMap((t) =>
+      estados.map((estado) => hojasRutaService.listar({ estado, tipoTramite: t.codigo, porPagina: 100 })),
+    ),
+  );
+  return paginas.flatMap((p) => p.datos).sort((a, b) => a.fechaIngreso.localeCompare(b.fechaIngreso));
+}
+
+/** Después de su firma (FIRMA_COORDINADOR): de FIRMADO_COORDINADOR en adelante, en el flujo sin valorado. */
+const DESPUES_DE_FIRMAR = ['FIRMADO_COORDINADOR', 'REMITIDO_CALAHUMANA', 'LISTO', 'ENTREGADO'] as const;
+
+/** P-50 · Firmas del Coordinador: lo que espera su firma y lo que ya firmó. No hay dictamen (D-11). */
+export const useFirmasCoordinador = () =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'firmas-coordinador'],
+    queryFn: async () => {
+      const [pendientes, firmados] = await Promise.all([certificados(['IMPRESO']), certificados(DESPUES_DE_FIRMAR)]);
+      return { pendientes, firmados: firmados.reverse() };
+    },
+  });
+
+/**
  * Inicio del Coordinador (D-20): lo que espera su firma (certificados IMPRESOS, flujo sin valorado), cuántos están
  * en curso y entregados, y cuántos hay en cada estado.
  */
@@ -65,9 +92,8 @@ export const useResumenCoordinador = () =>
   useQuery({
     queryKey: [...claveHojasRuta, 'resumen-coordinador'],
     queryFn: async () => {
-      const tipos = (await hojasRutaService.tipos()).filter((t) => !t.requiereValorado);
-      const [paraFirmar, porEstado] = await Promise.all([
-        Promise.all(tipos.map((t) => hojasRutaService.listar({ estado: 'IMPRESO', tipoTramite: t.codigo }))),
+      const [firmar, porEstado] = await Promise.all([
+        certificados(['IMPRESO']),
         Promise.all(
           ESTADOS_HOJA_RUTA.map(async (estado) => ({
             estado,
@@ -75,7 +101,6 @@ export const useResumenCoordinador = () =>
           })),
         ),
       ]);
-      const firmar = paraFirmar.flatMap((p) => p.datos).sort((a, b) => a.fechaIngreso.localeCompare(b.fechaIngreso));
       const entregados = porEstado.find((e) => e.estado === 'ENTREGADO')!.total;
       const total = porEstado.reduce((s, e) => s + e.total, 0);
       return { firmar, enCurso: total - entregados, entregados, porEstado };

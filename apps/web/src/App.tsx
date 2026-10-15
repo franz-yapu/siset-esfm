@@ -30,8 +30,7 @@ import { Emision } from '@/pages/kardex/Emision';
 import { CargaMasiva } from '@/pages/kardex/CargaMasiva';
 import { Usuarios } from '@/pages/kardex/Usuarios';
 import { Bitacora } from '@/pages/kardex/Bitacora';
-import { Dictamenes } from '@/pages/coordinador/Dictamenes';
-import { EmitirDictamen } from '@/pages/coordinador/EmitirDictamen';
+import { Firmas } from '@/pages/coordinador/Firmas';
 import { Reportes } from '@/pages/reportes/Reportes';
 import { MisTramites, MiTramite } from '@/pages/estudiante/MisTramites';
 
@@ -135,8 +134,7 @@ export function App() {
         <Route path="/usuarios" element={P('usuarios', <Usuarios />)} />
         <Route path="/bitacora" element={P('bitacora', <Bitacora />)} />
 
-        <Route path="/dictamenes" element={P('dictamenes', <Dictamenes />)} />
-        <Route path="/dictamenes/:nro" element={P('emitir-dictamen', <EmitirDictamen />)} />
+        <Route path="/firmas" element={P('firmas', <Firmas />)} />
         <Route path="/reportes" element={P('reportes', <Reportes />)} />
         <Route path="*" element={<NoEncontrado />} />
       </Route>
