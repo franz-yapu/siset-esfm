@@ -1,5 +1,9 @@
 # SISET — guía para Claude Code
 
+> **MODO DEMO hasta el viernes 16-oct-2026:** manda `docs/proceso/modo-demo.md` (todo en `main`, por rol y
+> módulo, sin SDD previo). Lo de ramas, PR y SDD de abajo vuelve después de la presentación
+> (`docs/proceso/modo-normal.md`).
+
 - Idioma: todo en español (Bolivia) — código de dominio, UI, commits y docs.
 - Fuente de verdad: `docs/` (ver `docs/README.md` para la precedencia). Antes de
   implementar, leer lo relevante de `docs/product/business-rules.md` y las

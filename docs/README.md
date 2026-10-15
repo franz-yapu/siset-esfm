@@ -14,6 +14,7 @@ solo lo que toca la tarea.
 | `docs/do-not-touch.md`           | Subsistemas que no se reescriben a la ligera — tocarlos exige un ADR.                                                      |
 | `docs/adr/`                      | Architecture Decision Records — un archivo por decisión no trivial, numerado.                                              |
 | `docs/decisions/LOG.md`          | Log append-only de decisiones/respuestas de stakeholders (`DEC-###`).                                                      |
+| `docs/proceso/`                  | Cómo se trabaja: `modo-normal.md` (ramas, SDD, PR) y `modo-demo.md` (temporal, todo en main).                              |
 | `docs/planning/`                 | Artefactos generados: backlog, roadmaps de sprint, cuerpos de tickets. Nombres de archivo con fecha, nada se edita a mano. |
 
 ## Precedencia cuando los docs no coinciden
