@@ -2,7 +2,7 @@
 
 - **Ticket:** ClickUp **S0.12** (`868mh1kuh`, https://app.clickup.com/t/868mh1kuh), rehecho: el responsable pidió el 2026-10-14 un despliegue **de prueba** "igual que Ventas Fácil" (Coolify, Cloudflare) y **con datos de prueba**.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Aprobado (2026-10-14, v1.2)
+- **Estado:** Implementado (2026-10-14, v1.2)
 - **Versión:** 1.2 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. Inspección del VPS en solo lectura (2026-10-14): Ventas Fácil producción es un **servicio docker-compose de Coolify** (`db`, `api`, `web`) con imágenes de **GHCR**, el dominio por `SERVICE_FQDN_WEB_80`, contraseñas por `${SERVICE_PASSWORD_*}` y Let's Encrypt de Traefik. **Cloudflare es solo DNS**: `*.vertexall.com` apunta directo al VPS (`31.220.101.118`), sin proxy. Recursos libres: 5,8 GB de RAM, 81 GB de disco.
@@ -130,11 +130,11 @@ encuentre **debajo del login** las cuentas de cada rol con su usuario y contrase
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S0.12/SDD.md`, Estado = Aprobado.
-- [ ] Imágenes públicas en GHCR; servicio `siset` en Coolify con `https://siset.vertexall.com`.
-- [ ] Datos de prueba cargados; credenciales entregadas al responsable fuera del chat.
-- [ ] Verificación del §4 y de los otros sistemas del VPS.
-- [ ] Runbook y DEC-036; quality gate en verde; commit `S0.12 …` en `feat/S0.12-despliegue-prueba`.
+- [x] SDD en `docs/sdd/S0.12/SDD.md`, Estado = Aprobado.
+- [x] Imágenes públicas en GHCR; servicio `siset` en Coolify con `https://siset.vertexall.com`.
+- [x] Datos de prueba cargados; cuentas de prueba publicadas en el login (§2.5).
+- [x] Verificación del §4 y de los otros sistemas del VPS.
+- [x] Runbook y DEC-036; quality gate en verde; commit `S0.12 …` en `feat/S0.12-despliegue-prueba`.
 
 ---
 

@@ -28,8 +28,14 @@ Ventas Fácil: un servicio docker-compose de Coolify con imágenes públicas de 
 ## Actualizar
 
 1. Correr **Publicar imágenes** otra vez (pisa la etiqueta `prueba`).
-2. Coolify → servicio `siset` → **Redeploy** (o `GET /api/v1/deploy?uuid=<uuid>&force=true` con el token).
-   `migrar` aplica las migraciones nuevas; el seed y los datos de prueba no duplican nada.
+2. En el VPS, bajar las imágenes: Coolify **no** vuelve a bajar una etiqueta que ya tiene.
+   `for i in api migrar web; do docker pull -q ghcr.io/franz-yapu/siset-$i:prueba; done`
+3. Redesplegar: Coolify → servicio `siset` → **Redeploy**, o desde el VPS
+   `curl -X POST -H "Authorization: Bearer $(cat ~/.coolify-token)" -H 'Content-Type: application/json' localhost:8000/api/v1/deploy -d '{"uuid":"cai7cygdb77qhrzfng6fcrwx"}'`.
+   `migrar` aplica las migraciones nuevas; el seed y los datos de prueba no duplican nada, y las cuentas de prueba
+   se reparan.
+4. Si cambió `deploy/coolify/docker-compose.yml`, antes del paso 3:
+   `PATCH /api/v1/services/cai7cygdb77qhrzfng6fcrwx` con `{"docker_compose_raw": "<compose en base64>"}`.
 
 Volver a una versión anterior: cambiar `:prueba` por `:AAAA.MM.DD-sha` en el compose del servicio y redesplegar.
 
