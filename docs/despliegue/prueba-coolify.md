@@ -50,6 +50,7 @@ Contraseña de todas: `Prueba.2026`.
 | 9000002      | SEC_DIR     | LA_PAZ    |
 | 9000003      | SEC_COORD   | ANCOCAGUA |
 | 9000004      | COORDINADOR | ANCOCAGUA |
+| 8100025      | ESTUDIANTE  | —         |
 
 Cada despliegue las repara (`bd:datos-prueba`): vuelve la contraseña común, sin cambio obligatorio, sin bloqueo y
 sin sesiones. Si alguien cambió una contraseña o bloqueó una cuenta, basta con redesplegar. El resto de los datos
@@ -66,5 +67,8 @@ Y a mano: el recuadro de cuentas debajo del login, entrar con cada rol, búsqued
 
 ## Qué está conectado
 
-Conectado a la API: sesión, usuarios, bitácora y files (búsqueda, detalle, requisitos, bloqueo). Las pantallas de
-trámites, pases y emisión todavía muestran los **datos de ejemplo del prototipo** hasta S3.8, S3.9 y S5.x.
+Conectado a la API (al 15-oct): sesión, usuarios, bitácora, files (búsqueda, detalle, requisitos, bloqueo), "mi file"
+del estudiante (DEC-043), hojas de ruta (ingesta, lista, detalle, pasos y carátula con QR), firmas del Coordinador
+(DEC-040), bandejas de Kardex (DEC-041), seguimiento público, reportes y los inicios de todos los roles. Siguen con
+**datos de ejemplo del prototipo**: la bandeja de pases y firma y entrega (D-35, D-36) y las plantillas de documentos
+(D-10, D-39).
