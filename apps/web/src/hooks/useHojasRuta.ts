@@ -38,3 +38,21 @@ export function useMutacionHojasRuta<A, R>(fn: (a: A) => Promise<R>) {
     },
   });
 }
+
+/** Indicadores del inicio de SEC_DIR: solo el `total` de cada consulta, y los 5 últimos. */
+export const useResumenHojasRuta = () =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'resumen'],
+    queryFn: async () => {
+      const contar = async (estado: FiltrosHojasRuta['estado']) =>
+        (await hojasRutaService.listar({ estado, porPagina: 1 })).total;
+      const [porAvisar, impresos, remitidos, listos, ultimos] = await Promise.all([
+        contar('RECIBIDO'),
+        contar('IMPRESO'),
+        contar('REMITIDO_CALAHUMANA'),
+        contar('LISTO'),
+        hojasRutaService.listar({ porPagina: 5 }),
+      ]);
+      return { porAvisar, impresos, remitidos, listos, ultimos: ultimos.datos };
+    },
+  });
