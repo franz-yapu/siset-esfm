@@ -1,0 +1,77 @@
+# SISET · despliegue de prueba en Coolify (SDD S0.12 §2.2, DEC-036). Misma forma que el servicio de Ventas Fácil:
+# servicio docker-compose de Coolify con imágenes de GHCR. Coolify genera las contraseñas (${SERVICE_PASSWORD_*})
+# y asigna el dominio y el certificado a `web` (SERVICE_FQDN_WEB_80). Solo datos de prueba ficticios.
+services:
+  db:
+    image: 'postgres:16-alpine'
+    restart: always
+    environment:
+      POSTGRES_USER: siset
+      POSTGRES_PASSWORD: '${SERVICE_PASSWORD_POSTGRES}'
+      POSTGRES_DB: siset
+    command: ['postgres', '-c', 'max_connections=30', '-c', 'shared_buffers=128MB']
+    volumes:
+      - 'siset-pgdata:/var/lib/postgresql/data'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U siset -d siset']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 768m
+    cpus: 1.0
+
+  # Una sola vez por despliegue: migraciones (dueño), rol de la app (S6.4), seed y datos de prueba (idempotentes).
+  migrar:
+    image: 'ghcr.io/franz-yapu/siset-migrar:prueba'
+    restart: 'no'
+    exclude_from_hc: true
+    command:
+      - sh
+      - '-c'
+      - 'npm run bd:desplegar -w @siset/api && npm run bd:rol-app -w @siset/api && npm run bd:seed -w @siset/api && npm run bd:datos-prueba -w @siset/api'
+    environment:
+      DATABASE_URL: 'postgresql://siset:${SERVICE_PASSWORD_POSTGRES}@db:5432/siset'
+      APP_DB_PASSWORD: '${SERVICE_PASSWORD_64_APPDB}'
+      SEED_KARDEX_CI: '9000001'
+      SEED_KARDEX_NOMBRES: Kardex
+      SEED_KARDEX_APELLIDO_PATERNO: Prueba
+      SEED_KARDEX_SEDE: ANCOCAGUA
+      # Prefijo "K-1": cumple la política de DEC-011 (letra, número y símbolo) con la clave aleatoria de Coolify.
+      SEED_KARDEX_PASSWORD: 'K-1${SERVICE_PASSWORD_KARDEX}'
+      DATOS_PRUEBA: '1'
+      DATOS_PRUEBA_PASSWORD: 'P-1${SERVICE_PASSWORD_PRUEBA}'
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+
+  api:
+    image: 'ghcr.io/franz-yapu/siset-api:prueba'
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # La API entra con siset_app: sin UPDATE/DELETE en la bitácora ni en los movimientos (DEC-017).
+      DATABASE_URL: 'postgresql://siset_app:${SERVICE_PASSWORD_64_APPDB}@db:5432/siset'
+      JWT_SECRET: '${SERVICE_PASSWORD_64_JWT}'
+      CORS_ORIGEN: 'https://siset.vertexall.com'
+      TRUST_PROXY: 1
+      LOG_LEVEL: info
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    cpus: 1.0
+
+  web:
+    image: 'ghcr.io/franz-yapu/siset-web:prueba'
+    restart: always
+    environment:
+      - SERVICE_FQDN_WEB_80
+    depends_on:
+      - api
+    mem_limit: 256m
+    cpus: 0.5
+
+volumes:
+  siset-pgdata: null

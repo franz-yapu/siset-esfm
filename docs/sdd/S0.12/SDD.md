@@ -2,8 +2,8 @@
 
 - **Ticket:** ClickUp **S0.12** (`868mh1kuh`, https://app.clickup.com/t/868mh1kuh), rehecho: el responsable pidió el 2026-10-14 un despliegue **de prueba** "igual que Ventas Fácil" (Coolify, Cloudflare) y **con datos de prueba**.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
-- **Versión:** 1.0 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14)
+- **Versión:** 1.1 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. Inspección del VPS en solo lectura (2026-10-14): Ventas Fácil producción es un **servicio docker-compose de Coolify** (`db`, `api`, `web`) con imágenes de **GHCR**, el dominio por `SERVICE_FQDN_WEB_80`, contraseñas por `${SERVICE_PASSWORD_*}` y Let's Encrypt de Traefik. **Cloudflare es solo DNS**: `*.vertexall.com` apunta directo al VPS (`31.220.101.118`), sin proxy. Recursos libres: 5,8 GB de RAM, 81 GB de disco.
   2. `docs/sdd/S0.4/SDD.md` (imágenes y `migrar`), `docs/sdd/S0.9/SDD.md` (staging: compose manual; queda como alternativa), `docs/sdd/S6.4/SDD.md` (rol `siset_app`), DEC-008, DEC-017, DEC-019 #1
@@ -15,7 +15,7 @@
 
 ### Entra
 
-- **Imágenes en GHCR**: workflow `publicar-imagenes.yml` (a mano, `workflow_dispatch`) que construye `ghcr.io/franz-yapu/siset-api` y `siset-web` y las etiqueta `prueba` y `AAAA.MM.DD-<sha>`. Públicas.
+- **Imágenes en GHCR**: workflow `publicar-imagenes.yml` (a mano, `workflow_dispatch`) que construye `ghcr.io/franz-yapu/siset-api`, `siset-migrar` y `siset-web` y las etiqueta `prueba` y `AAAA.MM.DD-<sha>`. Públicas.
 - **Compose para Coolify** (`deploy/coolify/docker-compose.yml`), con la forma del de Ventas Fácil: `db`, `migrar` (una sola vez: migraciones, rol de la app, seed y datos de prueba), `api` y `web`.
 - **Datos de prueba** (`apps/api/prisma/datos-prueba.ts`), ficticios e idempotentes: el personal de cada rol, ~30 files con requisitos variados (completos, pendientes, observados, dos bloqueados) y ~8 hojas de ruta en distintos pasos de los dos flujos.
 - **Creación y despliegue** del servicio por la API de Coolify, y verificación: HTTPS, login, prueba de humo, y que los demás sistemas del VPS sigan respondiendo.
@@ -34,16 +34,16 @@
 ### 2.1 Imágenes
 
 - `apps/api/Dockerfile` y `apps/web/Dockerfile` (S0.4), sin cambios. La web se construye con `VITE_USAR_API=auth,usuarios,bitacora,files` (lo conectado hoy), `VITE_DEMO=false` (sin "usuarios de prueba" ni "Ver como") y `VITE_PUBLIC_URL=https://siset.vertexall.com`.
-- El workflow corre con `GITHUB_TOKEN` (`packages: write`). La primera vez, el responsable marca los dos paquetes como **públicos** en GitHub (un clic cada uno); después, Coolify los baja sin credenciales.
+- El workflow corre con `GITHUB_TOKEN` (`packages: write`). La primera vez, el responsable marca los tres paquetes como **públicos** en GitHub (un clic cada uno); después, Coolify los baja sin credenciales.
 
 ### 2.2 Compose (forma de Ventas Fácil)
 
 ```yaml
 services:
   db: # postgres:16-alpine, volumen siset-pgdata, healthcheck; POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
-  migrar: # imagen api, target build; una sola vez; exclude_from_hc: true
+  migrar: # imagen siset-migrar (target build del Dockerfile de la api); una sola vez; exclude_from_hc: true
     # migrate deploy → bd:rol-app → seed → datos de prueba (DATOS_PRUEBA=1)
-  api: # imagen api; DATABASE_URL con siset_app y ${SERVICE_PASSWORD_APPDB}; JWT_SECRET=${SERVICE_PASSWORD_64_JWT};
+  api: # imagen api; DATABASE_URL con siset_app y ${SERVICE_PASSWORD_64_APPDB}; JWT_SECRET=${SERVICE_PASSWORD_64_JWT};
     # CORS_ORIGEN=https://siset.vertexall.com; TRUST_PROXY=1; depends_on migrar (completed_successfully)
   web: # imagen web (Nginx, proxy /api → api:3000); SERVICE_FQDN_WEB_80 (Coolify pone el dominio y el certificado)
 ```
@@ -121,5 +121,13 @@ El responsable crea un **token de la API** en Coolify (Keys & Tokens) y lo deja 
 
 ## 7 · Preguntas abiertas
 
-- **Para el responsable:** crear el token de la API de Coolify y dejarlo en `~/.coolify-token` del VPS; marcar los dos paquetes de GHCR como públicos después de la primera publicación.
+- **Para el responsable:** crear el token de la API de Coolify y dejarlo en `~/.coolify-token` del VPS; marcar los tres paquetes de GHCR como públicos después de la primera publicación.
 - **DEC-036 (va a `LOG.md`):** despliegue de prueba en Coolify como servicio docker-compose (forma de Ventas Fácil), con imágenes públicas de GHCR, dominio `siset.vertexall.com`, Cloudflare solo DNS y datos de prueba ficticios. Reemplaza el despliegue manual de S0.9 para este entorno.
+
+---
+
+## Changelog
+
+- **1.1 (2026-10-14):** la imagen de `migrar` se publica aparte (`siset-migrar`, target `build`), porque la de la api
+  (target `runtime`) no trae Prisma CLI ni `tsx`: son tres paquetes, no dos. La contraseña de `siset_app` pasa a
+  `${SERVICE_PASSWORD_64_APPDB}`: `bd:rol-app` exige 16 caracteres o más y la prueba local con una clave corta falló.

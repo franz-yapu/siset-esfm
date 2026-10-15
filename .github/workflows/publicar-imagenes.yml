@@ -1,0 +1,61 @@
+# Publica las imágenes de SISET en GHCR para el despliegue de prueba en Coolify (SDD S0.12 §2.1, DEC-036).
+# Se corre a mano (Actions → "Publicar imágenes" → Run workflow) desde main. Las acciones van fijadas por SHA.
+name: Publicar imágenes
+
+on:
+  workflow_dispatch:
+    inputs:
+      dominio:
+        description: Dominio público de la web (para el QR y los enlaces)
+        default: siset.vertexall.com
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publicar-imagenes
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: publicar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      REGISTRO: ghcr.io/franz-yapu
+      FUENTE: https://github.com/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Etiquetas
+        id: tag
+        run: echo "version=$(date -u +%Y.%m.%d)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Entrar a GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: API (runtime) y migrar (build, con el CLI de Prisma y tsx)
+        run: |
+          for objetivo in runtime:siset-api build:siset-migrar; do
+            target="${objetivo%%:*}"; imagen="${objetivo##*:}"
+            docker build -f apps/api/Dockerfile --target "$target" \
+              --label "org.opencontainers.image.source=$FUENTE" \
+              -t "$REGISTRO/$imagen:prueba" -t "$REGISTRO/$imagen:${{ steps.tag.outputs.version }}" .
+            docker push --all-tags "$REGISTRO/$imagen"
+          done
+      - name: Web (con la API real en lo conectado, sin la demo)
+        run: |
+          docker build -f apps/web/Dockerfile \
+            --build-arg VITE_USAR_API=auth,usuarios,bitacora,files \
+            --build-arg VITE_DEMO=false \
+            --build-arg VITE_PUBLIC_URL=https://${{ inputs.dominio }} \
+            --label "org.opencontainers.image.source=$FUENTE" \
+            -t "$REGISTRO/siset-web:prueba" -t "$REGISTRO/siset-web:${{ steps.tag.outputs.version }}" .
+          docker push --all-tags "$REGISTRO/siset-web"
+      - name: Resumen
+        run: |
+          {
+            echo "### Imágenes publicadas (${{ steps.tag.outputs.version }})"
+            echo "- \`$REGISTRO/siset-api:prueba\`"
+            echo "- \`$REGISTRO/siset-migrar:prueba\`"
+            echo "- \`$REGISTRO/siset-web:prueba\`"
+          } >> "$GITHUB_STEP_SUMMARY"
