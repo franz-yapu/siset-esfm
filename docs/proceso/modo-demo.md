@@ -23,7 +23,8 @@ presentación se vuelve al [modo normal](modo-normal.md).
   usa la propuesta provisional; no se inventan reglas.
 - TypeScript estricto, sin `any`. Commits `Sx.y <qué hace>` en español.
 - Antes de cada push: `npm run typecheck`, `npm test` y `npm run build` en local (el CI sigue corriendo en `main`).
-- Producción con datos reales sigue esperando; la prueba en `siset.vertexall.com` se redespliega para la demo.
+- **Despliegue en el VPS solo una vez, al final del día** (prueba en `siset.vertexall.com`, ver
+  [despliegue/prueba-coolify.md](../despliegue/prueba-coolify.md)). Producción con datos reales sigue esperando.
 
 ## Orden
 
@@ -40,3 +41,9 @@ Un rol a la vez, de punta a punta, en el orden del trámite:
 1. Escribir los SDD que faltan como `Implementado` a partir de lo que quedó en main.
 2. Poner ClickUp al día.
 3. Volver al modo normal (ramas, PR, un ticket a la vez).
+
+## Protección de `main`
+
+El ruleset "Proteger main (S0.5)" (id `25016346`, exige PR y los 4 checks) quedó **desactivado** el 15-oct para
+poder hacer push directo. Se reactiva después de la presentación:
+`gh api -X PUT repos/franz-yapu/siset-esfm/rulesets/25016346 -f enforcement=active`.
