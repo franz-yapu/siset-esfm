@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { NavLink } from 'react-router';
 import { MapPin, X } from 'lucide-react';
 import clsx from 'clsx';
@@ -20,6 +21,13 @@ interface Props {
 export function Sidebar({ usuario, abierto, onCerrar }: Props) {
   const { permisos } = usePermisos();
   const items = itemsDelMenu(permisos);
+  // En celular, Esc cierra el panel abierto, como las ventanas modales.
+  useEffect(() => {
+    if (!abierto) return;
+    const alTeclear = (e: KeyboardEvent) => e.key === 'Escape' && onCerrar();
+    window.addEventListener('keydown', alTeclear);
+    return () => window.removeEventListener('keydown', alTeclear);
+  }, [abierto, onCerrar]);
   return (
     <>
       <div
