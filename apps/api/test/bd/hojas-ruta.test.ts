@@ -10,7 +10,6 @@ import { sembrar } from '../../prisma/semilla';
 const bd = clienteDeTest();
 const app = crearApp({ bd, config: configDePrueba() });
 let siguiente = 6900100;
-let correlativo = 1;
 
 type Rol = 'SEC_DIR' | 'KARDEX' | 'COORDINADOR';
 const personal: Record<Rol, { id: number; sedeId: number }> = {
@@ -72,7 +71,8 @@ async function nuevaHoja(
     },
   });
   const t = await bd.tipoTramite.findUniqueOrThrow({ where: { codigo: tipo } });
-  const nro = `HR-2026-${String(correlativo++).padStart(6, '0')}`;
+  // El N.º sale del correlativo (S3.2): con números fijos chocaría con las ingestas de otros tests.
+  const [{ nro }] = await bd.$queryRaw<{ nro: string }[]>`SELECT fn_siguiente_nro_hoja_ruta(2026::smallint) AS nro`;
   const h = await bd.hojaRuta.create({
     data: {
       nroTramite: nro,

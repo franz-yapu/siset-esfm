@@ -2,7 +2,7 @@
 
 - **Tickets:** S3.2 ("Correlativo HR-AAAA-NNNNNN por gestión") y S3.4 ("POST /hojas-ruta (ingesta)"), más la API de lista que necesita S3.9. Comparten diseño: un solo SDD. Se crean en ClickUp al aprobarlo.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-08 (CA1 SEC_DIR registra un trámite vinculado a un file; CA2 correlativo único por gestión, en transacción)
@@ -105,10 +105,10 @@ Una transacción: correlativo → `hoja_ruta` (`RECIBIDO`, sede LA_PAZ, `gestion
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S3.2-S3.4/SDD.md`, Estado = Aprobado; tickets en ClickUp.
-- [ ] ADR-0006 y DEC-035; `business-rules.md` con las reglas de la ingesta.
-- [ ] Tests del §4 y quality gate en verde.
-- [ ] Commit `S3.2 y S3.4 …` en `feat/S3.2-S3.4-ingesta`.
+- [x] SDD en `docs/sdd/S3.2-S3.4/SDD.md`, Estado = Aprobado; tickets en ClickUp.
+- [x] ADR-0006 y DEC-035; `business-rules.md` con las reglas de la ingesta.
+- [x] Tests del §4 y quality gate en verde.
+- [x] Commit `S3.2 y S3.4 …` en `feat/S3.2-S3.4-ingesta`.
 
 ---
 

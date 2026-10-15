@@ -33,7 +33,16 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 
 ## Correlativo
 
-- `HR-AAAA-NNNNNN`, único por gestión, generado dentro de la transacción de ingesta (sin huecos por concurrencia).
+- `HR-AAAA-NNNNNN`, único por gestión (año en La Paz), generado en la base dentro de la transacción de la ingesta
+  con `fn_siguiente_nro_hoja_ruta`: sin huecos ni repetidos (ADR-0006, DEC-035).
+
+## Ingesta (RF-08, DEC-035)
+
+- La registra **SEC_DIR desde Calahumana** (sede LA_PAZ; D-32 pregunta por los certificados).
+- **N.º de valorado** obligatorio solo si el tipo lo requiere (historial y legalización); los certificados no lo
+  llevan (D-05).
+- El file debe existir, ser de un **egresado** (provisional, D-09) y **no estar bloqueado** (DEC-029).
+- Deja el trámite en `RECIBIDO`, con su primer movimiento (`REGISTRAR`) y el evento `CREAR`.
 
 ## File académico, semáforo y bloqueo (RF-07, D-04, D-07, D-18)
 

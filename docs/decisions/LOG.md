@@ -557,3 +557,15 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    pasos hasta imprimir. `business-rules.md` §Hoja de ruta se reescribió.
 3. `POST /hojas-ruta/:nro/transiciones` (409, 403, 422) y `GET /hojas-ruta/:nro` con los movimientos y las acciones
    posibles para quien pregunta. La ingesta y el correlativo llegan con S3.4 y S3.2.
+
+## DEC-035 — Correlativo, ingesta y lista de hojas de ruta
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S3.2-S3.4 (aprobado) + ADR-0006 · **Estado:** activa (la regla de egresados es provisional, D-09)
+
+1. Correlativo `HR-AAAA-NNNNNN` por gestión (año en La Paz) con `fn_siguiente_nro_hoja_ruta`, dentro de la
+   transacción de la ingesta: sin huecos ni repetidos. ADR-0006.
+2. `POST /hojas-ruta`: SEC_DIR desde LA_PAZ; valorado obligatorio solo si el tipo lo requiere, y prohibido si no;
+   el file debe existir, ser de un egresado y no estar bloqueado. Deja `RECIBIDO` con el movimiento `REGISTRAR` y el
+   evento `CREAR`.
+3. `GET /hojas-ruta` paginado (más recientes primero) con filtros por N.º, CI o nombre del titular, estado, tipo y
+   gestión.
