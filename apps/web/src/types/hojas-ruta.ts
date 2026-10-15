@@ -90,3 +90,15 @@ export interface DatosCrearHojaRuta {
   nroValorado: string | null;
   observacion: string | null;
 }
+
+/** POST /seguimiento (RF-09): solo el nombre y los pasos, sin quién los hizo. */
+export interface Seguimiento {
+  nro: string;
+  tipo: string;
+  estado: EstadoHojaRuta;
+  sedeActual: string;
+  fechaIngreso: string;
+  fechaCierre: string | null;
+  titular: string;
+  pasos: { estado: EstadoHojaRuta; sede: string; fecha: string }[];
+}

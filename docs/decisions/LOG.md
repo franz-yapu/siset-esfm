@@ -596,3 +596,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    la lista son los de la API (texto, estado, tipo, gestión) y la marca "detenido" sale de la lista.
 4. `GET /hojas-ruta/tipos` es el catálogo de tipos de trámite.
 5. La cuenta SEC_DIR del E2E contra la API real queda en LA_PAZ (la ingesta es de Calahumana).
+
+## DEC-038 — Seguimiento público del trámite
+
+**Fecha:** 2026-10-15 · **Fuente:** RF-09 (modo demo, sin SDD previo) · **Estado:** activa
+
+1. `POST /api/v1/seguimiento` sin sesión, con `{ nro, ci }` en el cuerpo (el CI no queda en la URL ni en los logs).
+   Responde el nombre del titular, el tipo, el estado, la sede actual y los pasos (estado, sede, fecha), sin quién
+   hizo cada paso (RF-09 CA3).
+2. El mismo 404 si no existe el N.º o si el CI no es del titular (anti-enumeración). El CI se acepta con o sin
+   complemento.
+3. Límite por IP igual al del login (`LOGIN_LIMITE_POR_MINUTO`, RNF-10). La consulta no se registra en la bitácora:
+   no es una escritura ni un evento de acceso del personal.
+4. La página P-02 (a la que apunta el QR) usa el modelo nuevo y ya no muestra la barra de progreso del prototipo.

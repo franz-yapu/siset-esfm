@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { Router, type RequestHandler, type Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
+import { ErrorDemasiadasPeticiones } from '@/compartido/errores';
 import { datosValidos, esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import {
   esquemaCrearHojaRuta,
@@ -13,6 +15,9 @@ import {
   esquemasUnaHojaRuta,
   esquemaTransicion,
   esquemaTipoTramite,
+  esquemaConsultaSeguimiento,
+  esquemaSeguimiento,
+  esquemasSeguimiento,
 } from './hojas-ruta.esquemas';
 import type { ServicioHojasRuta, SesionHojaRuta } from './hojas-ruta.servicio';
 
@@ -23,7 +28,20 @@ export function crearRutasHojasRuta(
   autorizarLectura: RequestHandler,
   autorizarIngesta: RequestHandler,
   sesionDe: (res: Response) => SesionHojaRuta,
+  seguimientoLimitePorMinuto: number,
 ): Router {
+  // Pública: frena a quien prueba CI al azar (RNF-10). Va antes de `validar`, como el login.
+  const limitar = rateLimit({
+    windowMs: 60_000,
+    limit: seguimientoLimitePorMinuto,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, _res, next) => next(new ErrorDemasiadasPeticiones()),
+  });
+  const seguimiento: RequestHandler = async (_req, res) => {
+    const { nro, ci } = datosValidos(res, esquemasSeguimiento).body;
+    res.json(await servicio.seguimiento(nro, ci));
+  };
   const listar: RequestHandler = async (_req, res) => {
     res.json(await servicio.listar(datosValidos(res, esquemasListarHojasRuta).query));
   };
@@ -42,6 +60,7 @@ export function crearRutasHojasRuta(
   };
   return (
     Router()
+      .post('/seguimiento', limitar, validar(esquemasSeguimiento), seguimiento)
       .get('/hojas-ruta', autenticar, autorizarLectura, validar(esquemasListarHojasRuta), listar)
       .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
       // Antes de `/:nro`, para que `tipos` no se lea como número de trámite.
@@ -58,6 +77,24 @@ const comunes = {
 };
 
 export const openapiHojasRuta: ZodOpenApiPathsObject = {
+  '/api/v1/seguimiento': {
+    post: {
+      tags: ['Hojas de ruta'],
+      summary: 'Seguimiento público de un trámite',
+      description:
+        'Sin sesión (a esta consulta apunta el QR). N.º + CI del titular; solo el nombre y los pasos (RF-09). El mismo 404 si falla cualquiera de los dos.',
+      requestBody: { content: { 'application/json': { schema: esquemaConsultaSeguimiento } } },
+      responses: {
+        '200': {
+          description: 'El avance del trámite.',
+          content: { 'application/json': { schema: esquemaSeguimiento } },
+        },
+        '400': error('Datos inválidos (VALIDACION).'),
+        '404': error('No hay un trámite con ese N.º y ese CI (NO_ENCONTRADO).'),
+        '429': error('Demasiadas consultas desde la misma IP.'),
+      },
+    },
+  },
   '/api/v1/hojas-ruta': {
     get: {
       tags: ['Hojas de ruta'],

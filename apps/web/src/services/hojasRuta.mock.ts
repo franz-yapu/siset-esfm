@@ -197,4 +197,22 @@ export const hojasRutaMock: ServicioHojasRuta = {
     await delay(LATENCIA);
     return copia([...TIPOS_TRAMITE_MOCK].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')));
   },
+  async seguimiento(nro, ci) {
+    await delay(LATENCIA);
+    const h = db.hojasRutaV2.find((x) => x.nro === nro.trim().toUpperCase());
+    const f = h && db.files.find((x) => x.id === h.fileId);
+    if (!h || !f || f.ci !== ci.trim()) {
+      throw new ErrorApi('No encontramos un trámite con esos datos.', 'NO_ENCONTRADO', 404);
+    }
+    return copia({
+      nro: h.nro,
+      tipo: tipoDe(h.tipo).nombre,
+      estado: h.estado,
+      sedeActual: sedeHr(h.sedeActual),
+      fechaIngreso: h.fechaIngreso,
+      fechaCierre: h.fechaCierre,
+      titular: aDetalle(f).nombre,
+      pasos: h.movimientos.map((m) => ({ estado: m.estadoNuevo, sede: sedeHr(m.sede), fecha: m.fecha })),
+    });
+  },
 };

@@ -24,6 +24,7 @@ import type {
   DetalleHojaRuta,
   FilaHojaRuta,
   FiltrosHojasRuta,
+  Seguimiento,
   TipoTramite,
 } from './hojas-ruta.esquemas';
 import {
@@ -130,6 +131,35 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
 
   return {
     obtener: (nro: string, sesion: SesionHojaRuta) => detalle(bd, nro, sesion),
+
+    /**
+     * Seguimiento público (RF-09, S4.1): el mismo 404 si no existe el N.º o si el CI no es del titular, para no
+     * revelar qué trámites existen (anti-enumeración).
+     */
+    async seguimiento(nro: string, ci: string): Promise<Seguimiento> {
+      const noEncontrado = new ErrorNoEncontrado('No encontramos un trámite con esos datos.');
+      const h = await buscarHojaRuta(bd, nro);
+      if (!h) throw noEncontrado;
+      const { tipo, sedes, titular } = await contexto(bd, h);
+      const dado = ci.trim().toUpperCase();
+      if (titular.ci.toUpperCase() !== dado && titular.ci.split('-')[0] !== dado) throw noEncontrado;
+      const nombreSede = (id: number) => sedes.find((s) => s.id === id)?.nombre ?? '';
+      const movimientos = await listarMovimientos(bd, h.id);
+      return {
+        nro: h.nroTramite,
+        tipo: tipo.nombre,
+        estado: h.estadoActual,
+        sedeActual: nombreSede(h.sedeActualId),
+        fechaIngreso: h.fechaIngreso.toISOString(),
+        fechaCierre: h.fechaCierre?.toISOString() ?? null,
+        titular: titular.nombre,
+        pasos: movimientos.map((m) => ({
+          estado: m.estadoNuevo,
+          sede: nombreSede(m.sedeId),
+          fecha: m.fecha.toISOString(),
+        })),
+      };
+    },
 
     /** Catálogo de tipos activos para la ingesta (SDD S3.8-S3.9 §2.2). */
     async tipos(): Promise<TipoTramite[]> {

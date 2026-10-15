@@ -124,3 +124,27 @@ export const esquemaTipoTramite = z
   .object({ codigo: z.string(), nombre: z.string(), requiereValorado: z.boolean() })
   .meta({ id: 'TipoTramite' });
 export type TipoTramite = z.infer<typeof esquemaTipoTramite>;
+
+/** Consulta pública (RF-09 CA2-CA3, S4.1): N.º + CI en el cuerpo, para que el CI no quede en la URL ni en los logs. */
+export const esquemaConsultaSeguimiento = z
+  .strictObject({
+    nro: esquemaNroHojaRuta.shape.nro,
+    ci: z.string().trim().min(4).max(20).meta({ example: '6098765' }),
+  })
+  .meta({ id: 'ConsultaSeguimiento' });
+export const esquemasSeguimiento = { body: esquemaConsultaSeguimiento };
+
+/** Sin datos personales más allá del nombre (RF-09 CA3) ni quién hizo cada paso. */
+export const esquemaSeguimiento = z
+  .object({
+    nro: z.string(),
+    tipo: z.string(),
+    estado,
+    sedeActual: z.string(),
+    fechaIngreso: z.iso.datetime(),
+    fechaCierre: z.iso.datetime().nullable(),
+    titular: z.string(),
+    pasos: z.array(z.object({ estado, sede: z.string(), fecha: z.iso.datetime() })),
+  })
+  .meta({ id: 'Seguimiento' });
+export type Seguimiento = z.infer<typeof esquemaSeguimiento>;

@@ -6,6 +6,7 @@ import type {
   DetalleHojaRuta,
   FilaHojaRuta,
   FiltrosHojasRuta,
+  Seguimiento,
   TipoTramiteCatalogo,
 } from '@/types/hojas-ruta';
 import { usaApi } from './_modo';
@@ -22,6 +23,8 @@ export interface ServicioHojasRuta {
   crear(d: DatosCrearHojaRuta, actor: Usuario): Promise<DetalleHojaRuta>;
   transicion(nro: string, accion: AccionHojaRuta, observacion: string | null, actor: Usuario): Promise<DetalleHojaRuta>;
   tipos(): Promise<TipoTramiteCatalogo[]>;
+  /** Pública, sin sesión (RF-09): N.º + CI del titular. */
+  seguimiento(nro: string, ci: string): Promise<Seguimiento>;
 }
 
 export const hojasRutaService: ServicioHojasRuta = usaApi('hojasRuta') ? hojasRutaApi : hojasRutaMock;

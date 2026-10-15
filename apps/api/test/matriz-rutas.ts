@@ -126,6 +126,7 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
 export const RUTAS_PUBLICAS: readonly string[] = [
   'get /api/v1/health',
   'post /api/v1/auth/login',
+  'post /api/v1/seguimiento',
   'post /api/v1/auth/refresh',
   'post /api/v1/auth/logout',
 ];

@@ -221,3 +221,27 @@ describe('GET /hojas-ruta/tipos (SDD S3.8-S3.9 §2.2)', () => {
     expect((await request(app).get('/api/v1/hojas-ruta/tipos')).status).toBe(401);
   });
 });
+
+describe('POST /seguimiento (RF-09, S4.1)', () => {
+  it('con N.º y CI del titular: nombre y pasos, sin quién los hizo; si falla uno de los dos, el mismo 404', async () => {
+    const f = await nuevoFile({ nombres: 'Seguida' });
+    const nro = (await ingresar({ fileId: f.fileId, tipoTramite: 'CERT_NOTAS_ANTERIOR' })).body.nro as string;
+    const consultar = (cuerpo: object) => request(app).post('/api/v1/seguimiento').send(cuerpo);
+
+    const r = await consultar({ nro: nro.toLowerCase(), ci: f.ci });
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ nro, estado: 'RECIBIDO', titular: 'Seguida Ingesta' });
+    expect(r.body.pasos).toHaveLength(1);
+    expect(Object.keys(r.body).sort()).toEqual(
+      ['estado', 'fechaCierre', 'fechaIngreso', 'nro', 'pasos', 'sedeActual', 'tipo', 'titular'].sort(),
+    );
+    expect(Object.keys(r.body.pasos[0]).sort()).toEqual(['estado', 'fecha', 'sede']);
+
+    const otroCi = await consultar({ nro, ci: '1234567' });
+    const otroNro = await consultar({ nro: 'HR-2099-999999', ci: f.ci });
+    expect(otroCi.status).toBe(404);
+    expect(otroNro.status).toBe(404);
+    expect(otroCi.body.error.message).toBe(otroNro.body.error.message);
+    expect((await consultar({ nro, ci: '1' })).status).toBe(400);
+  });
+});

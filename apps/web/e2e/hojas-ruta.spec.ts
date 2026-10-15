@@ -68,3 +68,19 @@ test('Kardex recoge un trámite avisado desde su inicio', async ({ page }) => {
   await expect(page.getByText('En impresión').first()).toBeVisible();
   expect(problemas).toEqual([]);
 });
+
+test('seguimiento público con el QR: N.º + CI muestran el avance; un CI equivocado, el mensaje genérico', async ({
+  page,
+}) => {
+  const problemas = vigilarConsola(page);
+  const nro = `HR-${new Date().getFullYear()}-000001`;
+  await page.goto(`/seguimiento?hr=${nro}`);
+  await page.getByLabel('CI del titular').fill('1111111');
+  await page.getByRole('button', { name: 'Consultar' }).click();
+  await expect(page.getByText('No encontramos un trámite con esos datos.')).toBeVisible();
+  await page.getByLabel('CI del titular').fill('6076543');
+  await page.getByRole('button', { name: 'Consultar' }).click();
+  await expect(page.getByText('Elena', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('Recibido').first()).toBeVisible();
+  expect(problemas).toEqual([]);
+});

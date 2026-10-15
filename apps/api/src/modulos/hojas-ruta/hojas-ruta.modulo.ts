@@ -9,6 +9,7 @@ export function crearModuloHojasRuta({
   autorizarLectura,
   autorizarIngesta,
   sesionDe,
+  seguimientoLimitePorMinuto,
   ...deps
 }: DependenciasHojasRuta & {
   autenticar: RequestHandler;
@@ -16,9 +17,18 @@ export function crearModuloHojasRuta({
   /** `autorizar('hojas-ruta', 'crear')`: solo SEC_DIR (DEC-015). */
   autorizarIngesta: RequestHandler;
   sesionDe: (res: Response) => SesionHojaRuta;
+  /** Consultas públicas por minuto e IP (el mismo límite del login, RNF-10). */
+  seguimientoLimitePorMinuto: number;
 }): ModuloHttp {
   return {
-    router: crearRutasHojasRuta(crearServicioHojasRuta(deps), autenticar, autorizarLectura, autorizarIngesta, sesionDe),
+    router: crearRutasHojasRuta(
+      crearServicioHojasRuta(deps),
+      autenticar,
+      autorizarLectura,
+      autorizarIngesta,
+      sesionDe,
+      seguimientoLimitePorMinuto,
+    ),
     openapi: openapiHojasRuta,
   };
 }

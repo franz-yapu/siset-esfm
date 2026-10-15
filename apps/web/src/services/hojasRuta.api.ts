@@ -1,5 +1,11 @@
 import type { Pagina } from '@/types/pagina';
-import type { DetalleHojaRuta, FilaHojaRuta, FiltrosHojasRuta, TipoTramiteCatalogo } from '@/types/hojas-ruta';
+import type {
+  DetalleHojaRuta,
+  FilaHojaRuta,
+  FiltrosHojasRuta,
+  Seguimiento,
+  TipoTramiteCatalogo,
+} from '@/types/hojas-ruta';
 import { api } from '@/lib/api';
 import type { ServicioHojasRuta } from './hojasRuta.service';
 
@@ -29,5 +35,8 @@ export const hojasRutaApi: ServicioHojasRuta = {
   },
   async tipos() {
     return (await api.get<TipoTramiteCatalogo[]>('/hojas-ruta/tipos')).data;
+  },
+  async seguimiento(nro, ci) {
+    return (await api.post<Seguimiento>('/seguimiento', { nro: nro.trim(), ci: ci.trim() })).data;
   },
 };

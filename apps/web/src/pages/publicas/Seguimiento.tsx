@@ -1,23 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { ArrowLeft, MapPin, Search, ShieldCheck } from 'lucide-react';
-import type { Movimiento, EstadoTramite } from '@/types';
-import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
-import { Alerta, Button, Card, EstadoBadge, Input, ProgresoPasos, Timeline } from '@/components/ui';
-import { nombreSede } from '@/config/catalogos';
+import type { Seguimiento as Resultado } from '@/types/hojas-ruta';
+import { hojasRutaService } from '@/services/hojasRuta.service';
+import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
+import { Alerta, Button, Card, EstadoHojaRutaBadge, Input, Timeline } from '@/components/ui';
 import { fecha } from '@/lib/formato';
 
-interface Resultado {
-  nro: string;
-  tipo: string;
-  estado: EstadoTramite;
-  sedeActualId: number;
-  fechaIngreso: string;
-  titular: string;
-  movimientos: Movimiento[];
-}
-
-/** P-02 · Consulta pública de trámite (a esta página apunta el QR). */
+/** P-02 · Consulta pública de trámite contra POST /seguimiento (RF-09, S4.1). A esta página apunta el QR. */
 export function Seguimiento() {
   const [params] = useSearchParams();
   const [nro, setNro] = useState(params.get('hr') ?? '');
@@ -40,7 +30,7 @@ export function Seguimiento() {
     }
     setCargando(true);
     try {
-      setRes(await hojasRutaPrototipoService.seguimientoPublico(nro, ci));
+      setRes(await hojasRutaService.seguimiento(nro, ci));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {
@@ -101,15 +91,22 @@ export function Seguimiento() {
                 <p className="text-lg font-semibold text-slate-900">{res.titular}</p>
                 <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
                   <MapPin className="size-3.5" />
-                  Ahora en: {nombreSede(res.sedeActualId)} · Ingresó el {fecha(res.fechaIngreso)}
+                  Ahora en: {res.sedeActual} · Ingresó el {fecha(res.fechaIngreso)}
+                  {res.fechaCierre && ` · Entregado el ${fecha(res.fechaCierre)}`}
                 </p>
               </div>
-              <EstadoBadge estado={res.estado} className="text-sm" />
+              <EstadoHojaRutaBadge estado={res.estado} className="text-sm" />
             </div>
-            <div className="mb-5">
-              <ProgresoPasos estado={res.estado} />
-            </div>
-            <Timeline movimientos={res.movimientos} ocultarResponsable />
+            <Timeline
+              ocultarResponsable
+              pasos={res.pasos.map((p) => ({
+                etiqueta: ESTADOS_HR[p.estado].etiqueta,
+                punto: ESTADOS_HR[p.estado].punto,
+                fecha: p.fecha,
+                sede: p.sede,
+                usuario: '',
+              }))}
+            />
           </Card>
         )}
       </main>
