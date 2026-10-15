@@ -39,7 +39,8 @@ services:
       # Prefijo "K-1": cumple la política de DEC-011 (letra, número y símbolo) con la clave aleatoria de Coolify.
       SEED_KARDEX_PASSWORD: 'K-1${SERVICE_PASSWORD_KARDEX}'
       DATOS_PRUEBA: '1'
-      DATOS_PRUEBA_PASSWORD: 'P-1${SERVICE_PASSWORD_PRUEBA}'
+      # Contraseña común de las cuentas de prueba: la publica el login de la prueba (SDD S0.12 §2.5).
+      DATOS_PRUEBA_PASSWORD: 'Prueba.2026'
     depends_on:
       db:
         condition: service_healthy

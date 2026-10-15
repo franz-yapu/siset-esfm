@@ -35,17 +35,19 @@ Volver a una versión anterior: cambiar `:prueba` por `:AAAA.MM.DD-sha` en el co
 
 ## Credenciales
 
-Las contraseñas las genera Coolify (`SERVICE_PASSWORD_*`); no están en el repo.
+Son públicas a propósito: el login de la prueba las muestra en el recuadro "Usuarios de prueba" (SDD S0.12 §2.5).
+Contraseña de todas: `Prueba.2026`.
 
-| Usuario (CI) | Rol         | Sede      | Contraseña                                              |
-| ------------ | ----------- | --------- | ------------------------------------------------------- |
-| 9000001      | KARDEX      | ANCOCAGUA | `K-1` + `SERVICE_PASSWORD_KARDEX` (cambiarla al entrar) |
-| 9000002      | SEC_DIR     | LA_PAZ    | `P-1` + `SERVICE_PASSWORD_PRUEBA`                       |
-| 9000003      | SEC_COORD   | ANCOCAGUA | `P-1` + `SERVICE_PASSWORD_PRUEBA`                       |
-| 9000004      | COORDINADOR | ANCOCAGUA | `P-1` + `SERVICE_PASSWORD_PRUEBA`                       |
+| Usuario (CI) | Rol         | Sede      |
+| ------------ | ----------- | --------- |
+| 9000001      | KARDEX      | ANCOCAGUA |
+| 9000002      | SEC_DIR     | LA_PAZ    |
+| 9000003      | SEC_COORD   | ANCOCAGUA |
+| 9000004      | COORDINADOR | ANCOCAGUA |
 
-Los valores se ven en Coolify (servicio → Environment Variables) y se dejan al responsable en
-`~/siset-prueba-credenciales.txt` del VPS (permisos 600).
+Cada despliegue las repara (`bd:datos-prueba`): vuelve la contraseña común, sin cambio obligatorio, sin bloqueo y
+sin sesiones. Si alguien cambió una contraseña o bloqueó una cuenta, basta con redesplegar. El resto de los datos
+(files, hojas de ruta, bitácora) no se reinicia.
 
 ## Verificación
 
@@ -54,7 +56,7 @@ curl -s https://siset.vertexall.com/api/v1/health          # {"estado":"ok","bd"
 curl -sI https://ventafacil.vertexall.com | head -1         # los otros sistemas siguen respondiendo
 ```
 
-Y a mano: login del Kardex (pide cambiar la contraseña), búsqueda de files, detalle con su semáforo.
+Y a mano: el recuadro de cuentas debajo del login, entrar con cada rol, búsqueda de files, detalle con su semáforo.
 
 ## Qué está conectado
 
