@@ -697,3 +697,14 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    su file. Se refresca al registrar un paso y cada minuto. SEC_COORD no registra pasos: sin avisos. Solo con todo
    en mock se usa la campana del prototipo.
 3. Repreguntas a la escuela (respuestas incompletas o ambiguas): D-10b, D-18b, D-14c y D-20b (hoja, filas 42–45).
+
+## DEC-045 — Pestaña "Trámites" del file y egresados sin file (D-40)
+
+**Fecha:** 2026-10-15 · **Fuente:** D-09, D-40 (propuesta) (modo demo, sin SDD previo) · **Estado:** activa
+
+1. Con la API, el detalle del file (P-41) muestra la pestaña **Trámites** a quien lee hojas de ruta: las del titular,
+   con su estado, y el detalle al hacer clic. Usa `GET /hojas-ruta?texto=<CI>` y filtra por el file (el texto también
+   coincide con otros CI que lo contienen). Sin endpoint nuevo.
+2. La ingesta sigue exigiendo un file EGRESADO y sin bloqueo (D-09, DEC-029). Para el egresado de años anteriores sin
+   file se preguntó D-40; mientras tanto, Kardex registra su file (datos básicos) antes de que Secretaría registre el
+   trámite.

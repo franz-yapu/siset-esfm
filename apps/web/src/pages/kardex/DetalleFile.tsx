@@ -1,23 +1,24 @@
 import { useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAsync, usePermiso, usePermisos, useToast, useUsuario } from '@/hooks';
 import { claveFiles, useEspecialidades, useFile, useMutacionFiles } from '@/hooks/useFiles';
+import { useHojasRuta } from '@/hooks/useHojasRuta';
 import type { DatosCrearFile } from '@/types/files';
 import { filesService } from '@/services/files.service';
 import { bitacoraService } from '@/services/bitacora.service';
 import { todoMock } from '@/services/_modo';
 import { cambiosDeFile } from '@/lib/files';
-import { fechaHora } from '@/lib/formato';
+import { fecha, fechaHora } from '@/lib/formato';
 import { ACCIONES, esAccion } from '@/config/auditoria';
-import { Alerta, Card, Cargando, DataTable, Tabs } from '@/components/ui';
+import { Alerta, Card, Cargando, DataTable, EstadoHojaRutaBadge, Tabs } from '@/components/ui';
 import { CabeceraFile } from '@/components/file/CabeceraFile';
 import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
 import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
 import { BloqueoFile } from '@/components/file/BloqueoFile';
 import { RequisitosFile } from '@/components/file/RequisitosFile';
 
-type Tab = 'datos' | 'requisitos' | 'historial-api' | TabDemo;
+type Tab = 'datos' | 'requisitos' | 'tramites-api' | 'historial-api' | TabDemo;
 
 /** Historial del file desde la bitácora (solo KARDEX la lee, DEC-015). */
 function HistorialFile({ fileId }: { fileId: number }) {
@@ -49,6 +50,28 @@ function HistorialFile({ fileId }: { fileId: number }) {
   );
 }
 
+/** Las hojas de ruta del titular (DEC-045): la búsqueda por texto trae coincidencias de CI; se filtra por el file. */
+function TramitesFile({ fileId, ci }: { fileId: number; ci: string }) {
+  const nav = useNavigate();
+  const { data, isLoading } = useHojasRuta({ texto: ci, porPagina: 100 });
+  const filas = (data?.datos ?? []).filter((h) => h.titular.fileId === fileId);
+  return (
+    <DataTable
+      data={filas}
+      loading={isLoading}
+      rowKey={(h) => h.nro}
+      onRowClick={(h) => nav(`/hojas-ruta/${h.nro}`)}
+      vacio="Sin trámites registrados"
+      columns={[
+        { key: 'nro', header: 'N.º HR', principal: true, render: (h) => <span className="font-medium">{h.nro}</span> },
+        { key: 'tipo', header: 'Tipo', render: (h) => h.tipo.nombre },
+        { key: 'estado', header: 'Estado', render: (h) => <EstadoHojaRutaBadge estado={h.estado} /> },
+        { key: 'ingreso', header: 'Ingreso', ocultarEnMovil: true, render: (h) => fecha(h.fechaIngreso) },
+      ]}
+    />
+  );
+}
+
 /**
  * P-41 · Detalle del file (S2.10). Datos personales y académicos contra GET/PATCH /files; bloqueo y desbloqueo
  * (S2.6, D-07b); requisitos (S2.4). Matrículas, resultados y trámites solo en la demo (DEC-028).
@@ -66,6 +89,7 @@ export function DetalleFile() {
   // SEC_DIR no ve requisitos (DEC-015); solo KARDEX los registra.
   const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' });
   const registraRequisitos = puede({ recurso: 'requisitos', accion: 'editar' });
+  const leeTramites = puede({ recurso: 'hojas-ruta', accion: 'leer' });
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
   const { data: especialidades = [] } = useEspecialidades();
@@ -96,9 +120,10 @@ export function DetalleFile() {
           { id: 'tramites', label: 'Trámites' },
           { id: 'historial', label: 'Historial' },
         ] as const)
-      : leeBitacora
-        ? ([{ id: 'historial-api', label: 'Historial' }] as const)
-        : []),
+      : [
+          ...(leeTramites ? ([{ id: 'tramites-api', label: 'Trámites' }] as const) : []),
+          ...(leeBitacora ? ([{ id: 'historial-api', label: 'Historial' }] as const) : []),
+        ]),
   ];
 
   return (
@@ -121,8 +146,9 @@ export function DetalleFile() {
           />
         )}
         {tab === 'requisitos' && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
+        {tab === 'tramites-api' && <TramitesFile fileId={f.id} ci={f.ci} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
-        {tab !== 'datos' && tab !== 'requisitos' && tab !== 'historial-api' && (
+        {tab !== 'datos' && tab !== 'requisitos' && tab !== 'tramites-api' && tab !== 'historial-api' && (
           <SeccionesDemoFile fileId={f.id} tab={tab} editable={editable} onCambio={alCambiar} />
         )}
       </Card>
