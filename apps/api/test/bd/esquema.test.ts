@@ -7,7 +7,7 @@ beforeAll(() => sembrar(bd, KARDEX_DE_PRUEBA));
 afterAll(() => bd.$disconnect());
 
 describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
-  it('crea exactamente las 14 tablas: S0.11, S1.1 (parametro, refresh_token), S2.1 (file y requisitos) y S3.1 (hojas de ruta)', async () => {
+  it('crea exactamente las 15 tablas: S0.11, S1.1 (parametro, refresh_token), S2.1 (file y requisitos) y S3.1-S3.2 (hojas de ruta)', async () => {
     const filas = await bd.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'
@@ -16,6 +16,7 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
       'especialidad',
       'file_academico',
       'hoja_ruta',
+      'hoja_ruta_correlativo',
       'log_auditoria',
       'movimiento_hoja_ruta',
       'parametro',

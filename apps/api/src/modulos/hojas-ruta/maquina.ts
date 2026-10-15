@@ -142,6 +142,13 @@ export const TRANSICIONES: readonly Transicion[] = [
   },
 ];
 
+/** La ingesta (S3.4): la registra SEC_DIR en Calahumana (D-05; D-32 pregunta por los certificados). Deja RECIBIDO. */
+export const INGESTA = { rol: 'SEC_DIR', sede: 'LA_PAZ', hacia: 'RECIBIDO' } as const satisfies {
+  rol: RolHojaRuta;
+  sede: CodigoSede;
+  hacia: EstadoHojaRuta;
+};
+
 export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
 
 export interface EstadoParaTransicion {

@@ -25,7 +25,7 @@ import {
   obtenerSedes,
   obtenerTiposTramite,
 } from '@/modulos/catalogos';
-import { crearModuloFiles, datosBasicosFile } from '@/modulos/files';
+import { crearModuloFiles, datosBasicosFile, fileIdsDePersonas, personasDeFiles } from '@/modulos/files';
 import { crearModuloHojasRuta } from '@/modulos/hojas-ruta';
 import {
   actualizarPersona,
@@ -141,6 +141,7 @@ export function crearApp({
       bd,
       autenticar,
       autorizarLectura: autorizar('hojas-ruta', 'leer'),
+      autorizarIngesta: autorizar('hojas-ruta', 'crear'),
       sesionDe: (res) => {
         const { usuarioId, rol, sedeId } = sesionDe(res);
         return { usuarioId, rol, sedeId };
@@ -153,7 +154,30 @@ export function crearApp({
         const p = (await obtenerPersonas(cliente, [f.personaId])).get(f.personaId);
         if (!p) return null;
         const nombre = [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
-        return { nombre, ci: p.complemento ? `${p.ci}-${p.complemento}` : p.ci, bloqueado: f.bloqueado };
+        return {
+          nombre,
+          ci: p.complemento ? `${p.ci}-${p.complemento}` : p.ci,
+          bloqueado: f.bloqueado,
+          condicion: f.condicion,
+        };
+      },
+      titularesDeFiles: async (cliente, fileIds) => {
+        const files = await personasDeFiles(cliente, fileIds);
+        const personas = await obtenerPersonas(
+          cliente,
+          files.map((f) => f.personaId),
+        );
+        return new Map(
+          files.map((f) => {
+            const p = personas.get(f.personaId)!;
+            const nombre = [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
+            return [f.id, { nombre, ci: p.complemento ? `${p.ci}-${p.complemento}` : p.ci }];
+          }),
+        );
+      },
+      buscarFileIdsPorTitular: async (cliente, texto) => {
+        const ids = [...(await buscarIdsPorNombre(cliente, texto)), ...(await buscarIdsPorCi(cliente, texto))];
+        return fileIdsDePersonas(cliente, [...new Set(ids)]);
       },
       describirUsuarios: describir,
     }),

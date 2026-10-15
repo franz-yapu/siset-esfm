@@ -7,15 +7,18 @@ import { crearServicioHojasRuta, type DependenciasHojasRuta, type SesionHojaRuta
 export function crearModuloHojasRuta({
   autenticar,
   autorizarLectura,
+  autorizarIngesta,
   sesionDe,
   ...deps
 }: DependenciasHojasRuta & {
   autenticar: RequestHandler;
   autorizarLectura: RequestHandler;
+  /** `autorizar('hojas-ruta', 'crear')`: solo SEC_DIR (DEC-015). */
+  autorizarIngesta: RequestHandler;
   sesionDe: (res: Response) => SesionHojaRuta;
 }): ModuloHttp {
   return {
-    router: crearRutasHojasRuta(crearServicioHojasRuta(deps), autenticar, autorizarLectura, sesionDe),
+    router: crearRutasHojasRuta(crearServicioHojasRuta(deps), autenticar, autorizarLectura, autorizarIngesta, sesionDe),
     openapi: openapiHojasRuta,
   };
 }

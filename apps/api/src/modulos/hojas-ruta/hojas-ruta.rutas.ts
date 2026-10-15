@@ -1,11 +1,16 @@
 import { Router, type RequestHandler, type Response } from 'express';
 import { datosValidos, esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import {
+  esquemaCrearHojaRuta,
   esquemaDetalleHojaRuta,
+  esquemaFiltrosHojasRuta,
   esquemaNroHojaRuta,
-  esquemaTransicion,
+  esquemaPaginaHojasRuta,
+  esquemasCrearHojaRuta,
+  esquemasListarHojasRuta,
   esquemasTransicion,
   esquemasUnaHojaRuta,
+  esquemaTransicion,
 } from './hojas-ruta.esquemas';
 import type { ServicioHojasRuta, SesionHojaRuta } from './hojas-ruta.servicio';
 
@@ -14,8 +19,15 @@ export function crearRutasHojasRuta(
   servicio: ServicioHojasRuta,
   autenticar: RequestHandler,
   autorizarLectura: RequestHandler,
+  autorizarIngesta: RequestHandler,
   sesionDe: (res: Response) => SesionHojaRuta,
 ): Router {
+  const listar: RequestHandler = async (_req, res) => {
+    res.json(await servicio.listar(datosValidos(res, esquemasListarHojasRuta).query));
+  };
+  const crear: RequestHandler = async (_req, res) => {
+    res.status(201).json(await servicio.crear(datosValidos(res, esquemasCrearHojaRuta).body, sesionDe(res)));
+  };
   const obtener: RequestHandler = async (_req, res) => {
     res.json(await servicio.obtener(datosValidos(res, esquemasUnaHojaRuta).params.nro, sesionDe(res)));
   };
@@ -24,6 +36,8 @@ export function crearRutasHojasRuta(
     res.json(await servicio.transicion(params.nro, body.accion, body.observacion, sesionDe(res)));
   };
   return Router()
+    .get('/hojas-ruta', autenticar, autorizarLectura, validar(esquemasListarHojasRuta), listar)
+    .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
     .get('/hojas-ruta/:nro', autenticar, autorizarLectura, validar(esquemasUnaHojaRuta), obtener)
     .post('/hojas-ruta/:nro/transiciones', autenticar, autorizarLectura, validar(esquemasTransicion), transicion);
 }
@@ -35,6 +49,39 @@ const comunes = {
 };
 
 export const openapiHojasRuta: ZodOpenApiPathsObject = {
+  '/api/v1/hojas-ruta': {
+    get: {
+      tags: ['Hojas de ruta'],
+      summary: 'Listar hojas de ruta',
+      description: 'Filtros por N.º, CI o nombre del titular, estado, tipo y gestión; más recientes primero; paginado.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { query: esquemaFiltrosHojasRuta },
+      responses: {
+        '200': { description: 'Una página.', content: { 'application/json': { schema: esquemaPaginaHojasRuta } } },
+        '400': error('Filtros inválidos (VALIDACION).'),
+        '401': comunes['401'],
+        '403': error('Sin permiso o con cambio de contraseña pendiente.'),
+      },
+    },
+    post: {
+      tags: ['Hojas de ruta'],
+      summary: 'Registrar un trámite (ingesta)',
+      description:
+        'Secretaría de Dirección en Calahumana. Genera el N.º HR-AAAA-NNNNNN (ADR-0006) y deja el trámite RECIBIDO. El valorado solo para historial y legalización.',
+      security: [{ bearerAuth: [] }],
+      requestBody: { content: { 'application/json': { schema: esquemaCrearHojaRuta } } },
+      responses: {
+        '201': {
+          description: 'Trámite registrado.',
+          content: { 'application/json': { schema: esquemaDetalleHojaRuta } },
+        },
+        '400': error('Datos inválidos o valorado que no corresponde al tipo (VALIDACION).'),
+        '401': comunes['401'],
+        '403': error('Solo SEC_DIR desde Calahumana.'),
+        '422': error('Tipo o file inexistente, file que no es de un egresado o bloqueado.'),
+      },
+    },
+  },
   '/api/v1/hojas-ruta/{nro}': {
     get: {
       tags: ['Hojas de ruta'],

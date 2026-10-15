@@ -53,5 +53,20 @@ export const actualizarFile = (cliente: Cliente, id: number, cambios: CambiosFil
 export const datosBasicosFile = (cliente: Cliente, id: number) =>
   cliente.fileAcademico.findUnique({
     where: { id },
-    select: { id: true, personaId: true, bloqueado: true, codigoEstudiante: true },
+    select: { id: true, personaId: true, bloqueado: true, codigoEstudiante: true, condicion: true },
+  });
+
+/** Files de varias personas (búsqueda de hojas de ruta por titular). */
+export const fileIdsDePersonas = async (cliente: Cliente, personaIds: number[]): Promise<number[]> =>
+  personaIds.length === 0
+    ? []
+    : (await cliente.fileAcademico.findMany({ where: { personaId: { in: personaIds } }, select: { id: true } })).map(
+        (f) => f.id,
+      );
+
+/** Persona de varios files, para mostrar los titulares de una página de hojas de ruta. */
+export const personasDeFiles = (cliente: Cliente, ids: number[]) =>
+  cliente.fileAcademico.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, personaId: true, bloqueado: true },
   });

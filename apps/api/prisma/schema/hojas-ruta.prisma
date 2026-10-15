@@ -62,3 +62,11 @@ model MovimientoHojaRuta {
   @@index([hojaRutaId, fecha])
   @@map("movimiento_hoja_ruta")
 }
+
+/// Último número de hoja de ruta por gestión (SDD S3.2-S3.4 §2.1, ADR-0006). Lo usa fn_siguiente_nro_hoja_ruta.
+model HojaRutaCorrelativo {
+  gestion Int @id @db.SmallInt
+  ultimo  Int
+
+  @@map("hoja_ruta_correlativo")
+}

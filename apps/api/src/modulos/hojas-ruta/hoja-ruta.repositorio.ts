@@ -1,4 +1,4 @@
-import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
+import type { ClienteBd, Prisma, TransaccionBd } from '@/compartido/bd';
 import type { AccionHojaRuta, EstadoHojaRuta } from './maquina';
 
 type Cliente = ClienteBd | TransaccionBd;
@@ -61,3 +61,38 @@ export interface NuevoMovimiento {
 /** El trigger tg_movimiento_actualiza_hoja copia el estado y la sede a la hoja (DEC-006). */
 export const insertarMovimiento = (cliente: Cliente, m: NuevoMovimiento) =>
   cliente.movimientoHojaRuta.create({ data: m, select: { id: true } });
+
+/** Siguiente N.º de la gestión, dentro de la transacción de la ingesta (ADR-0006). */
+export async function siguienteNroHojaRuta(tx: TransaccionBd, gestion: number): Promise<string> {
+  const [{ nro }] = await tx.$queryRaw<
+    { nro: string }[]
+  >`SELECT fn_siguiente_nro_hoja_ruta(${gestion}::smallint) AS nro`;
+  return nro;
+}
+
+export interface NuevaHojaRuta {
+  nroTramite: string;
+  gestion: number;
+  fileId: number;
+  tipoTramiteId: number;
+  sedeActualId: number;
+  nroValorado: string | null;
+}
+
+export const insertarHojaRuta = (tx: TransaccionBd, h: NuevaHojaRuta) =>
+  tx.hojaRuta.create({ data: h, select: { id: true } });
+
+/** Una página de hojas de ruta, más recientes primero (SDD S3.2-S3.4 §2.3). */
+export async function listarHojasRuta(cliente: Cliente, where: Prisma.HojaRutaWhereInput, skip: number, take: number) {
+  const [filas, total] = await Promise.all([
+    cliente.hojaRuta.findMany({
+      where,
+      select: SELECCION,
+      orderBy: [{ fechaIngreso: 'desc' }, { id: 'desc' }],
+      skip,
+      take,
+    }),
+    cliente.hojaRuta.count({ where }),
+  ]);
+  return { filas, total };
+}
