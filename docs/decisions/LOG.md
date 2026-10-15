@@ -654,3 +654,15 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    esperan esas respuestas. El N.º de valorado que se ve es el de la ingesta.
 4. Se borran `documentosService` y `ModalObservar` del prototipo. Los indicadores del inicio de Kardex llevan a
    estas dos bandejas.
+
+## DEC-042 — Carátula de la hoja de ruta con QR y los pasos del trámite
+
+**Fecha:** 2026-10-15 · **Fuente:** S3.5, RF-08 CA3, D-35 (propuesta) (modo demo, sin SDD previo) · **Estado:** activa
+
+1. La carátula (P-32) lee `GET /hojas-ruta/:nro`. El QR apunta a `/seguimiento?hr=<N.º>` del dominio público
+   (`VITE_PUBLIC_URL`, que el workflow de imágenes arma con el dominio); el visitante solo agrega el CI.
+2. La tabla "Pases" (De / A) se cambia por **"Pasos del trámite"**: los pasos del flujo del tipo (con o sin
+   valorado, DEC-033) en orden, con sede y responsable; los ya registrados salen con quién y la fecha, y todos
+   dejan espacio para firma y sello en papel. Sin pases entre oficinas (D-35, propuesta).
+3. "PDF imprimible" = imprimir desde el navegador (también "Guardar como PDF"): solo sale la hoja carta, sin el
+   menú ni la cabecera (zona de impresión). Un PDF del servidor no hace falta para la carátula.

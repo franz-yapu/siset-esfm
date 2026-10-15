@@ -126,6 +126,18 @@ export const INGESTA = { rol: 'SEC_DIR', sede: 'LA_PAZ', hacia: 'RECIBIDO' } as 
 
 export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
 
+/** Los pasos del flujo en orden, desde RECIBIDO hasta ENTREGADO (para la carátula, P-32). */
+export const pasosDelFlujo = (flujo: Flujo): Transicion[] => {
+  const pasos: Transicion[] = [];
+  let estado: EstadoHojaRuta = INGESTA.hacia;
+  for (;;) {
+    const t = TRANSICIONES.find((x) => x.desde === estado && x.flujos.includes(flujo));
+    if (!t) return pasos;
+    pasos.push(t);
+    estado = t.hacia;
+  }
+};
+
 export interface EstadoParaTransicion {
   estado: EstadoHojaRuta;
   flujo: Flujo;
