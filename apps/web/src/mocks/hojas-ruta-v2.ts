@@ -44,7 +44,7 @@ const PLAN: { fileId: number; tipo: string; pasos: number }[] = [
   { fileId: 12, tipo: 'LEGALIZACION_HISTORIAL', pasos: 5 },
   { fileId: 13, tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 7 },
   { fileId: 9, tipo: 'HISTORIAL_ACADEMICO', pasos: 6 },
-  { fileId: 10, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 2 },
+  { fileId: 10, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 3 },
 ];
 
 export function seedHojasRutaV2(): HojaRutaMock[] {

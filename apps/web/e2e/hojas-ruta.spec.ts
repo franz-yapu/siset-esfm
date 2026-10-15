@@ -44,3 +44,27 @@ test('SEC_DIR registra un historial con valorado, avisa a Kardex y lo ve en la l
   await expect(page.getByRole('dialog', { name: 'Trámite registrado' })).toBeVisible();
   expect(problemas).toEqual([]);
 });
+
+test('el Coordinador ve en su inicio lo que espera su firma y lo firma desde el detalle', async ({ page }) => {
+  const problemas = vigilarConsola(page);
+  await iniciarSesion(page, 'coordinador');
+  const tabla = page.getByRole('table').first();
+  await expect(page.getByText('Esperan tu firma').first()).toBeVisible();
+  await tabla.getByRole('button', { name: 'Firmar' }).first().click();
+  await page.getByRole('button', { name: 'Firmar', exact: true }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Confirmar' }).click();
+  await expect(page.getByText('Firmado por el Coordinador').first()).toBeVisible();
+  expect(problemas).toEqual([]);
+});
+
+test('Kardex recoge un trámite avisado desde su inicio', async ({ page }) => {
+  const problemas = vigilarConsola(page);
+  await iniciarSesion(page, 'kardex');
+  await page.getByText('Trámites por recoger').click();
+  await expect(page).toHaveURL(/estado=AVISADO_KARDEX/);
+  await page.getByRole('row').nth(1).click();
+  await page.getByRole('button', { name: 'Registrar que Kardex lo recogió' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Confirmar' }).click();
+  await expect(page.getByText('En impresión').first()).toBeVisible();
+  expect(problemas).toEqual([]);
+});

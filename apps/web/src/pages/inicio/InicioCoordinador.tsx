@@ -1,48 +1,53 @@
 import { useNavigate } from 'react-router';
 import { Bar } from 'react-chartjs-2';
-import { AlertTriangle, CheckCircle2, Clock, Gavel } from 'lucide-react';
+import { CheckCircle2, Clock, PenLine } from 'lucide-react';
 import '@/lib/graficos';
 import { AZUL } from '@/lib/graficos';
-import { useAsync, useUsuario } from '@/hooks';
-import { reportesService } from '@/services/reportes.service';
-import { dictamenesService } from '@/services/dictamenes.service';
-import { ESTADOS } from '@/config/estados';
+import { useUsuario } from '@/hooks';
+import { useResumenCoordinador } from '@/hooks/useHojasRuta';
+import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import { diasDesde, diasTexto } from '@/lib/formato';
-import { Button, Card, Cargando, DataTable, KpiCard, Semaforo } from '@/components/ui';
+import { Alerta, Button, Card, Cargando, DataTable, KpiCard } from '@/components/ui';
 import { GrillaKpi, Saludo } from './comun';
 
-/** P-14 · Inicio Coordinador. */
+/**
+ * P-14 · Inicio Coordinador contra GET /hojas-ruta (D-20): los trámites que esperan su firma, los que están en
+ * cola y los entregados.
+ */
 export function InicioCoordinador() {
   const u = useUsuario();
   const nav = useNavigate();
-  const { data, loading } = useAsync(
-    () => Promise.all([reportesService.resumenInicio(), dictamenesService.pendientes(), reportesService.porEstado()]),
-    [],
-  );
-  if (loading || !data) return <Cargando />;
-  const [r, pendientes, porEstado] = data;
+  const { data: r, isLoading, error } = useResumenCoordinador();
+  if (isLoading) return <Cargando />;
+  if (error || !r) return <Alerta tipo="error">{error?.message ?? 'No se pudo cargar el inicio'}</Alerta>;
 
   return (
     <>
       <Saludo nombre={u.nombre}>Coordinación Académica · UA Ancocagua</Saludo>
       <GrillaKpi>
         <KpiCard
-          titulo="Pendientes de dictamen"
-          valor={r.pendientesDictamen}
-          icono={Gavel}
+          titulo="Esperan tu firma"
+          valor={r.firmar.length}
+          icono={PenLine}
           color="violeta"
-          to="/dictamenes"
+          to="/hojas-ruta?estado=IMPRESO"
         />
-        <KpiCard titulo="Observados" valor={r.observados} icono={AlertTriangle} color="ambar" />
-        <KpiCard titulo="Dictaminados este mes" valor={r.dictaminadosMes} icono={CheckCircle2} color="verde" />
-        <KpiCard titulo="Tiempo promedio del trámite" valor={`${r.tiempoPromedio} d`} icono={Clock} color="gris" />
+        <KpiCard titulo="Trámites en curso" valor={r.enCurso} icono={Clock} color="ambar" to="/hojas-ruta" />
+        <KpiCard
+          titulo="Entregados"
+          valor={r.entregados}
+          icono={CheckCircle2}
+          color="verde"
+          to="/hojas-ruta?estado=ENTREGADO"
+        />
       </GrillaKpi>
       <div className="grid gap-4 xl:grid-cols-5">
-        <Card title="Pendientes de dictamen (más antiguos primero)" className="xl:col-span-3">
+        <Card title="Esperan tu firma (más antiguos primero)" className="xl:col-span-3">
           <DataTable
-            data={pendientes.slice(0, 5)}
+            data={r.firmar.slice(0, 8)}
             rowKey={(h) => h.nro}
-            vacio="No hay trámites esperando dictamen"
+            vacio="No hay certificados esperando tu firma"
+            onRowClick={(h) => nav(`/hojas-ruta/${h.nro}`)}
             columns={[
               {
                 key: 'nro',
@@ -50,15 +55,15 @@ export function InicioCoordinador() {
                 principal: true,
                 render: (h) => <span className="font-medium">{h.nro}</span>,
               },
-              { key: 'titular', header: 'Titular' },
-              { key: 'semaforo', header: 'File', render: (h) => <Semaforo color={h.semaforo} size="sm" /> },
-              { key: 'dias', header: 'Esperando', render: (h) => diasTexto(diasDesde(h.desde)) },
+              { key: 'titular', header: 'Titular', render: (h) => h.titular.nombre },
+              { key: 'tipo', header: 'Tipo', ocultarEnMovil: true, render: (h) => h.tipo.nombre },
+              { key: 'dias', header: 'Desde el ingreso', render: (h) => diasTexto(diasDesde(h.fechaIngreso)) },
               {
                 key: 'accion',
                 header: '',
                 render: (h) => (
-                  <Button size="sm" icon={Gavel} onClick={() => nav(`/dictamenes/${h.nro}`)}>
-                    Dictaminar
+                  <Button size="sm" icon={PenLine} onClick={() => nav(`/hojas-ruta/${h.nro}`)}>
+                    Firmar
                   </Button>
                 ),
               },
@@ -69,9 +74,9 @@ export function InicioCoordinador() {
           <div className="h-64">
             <Bar
               data={{
-                labels: porEstado.map((e) => ESTADOS[e.estado].etiqueta),
+                labels: r.porEstado.map((e) => ESTADOS_HR[e.estado].etiqueta),
                 datasets: [
-                  { label: 'Trámites', data: porEstado.map((e) => e.total), backgroundColor: AZUL, borderRadius: 4 },
+                  { label: 'Trámites', data: r.porEstado.map((e) => e.total), backgroundColor: AZUL, borderRadius: 4 },
                 ],
               }}
               options={{

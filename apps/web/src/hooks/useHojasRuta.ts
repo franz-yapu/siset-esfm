@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Usuario } from '@/types';
-import type { FiltrosHojasRuta } from '@/types/hojas-ruta';
+import { ESTADOS_HOJA_RUTA, type FiltrosHojasRuta } from '@/types/hojas-ruta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { avisarCambio } from './index';
 
@@ -54,5 +54,44 @@ export const useResumenHojasRuta = () =>
         hojasRutaService.listar({ porPagina: 5 }),
       ]);
       return { porAvisar, impresos, remitidos, listos, ultimos: ultimos.datos };
+    },
+  });
+
+/**
+ * Inicio del Coordinador (D-20): lo que espera su firma (certificados IMPRESOS, flujo sin valorado), cuántos están
+ * en curso y entregados, y cuántos hay en cada estado.
+ */
+export const useResumenCoordinador = () =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'resumen-coordinador'],
+    queryFn: async () => {
+      const tipos = (await hojasRutaService.tipos()).filter((t) => !t.requiereValorado);
+      const [paraFirmar, porEstado] = await Promise.all([
+        Promise.all(tipos.map((t) => hojasRutaService.listar({ estado: 'IMPRESO', tipoTramite: t.codigo }))),
+        Promise.all(
+          ESTADOS_HOJA_RUTA.map(async (estado) => ({
+            estado,
+            total: (await hojasRutaService.listar({ estado, porPagina: 1 })).total,
+          })),
+        ),
+      ]);
+      const firmar = paraFirmar.flatMap((p) => p.datos).sort((a, b) => a.fechaIngreso.localeCompare(b.fechaIngreso));
+      const entregados = porEstado.find((e) => e.estado === 'ENTREGADO')!.total;
+      const total = porEstado.reduce((s, e) => s + e.total, 0);
+      return { firmar, enCurso: total - entregados, entregados, porEstado };
+    },
+  });
+
+/** Inicio de Kardex: los trámites que esperan un paso suyo (recoger, imprimir, remitir). */
+export const useResumenKardexHojas = () =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'resumen-kardex'],
+    queryFn: async () => {
+      const [porRecoger, enImpresion, porRemitir] = await Promise.all(
+        (['AVISADO_KARDEX', 'EN_IMPRESION', 'FIRMADO_COORDINADOR'] as const).map(
+          async (estado) => (await hojasRutaService.listar({ estado, porPagina: 1 })).total,
+        ),
+      );
+      return { porRecoger, enImpresion, porRemitir };
     },
   });
