@@ -140,7 +140,7 @@ function Panel({ fila, esperando, onCerrar }: { fila: FilaHojaRuta; esperando: s
     if (!paso) return;
     try {
       await mover.mutateAsync({ accion: paso, observacion: obs.trim() || null });
-      toast.success(`${fila.nro}: ${paso.etiqueta}`);
+      toast.success(`Paso registrado en ${fila.nro}: ${paso.etiqueta.toLowerCase()}`);
       onCerrar();
     } catch (e) {
       if (e instanceof ErrorApi && e.codigo === 'TRANSICION_INVALIDA') {

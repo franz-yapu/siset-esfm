@@ -84,9 +84,9 @@ export const ENTIDADES: Record<string, string> = {
   usuario: 'Usuario',
   persona: 'Persona',
   file: 'File',
+  file_academico: 'File académico',
   hoja_ruta: 'Hoja de ruta',
   documento: 'Documento',
-  dictamen: 'Dictamen',
 };
 
 export const esAccion = (v: string): v is AccionAuditoria => (ACCIONES_AUDITORIA as readonly string[]).includes(v);

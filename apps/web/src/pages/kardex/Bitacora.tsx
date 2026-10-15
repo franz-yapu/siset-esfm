@@ -240,9 +240,14 @@ export function Bitacora() {
                 key: 'ver',
                 header: '',
                 render: (r) => (
-                  <Button size="sm" variant="ghost" icon={Eye} onClick={() => setVer(r)}>
-                    Ver detalle
-                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={Eye}
+                    onClick={() => setVer(r)}
+                    aria-label="Ver detalle"
+                    title="Ver detalle"
+                  />
                 ),
               },
             ]}

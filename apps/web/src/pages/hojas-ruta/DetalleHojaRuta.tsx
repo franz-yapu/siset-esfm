@@ -53,7 +53,7 @@ export function DetalleHojaRuta() {
   const correr = async (accion: AccionPosible, observacion: string | null) => {
     try {
       await mover.mutateAsync({ accion, observacion });
-      toast.success(`Hecho: ${accion.etiqueta}`);
+      toast.success(`Paso registrado: ${accion.etiqueta.toLowerCase()}`);
       setModal(null);
       setObs('');
     } catch (e) {

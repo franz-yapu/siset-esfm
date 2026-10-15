@@ -24,6 +24,13 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 const etiquetaMes = (aaaaMm: string) => `${MESES[Number(aaaaMm.slice(5, 7)) - 1]} ${aaaaMm.slice(2, 4)}`;
 
 /** P-60 · Reportes (SEC_DIR, COORDINADOR, KARDEX), contra GET /reportes/hojas-ruta (RF-13, DEC-039). */
+
+/** Chart.js corta las etiquetas largas del eje: una etiqueta en arreglo se dibuja en varias líneas. */
+const enDosLineas = (texto: string): string | string[] => {
+  if (texto.length <= 24) return texto;
+  const corte = texto.lastIndexOf(' ', Math.ceil(texto.length / 2));
+  return corte > 0 ? [texto.slice(0, corte), texto.slice(corte + 1)] : texto;
+};
 export function Reportes() {
   const [f, setF] = useState<FiltrosReporte>({});
   const { data: tipos = [] } = useTiposTramite();
@@ -151,7 +158,7 @@ export function Reportes() {
               <div className="h-64">
                 <Bar
                   data={{
-                    labels: k.porTipo.map((t) => t.nombre),
+                    labels: k.porTipo.map((t) => enDosLineas(t.nombre)),
                     datasets: [
                       {
                         label: 'Trámites',
