@@ -4,7 +4,7 @@ import { ORDEN_ESTADOS } from '@/config/estados';
 import { aIso, delay, diasDesde, mesCorto } from '@/lib/formato';
 import { parseISO, differenceInHours } from 'date-fns';
 import { conTitular, LATENCIA, ultimoMovimiento } from './_comun';
-import { DIAS_DETENIDO, estaDetenido } from './hojasRuta.service';
+import { DIAS_DETENIDO, estaDetenido } from './hojasRuta-prototipo.service';
 import { alertasFile, fileHabilitado } from '@/lib/reglas';
 
 export interface FiltrosReporte {

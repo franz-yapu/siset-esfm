@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { CheckCircle2, Circle, Send, X } from 'lucide-react';
 import type { HojaRutaConTitular } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { CODIGOS_REQUISITO, NOMBRE_REQUISITO } from '@/lib/reglas';
 import { diasDesde, diasTexto } from '@/lib/formato';
@@ -29,7 +29,7 @@ const TABS = [
 export function Revision() {
   const [tab, setTab] = useState('recibidos');
   const [sel, setSel] = useState<string | null>(null);
-  const { data = [], loading, reload } = useAsync(() => hojasRutaService.listar(), []);
+  const { data = [], loading, reload } = useAsync(() => hojasRutaPrototipoService.listar(), []);
   const filtro = TABS.find((t) => t.id === tab)?.filtro ?? (() => true);
   const filas = data.filter(filtro);
   const actual = filas.find((h) => h.nro === sel) ?? null;
@@ -101,11 +101,11 @@ function PanelRevision({
   const { ejecutar, ocupado } = useAccion();
   const [observar, setObservar] = useState(false);
   const { data: f, loading } = useAsync(() => filesPrototipoService.obtener(h.fileId), [h.fileId]);
-  const acciones = hojasRutaService.acciones(h.nro, u);
+  const acciones = hojasRutaPrototipoService.acciones(h.nro, u);
   const correr = async (accion: (typeof acciones)[number]['accion'], obs?: string) => {
     if (
       await ejecutar(
-        () => hojasRutaService.ejecutar(h.nro, accion, u, { obs }),
+        () => hojasRutaPrototipoService.ejecutar(h.nro, accion, u, { obs }),
         `${h.nro}: ${acciones.find((a) => a.accion === accion)?.etiqueta}`,
       )
     ) {

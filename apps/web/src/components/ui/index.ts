@@ -1,9 +1,9 @@
 export { Button } from './Button';
 export { Input, Select, Textarea } from './Campos';
 export { Card } from './Card';
-export { Badge, EstadoBadge, RolBadge } from './Badge';
+export { Badge, EstadoBadge, EstadoHojaRutaBadge, RolBadge } from './Badge';
 export { Semaforo } from './Semaforo';
-export { Timeline } from './Timeline';
+export { Timeline, type PasoTimeline } from './Timeline';
 export { ProgresoPasos } from './ProgresoPasos';
 export { DataTable, type Columna } from './DataTable';
 export { KpiCard } from './KpiCard';

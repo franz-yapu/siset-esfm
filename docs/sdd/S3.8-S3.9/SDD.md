@@ -4,7 +4,7 @@
   conectada", P-31). Comparten diseño (el servicio de hojas de ruta de la web): un solo SDD. Se crean en ClickUp al
   aprobarlo.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Implementado (2026-10-15, modo demo; sin aprobación previa)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/product/PRD.md` RF-08; `docs/product/prototipo-pantallas.md` P-30 (ingesta), P-31 (lista y detalle), P-32 (carátula)

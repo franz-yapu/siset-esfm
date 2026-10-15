@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { ArrowLeft, Printer } from 'lucide-react';
-import { useAsync } from '@/hooks';
-import { hojasRutaService } from '@/services/hojasRuta.service';
-import { nombreSede } from '@/config/catalogos';
+import { useUsuario } from '@/hooks';
+import { useHojaRuta } from '@/hooks/useHojasRuta';
+import { sedeHr } from '@/config/estados-hoja-ruta';
 import { fechaHora } from '@/lib/formato';
 import { urlSeguimiento } from '@/lib/qr';
 import { Alerta, Button, Cargando } from '@/components/ui';
@@ -11,12 +11,13 @@ import { Alerta, Button, Cargando } from '@/components/ui';
 /** P-32 · Carátula de hoja de ruta: hoja carta para imprimir, con QR y tabla de pases para firmas físicas. */
 export function Caratula() {
   const { nro = '' } = useParams();
-  const { data: h, loading, error } = useAsync(() => hojasRutaService.obtener(nro), [nro]);
-  if (loading) return <Cargando />;
+  const u = useUsuario();
+  const { data: h, isLoading, error } = useHojaRuta(nro, u);
+  if (isLoading) return <Cargando />;
   if (error || !h)
     return (
       <div className="p-6">
-        <Alerta tipo="error">{error}</Alerta>
+        <Alerta tipo="error">{error?.message ?? 'Trámite no encontrado'}</Alerta>
       </div>
     );
 
@@ -52,19 +53,15 @@ export function Caratula() {
           <tbody className="[&_td]:border [&_td]:border-slate-900 [&_td]:px-3 [&_td]:py-2">
             <tr>
               <td className="w-1/3 font-semibold">Titular</td>
-              <td>{h.titular}</td>
+              <td>{h.titular.nombre}</td>
             </tr>
             <tr>
               <td className="font-semibold">C.I.</td>
-              <td>{h.ci}</td>
-            </tr>
-            <tr>
-              <td className="font-semibold">Especialidad</td>
-              <td>{h.especialidad}</td>
+              <td>{h.titular.ci}</td>
             </tr>
             <tr>
               <td className="font-semibold">Tipo de trámite</td>
-              <td>{h.tipo}</td>
+              <td>{h.tipo.nombre}</td>
             </tr>
             <tr>
               <td className="font-semibold">N.º de valorado</td>
@@ -73,7 +70,7 @@ export function Caratula() {
             <tr>
               <td className="font-semibold">Fecha de ingreso</td>
               <td>
-                {fechaHora(h.fechaIngreso)} · {nombreSede(h.movimientos[0]?.sedeId)}
+                {fechaHora(h.fechaIngreso)} · {sedeHr(h.movimientos[0]?.sede ?? '')}
               </td>
             </tr>
           </tbody>

@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, Download, FileText, MapPin } from 'lucide-react';
 import { useAsync, useToast, useUsuario } from '@/hooks';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { nombreSede } from '@/config/catalogos';
 import { fecha } from '@/lib/formato';
 import {
@@ -19,7 +19,7 @@ import {
 /** P-21 · Mis trámites (lista). */
 export function MisTramites() {
   const u = useUsuario();
-  const { data, loading } = useAsync(() => hojasRutaService.misTramites(u), [u.id]);
+  const { data, loading } = useAsync(() => hojasRutaPrototipoService.misTramites(u), [u.id]);
   if (loading || !data) return <Cargando />;
   return (
     <>
@@ -59,7 +59,7 @@ export function MiTramite() {
   const u = useUsuario();
   const { nro = '' } = useParams();
   const toast = useToast();
-  const { data: t, loading, error } = useAsync(() => hojasRutaService.miTramite(nro, u), [nro, u.id]);
+  const { data: t, loading, error } = useAsync(() => hojasRutaPrototipoService.miTramite(nro, u), [nro, u.id]);
   if (loading) return <Cargando />;
   if (error || !t) return <Alerta tipo="error">{error}</Alerta>;
   return (

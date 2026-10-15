@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { ArrowRight, PackageCheck } from 'lucide-react';
 import type { EstadoTramite, Entrega, HojaRutaConTitular } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { diasDesde, fecha } from '@/lib/formato';
 import { Button, Cargando, PageHeader } from '@/components/ui';
 import { ModalEntrega } from '@/components/hojas/ModalEntrega';
@@ -19,7 +19,7 @@ export function FirmaEntrega() {
   const u = useUsuario();
   const { ejecutar, ocupado } = useAccion();
   const [entregar, setEntregar] = useState<HojaRutaConTitular | null>(null);
-  const { data, loading, reload } = useAsync(() => hojasRutaService.listar(), []);
+  const { data, loading, reload } = useAsync(() => hojasRutaPrototipoService.listar(), []);
   if (loading && !data) return <Cargando />;
   if (!data) return null;
 
@@ -28,12 +28,13 @@ export function FirmaEntrega() {
       (h) => h.estado === e && (e !== 'ENTREGADO' || diasDesde(h.movimientos.at(-1)?.fecha ?? h.fechaIngreso) <= 7),
     );
   const listo = async (nro: string) => {
-    if (await ejecutar(() => hojasRutaService.ejecutar(nro, 'MARCAR_LISTO', u), `${nro} listo para entrega`)) reload();
+    if (await ejecutar(() => hojasRutaPrototipoService.ejecutar(nro, 'MARCAR_LISTO', u), `${nro} listo para entrega`))
+      reload();
   };
   const confirmarEntrega = async (e: Entrega) => {
     if (
       entregar &&
-      (await ejecutar(() => hojasRutaService.registrarEntrega(entregar.nro, e, u), 'Entrega registrada'))
+      (await ejecutar(() => hojasRutaPrototipoService.registrarEntrega(entregar.nro, e, u), 'Entrega registrada'))
     ) {
       setEntregar(null);
       reload();

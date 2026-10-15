@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
 import { reportesService } from '@/services/reportes.service';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { pasesService } from '@/services/pases.service';
 import { diasDesde, diasTexto } from '@/lib/formato';
 import { todoMock } from '@/services/_modo';
@@ -52,7 +52,7 @@ export function InicioKardex() {
       demo
         ? Promise.all([
             reportesService.resumenInicio(),
-            hojasRutaService.listar({ estado: 'OBSERVADO' }),
+            hojasRutaPrototipoService.listar({ estado: 'OBSERVADO' }),
             pasesService.porRecibir(2),
           ])
         : Promise.resolve(null),

@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle2, PenLine } from 'lucide-react';
 import clsx from 'clsx';
 import type { Dictamen } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { filesPrototipoService } from '@/services/files-prototipo.service';
 import { dictamenesService } from '@/services/dictamenes.service';
 import { fileHabilitado, requisitosPendientes } from '@/lib/reglas';
@@ -24,7 +24,7 @@ export function EmitirDictamen() {
   const [enviado, setEnviado] = useState(false);
   const [tab, setTab] = useState('requisitos');
   const { data, loading, error } = useAsync(async () => {
-    const h = await hojasRutaService.obtener(nro);
+    const h = await hojasRutaPrototipoService.obtener(nro);
     return { h, f: await filesPrototipoService.obtener(h.fileId) };
   }, [nro]);
 

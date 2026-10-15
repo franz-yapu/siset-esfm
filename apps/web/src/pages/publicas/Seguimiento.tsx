@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { ArrowLeft, MapPin, Search, ShieldCheck } from 'lucide-react';
 import type { Movimiento, EstadoTramite } from '@/types';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { Alerta, Button, Card, EstadoBadge, Input, ProgresoPasos, Timeline } from '@/components/ui';
 import { nombreSede } from '@/config/catalogos';
 import { fecha } from '@/lib/formato';
@@ -40,7 +40,7 @@ export function Seguimiento() {
     }
     setCargando(true);
     try {
-      setRes(await hojasRutaService.seguimientoPublico(nro, ci));
+      setRes(await hojasRutaPrototipoService.seguimientoPublico(nro, ci));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {

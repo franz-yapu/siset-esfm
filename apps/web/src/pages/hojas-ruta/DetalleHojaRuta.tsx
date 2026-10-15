@@ -1,68 +1,72 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer } from 'lucide-react';
+import { Lock, Printer } from 'lucide-react';
 import type { Entrega } from '@/types';
-import { useAccion, useAsync, useUsuario } from '@/hooks';
+import type { AccionPosible, DetalleHojaRuta as Detalle } from '@/types/hojas-ruta';
+import { useToast, useUsuario } from '@/hooks';
+import { useHojaRuta, useMutacionHojasRuta } from '@/hooks/useHojasRuta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { filesPrototipoService } from '@/services/files-prototipo.service';
-import type { Accion } from '@/lib/transiciones';
-import { nombreSede } from '@/config/catalogos';
-import { ESTADOS } from '@/config/estados';
-import { alertasFile, semaforoFile } from '@/lib/reglas';
+import { ESTADOS_HR, sedeHr } from '@/config/estados-hoja-ruta';
+import { ErrorApi } from '@/lib/errores';
 import { fecha } from '@/lib/formato';
 import { urlSeguimiento } from '@/lib/qr';
-import { Alerta, Button, Card, Cargando, EstadoBadge, PageHeader, Semaforo, Timeline } from '@/components/ui';
-import { ModalObservar } from '@/components/hojas/ModalObservar';
+import {
+  Alerta,
+  Button,
+  Card,
+  Cargando,
+  EstadoHojaRutaBadge,
+  PageHeader,
+  Textarea,
+  Timeline,
+  type PasoTimeline,
+} from '@/components/ui';
 import { ModalEntrega } from '@/components/hojas/ModalEntrega';
 import { Confirmar } from '@/components/hojas/Confirmar';
 
-/** Acciones que abren otra pantalla en vez de ejecutarse aquí. */
-const NAVEGAN: Partial<Record<Accion, (nro: string) => string>> = {
-  DICTAMINAR: (nro) => `/dictamenes/${nro}`,
-  EMITIR: () => '/emision',
-};
+const pasosDe = (h: Detalle): PasoTimeline[] =>
+  h.movimientos.map((m) => ({
+    etiqueta: ESTADOS_HR[m.estadoNuevo].etiqueta,
+    punto: ESTADOS_HR[m.estadoNuevo].punto,
+    fecha: m.fecha,
+    sede: sedeHr(m.sede),
+    usuario: m.usuario.nombre,
+    obs: m.observacion,
+  }));
 
-/** P-31 · Detalle de la hoja de ruta: datos + timeline + acción permitida según estado y rol. */
+/** P-31 · Detalle de la hoja de ruta contra la API (SDD S3.8-S3.9 §2.5). Las acciones las manda la API. */
 export function DetalleHojaRuta() {
   const { nro = '' } = useParams();
   const u = useUsuario();
-  const nav = useNavigate();
-  const { ejecutar, ocupado } = useAccion();
-  const [modal, setModal] = useState<Accion | null>(null);
-  const { data, loading, error, reload } = useAsync(async () => {
-    const h = await hojasRutaService.obtener(nro);
-    return { h, f: await filesPrototipoService.obtener(h.fileId) };
-  }, [nro]);
+  const toast = useToast();
+  const { data: h, isLoading, error, refetch } = useHojaRuta(nro, u);
+  const [modal, setModal] = useState<AccionPosible | null>(null);
+  const [obs, setObs] = useState('');
+  const mover = useMutacionHojasRuta((a: { accion: AccionPosible; observacion: string | null }) =>
+    hojasRutaService.transicion(nro, a.accion.accion, a.observacion, u),
+  );
 
-  if (loading && !data) return <Cargando />;
-  if (error || !data) return <Alerta tipo="error">{error}</Alerta>;
-  const { h, f } = data;
-  const acciones = hojasRutaService.acciones(nro, u);
+  if (isLoading) return <Cargando />;
+  if (error || !h) return <Alerta tipo="error">{error?.message ?? 'Trámite no encontrado'}</Alerta>;
 
-  const correr = async (accion: Accion, obs?: string) => {
-    const ok = await ejecutar(
-      () => hojasRutaService.ejecutar(nro, accion, u, { obs }),
-      `Acción realizada: ${acciones.find((a) => a.accion === accion)?.etiqueta}`,
-    );
-    if (ok) {
+  const correr = async (accion: AccionPosible, observacion: string | null) => {
+    try {
+      await mover.mutateAsync({ accion, observacion });
+      toast.success(`Hecho: ${accion.etiqueta}`);
       setModal(null);
-      reload();
+      setObs('');
+    } catch (e) {
+      const err = e instanceof ErrorApi ? e : null;
+      if (err?.codigo === 'TRANSICION_INVALIDA') {
+        toast.error('Alguien más movió este trámite. Se recargó con su estado actual.');
+        setModal(null);
+        await refetch();
+      } else toast.error(e instanceof Error ? e.message : 'Error');
     }
   };
-  const entregar = async (e: Entrega) => {
-    if (await ejecutar(() => hojasRutaService.registrarEntrega(nro, e, u), 'Entrega registrada')) {
-      setModal(null);
-      reload();
-    }
-  };
-  const pulsar = (accion: Accion) => {
-    const destino = NAVEGAN[accion];
-    if (destino) nav(destino(nro));
-    else setModal(accion);
-  };
-  const etiqueta = modal ? (acciones.find((a) => a.accion === modal)?.etiqueta ?? '') : '';
-  const ultimaObs = h.estado === 'OBSERVADO' ? h.movimientos.at(-1)?.obs : undefined;
+  const entregar = (e: Entrega) =>
+    modal ? correr(modal, `Entregado a ${e.entregadoA.toLowerCase()} (CI ${e.ciReceptor.trim()})`) : Promise.resolve();
 
   return (
     <>
@@ -70,10 +74,10 @@ export function DetalleHojaRuta() {
         titulo={
           <span className="flex flex-wrap items-center gap-3">
             {h.nro}
-            <EstadoBadge estado={h.estado} className="text-sm" />
+            <EstadoHojaRutaBadge estado={h.estado} className="text-sm" />
           </span>
         }
-        subtitulo={`${h.tipo} · ingresó el ${fecha(h.fechaIngreso)}${h.enviadoDictamen ? ' · enviado a dictamen' : ''}`}
+        subtitulo={`${h.tipo.nombre} · ingresó el ${fecha(h.fechaIngreso)}`}
         acciones={
           <Link
             to={`/hojas-ruta/${h.nro}/caratula`}
@@ -85,29 +89,23 @@ export function DetalleHojaRuta() {
         }
       />
 
-      {acciones.length > 0 && (
+      {h.acciones.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
           <span className="mr-2 text-sm text-sky-900">Acción disponible:</span>
-          {acciones.map((a) => (
+          {h.acciones.map((a) => (
             <Button
               key={a.accion}
-              variant={a.accion === 'OBSERVAR' ? 'secondary' : 'primary'}
               disabled={Boolean(a.deshabilitada)}
               title={a.deshabilitada ?? undefined}
-              onClick={() => pulsar(a.accion)}
+              onClick={() => setModal(a)}
             >
               {a.etiqueta}
             </Button>
           ))}
-          {acciones.some((a) => a.deshabilitada) && (
-            <span className="text-xs text-red-700">{acciones.find((a) => a.deshabilitada)?.deshabilitada}</span>
+          {h.acciones.some((a) => a.deshabilitada) && (
+            <span className="text-xs text-red-700">{h.acciones.find((a) => a.deshabilitada)?.deshabilitada}</span>
           )}
         </div>
-      )}
-      {ultimaObs && (
-        <Alerta tipo="aviso" titulo="Trámite observado" className="mb-4">
-          {ultimaObs}
-        </Alerta>
       )}
 
       <div className="grid gap-4 lg:grid-cols-5">
@@ -116,7 +114,7 @@ export function DetalleHojaRuta() {
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <dt className="text-xs text-slate-500">Tipo</dt>
-                <dd>{h.tipo}</dd>
+                <dd>{h.tipo.nombre}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">N.º de valorado</dt>
@@ -124,18 +122,16 @@ export function DetalleHojaRuta() {
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Sede actual</dt>
-                <dd>{nombreSede(h.sedeActualId)}</dd>
+                <dd>{h.sedeActual.nombre || sedeHr(h.sedeActual.codigo)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Estado</dt>
-                <dd>{ESTADOS[h.estado].etiqueta}</dd>
+                <dd>{ESTADOS_HR[h.estado].etiqueta}</dd>
               </div>
-              {h.entrega && (
+              {h.fechaCierre && (
                 <div className="col-span-2">
-                  <dt className="text-xs text-slate-500">Entrega</dt>
-                  <dd>
-                    {h.entrega.entregadoA} · CI {h.entrega.ciReceptor} · {fecha(h.entrega.fecha)}
-                  </dd>
+                  <dt className="text-xs text-slate-500">Entregado</dt>
+                  <dd>{fecha(h.fechaCierre)}</dd>
                 </div>
               )}
             </dl>
@@ -143,24 +139,21 @@ export function DetalleHojaRuta() {
           <Card
             title="Titular"
             actions={
-              <Link to={`/files/${f.id}`} className="text-sm text-acento hover:underline">
+              <Link to={`/files/${h.titular.fileId}`} className="text-sm text-acento hover:underline">
                 Ver file
               </Link>
             }
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 text-sm">
-                <p className="font-medium text-slate-900">{h.titular}</p>
-                <p className="text-slate-500">
-                  CI {h.ci} · {f.codigo}
-                </p>
-                <p className="text-slate-500">{f.especialidad}</p>
-                <Semaforo color={semaforoFile(f)} className="mt-2" />
-                <ul className="mt-1 text-xs text-slate-500">
-                  {alertasFile(f).map((a) => (
-                    <li key={a}>• {a}</li>
-                  ))}
-                </ul>
+                <p className="font-medium text-slate-900">{h.titular.nombre}</p>
+                <p className="text-slate-500">CI {h.titular.ci}</p>
+                {h.titular.bloqueado && (
+                  <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-700">
+                    <Lock className="size-3.5" aria-hidden />
+                    File bloqueado
+                  </p>
+                )}
               </div>
               <div className="shrink-0 rounded border border-slate-200 p-1.5" title="QR de seguimiento">
                 <QRCodeSVG value={urlSeguimiento(h.nro)} size={84} />
@@ -169,25 +162,37 @@ export function DetalleHojaRuta() {
           </Card>
         </div>
         <Card title="Línea de tiempo" className="lg:col-span-3">
-          <Timeline movimientos={h.movimientos} />
+          <Timeline pasos={pasosDe(h)} />
         </Card>
       </div>
 
-      {modal === 'OBSERVAR' && (
-        <ModalObservar abierto file={f} onCerrar={() => setModal(null)} onConfirmar={(m) => correr('OBSERVAR', m)} />
-      )}
-      {modal === 'ENTREGAR' && (
-        <ModalEntrega abierto nro={h.nro} ciTitular={h.ci} onCerrar={() => setModal(null)} onConfirmar={entregar} />
+      {modal?.accion === 'ENTREGAR' && (
+        <ModalEntrega
+          abierto
+          nro={h.nro}
+          ciTitular={h.titular.ci}
+          onCerrar={() => setModal(null)}
+          onConfirmar={entregar}
+        />
       )}
       <Confirmar
-        abierto={modal !== null && modal !== 'OBSERVAR' && modal !== 'ENTREGAR'}
-        titulo={etiqueta}
-        cargando={ocupado}
+        abierto={modal !== null && modal.accion !== 'ENTREGAR'}
+        titulo={modal?.etiqueta ?? ''}
+        cargando={mover.isPending}
         onCerrar={() => setModal(null)}
-        onConfirmar={() => modal && correr(modal)}
+        onConfirmar={() => modal && correr(modal, obs.trim() || null)}
       >
-        ¿Confirmas <strong>{etiqueta.toLowerCase()}</strong> para el trámite {h.nro} de {h.titular}? Quedará registrado
-        en el historial y en la bitácora.
+        <p>
+          ¿Confirmas <strong>{modal?.etiqueta.toLowerCase()}</strong> para el trámite {h.nro} de {h.titular.nombre}?
+          Quedará registrado en el historial y en la bitácora.
+        </p>
+        <Textarea
+          className="mt-3"
+          label="Observación (opcional)"
+          value={obs}
+          maxLength={255}
+          onChange={(e) => setObs(e.target.value)}
+        />
       </Confirmar>
     </>
   );

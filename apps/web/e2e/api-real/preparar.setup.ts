@@ -18,8 +18,11 @@ try {
 /** Nueva por corrida; cumple DEC-011 (letras, números y símbolos). */
 const passwordNueva = () => `E2e.${randomBytes(6).toString('hex')}-7`;
 
-const CUENTAS: { cuenta: Exclude<CuentaE2E, 'KARDEX'>; rol: RolPersonal; ci: string }[] = [
-  { cuenta: 'SEC_DIR', rol: 'SEC_DIR', ci: '8800001' },
+/** Id de LA_PAZ, el mismo de `src/config/catalogos.ts` y del seed. La ingesta es de SEC_DIR en Calahumana. */
+const SEDE_LA_PAZ = 1;
+
+const CUENTAS: { cuenta: Exclude<CuentaE2E, 'KARDEX'>; rol: RolPersonal; ci: string; sede?: number }[] = [
+  { cuenta: 'SEC_DIR', rol: 'SEC_DIR', ci: '8800001', sede: SEDE_LA_PAZ },
   { cuenta: 'SEC_COORD', rol: 'SEC_COORD', ci: '8800002' },
   { cuenta: 'COORDINADOR', rol: 'COORDINADOR', ci: '8800003' },
   { cuenta: 'BLOQUEO', rol: 'SEC_DIR', ci: '8800004' },
@@ -68,14 +71,15 @@ async function sesionKardex(request: APIRequestContext): Promise<{ sesion: Sesio
 preparar('cuentas E2E por rol (SDD S1.14 §2.4)', async ({ request }) => {
   const kardex = await sesionKardex(request);
   const auth = { Authorization: `Bearer ${kardex.sesion.accessToken}` };
-  const sedeId = kardex.sesion.usuario.sedeId;
-  expect(sedeId, 'el Kardex inicial tiene sede').not.toBeNull();
+  const sedeKardex = kardex.sesion.usuario.sedeId;
+  expect(sedeKardex, 'el Kardex inicial tiene sede').not.toBeNull();
 
   const resultado: Partial<Record<CuentaE2E, Credencial>> = {
     KARDEX: { id: kardex.sesion.usuario.id, usuario: kardex.sesion.usuario.usuario, password: kardex.password },
   };
 
-  for (const { cuenta, rol, ci } of CUENTAS) {
+  for (const { cuenta, rol, ci, sede } of CUENTAS) {
+    const sedeId = sede ?? sedeKardex;
     const creado = await request.post(`${API_E2E}/usuarios`, {
       headers: auth,
       data: { ci, nombres: 'Prueba', apellidoPaterno: `E2E ${cuenta.toLowerCase()}`, rol, sedeId },

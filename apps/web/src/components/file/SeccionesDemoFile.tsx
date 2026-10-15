@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 import type { ResultadoAnual } from '@/types';
 import { useAccion, useAsync, useUsuario } from '@/hooks';
 import { filesPrototipoService } from '@/services/files-prototipo.service';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { superaLimite } from '@/lib/reglas';
 import { fecha, fechaHora } from '@/lib/formato';
 import { Button, Cargando, DataTable, EstadoBadge } from '@/components/ui';
@@ -36,7 +36,7 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
     () =>
       Promise.all([
         filesPrototipoService.obtener(fileId),
-        hojasRutaService.listar(),
+        hojasRutaPrototipoService.listar(),
         filesPrototipoService.historial(fileId),
       ]),
     [fileId],

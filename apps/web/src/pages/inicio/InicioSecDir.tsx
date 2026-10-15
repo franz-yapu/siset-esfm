@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router';
 import { ArrowLeftRight, CheckCircle2, FilePlus2, Inbox, Send } from 'lucide-react';
 import { useAsync, useUsuario } from '@/hooks';
 import { reportesService } from '@/services/reportes.service';
-import { hojasRutaService } from '@/services/hojasRuta.service';
+import { hojasRutaPrototipoService } from '@/services/hojasRuta-prototipo.service';
 import { fecha } from '@/lib/formato';
 import { Alerta, Button, Card, Cargando, DataTable, EstadoBadge, KpiCard } from '@/components/ui';
 import { GrillaKpi, Saludo } from './comun';
@@ -12,7 +12,7 @@ export function InicioSecDir() {
   const u = useUsuario();
   const nav = useNavigate();
   const { data, loading } = useAsync(
-    () => Promise.all([reportesService.resumenInicio(), hojasRutaService.listar()]),
+    () => Promise.all([reportesService.resumenInicio(), hojasRutaPrototipoService.listar()]),
     [],
   );
   if (loading || !data) return <Cargando />;

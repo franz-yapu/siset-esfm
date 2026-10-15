@@ -45,7 +45,7 @@ jobs:
       - name: Web (con la API real en lo conectado, sin la demo)
         run: |
           docker build -f apps/web/Dockerfile \
-            --build-arg VITE_USAR_API=auth,usuarios,bitacora,files \
+            --build-arg VITE_USAR_API=auth,usuarios,bitacora,files,hojasRuta \
             --build-arg VITE_DEMO=false \
             --build-arg VITE_CUENTAS_PRUEBA=true \
             --build-arg VITE_PUBLIC_URL=https://${{ inputs.dominio }} \

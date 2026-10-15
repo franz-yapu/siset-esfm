@@ -582,3 +582,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 3. Datos ficticios e idempotentes (`bd:datos-prueba`, solo con `DATOS_PRUEBA=1`): 3 del personal, 30 files y 8 hojas
    de ruta. Contraseñas generadas por Coolify, con prefijo para cumplir DEC-011. Sin respaldos: no es producción.
    Runbook: `docs/despliegue/prueba-coolify.md`.
+
+## DEC-037 — Ingesta, lista y detalle de hojas de ruta conectados
+
+**Fecha:** 2026-10-15 · **Fuente:** SDD de S3.8-S3.9 (modo demo: implementado sin aprobación previa, ver
+`docs/proceso/modo-demo.md`) · **Estado:** activa
+
+1. El servicio de hojas de ruta de la web se parte: `hojasRuta.service` con el contrato de la API (P-30, P-31 lista y
+   detalle, datos de P-32) y `hojasRuta-prototipo.service` para el resto de las pantallas hasta su ticket.
+2. El mock de la demo usa el modelo nuevo (`mocks/hojas-ruta-v2.ts`) con una copia de la tabla de transiciones en
+   `lib/maquina-hojas-ruta.ts`; la de la API manda.
+3. El detalle muestra las acciones que manda la API; la ingesta ofrece "Registrar y avisar a Kardex"; los filtros de
+   la lista son los de la API (texto, estado, tipo, gestión) y la marca "detenido" sale de la lista.
+4. `GET /hojas-ruta/tipos` es el catálogo de tipos de trámite.
+5. La cuenta SEC_DIR del E2E contra la API real queda en LA_PAZ (la ingesta es de Calahumana).

@@ -93,7 +93,7 @@ export default defineConfig({
           ? [
               apiE2E,
               // `vite preview` hereda el proxy /api del vite.config: mismo origen, como en producción.
-              servidor(PUERTO_WEB_API_REAL, 'dist-e2e-api-real', 'auth,usuarios,bitacora,files', 'false', {
+              servidor(PUERTO_WEB_API_REAL, 'dist-e2e-api-real', 'auth,usuarios,bitacora,files,hojasRuta', 'false', {
                 API_PROXY: `http://localhost:${PUERTO_API_E2E}`,
               }),
             ]

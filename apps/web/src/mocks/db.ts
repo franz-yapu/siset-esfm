@@ -5,11 +5,14 @@ import { seedUsuarios, type UsuarioMock } from './usuarios';
 import { seedFiles } from './files';
 import { seedDictamenes, seedDocumentos, seedHojasRuta } from './hojasRuta';
 import { ipDe, seedBitacora } from './bitacora';
+import { seedHojasRutaV2, type HojaRutaMock } from './hojas-ruta-v2';
 
 interface Store {
   usuarios: UsuarioMock[];
   files: FileMock[];
   hojasRuta: HojaRuta[];
+  /** Hojas de ruta con el modelo de la API (P-30, P-31, P-32; DEC-037). */
+  hojasRutaV2: HojaRutaMock[];
   dictamenes: Dictamen[];
   documentos: DocumentoEmitido[];
   bitacora: RegistroBitacora[];
@@ -24,6 +27,7 @@ const crear = (): Store => {
     usuarios,
     files: seedFiles(),
     hojasRuta,
+    hojasRutaV2: seedHojasRutaV2(),
     dictamenes: seedDictamenes(hojasRuta),
     documentos: seedDocumentos(hojasRuta),
     bitacora: seedBitacora(hojasRuta, usuarios),

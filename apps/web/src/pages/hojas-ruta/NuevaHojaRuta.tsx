@@ -1,55 +1,87 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
-import { CheckCircle2, Eye, Printer, Save, Search, Send, X } from 'lucide-react';
-import type { FileAcademico, HojaRutaConTitular, TipoTramite } from '@/types';
+import { BellRing, CheckCircle2, Eye, Printer, Save, Search, X } from 'lucide-react';
+import type { FileDetalle } from '@/types/files';
+import type { DetalleHojaRuta } from '@/types/hojas-ruta';
 import { useToast, useUsuario } from '@/hooks';
-import { filesPrototipoService } from '@/services/files-prototipo.service';
+import { useFiles } from '@/hooks/useFiles';
+import { useMutacionHojasRuta, useTiposTramite } from '@/hooks/useHojasRuta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
-import { TIPOS_TRAMITE } from '@/config/catalogos';
-import { alertasFile, nombreCompleto, semaforoFile } from '@/lib/reglas';
+import { ErrorApi } from '@/lib/errores';
+import { textoSemaforo } from '@/lib/semaforo';
 import { urlSeguimiento } from '@/lib/qr';
 import { Alerta, Button, Card, Input, Modal, PageHeader, Select, Semaforo, Textarea } from '@/components/ui';
 
-/** P-30 · Nueva hoja de ruta (ingesta). */
+const ESPERA_BUSQUEDA = 300;
+
+/** P-30 · Nueva hoja de ruta (ingesta) contra POST /hojas-ruta (SDD S3.8-S3.9 §2.6). */
 export function NuevaHojaRuta() {
   const u = useUsuario();
   const toast = useToast();
   const nav = useNavigate();
-  const [ci, setCi] = useState('');
-  const [sugerencias, setSugerencias] = useState<FileAcademico[]>([]);
-  const [titular, setTitular] = useState<FileAcademico | null>(null);
-  const [tipo, setTipo] = useState<TipoTramite>('Historial académico');
+  const [texto, setTexto] = useState('');
+  const [buscado, setBuscado] = useState('');
+  const [titular, setTitular] = useState<FileDetalle | null>(null);
+  const [tipo, setTipo] = useState('');
   const [valorado, setValorado] = useState('');
   const [obs, setObs] = useState('');
   const [intento, setIntento] = useState(false);
-  const [guardando, setGuardando] = useState<'enviar' | 'registrar' | null>(null);
-  const [creada, setCreada] = useState<HojaRutaConTitular | null>(null);
+  const [errorTitular, setErrorTitular] = useState<string | null>(null);
+  const [errorValoradoApi, setErrorValoradoApi] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState<'avisar' | 'registrar' | null>(null);
+  const [creada, setCreada] = useState<DetalleHojaRuta | null>(null);
 
   useEffect(() => {
-    if (titular) return;
-    let vivo = true;
-    filesPrototipoService.buscarPorCi(ci).then((r) => {
-      if (vivo) setSugerencias(r);
-    });
-    return () => {
-      vivo = false;
-    };
-  }, [ci, titular]);
+    const t = setTimeout(() => setBuscado(texto.trim()), ESPERA_BUSQUEDA);
+    return () => clearTimeout(t);
+  }, [texto]);
+
+  const { data: tipos = [] } = useTiposTramite();
+  const tipoElegido = tipos.find((t) => t.codigo === tipo) ?? tipos[0];
+  const { data: sugerencias } = useFiles({ texto: buscado || undefined, condicion: 'EGRESADO', porPagina: 8 });
+  const lista = !titular && buscado.length >= 2 ? (sugerencias?.datos ?? []) : [];
+
+  const crear = useMutacionHojasRuta(async (avisar: boolean) => {
+    const h = await hojasRutaService.crear(
+      {
+        fileId: titular!.id,
+        tipoTramite: tipoElegido!.codigo,
+        nroValorado: tipoElegido!.requiereValorado ? valorado.trim() : null,
+        observacion: obs.trim() || null,
+      },
+      u,
+    );
+    if (!avisar) return { h, aviso: null };
+    try {
+      return { h: await hojasRutaService.transicion(h.nro, 'AVISAR_KARDEX', null, u), aviso: null };
+    } catch (e) {
+      return { h, aviso: e instanceof Error ? e.message : 'Error' };
+    }
+  });
 
   const bloqueado = titular?.bloqueado ?? false;
-  const errorValorado = intento && !valorado.trim() ? 'Ingresa el N.º de valorado canjeado' : null;
+  const faltaValorado = Boolean(tipoElegido?.requiereValorado) && !valorado.trim();
+  const errorValorado = errorValoradoApi ?? (intento && faltaValorado ? 'Ingresa el N.º de valorado canjeado' : null);
 
-  const guardar = async (enviar: boolean) => {
+  const guardar = async (avisar: boolean) => {
     setIntento(true);
-    if (!titular || bloqueado || !valorado.trim()) return;
-    setGuardando(enviar ? 'enviar' : 'registrar');
+    setErrorTitular(null);
+    setErrorValoradoApi(null);
+    if (!titular || bloqueado || !tipoElegido || faltaValorado) return;
+    setGuardando(avisar ? 'avisar' : 'registrar');
     try {
-      const h = await hojasRutaService.crear({ fileId: titular.id, tipo, nroValorado: valorado, obs }, enviar, u);
+      const { h, aviso } = await crear.mutateAsync(avisar);
       setCreada(h);
-      toast.success(enviar ? `Trámite ${h.nro} registrado y enviado a Ancocagua` : `Trámite ${h.nro} registrado`);
+      if (aviso) toast.error(`Se registró ${h.nro}, pero no se pudo avisar a Kardex: ${aviso}`);
+      else toast.success(avisar ? `Trámite ${h.nro} registrado y avisado a Kardex` : `Trámite ${h.nro} registrado`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error');
+      const err = e instanceof ErrorApi ? e : null;
+      if (err?.codigo === 'FILE_BLOQUEADO' || err?.codigo === 'FILE_NO_EGRESADO') setErrorTitular(err.message);
+      else if (err?.codigo === 'VALIDACION') {
+        const d = Array.isArray(err.detalles) ? (err.detalles as { ruta?: string; mensaje?: string }[]) : [];
+        setErrorValoradoApi(d.find((x) => x.ruta === 'body.nroValorado')?.mensaje ?? err.message);
+      } else toast.error(e instanceof Error ? e.message : 'Error');
     } finally {
       setGuardando(null);
     }
@@ -58,10 +90,11 @@ export function NuevaHojaRuta() {
   const limpiar = () => {
     setCreada(null);
     setTitular(null);
-    setCi('');
+    setTexto('');
     setValorado('');
     setObs('');
     setIntento(false);
+    setErrorTitular(null);
   };
 
   return (
@@ -72,21 +105,21 @@ export function NuevaHojaRuta() {
           {!titular ? (
             <div className="relative">
               <Input
-                label="CI del titular"
+                label="CI o nombre del egresado"
                 placeholder="Escribe el CI o el nombre"
-                value={ci}
-                onChange={(e) => setCi(e.target.value)}
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
                 autoFocus
                 inputMode="search"
                 error={intento ? 'Selecciona un titular' : null}
               />
               <Search className="pointer-events-none absolute top-9 right-3 size-4 text-slate-400" />
-              {sugerencias.length > 0 && (
+              {lista.length > 0 && (
                 <ul
                   className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg"
                   role="listbox"
                 >
-                  {sugerencias.map((f) => (
+                  {lista.map((f) => (
                     <li key={f.id}>
                       <button
                         type="button"
@@ -97,17 +130,18 @@ export function NuevaHojaRuta() {
                         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50"
                       >
                         <span>
-                          <span className="font-medium">{f.ci}</span> · {nombreCompleto(f)}
+                          <span className="font-medium">{f.ci}</span> · {f.nombre}
+                          {f.bloqueado && <span className="ml-2 text-xs text-red-700">bloqueado</span>}
                         </span>
-                        <Semaforo color={semaforoFile(f)} texto="" size="sm" />
+                        <Semaforo color={f.semaforo} texto="" size="sm" />
                       </button>
                     </li>
                   ))}
                 </ul>
               )}
-              {ci.length >= 2 && sugerencias.length === 0 && (
+              {buscado.length >= 2 && sugerencias && lista.length === 0 && (
                 <p className="mt-2 text-sm text-slate-500">
-                  No hay files con ese CI. Pide a Kardex que registre el file.
+                  No hay files de egresados con ese dato. Pide a Kardex que registre o actualice el file.
                 </p>
               )}
             </div>
@@ -115,17 +149,22 @@ export function NuevaHojaRuta() {
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{nombreCompleto(titular)}</p>
+                  <p className="font-semibold text-slate-900">{titular.nombre}</p>
                   <p className="text-sm text-slate-500">
                     CI {titular.ci} · {titular.especialidad}
                   </p>
-                  <Semaforo color={semaforoFile(titular)} className="mt-2" />
+                  <Semaforo
+                    color={titular.semaforo}
+                    texto={textoSemaforo(titular.semaforo, titular.bloqueado)}
+                    className="mt-2"
+                  />
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setTitular(null);
-                    setCi('');
+                    setTexto('');
+                    setErrorTitular(null);
                   }}
                   className="rounded p-1 text-slate-400 hover:bg-slate-100"
                   aria-label="Cambiar titular"
@@ -135,14 +174,11 @@ export function NuevaHojaRuta() {
               </div>
               {bloqueado ? (
                 <Alerta tipo="error" titulo="File bloqueado">
-                  {titular.motivoBloqueo}. No se puede registrar el trámite hasta que Kardex lo desbloquee.
+                  {titular.motivoBloqueo ?? 'El file está bloqueado'}. No se puede registrar el trámite hasta que Kardex
+                  lo desbloquee.
                 </Alerta>
               ) : (
-                alertasFile(titular).length > 0 && (
-                  <Alerta tipo="aviso">
-                    {alertasFile(titular).join(' · ')}. Kardex lo revisará al recibir el trámite.
-                  </Alerta>
-                )
+                errorTitular && <Alerta tipo="error">{errorTitular}</Alerta>
               )}
             </div>
           )}
@@ -150,27 +186,46 @@ export function NuevaHojaRuta() {
 
         <Card title="2 · Datos del trámite">
           <div className="space-y-4">
-            <Select label="Tipo de trámite" value={tipo} onChange={(e) => setTipo(e.target.value as TipoTramite)}>
-              {TIPOS_TRAMITE.map((t) => (
-                <option key={t}>{t}</option>
+            <Select
+              label="Tipo de trámite"
+              value={tipoElegido?.codigo ?? ''}
+              onChange={(e) => {
+                setTipo(e.target.value);
+                setErrorValoradoApi(null);
+              }}
+            >
+              {tipos.map((t) => (
+                <option key={t.codigo} value={t.codigo}>
+                  {t.nombre}
+                </option>
               ))}
             </Select>
-            <Input
-              label="N.º de valorado"
-              value={valorado}
-              onChange={(e) => setValorado(e.target.value)}
-              error={errorValorado}
-              inputMode="numeric"
+            {tipoElegido?.requiereValorado ? (
+              <Input
+                label="N.º de valorado"
+                value={valorado}
+                maxLength={30}
+                onChange={(e) => setValorado(e.target.value)}
+                error={errorValorado}
+                inputMode="numeric"
+              />
+            ) : (
+              tipoElegido && <p className="text-sm text-slate-500">Este trámite no lleva valorado.</p>
+            )}
+            <Textarea
+              label="Observación (opcional)"
+              value={obs}
+              maxLength={255}
+              onChange={(e) => setObs(e.target.value)}
             />
-            <Textarea label="Observación (opcional)" value={obs} onChange={(e) => setObs(e.target.value)} />
             <div className="flex flex-wrap gap-2 pt-1">
               <Button
-                icon={Send}
+                icon={BellRing}
                 disabled={!titular || bloqueado}
-                loading={guardando === 'enviar'}
+                loading={guardando === 'avisar'}
                 onClick={() => guardar(true)}
               >
-                Registrar y enviar a Ancocagua
+                Registrar y avisar a Kardex
               </Button>
               <Button
                 variant="secondary"
@@ -216,7 +271,7 @@ export function NuevaHojaRuta() {
             </div>
             <p className="text-xs break-all text-slate-500">{urlSeguimiento(creada.nro)}</p>
             <p className="mt-2 text-sm text-slate-600">
-              {creada.titular} · {creada.tipo}
+              {creada.titular.nombre} · {creada.tipo.nombre}
             </p>
           </div>
         )}
