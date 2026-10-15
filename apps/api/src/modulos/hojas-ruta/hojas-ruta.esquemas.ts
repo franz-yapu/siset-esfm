@@ -119,3 +119,8 @@ export const esquemaFilaHojaRuta = z
 
 export type FilaHojaRuta = z.infer<typeof esquemaFilaHojaRuta>;
 export const esquemaPaginaHojasRuta = esquemaPagina(esquemaFilaHojaRuta).meta({ id: 'PaginaHojasRuta' });
+
+export const esquemaTipoTramite = z
+  .object({ codigo: z.string(), nombre: z.string(), requiereValorado: z.boolean() })
+  .meta({ id: 'TipoTramite' });
+export type TipoTramite = z.infer<typeof esquemaTipoTramite>;

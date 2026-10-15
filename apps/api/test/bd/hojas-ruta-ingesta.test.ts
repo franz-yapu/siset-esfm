@@ -206,3 +206,18 @@ describe('GET /hojas-ruta (SDD S3.2-S3.4 §2.3)', () => {
     expect(pag.datos[0].nro).toBe(ha);
   });
 });
+
+describe('GET /hojas-ruta/tipos (SDD S3.8-S3.9 §2.2)', () => {
+  it('los tipos activos con requiereValorado, ordenados por nombre; 401 sin token', async () => {
+    const r = await request(app)
+      .get('/api/v1/hojas-ruta/tipos')
+      .set('Authorization', `Bearer ${await token('KARDEX', ancocagua)}`);
+    expect(r.status).toBe(200);
+    expect(r.body.length).toBeGreaterThanOrEqual(4);
+    expect(r.body).toContainEqual(expect.objectContaining({ codigo: 'HISTORIAL_ACADEMICO', requiereValorado: true }));
+    expect(r.body).toContainEqual(expect.objectContaining({ codigo: 'CERT_NOTAS_ANTERIOR', requiereValorado: false }));
+    const nombres = r.body.map((t: { nombre: string }) => t.nombre);
+    expect(nombres).toEqual([...nombres].sort((a: string, b: string) => a.localeCompare(b, 'es')));
+    expect((await request(app).get('/api/v1/hojas-ruta/tipos')).status).toBe(401);
+  });
+});

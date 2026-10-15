@@ -19,7 +19,13 @@ import {
   siguienteNroHojaRuta,
   type HojaRutaBd,
 } from './hoja-ruta.repositorio';
-import type { DatosCrearHojaRuta, DetalleHojaRuta, FilaHojaRuta, FiltrosHojasRuta } from './hojas-ruta.esquemas';
+import type {
+  DatosCrearHojaRuta,
+  DetalleHojaRuta,
+  FilaHojaRuta,
+  FiltrosHojasRuta,
+  TipoTramite,
+} from './hojas-ruta.esquemas';
 import {
   accionesPosibles,
   evaluarTransicion,
@@ -124,6 +130,14 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
 
   return {
     obtener: (nro: string, sesion: SesionHojaRuta) => detalle(bd, nro, sesion),
+
+    /** Catálogo de tipos activos para la ingesta (SDD S3.8-S3.9 §2.2). */
+    async tipos(): Promise<TipoTramite[]> {
+      return (await deps.obtenerTiposTramite(bd))
+        .filter((t) => t.activo)
+        .map(({ codigo, nombre, requiereValorado }) => ({ codigo, nombre, requiereValorado }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    },
 
     /** Ingesta (SDD S3.2-S3.4 §2.2): correlativo, hoja RECIBIDA, primer movimiento y evento, en una transacción. */
     async crear(datos: DatosCrearHojaRuta, sesion: SesionHojaRuta): Promise<DetalleHojaRuta> {

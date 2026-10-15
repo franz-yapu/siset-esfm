@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { Router, type RequestHandler, type Response } from 'express';
 import { datosValidos, esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import {
@@ -11,6 +12,7 @@ import {
   esquemasTransicion,
   esquemasUnaHojaRuta,
   esquemaTransicion,
+  esquemaTipoTramite,
 } from './hojas-ruta.esquemas';
 import type { ServicioHojasRuta, SesionHojaRuta } from './hojas-ruta.servicio';
 
@@ -28,6 +30,9 @@ export function crearRutasHojasRuta(
   const crear: RequestHandler = async (_req, res) => {
     res.status(201).json(await servicio.crear(datosValidos(res, esquemasCrearHojaRuta).body, sesionDe(res)));
   };
+  const tipos: RequestHandler = async (_req, res) => {
+    res.json(await servicio.tipos());
+  };
   const obtener: RequestHandler = async (_req, res) => {
     res.json(await servicio.obtener(datosValidos(res, esquemasUnaHojaRuta).params.nro, sesionDe(res)));
   };
@@ -35,11 +40,15 @@ export function crearRutasHojasRuta(
     const { params, body } = datosValidos(res, esquemasTransicion);
     res.json(await servicio.transicion(params.nro, body.accion, body.observacion, sesionDe(res)));
   };
-  return Router()
-    .get('/hojas-ruta', autenticar, autorizarLectura, validar(esquemasListarHojasRuta), listar)
-    .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
-    .get('/hojas-ruta/:nro', autenticar, autorizarLectura, validar(esquemasUnaHojaRuta), obtener)
-    .post('/hojas-ruta/:nro/transiciones', autenticar, autorizarLectura, validar(esquemasTransicion), transicion);
+  return (
+    Router()
+      .get('/hojas-ruta', autenticar, autorizarLectura, validar(esquemasListarHojasRuta), listar)
+      .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
+      // Antes de `/:nro`, para que `tipos` no se lea como número de trámite.
+      .get('/hojas-ruta/tipos', autenticar, autorizarLectura, tipos)
+      .get('/hojas-ruta/:nro', autenticar, autorizarLectura, validar(esquemasUnaHojaRuta), obtener)
+      .post('/hojas-ruta/:nro/transiciones', autenticar, autorizarLectura, validar(esquemasTransicion), transicion)
+  );
 }
 
 const error = (description: string) => ({ description, content: { 'application/json': { schema: esquemaError } } });
@@ -79,6 +88,22 @@ export const openapiHojasRuta: ZodOpenApiPathsObject = {
         '401': comunes['401'],
         '403': error('Solo SEC_DIR desde Calahumana.'),
         '422': error('Tipo o file inexistente, file que no es de un egresado o bloqueado.'),
+      },
+    },
+  },
+  '/api/v1/hojas-ruta/tipos': {
+    get: {
+      tags: ['Hojas de ruta'],
+      summary: 'Tipos de trámite',
+      description: 'Los tipos activos con si llevan N.º de valorado (D-05), ordenados por nombre.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': {
+          description: 'El catálogo.',
+          content: { 'application/json': { schema: z.array(esquemaTipoTramite) } },
+        },
+        '401': comunes['401'],
+        '403': error('Sin permiso o con cambio de contraseña pendiente.'),
       },
     },
   },
