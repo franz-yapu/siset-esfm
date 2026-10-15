@@ -28,7 +28,8 @@ test.describe.serial('hojas de ruta', () => {
     await entrarComo(page, 'SEC_DIR');
     await irA(page, '/hojas-ruta/nueva');
     await page.getByLabel('CI o nombre del egresado').fill(CI);
-    await page.getByRole('listbox').getByRole('button').first().click();
+    // La fila con ese CI: la primera puede ser de la búsqueda anterior mientras se actualiza la lista.
+    await page.getByRole('listbox').getByRole('button').filter({ hasText: CI }).click();
     await page.getByLabel('Tipo de trámite').selectOption({ label: 'Historial académico' });
     await page.getByLabel('N.º de valorado').fill('009001');
     await page.getByRole('button', { name: 'Registrar y avisar a Kardex' }).click();

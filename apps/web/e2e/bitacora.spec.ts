@@ -24,11 +24,15 @@ test.describe('P-48 bitácora en modo mock (SDD S6.5 §4)', () => {
   test('Kardex ve el login y la edición hechos por otro usuario', async ({ page }) => {
     const problemas = vigilarConsola(page);
 
-    // SEC_DIR inicia sesión y recibe un pase (cambio de estado de una hoja de ruta).
+    // SEC_DIR inicia sesión y avisa a Kardex de un trámite recibido (cambio de estado de una hoja de ruta).
     await iniciarSesion(page, 'secdir');
-    await irPorMenu(page, /bandeja de pases/i);
-    await page.getByRole('button', { name: 'Recibir', exact: true }).first().click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Recibir', exact: true }).click();
+    await irPorMenu(page, /^hojas de ruta$/i);
+    await page
+      .getByRole('row')
+      .filter({ hasText: /-000001/ })
+      .click();
+    await page.getByRole('button', { name: 'Avisar a Kardex' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirmar' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await cerrarSesion(page);
 

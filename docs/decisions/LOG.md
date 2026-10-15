@@ -719,3 +719,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 2. El aviso al registrar un paso muestra el estado al que pasó el trámite ("HR-2026-000004: Entregado").
 3. Entrega: si la fecha elegida no es hoy, va en la observación del paso ("… el 14/10/2026"). El paso y la fecha de
    cierre quedan con la hora del registro; guardar una fecha de entrega aparte queda para después del piloto.
+
+## DEC-047 — E2E de punta a punta de los dos flujos y CI de nuevo en verde
+
+**Fecha:** 2026-10-15 · **Fuente:** S4.10 (modo demo, sin SDD previo) · **Estado:** activa
+
+1. `e2e/api-real/flujos-completos.spec.ts` (proyecto `api-real`, `E2E_API_REAL=1`): el certificado sin valorado de
+   punta a punta (SEC_DIR registra y avisa → Kardex recoge e imprime en sus bandejas → el Coordinador firma en
+   "Firmas" → Kardex remite → SEC_DIR confirma la llegada y entrega → seguimiento público sin cuenta → bitácora con
+   los 7 cambios de estado); el historial con valorado (el Coordinador no lo ve; SEC_DIR anota las dos firmas y una
+   entrega a un apoderado de otro día) y el file bloqueado (no se registra hasta el desbloqueo). 15 pruebas, en
+   serie en un worker; los files de los egresados se crean por la API.
+2. La CI estaba en rojo desde `9c923a6` (3 E2E del modo mock y 1 de `api-real` desactualizados por DEC-040,
+   DEC-041 y DEC-044). Corregidos. Antes de cada push del modo demo se corre también `npm run e2e`.
+3. Las pruebas eligen al egresado por su CI en las sugerencias, no la primera fila (la lista se actualiza después
+   de escribir y podía elegir a otro).
+4. Sigue abierto el bug de S1.15: dos renovaciones casi simultáneas de la misma sesión pueden contarse como reuso y
+   cerrar **todas** las sesiones del usuario (`REUSO_SESION`, visto con Kardex al correr la suite en paralelo). La
+   CI lo absorbe con un reintento; queda para un ticket aparte.

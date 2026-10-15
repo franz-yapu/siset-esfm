@@ -8,14 +8,14 @@ import { entrarComo, INICIO, irA, recargar, ROLES_PERSONAL, vistaDenegada, type 
 
 /**
  * Ruta → roles que la ven, escrita a mano desde DEC-015 (PRD §2) y DEC-022 (una bandeja exige la acción que se
- * hace en ella: dictámenes pide `dictamenes/crear`, solo del COORDINADOR). El resto ve la vista 403.
+ * hace en ella: firmas pide `dictamenes/crear`, solo del COORDINADOR, DEC-040). El resto ve la vista 403.
  */
 const RUTAS: { ruta: string; titulo: RegExp; pasan: readonly RolPersonal[] }[] = [
   { ruta: '/usuarios', titulo: /usuarios/i, pasan: ['KARDEX'] },
   { ruta: '/bitacora', titulo: /bitácora/i, pasan: ['KARDEX'] },
   { ruta: '/files', titulo: /files/i, pasan: ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] },
   { ruta: '/reportes', titulo: /reportes/i, pasan: ['SEC_DIR', 'COORDINADOR', 'KARDEX'] },
-  { ruta: '/dictamenes', titulo: /dictámenes/i, pasan: ['COORDINADOR'] },
+  { ruta: '/firmas', titulo: /firmas/i, pasan: ['COORDINADOR'] },
 ];
 
 /** Etiquetas del menú que solo ve KARDEX. */

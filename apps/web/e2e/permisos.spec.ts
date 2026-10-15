@@ -16,7 +16,7 @@ test.describe('rutas por rol y P-04 en modo mock (SDD S1.11 §2.4)', () => {
 
   test('el menú de cada rol sale de la política', async ({ page }) => {
     await iniciarSesion(page, USUARIOS_POR_ROL.COORDINADOR);
-    await expect(menu(page).filter({ hasText: 'Dictámenes' })).toBeVisible();
+    await expect(menu(page).filter({ hasText: 'Firmas' })).toBeVisible();
     await expect(menu(page).filter({ hasText: 'Bandeja de pases' })).toHaveCount(0);
   });
 
