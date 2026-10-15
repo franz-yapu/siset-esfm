@@ -744,3 +744,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 6. Visto al reproducirlo: más de 10 renovaciones simultáneas del mismo token agotan los reintentos de la gracia y
    también cuentan como reuso. La web nunca las manda (un solo refresh en curso y Web Lock entre pestañas, S1.10);
    si hiciera falta, se revisa con un ADR.
+
+## DEC-048 — Guías públicas: manual del personal, guía de estudio del código y preguntas de defensa
+
+**Fecha:** 2026-10-15 · **Fuente:** S6.12 y pedido del autor (modo demo, sin SDD previo) · **Estado:** activa
+
+1. Páginas públicas, sin sesión, enlazadas desde el login: `/guia` (índice), `/guia/manual` (manual por rol,
+   preguntas frecuentes y plan de capacitación de 5 sesiones antes del piloto), `/guia/estudio` (dónde está cada
+   pieza en el código: hash bcrypt, sesión, permisos, bitácora, notificaciones, máquina de estados, correlativo,
+   pruebas) y `/guia/defensa` (preguntas probables del tutor y el tribunal, con la evidencia de cada respuesta).
+2. La guía de estudio y las preguntas de defensa son material del autor: se ven en el entorno de prueba
+   (`VITE_CUENTAS_PRUEBA`) y en la demo, no en la instalación de la escuela (`guiasDeTesis`). El manual, siempre.
+3. Todo dato citado (rutas de archivos, nombres de funciones, parámetros) se verificó contra el código. Si el código
+   cambia, se actualizan las guías en el mismo commit.

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
-import { ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
+import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
@@ -10,6 +10,7 @@ import { ErrorApi } from '@/lib/errores';
 import { authService } from '@/services/auth.service';
 import { todoMock } from '@/services/_modo';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
+import { guiasDeTesis } from '@/pages/guias/visibilidad';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -144,6 +145,11 @@ export function Login() {
           >
             <QrCode className="size-8 shrink-0 text-acento" />
             ¿Eres egresado? Consulta tu trámite sin iniciar sesión
+          </Link>
+
+          <Link to="/guia" className="mt-3 flex items-center justify-center gap-2 text-sm text-acento hover:underline">
+            <BookOpen className="size-4" aria-hidden />
+            {guiasDeTesis() ? 'Guías: manual del personal y material de estudio' : 'Manual del personal'}
           </Link>
 
           {(DEMO || CUENTAS) && (

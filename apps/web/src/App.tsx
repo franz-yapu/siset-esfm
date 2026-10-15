@@ -20,6 +20,11 @@ import { NuevaHojaRuta } from '@/pages/hojas-ruta/NuevaHojaRuta';
 import { HojasRuta } from '@/pages/hojas-ruta/HojasRuta';
 import { DetalleHojaRuta } from '@/pages/hojas-ruta/DetalleHojaRuta';
 import { Caratula } from '@/pages/hojas-ruta/Caratula';
+import { IndiceGuias } from '@/pages/guias/IndiceGuias';
+import { ManualPersonal } from '@/pages/guias/ManualPersonal';
+import { GuiaEstudio } from '@/pages/guias/GuiaEstudio';
+import { PreguntasDefensa } from '@/pages/guias/PreguntasDefensa';
+import { guiasDeTesis } from '@/pages/guias/visibilidad';
 import { BandejaPases } from '@/pages/pases/BandejaPases';
 import { FirmaEntrega } from '@/pages/pases/FirmaEntrega';
 import { Files } from '@/pages/kardex/Files';
@@ -56,6 +61,10 @@ export function App() {
       <Route path="/" element={<Raiz />} />
       <Route path="/login" element={<Login />} />
       <Route path="/seguimiento" element={<Seguimiento />} />
+      <Route path="/guia" element={<IndiceGuias />} />
+      <Route path="/guia/manual" element={<ManualPersonal />} />
+      {guiasDeTesis() && <Route path="/guia/estudio" element={<GuiaEstudio />} />}
+      {guiasDeTesis() && <Route path="/guia/defensa" element={<PreguntasDefensa />} />}
       <Route
         path="/cambiar-clave"
         element={
