@@ -1,0 +1,64 @@
+// Módulo dueño: hojas-ruta (ADR-0001). SDD S3.1-S3.3, DEC-033, DEC-034. Dos flujos según el valorado (D-05).
+
+/// Estados de la hoja de ruta (SDD S3.1-S3.3 §2.2). Las transiciones válidas están en hojas-ruta/maquina.ts (ADR-0005).
+enum EstadoHojaRuta {
+  RECIBIDO
+  AVISADO_KARDEX
+  EN_IMPRESION
+  IMPRESO
+  FIRMADO_DIR_ACADEMICA
+  FIRMADO_COORDINADOR
+  REMITIDO_CALAHUMANA
+  LISTO
+  ENTREGADO
+
+  @@map("estado_hoja_ruta")
+}
+
+/// Trámite de un egresado (D-09). El estado y la sede los actualiza el trigger de movimiento_hoja_ruta.
+model HojaRuta {
+  id            Int                  @id @default(autoincrement())
+  /// HR-AAAA-NNNNNN (lo genera S3.2).
+  nroTramite    String               @unique @map("nro_tramite") @db.VarChar(20)
+  gestion       Int                  @db.SmallInt
+  fileId        Int                  @map("file_id")
+  tipoTramiteId Int                  @map("tipo_tramite_id")
+  estadoActual  EstadoHojaRuta       @default(RECIBIDO) @map("estado_actual")
+  sedeActualId  Int                  @map("sede_actual_id")
+  /// Obligatorio en la ingesta si el tipo requiere valorado (S3.4).
+  nroValorado   String?              @map("nro_valorado") @db.VarChar(30)
+  fechaIngreso  DateTime             @default(now()) @map("fecha_ingreso") @db.Timestamptz(6)
+  /// Al entregar (trigger).
+  fechaCierre   DateTime?            @map("fecha_cierre") @db.Timestamptz(6)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  file          FileAcademico        @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  tipoTramite   TipoTramite          @relation(fields: [tipoTramiteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sedeActual    Sede                 @relation("SedeActualHojaRuta", fields: [sedeActualId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  movimientos   MovimientoHojaRuta[]
+
+  @@index([fileId])
+  @@index([estadoActual])
+  @@map("hoja_ruta")
+}
+
+/// Cada paso del trámite. Solo inserción (ADR-0003, ADR-0005).
+model MovimientoHojaRuta {
+  id             Int             @id @default(autoincrement())
+  hojaRutaId     Int             @map("hoja_ruta_id")
+  /// REGISTRAR, AVISAR_KARDEX, RECOGER… (hojas-ruta/maquina.ts).
+  accion         String          @db.VarChar(30)
+  /// Nulo en la ingesta.
+  estadoAnterior EstadoHojaRuta? @map("estado_anterior")
+  estadoNuevo    EstadoHojaRuta  @map("estado_nuevo")
+  sedeId         Int             @map("sede_id")
+  usuarioId      Int             @map("usuario_id")
+  observacion    String?         @db.VarChar(255)
+  fecha          DateTime        @default(now()) @db.Timestamptz(6)
+  hojaRuta       HojaRuta        @relation(fields: [hojaRutaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sede           Sede            @relation(fields: [sedeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  usuario        Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([hojaRutaId, fecha])
+  @@map("movimiento_hoja_ruta")
+}

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RegistroBitacora } from '@/types';
 import { ACCIONES_AUDITORIA, MODULOS_AUDITORIA } from '@/config/auditoria';
 import { auditar, db, reset } from '@/mocks/db';
@@ -114,6 +114,10 @@ describe('bitacoraMock.listar: filtros, orden y paginación', () => {
   });
 
   it('un evento nuevo de auditar() aparece primero, traducido', async () => {
+    // Reloj fijo al final del día: los datos de ejemplo usan horas fijas de "hoy" (09:00, …). Con el reloj real,
+    // después de las 20:00 en La Paz (medianoche UTC en la CI) quedaban después del evento nuevo.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 14, 23, 59));
     reset();
     auditar('María Quispe Mamani', 'Usuarios', 'Editar usuario', 'secdir', { rol: 'SEC_DIR' }, { rol: 'SEC_COORD' });
     const [primero] = (await bitacoraMock.listar({}, 1, 1)).datos;
@@ -126,6 +130,7 @@ describe('bitacoraMock.listar: filtros, orden y paginación', () => {
       antes: { rol: 'SEC_DIR' },
       despues: { rol: 'SEC_COORD' },
     });
+    vi.useRealTimers();
   });
 });
 

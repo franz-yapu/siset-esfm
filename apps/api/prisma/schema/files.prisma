@@ -42,6 +42,8 @@ model FileAcademico {
   persona          Persona             @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   especialidad     Especialidad        @relation(fields: [especialidadId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   requisitos       RequisitoFile[]
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  hojasRuta        HojaRuta[]
 
   @@index([especialidadId])
   @@map("file_academico")

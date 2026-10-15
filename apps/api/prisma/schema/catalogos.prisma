@@ -1,14 +1,18 @@
 // Módulo dueño: catalogos (ADR-0001). Modelo v1: docs/product/modelo-datos.md.
 
 model Sede {
-  id        Int       @id @default(autoincrement())
+  id                  Int                  @id @default(autoincrement())
   /// LA_PAZ, ANCOCAGUA
-  codigo    String    @unique @db.VarChar(20)
-  nombre    String    @db.VarChar(100)
-  direccion String?   @db.VarChar(200)
-  activo    Boolean   @default(true)
+  codigo              String               @unique @db.VarChar(20)
+  nombre              String               @db.VarChar(100)
+  direccion           String?              @db.VarChar(200)
+  activo              Boolean              @default(true)
   /// back-relation (ADR-0001: no usar desde otro módulo)
-  usuarios  Usuario[]
+  usuarios            Usuario[]
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  hojasRutaActuales   HojaRuta[]           @relation("SedeActualHojaRuta")
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  movimientosHojaRuta MovimientoHojaRuta[]
 
   @@map("sede")
 }
@@ -52,4 +56,18 @@ model RequisitoTipo {
   requisitosFile RequisitoFile[]
 
   @@map("requisito_tipo")
+}
+
+/// Tipos de trámite (D-21, DEC-033): los 4 que llegan a Ancocagua. Se siembran en la migración de S3.1.
+model TipoTramite {
+  id               Int        @id @default(autoincrement())
+  codigo           String     @unique @db.VarChar(40)
+  nombre           String     @db.VarChar(120)
+  /// Con valorado: historial y legalización (D-05). Define el flujo de la hoja de ruta.
+  requiereValorado Boolean    @map("requiere_valorado")
+  activo           Boolean    @default(true)
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  hojasRuta        HojaRuta[]
+
+  @@map("tipo_tramite")
 }

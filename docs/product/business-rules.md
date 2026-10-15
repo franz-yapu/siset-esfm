@@ -3,27 +3,33 @@
 Reglas finas que el código debe respetar. Fuente: PRD §2–§5. Las marcadas con
 D-xx son provisionales hasta que el Registro de Dudas las cierre.
 
-## Hoja de ruta — máquina de estados (PRD §3, D-05)
+## Hoja de ruta — máquina de estados (DEC-033, DEC-034, ADR-0005)
 
-Estados: `REGISTRADO → EN_TRANSITO → RECIBIDO → EN_REVISION ⇄ OBSERVADO → DICTAMINADO → EN_IMPRESION → EN_TRANSITO_LA_PAZ → EN_FIRMA → LISTO → ENTREGADO`.
+Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/api/src/modulos/hojas-ruta/maquina.ts`.
 
-| Transición                                          | Rol                | Condición                                                |
-| --------------------------------------------------- | ------------------ | -------------------------------------------------------- |
-| → Registrado                                        | SEC_DIR            | Valorado canjeado, file existente, file no bloqueado     |
-| Registrado → En tránsito                            | SEC_DIR            | Crea pase La Paz → Ancocagua                             |
-| En tránsito → Recibido                              | SEC_COORD o KARDEX | Confirma recepción del pase                              |
-| Recibido → En revisión                              | KARDEX             | Toma el trámite                                          |
-| En revisión → Observado                             | KARDEX             | Requisito faltante o file bloqueado (motivo obligatorio) |
-| Observado → En revisión                             | KARDEX             | Requisito subsanado                                      |
-| En revisión → Dictaminado                           | COORDINADOR        | File sin bloqueo y requisitos completos                  |
-| Dictaminado → En impresión                          | KARDEX             | Dictamen = Aprobado                                      |
-| En impresión → En tránsito a La Paz                 | KARDEX             | Documento emitido; crea pase de retorno                  |
-| En tránsito a La Paz → En firma → Listo → Entregado | SEC_DIR            | Recepción, firmas y entrega                              |
+- **Con valorado** (historial académico, legalización de historial):
+  `RECIBIDO → AVISADO_KARDEX → EN_IMPRESION → IMPRESO → FIRMADO_DIR_ACADEMICA → LISTO → ENTREGADO`.
+- **Sin valorado** (certificados de notas y de excelencia de años pasados):
+  `RECIBIDO → AVISADO_KARDEX → EN_IMPRESION → IMPRESO → FIRMADO_COORDINADOR → REMITIDO_CALAHUMANA → LISTO → ENTREGADO`.
 
-- Cualquier otra transición → **409**.
-- Cada transición inserta un `movimiento_hoja_ruta` (estado anterior/nuevo, sede, usuario, observación, fecha) en la misma transacción.
-- Cambiar estado usa `SELECT … FOR UPDATE` (dos usuarios no mueven el mismo trámite a la vez).
-- Solo se envía un pase de un trámite que está en la sede del usuario.
+| Paso (acción)                                         | Rol         | Sede      | Flujo        |
+| ----------------------------------------------------- | ----------- | --------- | ------------ |
+| Ingesta → Recibido (S3.4)                             | SEC_DIR     | LA_PAZ    | los dos      |
+| Avisar a Kardex                                       | SEC_DIR     | LA_PAZ    | los dos      |
+| Recoger (Kardex retira el valorado o el pedido)       | KARDEX      | ANCOCAGUA | los dos      |
+| Imprimir                                              | KARDEX      | ANCOCAGUA | los dos      |
+| Firma de Dirección Académica (la anota SEC_DIR, D-33) | SEC_DIR     | LA_PAZ    | con valorado |
+| Firma de Dirección General → Listo                    | SEC_DIR     | LA_PAZ    | con valorado |
+| Firma del Coordinador (D-11)                          | COORDINADOR | ANCOCAGUA | sin valorado |
+| Remitir a Calahumana                                  | KARDEX      | ANCOCAGUA | sin valorado |
+| Recibir en Calahumana → Listo                         | SEC_DIR     | LA_PAZ    | sin valorado |
+| Entregar                                              | SEC_DIR     | LA_PAZ    | los dos      |
+
+- Paso que el estado o el flujo no admiten → **409** `TRANSICION_INVALIDA`; otro rol u otra sede → **403**.
+- Un file **bloqueado** (DEC-029) impide los pasos hasta imprimir → **422** `FILE_BLOQUEADO`.
+- Cada paso inserta un `movimiento_hoja_ruta` (solo inserción) y un evento `CAMBIAR_ESTADO` en la misma transacción;
+  un trigger copia el estado y la sede a la hoja. Se usa `SELECT … FOR UPDATE`.
+- No hay dictamen (D-11) ni, por ahora, estado Observado (D-34) ni bandeja de pases (D-35).
 
 ## Correlativo
 

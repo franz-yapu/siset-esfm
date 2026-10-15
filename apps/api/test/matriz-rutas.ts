@@ -86,6 +86,15 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     ruta: '/catalogos/requisitos',
     permitidos: LEEN_REQUISITOS,
   },
+  // Hojas de ruta (SDD S3.1-S3.3): Casbin exige `hojas-ruta`/`leer`; cada paso lo decide la máquina (ADR-0005).
+  { metodo: 'get', documentada: '/api/v1/hojas-ruta/{nro}', ruta: '/hojas-ruta/HR-2099-999999', permitidos: PERSONAL },
+  {
+    metodo: 'post',
+    documentada: '/api/v1/hojas-ruta/{nro}/transiciones',
+    ruta: '/hojas-ruta/HR-2099-999999/transiciones',
+    cuerpo: {},
+    permitidos: PERSONAL,
+  },
   {
     metodo: 'get',
     documentada: '/api/v1/catalogos/especialidades',

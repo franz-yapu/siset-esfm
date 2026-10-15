@@ -48,3 +48,10 @@ export const cambiarBloqueo = (cliente: Cliente, id: number, motivo: string | nu
 
 export const actualizarFile = (cliente: Cliente, id: number, cambios: CambiosFile) =>
   cliente.fileAcademico.update({ where: { id }, data: cambios, select: { id: true } });
+
+/** Lo que hojas de ruta necesita del file (SDD S3.1-S3.3 §2.4): bloqueo y persona. La raíz lo combina con personas. */
+export const datosBasicosFile = (cliente: Cliente, id: number) =>
+  cliente.fileAcademico.findUnique({
+    where: { id },
+    select: { id: true, personaId: true, bloqueado: true, codigoEstudiante: true },
+  });

@@ -22,8 +22,11 @@ import {
   nombreEspecialidadActiva,
   nombresEspecialidades,
   obtenerRequisitosActivos,
+  obtenerSedes,
+  obtenerTiposTramite,
 } from '@/modulos/catalogos';
-import { crearModuloFiles } from '@/modulos/files';
+import { crearModuloFiles, datosBasicosFile } from '@/modulos/files';
+import { crearModuloHojasRuta } from '@/modulos/hojas-ruta';
 import {
   actualizarPersona,
   buscarIdsPorCi,
@@ -42,6 +45,7 @@ import {
   crearModuloAuth,
   crearModuloUsuarios,
   describirUsuarios,
+  sesionDe,
 } from '@/modulos/seguridad';
 
 export interface DependenciasApp {
@@ -131,6 +135,27 @@ export function crearApp({
       autenticar,
       autorizarLectura: autorizar('files', 'leer'),
       autorizarRequisitos: autorizar('requisitos', 'leer'),
+    }),
+    // Hojas de ruta (SDD S3.1-S3.3): el titular sale de files + personas; tipos y sedes, de catalogos.
+    crearModuloHojasRuta({
+      bd,
+      autenticar,
+      autorizarLectura: autorizar('hojas-ruta', 'leer'),
+      sesionDe: (res) => {
+        const { usuarioId, rol, sedeId } = sesionDe(res);
+        return { usuarioId, rol, sedeId };
+      },
+      obtenerTiposTramite,
+      obtenerSedes,
+      titularDeFile: async (cliente, fileId) => {
+        const f = await datosBasicosFile(cliente, fileId);
+        if (!f) return null;
+        const p = (await obtenerPersonas(cliente, [f.personaId])).get(f.personaId);
+        if (!p) return null;
+        const nombre = [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
+        return { nombre, ci: p.complemento ? `${p.ci}-${p.complemento}` : p.ci, bloqueado: f.bloqueado };
+      },
+      describirUsuarios: describir,
     }),
     crearModuloAuditoria({
       bd,

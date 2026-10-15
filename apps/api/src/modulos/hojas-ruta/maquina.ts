@@ -1,0 +1,203 @@
+// Máquina de estados de la hoja de ruta (SDD S3.1-S3.3 §2.2, ADR-0005, DEC-033/034). Es la regla del dominio:
+// Casbin solo deja entrar a la ruta (ADR-0002); quién hace cada paso y desde qué sede lo decide esta tabla.
+// Protegida por docs/do-not-touch.md: cambiarla exige ADR, business-rules.md y las pruebas de la tabla completa.
+
+export const ESTADOS_HOJA_RUTA = [
+  'RECIBIDO',
+  'AVISADO_KARDEX',
+  'EN_IMPRESION',
+  'IMPRESO',
+  'FIRMADO_DIR_ACADEMICA',
+  'FIRMADO_COORDINADOR',
+  'REMITIDO_CALAHUMANA',
+  'LISTO',
+  'ENTREGADO',
+] as const;
+export type EstadoHojaRuta = (typeof ESTADOS_HOJA_RUTA)[number];
+
+export const ACCIONES_HOJA_RUTA = [
+  'AVISAR_KARDEX',
+  'RECOGER',
+  'IMPRIMIR',
+  'FIRMA_DIR_ACADEMICA',
+  'FIRMA_DIR_GENERAL',
+  'FIRMA_COORDINADOR',
+  'REMITIR',
+  'RECIBIR_CALAHUMANA',
+  'ENTREGAR',
+] as const;
+export type AccionHojaRuta = (typeof ACCIONES_HOJA_RUTA)[number];
+
+/** Con valorado: historial y legalización. Sin valorado: certificados (D-05). */
+export type Flujo = 'CON_VALORADO' | 'SIN_VALORADO';
+export type CodigoSede = 'LA_PAZ' | 'ANCOCAGUA';
+export type RolHojaRuta = 'SEC_DIR' | 'KARDEX' | 'COORDINADOR';
+
+export interface Transicion {
+  accion: AccionHojaRuta;
+  etiqueta: string;
+  desde: EstadoHojaRuta;
+  hacia: EstadoHojaRuta;
+  flujos: readonly Flujo[];
+  rol: RolHojaRuta;
+  /** Sede desde la que se registra el paso. LA_PAZ es la ESFM en Calahumana (D-15). */
+  sede: CodigoSede;
+  /** El file bloqueado impide el paso (DEC-029): hasta imprimir. */
+  impideBloqueo: boolean;
+}
+
+const AMBOS = ['CON_VALORADO', 'SIN_VALORADO'] as const;
+
+/** La tabla del §2.2. Los pasos de Dirección Académica y General los anota SEC_DIR (D-33, propuesta). */
+export const TRANSICIONES: readonly Transicion[] = [
+  {
+    accion: 'AVISAR_KARDEX',
+    etiqueta: 'Avisar a Kardex',
+    desde: 'RECIBIDO',
+    hacia: 'AVISADO_KARDEX',
+    flujos: AMBOS,
+    rol: 'SEC_DIR',
+    sede: 'LA_PAZ',
+    impideBloqueo: true,
+  },
+  {
+    accion: 'RECOGER',
+    etiqueta: 'Registrar que Kardex lo recogió',
+    desde: 'AVISADO_KARDEX',
+    hacia: 'EN_IMPRESION',
+    flujos: AMBOS,
+    rol: 'KARDEX',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: true,
+  },
+  {
+    accion: 'IMPRIMIR',
+    etiqueta: 'Marcar como impreso',
+    desde: 'EN_IMPRESION',
+    hacia: 'IMPRESO',
+    flujos: AMBOS,
+    rol: 'KARDEX',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: true,
+  },
+  {
+    accion: 'FIRMA_DIR_ACADEMICA',
+    etiqueta: 'Registrar firma de Dirección Académica',
+    desde: 'IMPRESO',
+    hacia: 'FIRMADO_DIR_ACADEMICA',
+    flujos: ['CON_VALORADO'],
+    rol: 'SEC_DIR',
+    sede: 'LA_PAZ',
+    impideBloqueo: false,
+  },
+  {
+    accion: 'FIRMA_DIR_GENERAL',
+    etiqueta: 'Registrar firma de Dirección General',
+    desde: 'FIRMADO_DIR_ACADEMICA',
+    hacia: 'LISTO',
+    flujos: ['CON_VALORADO'],
+    rol: 'SEC_DIR',
+    sede: 'LA_PAZ',
+    impideBloqueo: false,
+  },
+  {
+    accion: 'FIRMA_COORDINADOR',
+    etiqueta: 'Firmar',
+    desde: 'IMPRESO',
+    hacia: 'FIRMADO_COORDINADOR',
+    flujos: ['SIN_VALORADO'],
+    rol: 'COORDINADOR',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: false,
+  },
+  {
+    accion: 'REMITIR',
+    etiqueta: 'Remitir a Calahumana',
+    desde: 'FIRMADO_COORDINADOR',
+    hacia: 'REMITIDO_CALAHUMANA',
+    flujos: ['SIN_VALORADO'],
+    rol: 'KARDEX',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: false,
+  },
+  {
+    accion: 'RECIBIR_CALAHUMANA',
+    etiqueta: 'Confirmar que llegó a Calahumana',
+    desde: 'REMITIDO_CALAHUMANA',
+    hacia: 'LISTO',
+    flujos: ['SIN_VALORADO'],
+    rol: 'SEC_DIR',
+    sede: 'LA_PAZ',
+    impideBloqueo: false,
+  },
+  {
+    accion: 'ENTREGAR',
+    etiqueta: 'Registrar entrega',
+    desde: 'LISTO',
+    hacia: 'ENTREGADO',
+    flujos: AMBOS,
+    rol: 'SEC_DIR',
+    sede: 'LA_PAZ',
+    impideBloqueo: false,
+  },
+];
+
+export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
+
+export interface EstadoParaTransicion {
+  estado: EstadoHojaRuta;
+  flujo: Flujo;
+  fileBloqueado: boolean;
+}
+
+export interface UsuarioParaTransicion {
+  rol: string;
+  /** null para quien no tiene sede (no debería pasar en el personal, D-24). */
+  sede: CodigoSede | null;
+}
+
+export type ResultadoTransicion =
+  | { ok: true; transicion: Transicion }
+  | { ok: false; error: 'TRANSICION_INVALIDA' | 'PROHIBIDO' | 'FILE_BLOQUEADO'; mensaje: string };
+
+/**
+ * ¿Puede este usuario hacer esta acción ahora? El orden importa: primero si el paso existe para el estado y el
+ * flujo (409), después quién y desde dónde (403), y al final el bloqueo del file (422).
+ */
+export function evaluarTransicion(
+  h: EstadoParaTransicion,
+  u: UsuarioParaTransicion,
+  accion: AccionHojaRuta,
+): ResultadoTransicion {
+  const t = TRANSICIONES.find((x) => x.accion === accion && x.desde === h.estado && x.flujos.includes(h.flujo));
+  if (!t)
+    return { ok: false, error: 'TRANSICION_INVALIDA', mensaje: 'El trámite no admite ese paso en su estado actual.' };
+  if (t.rol !== u.rol || t.sede !== u.sede) {
+    return { ok: false, error: 'PROHIBIDO', mensaje: 'Ese paso lo registra otro rol o se registra desde otra sede.' };
+  }
+  if (t.impideBloqueo && h.fileBloqueado) {
+    return {
+      ok: false,
+      error: 'FILE_BLOQUEADO',
+      mensaje: 'El file del titular está bloqueado: no se puede avanzar hasta que se desbloquee.',
+    };
+  }
+  return { ok: true, transicion: t };
+}
+
+export interface AccionPosible {
+  accion: AccionHojaRuta;
+  etiqueta: string;
+  /** Por qué no se puede ahora (file bloqueado), o null. */
+  deshabilitada: string | null;
+}
+
+/** Los pasos que este usuario ve ahora sobre el trámite: los de su rol y su sede (para los botones del detalle). */
+export const accionesPosibles = (h: EstadoParaTransicion, u: UsuarioParaTransicion): AccionPosible[] =>
+  TRANSICIONES.filter(
+    (t) => t.desde === h.estado && t.flujos.includes(h.flujo) && t.rol === u.rol && t.sede === u.sede,
+  ).map((t) => ({
+    accion: t.accion,
+    etiqueta: t.etiqueta,
+    deshabilitada: t.impideBloqueo && h.fileBloqueado ? 'El file del titular está bloqueado.' : null,
+  }));
