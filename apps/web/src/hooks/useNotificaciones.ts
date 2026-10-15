@@ -11,35 +11,57 @@ import { claveHojasRuta } from './useHojasRuta';
 import { useCambios } from './index';
 
 /** Un aviso por cada estado que espera un paso de este rol (DEC-033), con su bandeja. */
-type Regla = { estado: EstadoHojaRuta; texto: string; to: string; valorado?: boolean };
+type Regla = { estado: EstadoHojaRuta; texto: (n: number) => string; to: string; valorado?: boolean };
+
+/** "1 trámite" / "2 trámites". */
+const de = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
 const REGLAS: Partial<Record<Usuario['rol'], Regla[]>> = {
   SEC_DIR: [
-    { estado: 'RECIBIDO', texto: '# trámites por avisar a Kardex', to: '/hojas-ruta?estado=RECIBIDO' },
+    {
+      estado: 'RECIBIDO',
+      texto: (n) => `${de(n, 'trámite', 'trámites')} por avisar a Kardex`,
+      to: '/hojas-ruta?estado=RECIBIDO',
+    },
     {
       estado: 'IMPRESO',
       valorado: true,
-      texto: '# por registrar la firma de Dirección Académica',
+      texto: (n) => `${de(n, 'trámite', 'trámites')} por registrar la firma de Dirección Académica`,
       to: '/hojas-ruta?estado=IMPRESO',
     },
     {
       estado: 'FIRMADO_DIR_ACADEMICA',
-      texto: '# por registrar la firma de Dirección General',
+      texto: (n) => `${de(n, 'trámite', 'trámites')} por registrar la firma de Dirección General`,
       to: '/hojas-ruta?estado=FIRMADO_DIR_ACADEMICA',
     },
     {
       estado: 'REMITIDO_CALAHUMANA',
-      texto: '# certificados por recibir de Ancocagua',
+      texto: (n) => `${de(n, 'certificado', 'certificados')} por recibir de Ancocagua`,
       to: '/hojas-ruta?estado=REMITIDO_CALAHUMANA',
     },
-    { estado: 'LISTO', texto: '# trámites listos para entregar', to: '/hojas-ruta?estado=LISTO' },
+    {
+      estado: 'LISTO',
+      texto: (n) => `${de(n, 'trámite listo', 'trámites listos')} para entregar`,
+      to: '/hojas-ruta?estado=LISTO',
+    },
   ],
   KARDEX: [
-    { estado: 'AVISADO_KARDEX', texto: '# trámites por recoger', to: '/revision' },
-    { estado: 'EN_IMPRESION', texto: '# trámites por imprimir', to: '/emision' },
-    { estado: 'FIRMADO_COORDINADOR', texto: '# certificados por remitir', to: '/revision' },
+    { estado: 'AVISADO_KARDEX', texto: (n) => `${de(n, 'trámite', 'trámites')} por recoger`, to: '/revision' },
+    { estado: 'EN_IMPRESION', texto: (n) => `${de(n, 'trámite', 'trámites')} por imprimir`, to: '/emision' },
+    {
+      estado: 'FIRMADO_COORDINADOR',
+      texto: (n) => `${de(n, 'certificado', 'certificados')} por remitir`,
+      to: '/revision',
+    },
   ],
-  COORDINADOR: [{ estado: 'IMPRESO', valorado: false, texto: '# certificados esperan tu firma', to: '/firmas' }],
+  COORDINADOR: [
+    {
+      estado: 'IMPRESO',
+      valorado: false,
+      texto: (n) => (n === 1 ? '1 certificado espera tu firma' : `${n} certificados esperan tu firma`),
+      to: '/firmas',
+    },
+  ],
 };
 
 /** Cuántos trámites hay en el estado; con `valorado`, solo los de ese flujo (por tipo). */
@@ -62,12 +84,13 @@ async function avisosApi(u: Usuario): Promise<Notificacion[]> {
   const reglas = REGLAS[u.rol] ?? [];
   const cantidades = await Promise.all(reglas.map(contar));
   const avisos = reglas
-    .map((r, i) => ({ texto: r.texto.replace('#', String(cantidades[i])), to: r.to, n: cantidades[i] }))
+    .map((r, i) => ({ texto: r.texto(cantidades[i]), to: r.to, n: cantidades[i] }))
     .filter((a) => a.n > 0)
     .map(({ texto, to }) => ({ texto, to }));
   if (u.rol === 'KARDEX') {
     const bloqueados = (await filesService.listar({ bloqueado: true, porPagina: 1 })).total;
-    if (bloqueados) avisos.push({ texto: `${bloqueados} files bloqueados`, to: '/files?bloqueados=1' });
+    if (bloqueados)
+      avisos.push({ texto: de(bloqueados, 'file bloqueado', 'files bloqueados'), to: '/files?bloqueados=1' });
   }
   return avisos;
 }

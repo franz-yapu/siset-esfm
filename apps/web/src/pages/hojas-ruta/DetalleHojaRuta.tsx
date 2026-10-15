@@ -122,7 +122,7 @@ export function DetalleHojaRuta() {
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Sede actual</dt>
-                <dd>{h.sedeActual.nombre || sedeHr(h.sedeActual.codigo)}</dd>
+                <dd>{sedeHr(h.sedeActual.codigo)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Estado</dt>

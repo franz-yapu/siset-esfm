@@ -6,7 +6,6 @@ import { useMiFile } from '@/hooks/useFiles';
 import { useMisRequisitos } from '@/hooks/useRequisitos';
 import { SEMAFORO } from '@/config/estados';
 import { alertasDelEstudiante, ETIQUETA_ESTADO } from '@/lib/requisitos';
-import { ordinal } from '@/lib/formato';
 import { Alerta, Card, Cargando, Semaforo } from '@/components/ui';
 import { Saludo } from './comun';
 
@@ -56,10 +55,7 @@ export function InicioEstudiante() {
             <ul className="divide-y divide-slate-100">
               {obligatorios.map((r) => (
                 <li key={r.codigo} className="flex items-center justify-between gap-2 py-2 text-sm">
-                  <span>
-                    {r.nombre}
-                    {r.anioFormacion ? <span className="text-slate-500"> · {ordinal(r.anioFormacion)} año</span> : null}
-                  </span>
+                  <span>{r.nombre}</span>
                   <Semaforo color={COLOR[r.estado]} texto={ETIQUETA_ESTADO[r.estado]} size="sm" />
                 </li>
               ))}
