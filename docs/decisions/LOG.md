@@ -734,6 +734,13 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    DEC-041 y DEC-044). Corregidos. Antes de cada push del modo demo se corre también `npm run e2e`.
 3. Las pruebas eligen al egresado por su CI en las sugerencias, no la primera fila (la lista se actualiza después
    de escribir y podía elegir a otro).
-4. Sigue abierto el bug de S1.15: dos renovaciones casi simultáneas de la misma sesión pueden contarse como reuso y
-   cerrar **todas** las sesiones del usuario (`REUSO_SESION`, visto con Kardex al correr la suite en paralelo). La
-   CI lo absorbe con un reintento; queda para un ticket aparte.
+4. Las fallas intermitentes del login de Kardex no eran un bug: E13 cerraba la sesión de Kardex con una renovación
+   en vuelo, y el SDD de S1.5 (§2.2) trata a propósito un token revocado que vuelve a llegar como reuso: cierra
+   **todas** las sesiones del usuario, también las de las otras pruebas en paralelo. Es el comportamiento seguro y
+   Auth está en `do-not-touch.md`: no se cambia. E13 abre al Coordinador en otra ventana sin cerrar la sesión de
+   Kardex. Con eso, la suite completa (86) pasó 4 de 4 corridas seguidas.
+5. Las bandejas de Kardex y "Esperan tu firma" tienen buscador (N.º, nombre o CI): paginan de a 10 y, con muchos
+   trámites, el que se busca puede no estar en la primera página.
+6. Visto al reproducirlo: más de 10 renovaciones simultáneas del mismo token agotan los reintentos de la gracia y
+   también cuentan como reuso. La web nunca las manda (un solo refresh en curso y Web Lock entre pestañas, S1.10);
+   si hiciera falta, se revisa con un ADR.

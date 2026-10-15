@@ -68,6 +68,7 @@ export function BandejaKardex({
           <DataTable
             data={filas}
             loading={isLoading}
+            searchable
             rowKey={(h) => h.nro}
             onRowClick={(h) => setSel(h.nro)}
             resaltar={(h) => h.nro === sel}

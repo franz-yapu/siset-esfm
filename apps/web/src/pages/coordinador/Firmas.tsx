@@ -74,6 +74,7 @@ export function Firmas() {
           <DataTable
             data={data.pendientes}
             rowKey={(h) => h.nro}
+            searchable
             vacio="No hay certificados esperando tu firma"
             onRowClick={(h) => nav(`/hojas-ruta/${h.nro}`)}
             columns={[

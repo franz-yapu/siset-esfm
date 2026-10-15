@@ -80,6 +80,8 @@ async function registrarTramite(page: Page, ci: string, tipo: string, valorado?:
 async function pasoEnBandeja(page: Page, ruta: string, pestana: RegExp, nro: string, boton: string, estado: string) {
   await irA(page, ruta);
   await page.getByRole('tab', { name: pestana }).click();
+  // La bandeja pagina de a 10: se busca el trámite por su N.º.
+  await page.getByPlaceholder('Buscar…').fill(nro);
   await page.getByRole('row').filter({ hasText: nro }).click();
   await page.getByRole('button', { name: boton }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar' }).click();
@@ -118,11 +120,13 @@ test.describe.serial('certificado sin valorado: Calahumana → Ancocagua → Coo
   test('el Coordinador lo ve en Firmas y lo firma', async ({ page }) => {
     await entrarComo(page, 'COORDINADOR');
     await irA(page, '/firmas');
+    await page.getByPlaceholder('Buscar…').fill(nro);
     await page.getByRole('row').filter({ hasText: nro }).getByRole('button', { name: 'Firmar' }).click();
     await page.getByLabel('Observación (opcional)').fill('Firmado en la prueba E2E');
     await page.getByRole('dialog').getByRole('button', { name: 'Firmar' }).click();
     await expect(page.getByText(`Firmaste el trámite ${nro}`)).toBeVisible();
     await page.getByRole('tab', { name: /Firmados/ }).click();
+    await page.getByPlaceholder('Buscar…').fill(nro);
     await expect(page.getByRole('row').filter({ hasText: nro })).toContainText('Firmado por el Coordinador');
   });
 
@@ -186,7 +190,8 @@ test.describe.serial('historial con valorado: las firmas de las direcciones las 
     await entrarComo(page, 'COORDINADOR');
     await irA(page, '/firmas');
     await expect(page.getByRole('heading', { name: 'Firmas' })).toBeVisible();
-    await expect(page.getByRole('row').filter({ hasText: nro })).toHaveCount(0);
+    await page.getByPlaceholder('Buscar…').fill(nro);
+    await expect(page.getByText('No hay certificados esperando tu firma')).toBeVisible();
     await irA(page, `/hojas-ruta/${nro}`);
     await expect(page.getByText('Impreso').first()).toBeVisible();
     await expect(page.getByText('Acción disponible:')).toHaveCount(0);

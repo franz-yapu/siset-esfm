@@ -72,7 +72,10 @@ test.describe.serial('E11 · files', () => {
     await expect(page.getByRole('row', { name: /Desbloqueo del file/ })).toBeVisible();
   });
 
-  test('E13 · Kardex completa TACFI de 1.º año; COORDINADOR lo ve sin poder editar (S2.4)', async ({ page }) => {
+  test('E13 · Kardex completa TACFI de 1.º año; COORDINADOR lo ve sin poder editar (S2.4)', async ({
+    page,
+    browser,
+  }) => {
     await entrarComo(page, 'KARDEX');
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
@@ -86,16 +89,18 @@ test.describe.serial('E11 · files', () => {
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(tarjeta.getByText(/Registró:/)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Menú de usuario' }).click();
-    await page.getByRole('button', { name: 'Cerrar sesión' }).click();
-    await entrarComo(page, 'COORDINADOR');
-    await irA(page, '/files');
-    await page.getByLabel('Buscar').fill(CI);
-    await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
-    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
-    await page.getByRole('tab', { name: 'Requisitos' }).click();
-    const vista = page.getByRole('article', { name: 'TACFI artístico de 1.º año' });
+    // El Coordinador en otra ventana, sin cerrar la sesión de Kardex: un logout con un refresh en vuelo cuenta como
+    // reuso y cierra TODAS las sesiones de Kardex, también las de las pruebas en paralelo (SDD S1.5 §2.2, DEC-047).
+    const coordinador = await (await browser.newContext()).newPage();
+    await entrarComo(coordinador, 'COORDINADOR');
+    await irA(coordinador, '/files');
+    await coordinador.getByLabel('Buscar').fill(CI);
+    await expect(coordinador).toHaveURL(new RegExp(`texto=${CI}`));
+    await coordinador.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+    await coordinador.getByRole('tab', { name: 'Requisitos' }).click();
+    const vista = coordinador.getByRole('article', { name: 'TACFI artístico de 1.º año' });
     await expect(vista.getByText('Completo')).toBeVisible();
     await expect(vista.getByRole('button')).toHaveCount(0);
+    await coordinador.context().close();
   });
 });
