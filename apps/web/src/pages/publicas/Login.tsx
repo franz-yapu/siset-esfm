@@ -9,9 +9,13 @@ import type { MotivoCierre } from '@/context/AuthContext';
 import { ErrorApi } from '@/lib/errores';
 import { authService } from '@/services/auth.service';
 import { todoMock } from '@/services/_modo';
+import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
+
+/** El despliegue de prueba publica sus cuentas debajo del login (SDD S0.12 §2.5); producción no. */
+const CUENTAS = mostrarCuentasPrueba(import.meta.env.VITE_CUENTAS_PRUEBA);
 
 /** Tras un 401 se avisa del bloqueo sin números ni decir si pasó: la API no lo revela (DEC-013, SDD S1.9 §2.1). */
 const AVISO_BLOQUEO =
@@ -142,11 +146,22 @@ export function Login() {
             ¿Eres egresado? Consulta tu trámite sin iniciar sesión
           </Link>
 
-          {DEMO && (
+          {(DEMO || CUENTAS) && (
             <UsuariosPrueba
-              onElegir={(u) => {
+              cuentas={
+                DEMO
+                  ? authService.usuariosDemo().map((u) => ({ usuario: u.usuario, rol: u.rol, detalle: null }))
+                  : CUENTAS_PRUEBA.map((c) => ({ usuario: c.usuario, rol: c.rol, detalle: `${c.nombre} · ${c.sede}` }))
+              }
+              password={DEMO ? 'demo123' : PASSWORD_PRUEBA}
+              aviso={
+                DEMO
+                  ? null
+                  : 'Entorno de prueba con datos ficticios. Los estudiantes no inician sesión: consultan su trámite en "¿Eres egresado?".'
+              }
+              onElegir={(u, clave) => {
                 setUser(u);
-                setPassword('demo123');
+                setPassword(clave);
                 setError(null);
               }}
             />
@@ -157,9 +172,25 @@ export function Login() {
   );
 }
 
-/** Recuadro plegable con los usuarios de prueba (solo demo). */
-function UsuariosPrueba({ onElegir }: { onElegir: (usuario: string) => void }) {
-  const [abierto, setAbierto] = useState(false);
+interface CuentaVisible {
+  usuario: string;
+  rol: Usuario['rol'];
+  detalle: string | null;
+}
+
+/** Recuadro plegable con los usuarios de prueba: los de la demo o los del despliegue de prueba. */
+function UsuariosPrueba({
+  cuentas,
+  password,
+  aviso,
+  onElegir,
+}: {
+  cuentas: CuentaVisible[];
+  password: string;
+  aviso: string | null;
+  onElegir: (usuario: string, password: string) => void;
+}) {
+  const [abierto, setAbierto] = useState(!DEMO);
   return (
     <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 text-sm">
       <button
@@ -172,19 +203,23 @@ function UsuariosPrueba({ onElegir }: { onElegir: (usuario: string) => void }) {
       </button>
       {abierto && (
         <div className="border-t border-amber-200 px-2 pb-2">
+          {aviso && <p className="px-2 pt-2 text-xs text-amber-800">{aviso}</p>}
           <p className="px-2 py-2 text-xs text-amber-800">
-            Contraseña de todos: <code className="font-semibold">demo123</code>. Clic en una fila para autocompletar.
+            Contraseña de todos: <code className="font-semibold">{password}</code>. Clic en una fila para autocompletar.
           </p>
           <ul>
-            {authService.usuariosDemo().map((u) => (
-              <li key={u.id}>
+            {cuentas.map((c) => (
+              <li key={c.usuario}>
                 <button
                   type="button"
-                  onClick={() => onElegir(u.usuario)}
+                  onClick={() => onElegir(c.usuario, password)}
                   className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-amber-100"
                 >
-                  <code className="text-slate-800">{u.usuario}</code>
-                  <RolBadge rol={u.rol} />
+                  <span className="min-w-0">
+                    <code className="text-slate-800">{c.usuario}</code>
+                    {c.detalle && <span className="block truncate text-xs text-slate-600">{c.detalle}</span>}
+                  </span>
+                  <RolBadge rol={c.rol} />
                 </button>
               </li>
             ))}

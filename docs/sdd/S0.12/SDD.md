@@ -2,8 +2,8 @@
 
 - **Ticket:** ClickUp **S0.12** (`868mh1kuh`, https://app.clickup.com/t/868mh1kuh), rehecho: el responsable pidió el 2026-10-14 un despliegue **de prueba** "igual que Ventas Fácil" (Coolify, Cloudflare) y **con datos de prueba**.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Aprobado (2026-10-14)
-- **Versión:** 1.1 · **Fecha:** 2026-10-14
+- **Estado:** Aprobado (2026-10-14, v1.2)
+- **Versión:** 1.2 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. Inspección del VPS en solo lectura (2026-10-14): Ventas Fácil producción es un **servicio docker-compose de Coolify** (`db`, `api`, `web`) con imágenes de **GHCR**, el dominio por `SERVICE_FQDN_WEB_80`, contraseñas por `${SERVICE_PASSWORD_*}` y Let's Encrypt de Traefik. **Cloudflare es solo DNS**: `*.vertexall.com` apunta directo al VPS (`31.220.101.118`), sin proxy. Recursos libres: 5,8 GB de RAM, 81 GB de disco.
   2. `docs/sdd/S0.4/SDD.md` (imágenes y `migrar`), `docs/sdd/S0.9/SDD.md` (staging: compose manual; queda como alternativa), `docs/sdd/S6.4/SDD.md` (rol `siset_app`), DEC-008, DEC-017, DEC-019 #1
@@ -73,6 +73,36 @@ El responsable crea un **token de la API** en Coolify (Keys & Tokens) y lo deja 
 2. Desplegar y esperar a que `migrar` termine y `api` y `web` estén sanos.
 3. Verificar: certificado válido, `GET /api/v1/health`, login del Kardex, una búsqueda de files y que Ventas Fácil, Subasta y vertexall sigan respondiendo.
 
+### 2.5 Cuentas de prueba visibles en el login (v1.2)
+
+Pedido del responsable (2026-10-14): que quien pruebe el sistema (el estudiante para el que se hace el proyecto)
+encuentre **debajo del login** las cuentas de cada rol con su usuario y contraseña.
+
+- **Web:** variable de build `VITE_CUENTAS_PRUEBA=true` (solo la pone el workflow _Publicar imágenes_). Con ella, el
+  login muestra el mismo recuadro plegable "Usuarios de prueba" de la demo, con aviso "Entorno de prueba con datos
+  ficticios", las 4 cuentas del personal (KARDEX, SEC_DIR, SEC_COORD, COORDINADOR: CI, nombre, rol y sede) y la
+  contraseña común. Clic en una fila autocompleta usuario y contraseña. La lista está en
+  `apps/web/src/config/cuentas-prueba.ts`. Sin la variable (producción) el recuadro no existe.
+- **Contraseña común fija:** `Prueba.2026` (cumple DEC-011). Ya no la genera Coolify: se publica en la pantalla,
+  así que tenerla en el repo no cambia nada. Va en el compose como literal de `DATOS_PRUEBA_PASSWORD`.
+- **Las cuentas se reparan en cada despliegue:** `bd:datos-prueba` corre siempre (aunque los datos ya estén) un paso
+  que deja las 4 cuentas con la contraseña común, `debe_cambiar_password = false`, activas, sin intentos fallidos ni
+  bloqueo, y revoca sus sesiones. Incluye al Kardex del seed (9000001), que en este entorno no pide cambiar la
+  contraseña. Si alguien cambia una contraseña o bloquea una cuenta probando, un redespliegue la arregla.
+- **No hay cuentas de estudiante ni de egresado:** el sistema no las tiene (DEC-032); el estudiante consulta su
+  trámite en `/seguimiento` sin iniciar sesión (S4.x). El recuadro lo dice.
+- **Buscadores:** hoy el sitio **no** tiene `noindex`. Con `VITE_CUENTAS_PRUEBA=true`, `vite.config.ts` agrega
+  `<meta name="robots" content="noindex, nofollow">` al `index.html`, para que las contraseñas no salgan en Google.
+  Que cualquiera con el enlace pueda entrar es aceptable con datos ficticios (§6).
+
+| Archivo                                                                    | Cambio                                                     |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `apps/web/src/config/cuentas-prueba.ts`, `vite-env.d.ts`, `vite.config.ts` | **Nuevo**: lista de cuentas y contraseña; tipo de la var.  |
+| `apps/web/src/pages/publicas/Login.tsx`                                    | El recuadro acepta la lista y la contraseña; aviso.        |
+| `apps/api/prisma/datos-prueba.ts`                                          | `repararCuentasPrueba` (siempre).                          |
+| `deploy/coolify/docker-compose.yml`, `publicar-imagenes.yml`               | Contraseña fija; `VITE_CUENTAS_PRUEBA=true`.               |
+| Tests: `Login.test.tsx`, `test/bd/datos-prueba.test.ts`                    | Recuadro con y sin la variable; reparación de las cuentas. |
+
 ---
 
 ## 3 · Cambios por archivo
@@ -131,3 +161,7 @@ El responsable crea un **token de la API** en Coolify (Keys & Tokens) y lo deja 
 - **1.1 (2026-10-14):** la imagen de `migrar` se publica aparte (`siset-migrar`, target `build`), porque la de la api
   (target `runtime`) no trae Prisma CLI ni `tsx`: son tres paquetes, no dos. La contraseña de `siset_app` pasa a
   `${SERVICE_PASSWORD_64_APPDB}`: `bd:rol-app` exige 16 caracteres o más y la prueba local con una clave corta falló.
+- **1.2 (2026-10-14, aprobada):** §2.5, cuentas de prueba visibles debajo del login, con contraseña común fija y
+  reparación de las cuentas en cada despliegue. Al implementar: `apps/web/Dockerfile` recibe el `ARG
+VITE_CUENTAS_PRUEBA`, y el test de la web es `src/config/cuentas-prueba.test.ts` (la web no tiene tests de
+  componentes; el recuadro se verifica en el despliegue).

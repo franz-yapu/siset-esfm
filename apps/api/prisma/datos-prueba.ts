@@ -4,7 +4,8 @@ import { TRANSICIONES } from '../src/modulos/hojas-ruta';
 
 // Datos de prueba FICTICIOS para el despliegue de prueba (SDD S0.12 §2.3, DEC-036). Solo corren con
 // DATOS_PRUEBA=1 y son idempotentes: si ya están cargados, no hacen nada. Se cargan directo en la base, sin eventos
-// de bitácora: la bitácora registra lo que se haga en la prueba.
+// de bitácora: la bitácora registra lo que se haga en la prueba. Las cuentas de prueba se reparan en cada corrida
+// (SDD S0.12 §2.5): las publica el login de la prueba, y alguien puede cambiarles la contraseña o bloquearlas.
 
 const NOMBRES = [
   'Ana',
@@ -48,6 +49,35 @@ const HOJAS: { tipo: string; pasos: number }[] = [
   { tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 5 },
   { tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 7 },
 ];
+
+/** CI del Kardex inicial del seed en la prueba (SEED_KARDEX_CI del compose de Coolify). */
+const CI_KARDEX_PRUEBA = '9000001';
+
+/** Usuarios de las cuentas de prueba que muestra el login (SDD S0.12 §2.5). */
+export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci)].map((ci) => usernameDe(ci, ''));
+
+/**
+ * Deja las cuentas de prueba como las publica el login: con la contraseña común, sin pedir cambiarla, activas, sin
+ * intentos fallidos ni bloqueo y sin sesiones abiertas. Devuelve cuántas reparó (las que existen).
+ */
+export async function repararCuentasPrueba(bd: ClienteBd, password: string): Promise<number> {
+  const politica = esquemaPassword.safeParse(password);
+  if (!politica.success) throw new Error(`DATOS_PRUEBA_PASSWORD no cumple la regla (DEC-011).`);
+  const hash = await hashPassword(password);
+  return bd.$transaction(async (tx) => {
+    const usuarios = await tx.usuario.findMany({ where: { username: { in: CUENTAS_PRUEBA } }, select: { id: true } });
+    const ids = usuarios.map((u) => u.id);
+    await tx.usuario.updateMany({
+      where: { id: { in: ids } },
+      data: { passwordHash: hash, debeCambiarPassword: false, activo: true, intentosFallidos: 0, bloqueadoHasta: null },
+    });
+    await tx.refreshToken.updateMany({
+      where: { usuarioId: { in: ids }, revocadoEn: null },
+      data: { revocadoEn: new Date() },
+    });
+    return ids.length;
+  });
+}
 
 export interface ResultadoDatosPrueba {
   cargados: boolean;
@@ -214,12 +244,14 @@ if (process.argv[1]?.endsWith('datos-prueba.ts')) {
     const { crearClienteBd } = await import('../src/compartido/bd');
     const bd = crearClienteBd();
     try {
-      const r = await cargarDatosPrueba(bd, process.env.DATOS_PRUEBA_PASSWORD ?? '');
+      const password = process.env.DATOS_PRUEBA_PASSWORD ?? '';
+      const r = await cargarDatosPrueba(bd, password);
+      const cuentas = await repararCuentasPrueba(bd, password);
       // eslint-disable-next-line no-console
       console.info(
-        r.cargados
+        (r.cargados
           ? `Datos de prueba cargados: ${r.personal} del personal, ${r.files} files, ${r.hojas} hojas de ruta.`
-          : 'Datos de prueba: ya estaban cargados.',
+          : 'Datos de prueba: ya estaban cargados.') + ` Cuentas de prueba reparadas: ${cuentas}.`,
       );
     } finally {
       await bd.$disconnect();

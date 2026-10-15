@@ -1,11 +1,11 @@
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest';
 import { crearApp } from '@/app';
 import { firmarAccessToken } from '@/modulos/seguridad/jwt';
 import { configDePrueba, SECRETO_JWT_DE_PRUEBA } from '../http/utilidades';
 import { clienteDeTest, KARDEX_DE_PRUEBA } from './utilidades';
 import { sembrar } from '../../prisma/semilla';
-import { cargarDatosPrueba } from '../../prisma/datos-prueba';
+import { cargarDatosPrueba, repararCuentasPrueba } from '../../prisma/datos-prueba';
 
 const bd = clienteDeTest();
 const app = crearApp({ bd, config: configDePrueba() });
@@ -55,5 +55,45 @@ describe('datos de prueba del despliegue (SDD S0.12 §2.3)', () => {
       expect(h.movimientos.at(-1)?.estadoNuevo).toBe(h.estadoActual);
       expect(h.nroValorado !== null).toBe(h.tipoTramite.requiereValorado);
     }
+  });
+
+  it('repara las cuentas de prueba: contraseña común, sin cambio obligatorio, sin bloqueo y sin sesiones (§2.5)', async () => {
+    // El Kardex 9000001 del seed también es cuenta de prueba: los otros tests de la base lo comparten, así que se
+    // deja como estaba al terminar.
+    const kardex = await bd.usuario.findUniqueOrThrow({ where: { username: '9000001' } });
+    onTestFinished(() =>
+      bd.usuario
+        .update({
+          where: { id: kardex.id },
+          data: { passwordHash: kardex.passwordHash, debeCambiarPassword: kardex.debeCambiarPassword },
+        })
+        .then(() => undefined),
+    );
+    const u = await bd.usuario.findUniqueOrThrow({ where: { username: '9000003' } });
+    await bd.usuario.update({
+      where: { id: u.id },
+      data: {
+        debeCambiarPassword: true,
+        activo: false,
+        intentosFallidos: 5,
+        bloqueadoHasta: new Date(Date.now() + 3_600_000),
+      },
+    });
+    const sesion = await bd.refreshToken.create({
+      data: { usuarioId: u.id, tokenHash: 'a'.repeat(64), expiraEn: new Date(Date.now() + 3_600_000) },
+    });
+
+    expect(await repararCuentasPrueba(bd, 'Prueba.2026')).toBeGreaterThanOrEqual(3);
+
+    const login = await request(app).post('/api/v1/auth/login').send({ usuario: '9000003', password: 'Prueba.2026' });
+    expect(login.status).toBe(200);
+    expect(login.body.usuario.rol).toBe('SEC_COORD');
+    const reparado = await bd.usuario.findUniqueOrThrow({ where: { id: u.id } });
+    expect(reparado).toMatchObject({ debeCambiarPassword: false, activo: true, bloqueadoHasta: null });
+    expect((await bd.refreshToken.findUniqueOrThrow({ where: { id: sesion.id } })).revocadoEn).not.toBeNull();
+  });
+
+  it('rechaza una contraseña común que no cumple DEC-011', async () => {
+    await expect(repararCuentasPrueba(bd, 'prueba')).rejects.toThrow(/DEC-011/);
   });
 });
