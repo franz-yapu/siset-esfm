@@ -1,35 +1,55 @@
 import { useState } from 'react';
-import { useAsync, useUsuario } from '@/hooks';
-import { filesPrototipoService } from '@/services/files-prototipo.service';
+import { useUsuario } from '@/hooks';
+import { useMiFile } from '@/hooks/useFiles';
+import { fecha } from '@/lib/formato';
 import { Alerta, Card, Cargando, Tabs } from '@/components/ui';
-import { CabeceraFile, cabeceraDePrototipo } from '@/components/file/CabeceraFile';
-import { TablaMatriculas, TablaRequisitos, TablaResultados } from '@/components/file/TablasFile';
+import { CabeceraFile } from '@/components/file/CabeceraFile';
+import { RequisitosFile } from '@/components/file/RequisitosFile';
 
-/** P-20 · Mi file académico (solo lectura, solo el propio). */
+const Dato = ({ titulo, valor }: { titulo: string; valor: string | null }) => (
+  <div>
+    <dt className="text-xs text-slate-500">{titulo}</dt>
+    <dd className="text-sm text-slate-800">{valor || '—'}</dd>
+  </div>
+);
+
+/**
+ * P-20 · Mi file académico contra la API (S2.7, DEC-043): solo lectura y solo el propio (la API lo toma de la
+ * sesión). Sin matrículas ni notas: no se registran en SISET (D-30 propuesta, D-07).
+ */
 export function MiFile() {
   const u = useUsuario();
-  const [tab, setTab] = useState('matriculas');
-  const { data: f, loading, error } = useAsync(() => filesPrototipoService.miFile(u), [u.id]);
-  if (loading) return <Cargando />;
-  if (error || !f) return <Alerta tipo="error">{error}</Alerta>;
+  const [tab, setTab] = useState('requisitos');
+  const { data: f, isLoading, error } = useMiFile(u);
+  if (isLoading) return <Cargando />;
+  if (error || !f) return <Alerta tipo="error">{error?.message ?? 'No se pudo leer tu file.'}</Alerta>;
 
   return (
     <>
-      <CabeceraFile file={cabeceraDePrototipo(f)} />
+      <CabeceraFile file={f} />
       <Card>
         <Tabs
           activa={tab}
           onChange={setTab}
           className="mb-4"
           tabs={[
-            { id: 'matriculas', label: 'Matrículas', count: f.matriculas.length },
-            { id: 'resultados', label: 'Resultados anuales', count: f.resultados.length },
             { id: 'requisitos', label: 'Requisitos' },
+            { id: 'datos', label: 'Mis datos' },
           ]}
         />
-        {tab === 'matriculas' && <TablaMatriculas file={f} />}
-        {tab === 'resultados' && <TablaResultados file={f} />}
-        {tab === 'requisitos' && <TablaRequisitos file={f} />}
+        {tab === 'requisitos' && <RequisitosFile fileId={f.id} editable={false} propio />}
+        {tab === 'datos' && (
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Dato titulo="Nombre completo" valor={f.nombre} />
+            <Dato titulo="C.I." valor={[f.ci, f.complemento].filter(Boolean).join('-')} />
+            <Dato titulo="Código de estudiante" valor={f.codigo} />
+            <Dato titulo="Especialidad" valor={f.especialidad} />
+            <Dato titulo="Año de ingreso" valor={String(f.anioIngreso)} />
+            <Dato titulo="Fecha de nacimiento" valor={f.fechaNacimiento && fecha(f.fechaNacimiento)} />
+            <Dato titulo="Celular" valor={f.celular} />
+            <Dato titulo="Correo" valor={f.email} />
+          </dl>
+        )}
       </Card>
       <p className="mt-3 text-xs text-slate-500">Vista de solo lectura. Si encuentras un error, acércate a Kardex.</p>
     </>

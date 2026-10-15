@@ -14,6 +14,14 @@ export const useRequisitos = (fileId: number, habilitado = true) =>
     enabled: habilitado && fileId > 0,
   });
 
+/** Los requisitos del file del estudiante (S2.7). */
+export const useMisRequisitos = (actor: Usuario, habilitado = true) =>
+  useQuery({
+    queryKey: [...claveFiles, 'requisitos', 'mios', actor.id],
+    queryFn: () => requisitosService.mios(actor),
+    enabled: habilitado,
+  });
+
 /** Registrar invalida todo lo del file (requisitos e historial). */
 export function useRegistrarRequisito(fileId: number, actor: Usuario) {
   const cliente = useQueryClient();

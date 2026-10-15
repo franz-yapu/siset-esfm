@@ -1,10 +1,11 @@
 import type { ClienteBd, Prisma, TransaccionBd } from '@/compartido/bd';
 import { ErrorConflicto, ErrorNegocio, ErrorNoEncontrado, ErrorValidacion } from '@/compartido/errores';
-import { desplazamiento, type Pagina } from '@/compartido/http';
+import { desplazamiento, obtenerContexto, type Pagina } from '@/compartido/http';
 import { registrarEvento } from '@/modulos/auditoria';
 import {
   actualizarFile,
   buscarFile,
+  buscarIdFileDePersona,
   cambiarBloqueo,
   crearFile,
   listarFiles,
@@ -60,6 +61,8 @@ export interface DependenciasFiles {
   obtenerRequisitosActivos(cliente: Cliente): Promise<RequisitoParaSemaforo[]>;
   personas: PersonasParaFiles;
   especialidades: EspecialidadesParaFiles;
+  /** La persona del usuario de la sesión: seguridad, armado por la raíz (ADR-0001). */
+  personaDeUsuario(usuarioId: number): Promise<number | null>;
 }
 
 const CAMPOS_PERSONALES = [
@@ -113,7 +116,13 @@ const especialidadInexistente = () => new ErrorNegocio('La especialidad no exist
  * API de files (SDD S2.2). Las rutas ya pasaron por `autorizar('files', …)`. Cada escritura deja su
  * evento en la misma transacción (DEC-007).
  */
-export function crearServicioFiles({ bd, personas, especialidades, obtenerRequisitosActivos }: DependenciasFiles) {
+export function crearServicioFiles({
+  bd,
+  personas,
+  especialidades,
+  obtenerRequisitosActivos,
+  personaDeUsuario,
+}: DependenciasFiles) {
   /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2). */
   async function semaforos(
     cliente: Cliente,
@@ -194,6 +203,18 @@ export function crearServicioFiles({ bd, personas, especialidades, obtenerRequis
 
     async obtener(id: number): Promise<FileDetalle> {
       return (await cargar(bd, id)).d;
+    },
+
+    /**
+     * "Mi file" (S2.7, DEC-043): el id sale de la sesión, nunca de la URL, así que nadie lee otro file cambiando
+     * un número ("propio" se valida en el servicio, ADR-0002).
+     */
+    async idPropio(): Promise<number> {
+      const usuarioId = obtenerContexto()?.usuarioId;
+      const personaId = usuarioId ? await personaDeUsuario(usuarioId) : null;
+      const id = personaId ? await buscarIdFileDePersona(bd, personaId) : null;
+      if (!id) throw new ErrorNoEncontrado('No tienes un file académico registrado. Consulta con Kardex.');
+      return id;
     },
 
     async crear(datos: DatosCrearFile): Promise<FileDetalle> {

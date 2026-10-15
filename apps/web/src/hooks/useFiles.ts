@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Usuario } from '@/types';
 import type { FiltrosFiles } from '@/types/files';
 import { filesService } from '@/services/files.service';
 import { avisarCambio } from './index';
@@ -17,6 +18,10 @@ export const useFiles = (filtros: FiltrosFiles) =>
 
 export const useFile = (id: number) =>
   useQuery({ queryKey: [...claveFiles, 'uno', id], queryFn: () => filesService.obtener(id), enabled: id > 0 });
+
+/** "Mi file" del estudiante (S2.7). */
+export const useMiFile = (actor: Usuario) =>
+  useQuery({ queryKey: [...claveFiles, 'mio', actor.id], queryFn: () => filesService.mio(actor), retry: false });
 
 /** El catálogo no cambia durante la sesión. */
 export const useEspecialidades = () =>

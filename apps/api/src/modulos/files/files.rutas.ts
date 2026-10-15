@@ -23,6 +23,8 @@ import {
 /** `autorizar('files', accion)` ya armado por la raíz: files no importa a seguridad (ADR-0001). */
 export interface AutorizarFiles {
   leer: RequestHandler;
+  /** `files`/`leer_propio`: el estudiante, solo su file (S2.7). */
+  leerPropio: RequestHandler;
   crear: RequestHandler;
   editar: RequestHandler;
 }
@@ -35,6 +37,7 @@ export const crearRutasFiles = (
 ): Router =>
   Router()
     .get('/files', autenticar, autorizar.leer, validar(esquemasListarFiles), controlador.listar)
+    .get('/files/mio', autenticar, autorizar.leerPropio, controlador.mio)
     .get('/files/:id', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.obtener)
     .post('/files', autenticar, autorizar.crear, validar(esquemasCrearFile), controlador.crear)
     .patch('/files/:id', autenticar, autorizar.editar, validar(esquemasEditarFile), controlador.editar)
@@ -85,6 +88,19 @@ export const openapiFiles: ZodOpenApiPathsObject = {
         ...comunes,
         '409': error('La persona ya tiene file (FILE_EXISTENTE) o el código se repite (CODIGO_EXISTENTE).'),
         '422': error('La especialidad no existe (ESPECIALIDAD_INEXISTENTE).'),
+      },
+    },
+  },
+  '/api/v1/files/mio': {
+    get: {
+      tags: ['Files'],
+      summary: 'Ver mi file (estudiante)',
+      description: 'El file de la persona de la sesión (S2.7). No recibe id: nadie lee otro file cambiando la URL.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': json('Mi file.', esquemaFileDetalle),
+        ...comunes,
+        '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
       },
     },
   },

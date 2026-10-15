@@ -38,5 +38,9 @@ export const crearControladorFiles = (servicio: ServicioFiles) => {
     res.json(await servicio.desbloquear(params.id, body.resolucion));
   };
 
-  return { listar, obtener, crear, editar, bloquear, desbloquear };
+  const mio: RequestHandler = async (_req, res) => {
+    res.json(await servicio.obtener(await servicio.idPropio()));
+  };
+
+  return { listar, obtener, mio, crear, editar, bloquear, desbloquear };
 };

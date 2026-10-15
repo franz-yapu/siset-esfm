@@ -15,6 +15,8 @@ import type { ServicioRequisitos } from './requisitos.servicio';
 /** `autorizar('requisitos', accion)` ya armado por la raíz (ADR-0001, DEC-015). */
 export interface AutorizarRequisitos {
   leer: RequestHandler;
+  /** `requisitos`/`leer_propio`: el estudiante, los de su file (S2.7). */
+  leerPropio: RequestHandler;
   editar: RequestHandler;
 }
 
@@ -23,6 +25,8 @@ export function crearRutasRequisitos(
   servicio: ServicioRequisitos,
   autenticar: RequestHandler,
   autorizar: AutorizarRequisitos,
+  /** El file de la sesión (lo resuelve el servicio de files). */
+  idFilePropio: () => Promise<number>,
 ): Router {
   const listar: RequestHandler = async (_req, res) => {
     res.json(await servicio.listar(datosValidos(res, esquemasListarRequisitos).params.id));
@@ -31,7 +35,11 @@ export function crearRutasRequisitos(
     const { params, body } = datosValidos(res, esquemasRegistrarRequisito);
     res.json(await servicio.registrar(params.id, params.codigo, body));
   };
+  const listarPropios: RequestHandler = async (_req, res) => {
+    res.json(await servicio.listar(await idFilePropio()));
+  };
   return Router()
+    .get('/files/mio/requisitos', autenticar, autorizar.leerPropio, listarPropios)
     .get('/files/:id/requisitos', autenticar, autorizar.leer, validar(esquemasListarRequisitos), listar)
     .put('/files/:id/requisitos/:codigo', autenticar, autorizar.editar, validar(esquemasRegistrarRequisito), registrar);
 }
@@ -47,6 +55,19 @@ const comunes = {
 };
 
 export const openapiRequisitos: ZodOpenApiPathsObject = {
+  '/api/v1/files/mio/requisitos': {
+    get: {
+      tags: ['Files'],
+      summary: 'Requisitos de mi file (estudiante)',
+      description: 'Los requisitos del file de la persona de la sesión (S2.7), sin id en la URL.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': json('Requisitos de mi file.', z.array(esquemaRequisitoDelFile)),
+        ...comunes,
+        '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
+      },
+    },
+  },
   '/api/v1/files/{id}/requisitos': {
     get: {
       tags: ['Files'],

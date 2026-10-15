@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { RequisitoDelFile } from '@/types/requisitos';
 import { useUsuario } from '@/hooks';
-import { useRegistrarRequisito, useRequisitos } from '@/hooks/useRequisitos';
+import { useMisRequisitos, useRegistrarRequisito, useRequisitos } from '@/hooks/useRequisitos';
 import { ETIQUETA_ESTADO } from '@/lib/requisitos';
 import { fecha, fechaHora, ordinal } from '@/lib/formato';
 import { Alerta, Button, Cargando, Semaforo } from '@/components/ui';
@@ -18,11 +18,21 @@ const grupos = (lista: RequisitoDelFile[]) => {
 
 /**
  * Pestaña Requisitos de P-41 (SDD S2.4 §2.4): el catálogo activo con el estado de cada requisito en el file.
- * Solo KARDEX registra; SEC_COORD y COORDINADOR leen (DEC-015).
+ * Solo KARDEX registra; SEC_COORD y COORDINADOR leen (DEC-015). `propio`: el estudiante, desde "mi file" (S2.7).
  */
-export function RequisitosFile({ fileId, editable }: { fileId: number; editable: boolean }) {
+export function RequisitosFile({
+  fileId,
+  editable,
+  propio = false,
+}: {
+  fileId: number;
+  editable: boolean;
+  propio?: boolean;
+}) {
   const u = useUsuario();
-  const { data, isLoading, error } = useRequisitos(fileId);
+  const delFile = useRequisitos(fileId, !propio);
+  const mios = useMisRequisitos(u, propio);
+  const { data, isLoading, error } = propio ? mios : delFile;
   const registrar = useRegistrarRequisito(fileId, u);
   const [abierto, setAbierto] = useState<RequisitoDelFile | null>(null);
 

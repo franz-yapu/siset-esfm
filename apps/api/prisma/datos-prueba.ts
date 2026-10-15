@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { ClienteBd } from '../src/compartido/bd';
 import { esquemaPassword, hashPassword, usernameDe } from '../src/modulos/seguridad';
 import { TRANSICIONES } from '../src/modulos/hojas-ruta';
@@ -53,8 +54,37 @@ const HOJAS: { tipo: string; pasos: number }[] = [
 /** CI del Kardex inicial del seed en la prueba (SEED_KARDEX_CI del compose de Coolify). */
 const CI_KARDEX_PRUEBA = '9000001';
 
+/** Estudiante de prueba para "mi file" (S2.7): file 25, estudiante, sin bloqueo y con un requisito observado. */
+const CI_ESTUDIANTE_PRUEBA = String(CI_INICIAL + 24);
+
 /** Usuarios de las cuentas de prueba que muestra el login (SDD S0.12 §2.5). */
-export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci)].map((ci) => usernameDe(ci, ''));
+export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), CI_ESTUDIANTE_PRUEBA].map((ci) =>
+  usernameDe(ci, ''),
+);
+
+/**
+ * Crea la cuenta del estudiante de prueba si su file existe y aún no tiene cuenta (DEC-043). Va aparte de
+ * `cargarDatosPrueba` porque en la prueba los datos ya estaban cargados; la contraseña la pone `repararCuentasPrueba`.
+ */
+export async function asegurarEstudiantePrueba(bd: ClienteBd): Promise<boolean> {
+  const persona = await bd.persona.findUnique({
+    where: { ci_complemento: { ci: CI_ESTUDIANTE_PRUEBA, complemento: '' } },
+    select: { id: true, usuario: { select: { id: true } } },
+  });
+  if (!persona || persona.usuario) return false;
+  const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } });
+  await bd.usuario.create({
+    data: {
+      personaId: persona.id,
+      rolId: rol.id,
+      username: usernameDe(CI_ESTUDIANTE_PRUEBA, ''),
+      // Se reemplaza enseguida con la contraseña común (repararCuentasPrueba).
+      passwordHash: await hashPassword(randomUUID()),
+      debeCambiarPassword: false,
+    },
+  });
+  return true;
+}
 
 /**
  * Deja las cuentas de prueba como las publica el login: con la contraseña común, sin pedir cambiarla, activas, sin
@@ -246,6 +276,7 @@ if (process.argv[1]?.endsWith('datos-prueba.ts')) {
     try {
       const password = process.env.DATOS_PRUEBA_PASSWORD ?? '';
       const r = await cargarDatosPrueba(bd, password);
+      await asegurarEstudiantePrueba(bd);
       const cuentas = await repararCuentasPrueba(bd, password);
       // eslint-disable-next-line no-console
       console.info(

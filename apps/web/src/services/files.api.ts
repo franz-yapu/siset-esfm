@@ -21,6 +21,10 @@ export const filesApi: ServicioFiles = {
     return (await api.get<FileDetalle>(`/files/${id}`)).data;
   },
 
+  async mio(): Promise<FileDetalle> {
+    return (await api.get<FileDetalle>('/files/mio')).data;
+  },
+
   async crear(d: DatosCrearFile): Promise<FileDetalle> {
     return (await api.post<FileDetalle>('/files', d)).data;
   },

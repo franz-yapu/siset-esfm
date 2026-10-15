@@ -51,6 +51,13 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
   // Files (SDD S2.2, DEC-015): KARDEX crea y edita; el personal lee.
   { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: PERSONAL },
   { metodo: 'post', documentada: '/api/v1/files', ruta: '/files', cuerpo: {}, permitidos: SOLO_KARDEX },
+  { metodo: 'get', documentada: '/api/v1/files/mio', ruta: '/files/mio', permitidos: ['ESTUDIANTE'] },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/mio/requisitos',
+    ruta: '/files/mio/requisitos',
+    permitidos: ['ESTUDIANTE'],
+  },
   { metodo: 'get', documentada: '/api/v1/files/{id}', ruta: `/files/${ID_INEXISTENTE}`, permitidos: PERSONAL },
   {
     metodo: 'patch',

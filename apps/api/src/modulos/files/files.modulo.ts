@@ -25,16 +25,11 @@ export function crearModuloFiles({
     autorizarRequisitos: AutorizarRequisitos;
   }): ModuloHttp {
   const requisitos = crearServicioRequisitos({ bd: deps.bd, obtenerRequisitosActivos, describirUsuarios });
+  const files = crearServicioFiles({ ...deps, obtenerRequisitosActivos });
   return {
     router: Router()
-      .use(
-        crearRutasFiles(
-          crearControladorFiles(crearServicioFiles({ ...deps, obtenerRequisitosActivos })),
-          autenticar,
-          autorizar,
-        ),
-      )
-      .use(crearRutasRequisitos(requisitos, autenticar, autorizarRequisitos)),
+      .use(crearRutasFiles(crearControladorFiles(files), autenticar, autorizar))
+      .use(crearRutasRequisitos(requisitos, autenticar, autorizarRequisitos, files.idPropio)),
     openapi: { ...openapiFiles, ...openapiRequisitos },
   };
 }

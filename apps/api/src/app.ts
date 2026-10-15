@@ -113,6 +113,7 @@ export function crearApp({
       autenticar,
       autorizar: {
         leer: autorizar('files', 'leer'),
+        leerPropio: autorizar('files', 'leer_propio'),
         crear: autorizar('files', 'crear'),
         editar: autorizar('files', 'editar'),
       },
@@ -126,7 +127,13 @@ export function crearApp({
       },
       especialidades: { nombreEspecialidadActiva, nombresEspecialidades },
       // Requisitos del file (SDD S2.4): el catálogo es de catalogos; quién registró, de seguridad + personas.
-      autorizarRequisitos: { leer: autorizar('requisitos', 'leer'), editar: autorizar('requisitos', 'editar') },
+      autorizarRequisitos: {
+        leer: autorizar('requisitos', 'leer'),
+        leerPropio: autorizar('requisitos', 'leer_propio'),
+        editar: autorizar('requisitos', 'editar'),
+      },
+      // "Mi file" (S2.7): la persona del usuario de la sesión sale de seguridad.
+      personaDeUsuario: async (id) => (await describirUsuarios(bd, [id]))[0]?.personaId ?? null,
       obtenerRequisitosActivos,
       describirUsuarios: describir,
     }),

@@ -96,6 +96,10 @@ export const requisitosMock: ServicioRequisitos = {
     return copia(CATALOGO_MOCK.map((item) => armar(item, f.requisitosCatalogo?.[item.codigo])));
   },
 
+  async mios(actor: Usuario): Promise<RequisitoDelFile[]> {
+    return requisitosMock.listar(actor.fileId ?? 0);
+  },
+
   async registrar(fileId: number, codigo: string, datos: DatosRequisito, actor: Usuario): Promise<RequisitoDelFile> {
     await delay(LATENCIA);
     const f = buscar(fileId);

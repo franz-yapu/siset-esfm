@@ -16,6 +16,10 @@ const SELECCION_FILE = {
 export const buscarFile = (cliente: Cliente, id: number) =>
   cliente.fileAcademico.findUnique({ where: { id }, select: SELECCION_FILE });
 
+/** El file de una persona (para "mi file", S2.7): solo el id. */
+export const buscarIdFileDePersona = async (cliente: Cliente, personaId: number): Promise<number | null> =>
+  (await cliente.fileAcademico.findUnique({ where: { personaId }, select: { id: true } }))?.id ?? null;
+
 export type FileBd = NonNullable<Awaited<ReturnType<typeof buscarFile>>>;
 
 export const tieneFile = async (cliente: Cliente, personaId: number): Promise<boolean> =>

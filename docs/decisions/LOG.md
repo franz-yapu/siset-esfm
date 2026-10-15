@@ -666,3 +666,21 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    dejan espacio para firma y sello en papel. Sin pases entre oficinas (D-35, propuesta).
 3. "PDF imprimible" = imprimir desde el navegador (también "Guardar como PDF"): solo sale la hoja carta, sin el
    menú ni la cabecera (zona de impresión). Un PDF del servidor no hace falta para la carátula.
+
+## DEC-043 — "Mi file" del estudiante contra la API (S2.7)
+
+**Fecha:** 2026-10-15 · **Fuente:** S2.7, ADR-0002, D-07, D-30 (propuesta) (modo demo, sin SDD previo) · **Estado:** activa
+
+1. `GET /api/v1/files/mio` (`files`/`leer_propio`) y `GET /api/v1/files/mio/requisitos` (`requisitos`/`leer_propio`):
+   solo ESTUDIANTE. No reciben id: el file sale de la persona del usuario de la sesión (la raíz pasa
+   `personaDeUsuario` desde seguridad), así que "propio" se valida en el servicio (ADR-0002). Sin file: 404 con
+   "Consulta con Kardex". Las rutas por id siguen siendo solo del personal (403 para el estudiante). Leer no es
+   escritura ni evento de acceso: sin bitácora (DEC-007).
+2. P-20 "Mi file" (cabecera con semáforo, pestañas Requisitos y Mis datos, solo lectura) y P-10 Inicio del
+   estudiante (semáforo, requisitos obligatorios y alertas: bloqueo, observados y pendientes) leen esos endpoints.
+   Sin matrículas ni notas: no se registran en SISET (D-30, propuesta; las notas están en el sistema del Ministerio,
+   D-07).
+3. Datos de prueba: cuenta de estudiante `8100025` (file PRB-0025, ficticio) con la contraseña común. Se crea con
+   `asegurarEstudiantePrueba` en cada corrida de `bd:datos-prueba`, aparte de la carga inicial, porque en la prueba
+   los datos ya estaban cargados. Ajusta DEC-032: el login de prueba muestra el personal y un estudiante, sin
+   egresados (D-08).

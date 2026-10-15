@@ -344,3 +344,57 @@ describe('GET /api/v1/catalogos/especialidades', () => {
     }
   });
 });
+
+describe('GET /api/v1/files/mio (S2.7, DEC-043)', () => {
+  /** Un usuario ESTUDIANTE para la persona dada, sin sede (D-24). */
+  async function estudiante(personaId: number): Promise<string> {
+    const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } });
+    const persona = await bd.persona.findUniqueOrThrow({ where: { id: personaId } });
+    const u = await bd.usuario.create({
+      data: {
+        personaId,
+        rolId: rol.id,
+        username: persona.ci,
+        passwordHash: await hashPassword(PASSWORD_DE_PRUEBA),
+        debeCambiarPassword: false,
+      },
+    });
+    return tokenDe(u.id, 'ESTUDIANTE');
+  }
+  const pedir = (ruta: string, token: string) =>
+    request(app).get(`/api/v1${ruta}`).set('Authorization', `Bearer ${token}`);
+
+  it('el estudiante lee su file y sus requisitos, sin id en la URL', async () => {
+    const f = await crear();
+    const { personaId } = await bd.fileAcademico.findUniqueOrThrow({ where: { id: f.id } });
+    const token = await estudiante(personaId);
+
+    const mio = await pedir('/files/mio', token);
+    expect(mio.status).toBe(200);
+    expect(mio.body).toMatchObject({ id: f.id, ci: f.ci, codigo: f.codigo });
+
+    const req = await pedir('/files/mio/requisitos', token);
+    expect(req.status).toBe(200);
+    expect(Array.isArray(req.body)).toBe(true);
+  });
+
+  it('no lee otro file por id: 403', async () => {
+    const propio = await crear();
+    const otro = await crear();
+    const { personaId } = await bd.fileAcademico.findUniqueOrThrow({ where: { id: propio.id } });
+    const token = await estudiante(personaId);
+    expect((await pedir(`/files/${otro.id}`, token)).status).toBe(403);
+    expect((await pedir(`/files/${otro.id}/requisitos`, token)).status).toBe(403);
+  });
+
+  it('sin file: 404 con un mensaje para consultar a Kardex', async () => {
+    const persona = await bd.persona.create({ data: { ci: nuevoCi(), nombres: 'Sin', apellidoPaterno: 'File' } });
+    const r = await pedir('/files/mio', await estudiante(persona.id));
+    expect(r.status).toBe(404);
+    expect(r.body.error.message).toContain('Kardex');
+  });
+
+  it('el personal no usa /files/mio: 403', async () => {
+    expect((await como('get', '/files/mio', undefined, 'SEC_DIR')).status).toBe(403);
+  });
+});

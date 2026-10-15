@@ -134,6 +134,13 @@ export const filesMock: ServicioFiles = {
     return aDetalle(buscar(id));
   },
 
+  async mio(actor: Usuario): Promise<FileDetalle> {
+    await delay(LATENCIA);
+    const f = db.files.find((x) => x.id === actor.fileId);
+    if (!f) throw new ErrorApi('No tienes un file académico registrado. Consulta con Kardex.', 'NO_ENCONTRADO', 404);
+    return aDetalle(f);
+  },
+
   async crear(datos: DatosCrearFile, actor: Usuario): Promise<FileDetalle> {
     await delay(LATENCIA);
     const d = normalizarDatosFile(datos);

@@ -14,8 +14,14 @@ describe('cuentas de prueba del login (SDD S0.12 §2.5)', () => {
     expect(validarClave(PASSWORD_PRUEBA)).toBeNull();
   });
 
-  it('hay una cuenta por rol del personal, sin estudiantes ni egresados (DEC-032)', () => {
-    expect(CUENTAS_PRUEBA.map((c) => c.rol).sort()).toEqual(['COORDINADOR', 'KARDEX', 'SEC_COORD', 'SEC_DIR']);
+  it('una cuenta por rol del personal y un estudiante (S2.7, DEC-043); sin egresados (D-08, DEC-032)', () => {
+    expect(CUENTAS_PRUEBA.map((c) => c.rol).sort()).toEqual([
+      'COORDINADOR',
+      'ESTUDIANTE',
+      'KARDEX',
+      'SEC_COORD',
+      'SEC_DIR',
+    ]);
     expect(new Set(CUENTAS_PRUEBA.map((c) => c.usuario)).size).toBe(CUENTAS_PRUEBA.length);
   });
 });

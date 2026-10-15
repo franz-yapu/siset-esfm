@@ -8,6 +8,10 @@ export const requisitosApi: ServicioRequisitos = {
     return (await api.get<RequisitoDelFile[]>(`/files/${fileId}/requisitos`)).data;
   },
 
+  async mios(): Promise<RequisitoDelFile[]> {
+    return (await api.get<RequisitoDelFile[]>('/files/mio/requisitos')).data;
+  },
+
   async registrar(fileId: number, codigo: string, d: DatosRequisito): Promise<RequisitoDelFile> {
     return (await api.put<RequisitoDelFile>(`/files/${fileId}/requisitos/${encodeURIComponent(codigo)}`, d)).data;
   },
