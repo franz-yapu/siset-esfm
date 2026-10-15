@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Bell, ChevronDown, LogOut, Menu, RotateCcw, UserCircle } from 'lucide-react';
 import type { Usuario } from '@/types';
-import { useAuth, useCambios, useToast } from '@/hooks';
+import { useAuth, useToast } from '@/hooks';
+import { useNotificaciones } from '@/hooks/useNotificaciones';
 import { ROLES, rutaInicio } from '@/config/permisos';
 import { authService } from '@/services/auth.service';
-import { notificaciones } from '@/services/reportes.service';
 import { iniciales, primerNombre } from '@/lib/formato';
 import { todoMock } from '@/services/_modo';
 
@@ -34,9 +34,7 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
   const [campana, setCampana] = useState(false);
   const refMenu = useFuera(menu, () => setMenu(false));
   const refCampana = useFuera(campana, () => setCampana(false));
-  // Se recalcula en cada render (store en memoria); useCambios re-renderiza tras cada acción.
-  useCambios();
-  const avisos = notificaciones(usuario);
+  const avisos = useNotificaciones(usuario);
 
   const cambiarRol = async (id: number) => {
     await verComo(id);

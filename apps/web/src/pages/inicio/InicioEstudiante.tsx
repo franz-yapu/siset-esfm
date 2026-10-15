@@ -1,12 +1,11 @@
 import { Link } from 'react-router';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
-import type { RequisitoDelFile } from '@/types/requisitos';
 import { useUsuario } from '@/hooks';
 import { useMiFile } from '@/hooks/useFiles';
 import { useMisRequisitos } from '@/hooks/useRequisitos';
 import { SEMAFORO } from '@/config/estados';
-import { ETIQUETA_ESTADO } from '@/lib/requisitos';
+import { alertasDelEstudiante, ETIQUETA_ESTADO } from '@/lib/requisitos';
 import { ordinal } from '@/lib/formato';
 import { Alerta, Card, Cargando, Semaforo } from '@/components/ui';
 import { Saludo } from './comun';
@@ -18,21 +17,6 @@ const MENSAJE = {
 } as const;
 const COLOR = { COMPLETO: 'VERDE', OBSERVADO: 'ROJO', PENDIENTE: 'AMARILLO' } as const;
 
-/** Lo que el estudiante tiene que resolver con Kardex: bloqueo, observados y pendientes obligatorios. */
-function alertas(bloqueado: boolean, requisitos: RequisitoDelFile[]): string[] {
-  const obligatorios = requisitos.filter((r) => r.obligatorio);
-  const pendientes = obligatorios.filter((r) => r.estado === 'PENDIENTE').length;
-  return [
-    ...(bloqueado ? ['Tu file está bloqueado. Acércate a Kardex.'] : []),
-    ...obligatorios
-      .filter((r) => r.estado === 'OBSERVADO')
-      .map((r) => `${r.nombre}: observado${r.observacion ? ` (${r.observacion})` : ''}.`),
-    ...(pendientes
-      ? [`Te faltan ${pendientes} requisito${pendientes === 1 ? '' : 's'} obligatorio${pendientes === 1 ? '' : 's'}.`]
-      : []),
-  ];
-}
-
 /** P-10 · Inicio Estudiante contra la API (S2.7, DEC-043): el semáforo y los requisitos de su file. */
 export function InicioEstudiante() {
   const u = useUsuario();
@@ -43,7 +27,7 @@ export function InicioEstudiante() {
   if (file.error || !f) return <Alerta tipo="error">{file.error?.message ?? 'No se pudo leer tu file.'}</Alerta>;
   const lista = requisitos.data ?? [];
   const obligatorios = lista.filter((r) => r.obligatorio);
-  const avisos = alertas(f.bloqueado, lista);
+  const avisos = alertasDelEstudiante(f.bloqueado, lista);
 
   return (
     <>

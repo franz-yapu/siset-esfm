@@ -5,13 +5,10 @@ import {
   FileText,
   FilePlus2,
   Route,
-  ArrowLeftRight,
-  PenLine,
   Signature,
   Users2,
   ClipboardCheck,
   Printer,
-  Upload,
   BarChart3,
   UserCog,
   ScrollText,
@@ -98,20 +95,21 @@ export interface ItemMenu {
   icono: LucideIcon;
 }
 
-/** Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. */
+/**
+ * Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. Fuera del menú, con datos del prototipo
+ * (DEC-044): "Bandeja de pases" y "Firma y entrega" (D-35, D-36: los pasos y la entrega se registran desde el
+ * detalle del trámite) y "Carga masiva" (D-13b: Kardex carga los files a mano). Sus rutas siguen para la demo.
+ */
 export const MENU: ItemMenu[] = [
   { id: 'inicio', etiqueta: 'Inicio', ruta: '', icono: Home },
   { id: 'mi-file', etiqueta: 'Mi file académico', ruta: '/mi-file', icono: FolderOpen },
   { id: 'mis-tramites', etiqueta: 'Mis trámites', ruta: '/mis-tramites', icono: FileText },
   { id: 'nueva-hr', etiqueta: 'Nueva hoja de ruta', ruta: '/hojas-ruta/nueva', icono: FilePlus2 },
   { id: 'hojas-ruta', etiqueta: 'Hojas de ruta', ruta: '/hojas-ruta', icono: Route },
-  { id: 'pases', etiqueta: 'Bandeja de pases', ruta: '/pases', icono: ArrowLeftRight },
-  { id: 'entregas', etiqueta: 'Firma y entrega', ruta: '/entregas', icono: PenLine },
   { id: 'files', etiqueta: 'Files académicos', ruta: '/files', icono: Users2 },
   { id: 'revision', etiqueta: 'Recojo y remisión', ruta: '/revision', icono: ClipboardCheck },
   { id: 'firmas', etiqueta: 'Firmas', ruta: '/firmas', icono: Signature },
   { id: 'emision', etiqueta: 'Impresión', ruta: '/emision', icono: Printer },
-  { id: 'carga', etiqueta: 'Carga masiva', ruta: '/carga-masiva', icono: Upload },
   { id: 'reportes', etiqueta: 'Reportes', ruta: '/reportes', icono: BarChart3 },
   { id: 'usuarios', etiqueta: 'Usuarios', ruta: '/usuarios', icono: UserCog },
   { id: 'bitacora', etiqueta: 'Bitácora', ruta: '/bitacora', icono: ScrollText },

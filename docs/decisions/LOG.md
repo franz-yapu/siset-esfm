@@ -684,3 +684,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    `asegurarEstudiantePrueba` en cada corrida de `bd:datos-prueba`, aparte de la carga inicial, porque en la prueba
    los datos ya estaban cargados. Ajusta DEC-032: el login de prueba muestra el personal y un estudiante, sin
    egresados (D-08).
+
+## DEC-044 — Menú sin pantallas del prototipo y campana de avisos contra la API
+
+**Fecha:** 2026-10-15 · **Fuente:** D-36 y D-13b (propuestas) (modo demo, sin SDD previo) · **Estado:** activa
+
+1. Salen del menú "Bandeja de pases" y "Firma y entrega" (D-35, D-36: los pasos y la entrega se registran desde el
+   detalle del trámite) y "Carga masiva" (D-13b: Kardex carga los files a mano). Sus rutas y permisos siguen (la
+   demo en mock las usa); vuelven al menú cuando se respondan esas dudas.
+2. La campana del encabezado lee la API: a cada rol le avisa cuántos trámites esperan un paso suyo (DEC-033) y lo
+   lleva a su bandeja o a la lista filtrada; a Kardex, además, los files bloqueados; al estudiante, las alertas de
+   su file. Se refresca al registrar un paso y cada minuto. SEC_COORD no registra pasos: sin avisos. Solo con todo
+   en mock se usa la campana del prototipo.
+3. Repreguntas a la escuela (respuestas incompletas o ambiguas): D-10b, D-18b, D-14c y D-20b (hoja, filas 42–45).

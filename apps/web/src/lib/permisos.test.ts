@@ -13,22 +13,10 @@ const MENU_ESPERADO: Record<Rol, IdMenu[]> = {
   ESTUDIANTE: ['inicio', 'mi-file', 'perfil'],
   // D-08: los egresados no tienen cuenta, así que no tienen permisos.
   EGRESADO: ['inicio', 'perfil'],
-  SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'pases', 'entregas', 'files', 'reportes', 'perfil'],
-  SEC_COORD: ['inicio', 'hojas-ruta', 'pases', 'files', 'perfil'],
+  SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'files', 'reportes', 'perfil'],
+  SEC_COORD: ['inicio', 'hojas-ruta', 'files', 'perfil'],
   COORDINADOR: ['inicio', 'hojas-ruta', 'files', 'firmas', 'reportes', 'perfil'],
-  KARDEX: [
-    'inicio',
-    'hojas-ruta',
-    'pases',
-    'files',
-    'revision',
-    'emision',
-    'carga',
-    'reportes',
-    'usuarios',
-    'bitacora',
-    'perfil',
-  ],
+  KARDEX: ['inicio', 'hojas-ruta', 'files', 'revision', 'emision', 'reportes', 'usuarios', 'bitacora', 'perfil'],
 };
 
 /** Pantallas fuera del menú: quién puede abrirlas. */
@@ -39,6 +27,10 @@ const OTRAS_RUTAS: Partial<Record<IdRuta, Rol[]>> = {
   'nuevo-file': ['KARDEX'],
   'editar-file': ['KARDEX'],
   'mis-tramites': [],
+  // Fuera del menú (DEC-044), pero con su permiso.
+  pases: ['SEC_DIR', 'SEC_COORD', 'KARDEX'],
+  entregas: ['SEC_DIR'],
+  carga: ['KARDEX'],
 };
 
 const ROLES = Object.keys(MENU_ESPERADO) as Rol[];
