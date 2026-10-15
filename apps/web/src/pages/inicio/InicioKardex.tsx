@@ -75,25 +75,20 @@ export function InicioKardex() {
         />
         {hojas.data && (
           <>
-            <KpiCard
-              titulo="Trámites por recoger"
-              valor={hojas.data.porRecoger}
-              icono={BellRing}
-              to="/hojas-ruta?estado=AVISADO_KARDEX"
-            />
+            <KpiCard titulo="Trámites por recoger" valor={hojas.data.porRecoger} icono={BellRing} to="/revision" />
             <KpiCard
               titulo="En impresión"
               valor={hojas.data.enImpresion}
               icono={Printer}
               color="violeta"
-              to="/hojas-ruta?estado=EN_IMPRESION"
+              to="/emision"
             />
             <KpiCard
               titulo="Por remitir a Calahumana"
               valor={hojas.data.porRemitir}
               icono={Truck}
               color="ambar"
-              to="/hojas-ruta?estado=FIRMADO_COORDINADOR"
+              to="/revision"
             />
           </>
         )}

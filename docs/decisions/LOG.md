@@ -638,3 +638,19 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. Se borran `EmitirDictamen` (`/dictamenes/:nro`) y `dictamenesService`. El Coordinador no devuelve certificados
    (D-37, propuesta). Las pantallas de Kardex "Revisión" y "Emisión" siguen con el prototipo que menciona el
    dictamen hasta su propio flujo.
+
+## DEC-041 — Recojo, impresión y remisión de Kardex contra la API
+
+**Fecha:** 2026-10-15 · **Fuente:** D-34 y D-39 (propuestas), DEC-033 (modo demo, sin SDD previo) · **Estado:** activa
+
+1. P-43 "Revisión de trámites" pasa a **"Recojo y remisión"** (pestañas Por recoger = `AVISADO_KARDEX` y Por
+   remitir = `FIRMADO_COORDINADOR`) y P-44 "Emisión de documentos" pasa a **"Impresión"** (Por imprimir =
+   `EN_IMPRESION` e Impresos = `IMPRESO`). Las dos usan `BandejaKardex`: lista por estado y un panel con el
+   titular, los requisitos obligatorios del file y los pasos que manda la API (`RECOGER`, `IMPRIMIR`, `REMITIR`),
+   con observación opcional.
+2. Sin revisión aparte ni "Observado" (D-34, propuesta): el file bloqueado impide recoger e imprimir.
+3. SISET no genera el documento: Kardex imprime como hoy y el sistema anota el paso `IMPRIMIR` (D-39, propuesta;
+   D-10 sin formatos). Vista previa, N.º de valorado por impresión y reimpresión (S5.x, `documento_emitido`)
+   esperan esas respuestas. El N.º de valorado que se ve es el de la ingesta.
+4. Se borran `documentosService` y `ModalObservar` del prototipo. Los indicadores del inicio de Kardex llevan a
+   estas dos bandejas.

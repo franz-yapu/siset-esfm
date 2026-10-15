@@ -121,6 +121,20 @@ export const useResumenKardexHojas = () =>
     },
   });
 
+/** Bandejas de Kardex (P-43, P-44): los trámites de cada estado, los más antiguos primero. */
+export const useBandejasHojasRuta = (estados: readonly EstadoHojaRuta[]) =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'bandejas', estados],
+    queryFn: () =>
+      Promise.all(
+        estados.map(async (estado) =>
+          (await hojasRutaService.listar({ estado, porPagina: 100 })).datos.sort((a, b) =>
+            a.fechaIngreso.localeCompare(b.fechaIngreso),
+          ),
+        ),
+      ),
+  });
+
 /** Cuántos trámites hay en cada estado pedido, y los 5 últimos (inicio de SEC_COORD, solo lectura). */
 export const useConteosHojasRuta = (estados: readonly EstadoHojaRuta[]) =>
   useQuery({
