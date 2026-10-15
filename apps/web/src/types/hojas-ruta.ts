@@ -102,3 +102,23 @@ export interface Seguimiento {
   titular: string;
   pasos: { estado: EstadoHojaRuta; sede: string; fecha: string }[];
 }
+
+export interface FiltrosReporte {
+  /** AAAA-MM-DD, fecha de ingreso. */
+  desde?: string;
+  hasta?: string;
+  tipoTramite?: string;
+}
+
+/** GET /reportes/hojas-ruta (RF-13). */
+export interface ReporteHojasRuta {
+  total: number;
+  enCurso: number;
+  entregados: number;
+  tiempoPromedioDias: number | null;
+  porEstado: { estado: EstadoHojaRuta; total: number }[];
+  porTipo: { codigo: string; nombre: string; total: number }[];
+  porMes: { mes: string; total: number }[];
+  porEtapa: { estado: EstadoHojaRuta; dias: number }[];
+  detenidos: { nro: string; titular: string; estado: EstadoHojaRuta; sedeActual: string; dias: number }[];
+}

@@ -18,6 +18,9 @@ import {
   esquemaConsultaSeguimiento,
   esquemaSeguimiento,
   esquemasSeguimiento,
+  esquemaFiltrosReporte,
+  esquemaReporteHojasRuta,
+  esquemasReporte,
 } from './hojas-ruta.esquemas';
 import type { ServicioHojasRuta, SesionHojaRuta } from './hojas-ruta.servicio';
 
@@ -29,7 +32,11 @@ export function crearRutasHojasRuta(
   autorizarIngesta: RequestHandler,
   sesionDe: (res: Response) => SesionHojaRuta,
   seguimientoLimitePorMinuto: number,
+  autorizarReportes: RequestHandler,
 ): Router {
+  const reporte: RequestHandler = async (_req, res) => {
+    res.json(await servicio.reporte(datosValidos(res, esquemasReporte).query));
+  };
   // Pública: frena a quien prueba CI al azar (RNF-10). Va antes de `validar`, como el login.
   const limitar = rateLimit({
     windowMs: 60_000,
@@ -61,6 +68,7 @@ export function crearRutasHojasRuta(
   return (
     Router()
       .post('/seguimiento', limitar, validar(esquemasSeguimiento), seguimiento)
+      .get('/reportes/hojas-ruta', autenticar, autorizarReportes, validar(esquemasReporte), reporte)
       .get('/hojas-ruta', autenticar, autorizarLectura, validar(esquemasListarHojasRuta), listar)
       .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
       // Antes de `/:nro`, para que `tipos` no se lea como número de trámite.
@@ -77,6 +85,22 @@ const comunes = {
 };
 
 export const openapiHojasRuta: ZodOpenApiPathsObject = {
+  '/api/v1/reportes/hojas-ruta': {
+    get: {
+      tags: ['Hojas de ruta'],
+      summary: 'Reporte de trámites',
+      description:
+        'Totales, por estado, por tipo, por mes, tiempo por etapa y detenidos (RF-13). Filtros por fecha de ingreso y tipo.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { query: esquemaFiltrosReporte },
+      responses: {
+        '200': { description: 'El reporte.', content: { 'application/json': { schema: esquemaReporteHojasRuta } } },
+        '400': error('Filtros inválidos (VALIDACION).'),
+        '401': comunes['401'],
+        '403': error('Sin permiso `reportes`/`leer`.'),
+      },
+    },
+  },
   '/api/v1/seguimiento': {
     post: {
       tags: ['Hojas de ruta'],

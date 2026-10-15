@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { crearApp } from '@/app';
 import { hashPassword } from '@/modulos/seguridad';
 import { firmarAccessToken } from '@/modulos/seguridad/jwt';
@@ -243,5 +243,33 @@ describe('POST /seguimiento (RF-09, S4.1)', () => {
     expect(otroNro.status).toBe(404);
     expect(otroCi.body.error.message).toBe(otroNro.body.error.message);
     expect((await consultar({ nro, ci: '1' })).status).toBe(400);
+  });
+});
+
+describe('GET /reportes/hojas-ruta (RF-13)', () => {
+  it('cuenta por estado y tipo, y marca como detenido lo que no se mueve hace más de 10 días', async () => {
+    const f = await nuevoFile({ nombres: 'Reportada' });
+    const nro = (await ingresar({ fileId: f.fileId, tipoTramite: 'CERT_EXCELENCIA_ANTERIOR' })).body.nro as string;
+    // Los movimientos son inmutables (trigger): se adelanta el reloj 15 días en vez de cambiar su fecha.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 15 * 24 * 60 * 60_000 + 60_000);
+
+    const pedir = async (q: Record<string, string> = {}, rol = 'COORDINADOR', sede = ancocagua) =>
+      request(app)
+        .get('/api/v1/reportes/hojas-ruta')
+        .query(q)
+        .set('Authorization', `Bearer ${await token(rol, sede)}`);
+    const r = await pedir({ tipoTramite: 'CERT_EXCELENCIA_ANTERIOR' });
+    expect(r.status).toBe(200);
+    expect(r.body.total).toBeGreaterThanOrEqual(1);
+    expect(r.body.porEstado.find((e: { estado: string }) => e.estado === 'RECIBIDO').total).toBeGreaterThanOrEqual(1);
+    expect(r.body.porTipo.find((t: { codigo: string }) => t.codigo === 'CERT_EXCELENCIA_ANTERIOR').total).toBe(
+      r.body.total,
+    );
+    expect(r.body.porMes).toHaveLength(6);
+    expect(r.body.detenidos).toContainEqual(expect.objectContaining({ nro, titular: 'Reportada Ingesta', dias: 15 }));
+    expect((await pedir({ desde: '2099-01-01' })).body.total).toBe(0);
+    expect((await pedir({}, 'SEC_COORD')).status).toBe(403);
+    vi.useRealTimers();
   });
 });

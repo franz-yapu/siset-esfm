@@ -90,6 +90,13 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
   { metodo: 'get', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', permitidos: PERSONAL },
   // Ingesta: `hojas-ruta`/`crear`, solo SEC_DIR (DEC-015, SDD S3.2-S3.4).
   { metodo: 'post', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', cuerpo: {}, permitidos: ['SEC_DIR'] },
+  // Reportes (RF-13): `reportes`/`leer`.
+  {
+    metodo: 'get',
+    documentada: '/api/v1/reportes/hojas-ruta',
+    ruta: '/reportes/hojas-ruta',
+    permitidos: ['SEC_DIR', 'COORDINADOR', 'KARDEX'],
+  },
   { metodo: 'get', documentada: '/api/v1/hojas-ruta/tipos', ruta: '/hojas-ruta/tipos', permitidos: PERSONAL },
   { metodo: 'get', documentada: '/api/v1/hojas-ruta/{nro}', ruta: '/hojas-ruta/HR-2099-999999', permitidos: PERSONAL },
   {

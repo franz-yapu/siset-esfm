@@ -11,6 +11,7 @@ import { desplazamiento, type Pagina } from '@/compartido/http';
 import { registrarEvento } from '@/modulos/auditoria';
 import {
   bloquearHojaRuta,
+  datosReporte,
   buscarHojaRuta,
   insertarHojaRuta,
   insertarMovimiento,
@@ -24,10 +25,13 @@ import type {
   DetalleHojaRuta,
   FilaHojaRuta,
   FiltrosHojasRuta,
+  FiltrosReporte,
+  ReporteHojasRuta,
   Seguimiento,
   TipoTramite,
 } from './hojas-ruta.esquemas';
 import {
+  ESTADOS_HOJA_RUTA,
   accionesPosibles,
   evaluarTransicion,
   flujoDe,
@@ -38,6 +42,11 @@ import {
 } from './maquina';
 
 type Cliente = ClienteBd | TransaccionBd;
+
+/** Días sin movimiento desde los que un trámite en curso cuenta como detenido (el ⚠ del prototipo, P-31). */
+export const DIAS_DETENIDO = 10;
+const DIA = 24 * 60 * 60_000;
+const redondear = (n: number) => Math.round(n * 10) / 10;
 
 /** Quién hace la petición (lo saca la raíz del access token, ADR-0001). */
 export interface SesionHojaRuta {
@@ -157,6 +166,85 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
           estado: m.estadoNuevo,
           sede: nombreSede(m.sedeId),
           fecha: m.fecha.toISOString(),
+        })),
+      };
+    },
+
+    /** Reporte de trámites (RF-13, S6.1-S6.2): todo se calcula sobre los trámites que entran en los filtros. */
+    async reporte(f: FiltrosReporte): Promise<ReporteHojasRuta> {
+      const [tipos, sedes] = await Promise.all([deps.obtenerTiposTramite(bd), deps.obtenerSedes(bd)]);
+      const where: Prisma.HojaRutaWhereInput[] = [];
+      // Días de La Paz (UTC−4), como la gestión del correlativo.
+      if (f.desde) where.push({ fechaIngreso: { gte: new Date(`${f.desde}T00:00:00-04:00`) } });
+      if (f.hasta)
+        where.push({ fechaIngreso: { lt: new Date(new Date(`${f.hasta}T00:00:00-04:00`).getTime() + DIA) } });
+      if (f.tipoTramite) where.push({ tipoTramiteId: tipos.find((t) => t.codigo === f.tipoTramite)?.id ?? -1 });
+      const { hojas, movimientos } = await datosReporte(bd, { AND: where });
+      const ahora = Date.now();
+
+      const entregadas = hojas.filter((h) => h.fechaCierre);
+      const porHoja = new Map<number, typeof movimientos>();
+      for (const m of movimientos) porHoja.set(m.hojaRutaId, [...(porHoja.get(m.hojaRutaId) ?? []), m]);
+
+      // Tiempo en cada estado: de que se entró a él hasta el movimiento siguiente.
+      const etapas = new Map<string, number[]>();
+      for (const lista of porHoja.values()) {
+        for (let i = 1; i < lista.length; i++) {
+          const desde = lista[i - 1];
+          etapas.set(desde.estadoNuevo, [
+            ...(etapas.get(desde.estadoNuevo) ?? []),
+            (lista[i].fecha.getTime() - desde.fecha.getTime()) / DIA,
+          ]);
+        }
+      }
+      const promedio = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+
+      const meses = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(ahora - 4 * 60 * 60_000);
+        d.setUTCDate(1);
+        d.setUTCMonth(d.getUTCMonth() - (5 - i));
+        return d.toISOString().slice(0, 7);
+      });
+      const mesDe = (d: Date) => new Date(d.getTime() - 4 * 60 * 60_000).toISOString().slice(0, 7);
+
+      const quietos = hojas
+        .filter((h) => !h.fechaCierre)
+        .map((h) => {
+          const ultimo = porHoja.get(h.id)?.at(-1)?.fecha ?? h.fechaIngreso;
+          return { h, dias: Math.floor((ahora - ultimo.getTime()) / DIA) };
+        })
+        .filter((x) => x.dias > DIAS_DETENIDO)
+        .sort((a, b) => b.dias - a.dias)
+        .slice(0, 50);
+      const titulares = await deps.titularesDeFiles(bd, [...new Set(quietos.map((x) => x.h.fileId))]);
+
+      return {
+        total: hojas.length,
+        enCurso: hojas.length - entregadas.length,
+        entregados: entregadas.length,
+        tiempoPromedioDias: entregadas.length
+          ? redondear(promedio(entregadas.map((h) => (h.fechaCierre!.getTime() - h.fechaIngreso.getTime()) / DIA)))
+          : null,
+        porEstado: ESTADOS_HOJA_RUTA.map((estado) => ({
+          estado,
+          total: hojas.filter((h) => h.estadoActual === estado).length,
+        })),
+        porTipo: tipos.map((t) => ({
+          codigo: t.codigo,
+          nombre: t.nombre,
+          total: hojas.filter((h) => h.tipoTramiteId === t.id).length,
+        })),
+        porMes: meses.map((mes) => ({ mes, total: hojas.filter((h) => mesDe(h.fechaIngreso) === mes).length })),
+        porEtapa: ESTADOS_HOJA_RUTA.filter((e) => etapas.has(e)).map((estado) => ({
+          estado,
+          dias: redondear(promedio(etapas.get(estado)!)),
+        })),
+        detenidos: quietos.map(({ h, dias }) => ({
+          nro: h.nroTramite,
+          titular: titulares.get(h.fileId)?.nombre ?? '',
+          estado: h.estadoActual,
+          sedeActual: sedes.find((s) => s.id === h.sedeActualId)?.codigo ?? '',
+          dias,
         })),
       };
     },

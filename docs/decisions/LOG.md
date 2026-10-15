@@ -609,3 +609,17 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 3. Límite por IP igual al del login (`LOGIN_LIMITE_POR_MINUTO`, RNF-10). La consulta no se registra en la bitácora:
    no es una escritura ni un evento de acceso del personal.
 4. La página P-02 (a la que apunta el QR) usa el modelo nuevo y ya no muestra la barra de progreso del prototipo.
+
+## DEC-039 — Reportes de trámites e inicio de Secretaría de Coordinación
+
+**Fecha:** 2026-10-15 · **Fuente:** RF-13 (modo demo, sin SDD previo) · **Estado:** activa
+
+1. `GET /api/v1/reportes/hojas-ruta` (`reportes`/`leer`: SEC_DIR, COORDINADOR, KARDEX) en el módulo `hojas-ruta`, dueño
+   de las tablas. Filtros: fecha de ingreso (días de La Paz) y tipo. Devuelve totales, por estado, por tipo, por mes
+   (6 meses), días promedio en cada estado y los detenidos.
+2. Detenido: en curso y sin movimiento hace más de 10 días (el ⚠ del prototipo). Tiempo promedio: de ingreso a
+   entrega, solo los entregados. Se calcula en la API sobre los trámites filtrados (cientos en el piloto); con más
+   volumen pasará a consultas agregadas (S6.1).
+3. Sin "Exportar PDF/Excel" por ahora: eran simulados; quedan para S6.3. Ya no se filtra por sede.
+4. SEC_COORD no registra pasos en el flujo de DEC-033: su inicio muestra, solo para ver, lo que está en Ancocagua
+   (en impresión, impresos por firmar, por remitir) y los últimos trámites.

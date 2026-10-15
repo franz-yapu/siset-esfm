@@ -143,6 +143,7 @@ export function crearApp({
       autorizarLectura: autorizar('hojas-ruta', 'leer'),
       autorizarIngesta: autorizar('hojas-ruta', 'crear'),
       seguimientoLimitePorMinuto: config.loginLimitePorMinuto,
+      autorizarReportes: autorizar('reportes', 'leer'),
       sesionDe: (res) => {
         const { usuarioId, rol, sedeId } = sesionDe(res);
         return { usuarioId, rol, sedeId };

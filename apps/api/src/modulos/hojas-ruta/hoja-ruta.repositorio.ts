@@ -96,3 +96,14 @@ export async function listarHojasRuta(cliente: Cliente, where: Prisma.HojaRutaWh
   ]);
   return { filas, total };
 }
+
+/** Hojas y movimientos para el reporte (RF-13): pocas columnas; el piloto tiene cientos de trámites, no millones. */
+export async function datosReporte(cliente: Cliente, where: Prisma.HojaRutaWhereInput) {
+  const hojas = await cliente.hojaRuta.findMany({ where, select: SELECCION });
+  const movimientos = await cliente.movimientoHojaRuta.findMany({
+    where: { hojaRutaId: { in: hojas.map((h) => h.id) } },
+    select: { hojaRutaId: true, estadoAnterior: true, estadoNuevo: true, fecha: true },
+    orderBy: [{ fecha: 'asc' }, { id: 'asc' }],
+  });
+  return { hojas, movimientos };
+}

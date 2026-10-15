@@ -1,5 +1,5 @@
 import type { Usuario } from '@/types';
-import type { DetalleHojaRuta, FilaHojaRuta } from '@/types/hojas-ruta';
+import { ESTADOS_HOJA_RUTA, type DetalleHojaRuta, type FilaHojaRuta } from '@/types/hojas-ruta';
 import { auditar, copia, db } from '@/mocks/db';
 import { TIPOS_TRAMITE_MOCK, type HojaRutaMock } from '@/mocks/hojas-ruta-v2';
 import { SEDES } from '@/config/catalogos';
@@ -213,6 +213,69 @@ export const hojasRutaMock: ServicioHojasRuta = {
       fechaCierre: h.fechaCierre,
       titular: aDetalle(f).nombre,
       pasos: h.movimientos.map((m) => ({ estado: m.estadoNuevo, sede: sedeHr(m.sede), fecha: m.fecha })),
+    });
+  },
+  /** El mismo cálculo que la API (hojas-ruta.servicio `reporte`), sobre el almacén de la demo. */
+  async reporte(f) {
+    await delay(LATENCIA);
+    const DIA = 24 * 60 * 60_000;
+    const redondear = (n: number) => Math.round(n * 10) / 10;
+    const promedio = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const hojas = db.hojasRutaV2.filter(
+      (h) =>
+        (!f.desde || h.fechaIngreso.slice(0, 10) >= f.desde) &&
+        (!f.hasta || h.fechaIngreso.slice(0, 10) <= f.hasta) &&
+        (!f.tipoTramite || h.tipo === f.tipoTramite),
+    );
+    const ahora = Date.now();
+    const entregadas = hojas.filter((h) => h.fechaCierre);
+    const etapas = new Map<string, number[]>();
+    for (const h of hojas) {
+      for (let i = 1; i < h.movimientos.length; i++) {
+        const desde = h.movimientos[i - 1];
+        const dias = (Date.parse(h.movimientos[i].fecha) - Date.parse(desde.fecha)) / DIA;
+        etapas.set(desde.estadoNuevo, [...(etapas.get(desde.estadoNuevo) ?? []), dias]);
+      }
+    }
+    const meses = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - (5 - i));
+      return d.toISOString().slice(0, 7);
+    });
+    return copia({
+      total: hojas.length,
+      enCurso: hojas.length - entregadas.length,
+      entregados: entregadas.length,
+      tiempoPromedioDias: entregadas.length
+        ? redondear(promedio(entregadas.map((h) => (Date.parse(h.fechaCierre!) - Date.parse(h.fechaIngreso)) / DIA)))
+        : null,
+      porEstado: ESTADOS_HOJA_RUTA.map((estado) => ({
+        estado,
+        total: hojas.filter((h) => h.estado === estado).length,
+      })),
+      porTipo: TIPOS_TRAMITE_MOCK.map((t) => ({
+        codigo: t.codigo,
+        nombre: t.nombre,
+        total: hojas.filter((h) => h.tipo === t.codigo).length,
+      })),
+      porMes: meses.map((mes) => ({ mes, total: hojas.filter((h) => h.fechaIngreso.slice(0, 7) === mes).length })),
+      porEtapa: ESTADOS_HOJA_RUTA.filter((e) => etapas.has(e)).map((estado) => ({
+        estado,
+        dias: redondear(promedio(etapas.get(estado)!)),
+      })),
+      detenidos: hojas
+        .filter((h) => !h.fechaCierre)
+        .map((h) => ({ h, dias: Math.floor((ahora - Date.parse(h.movimientos.at(-1)!.fecha)) / DIA) }))
+        .filter((x) => x.dias > 10)
+        .sort((a, b) => b.dias - a.dias)
+        .map(({ h, dias }) => ({
+          nro: h.nro,
+          titular: aDetalle(fileDe(h.fileId)).nombre,
+          estado: h.estado,
+          sedeActual: h.sedeActual,
+          dias,
+        })),
     });
   },
 };

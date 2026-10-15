@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Usuario } from '@/types';
-import { ESTADOS_HOJA_RUTA, type FiltrosHojasRuta } from '@/types/hojas-ruta';
+import { ESTADOS_HOJA_RUTA, type EstadoHojaRuta, type FiltrosHojasRuta, type FiltrosReporte } from '@/types/hojas-ruta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { avisarCambio } from './index';
 
@@ -94,4 +94,24 @@ export const useResumenKardexHojas = () =>
       );
       return { porRecoger, enImpresion, porRemitir };
     },
+  });
+
+/** Cuántos trámites hay en cada estado pedido, y los 5 últimos (inicio de SEC_COORD, solo lectura). */
+export const useConteosHojasRuta = (estados: readonly EstadoHojaRuta[]) =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'conteos', estados],
+    queryFn: async () => {
+      const [totales, ultimos] = await Promise.all([
+        Promise.all(estados.map(async (estado) => (await hojasRutaService.listar({ estado, porPagina: 1 })).total)),
+        hojasRutaService.listar({ porPagina: 5 }),
+      ]);
+      return { totales, ultimos: ultimos.datos };
+    },
+  });
+
+export const useReporteHojasRuta = (f: FiltrosReporte) =>
+  useQuery({
+    queryKey: [...claveHojasRuta, 'reporte', f],
+    queryFn: () => hojasRutaService.reporte(f),
+    placeholderData: keepPreviousData,
   });

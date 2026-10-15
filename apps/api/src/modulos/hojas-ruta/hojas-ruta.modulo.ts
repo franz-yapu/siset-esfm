@@ -10,6 +10,7 @@ export function crearModuloHojasRuta({
   autorizarIngesta,
   sesionDe,
   seguimientoLimitePorMinuto,
+  autorizarReportes,
   ...deps
 }: DependenciasHojasRuta & {
   autenticar: RequestHandler;
@@ -19,6 +20,8 @@ export function crearModuloHojasRuta({
   sesionDe: (res: Response) => SesionHojaRuta;
   /** Consultas públicas por minuto e IP (el mismo límite del login, RNF-10). */
   seguimientoLimitePorMinuto: number;
+  /** `autorizar('reportes', 'leer')`: SEC_DIR, COORDINADOR y KARDEX. */
+  autorizarReportes: RequestHandler;
 }): ModuloHttp {
   return {
     router: crearRutasHojasRuta(
@@ -28,6 +31,7 @@ export function crearModuloHojasRuta({
       autorizarIngesta,
       sesionDe,
       seguimientoLimitePorMinuto,
+      autorizarReportes,
     ),
     openapi: openapiHojasRuta,
   };

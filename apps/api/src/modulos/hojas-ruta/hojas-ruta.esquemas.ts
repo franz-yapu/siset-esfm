@@ -148,3 +148,40 @@ export const esquemaSeguimiento = z
   })
   .meta({ id: 'Seguimiento' });
 export type Seguimiento = z.infer<typeof esquemaSeguimiento>;
+
+/** Reporte de trámites (RF-13, S6.1-S6.2). Fechas de ingreso AAAA-MM-DD, en La Paz. */
+const fechaDia = z.iso.date();
+export const esquemaFiltrosReporte = z.object({
+  desde: fechaDia.optional(),
+  hasta: fechaDia.optional(),
+  tipoTramite: z.string().trim().toUpperCase().min(1).max(40).optional(),
+});
+export type FiltrosReporte = z.output<typeof esquemaFiltrosReporte>;
+export const esquemasReporte = { query: esquemaFiltrosReporte };
+
+export const esquemaReporteHojasRuta = z
+  .object({
+    total: z.number().int(),
+    enCurso: z.number().int(),
+    entregados: z.number().int(),
+    /** Días promedio de ingreso a entrega; null si no hay entregados. */
+    tiempoPromedioDias: z.number().nullable(),
+    porEstado: z.array(z.object({ estado, total: z.number().int() })),
+    porTipo: z.array(z.object({ codigo: z.string(), nombre: z.string(), total: z.number().int() })),
+    /** Ingresados por mes (AAAA-MM), los últimos 6 meses. */
+    porMes: z.array(z.object({ mes: z.string(), total: z.number().int() })),
+    /** Días promedio que los trámites pasaron en cada estado (solo los que ya salieron de él). */
+    porEtapa: z.array(z.object({ estado, dias: z.number() })),
+    /** En curso y sin movimiento hace más de `DIAS_DETENIDO` días, los más quietos primero. */
+    detenidos: z.array(
+      z.object({
+        nro: z.string(),
+        titular: z.string(),
+        estado,
+        sedeActual: z.string(),
+        dias: z.number().int(),
+      }),
+    ),
+  })
+  .meta({ id: 'ReporteHojasRuta' });
+export type ReporteHojasRuta = z.infer<typeof esquemaReporteHojasRuta>;

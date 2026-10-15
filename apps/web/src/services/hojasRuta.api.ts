@@ -3,6 +3,7 @@ import type {
   DetalleHojaRuta,
   FilaHojaRuta,
   FiltrosHojasRuta,
+  ReporteHojasRuta,
   Seguimiento,
   TipoTramiteCatalogo,
 } from '@/types/hojas-ruta';
@@ -38,5 +39,9 @@ export const hojasRutaApi: ServicioHojasRuta = {
   },
   async seguimiento(nro, ci) {
     return (await api.post<Seguimiento>('/seguimiento', { nro: nro.trim(), ci: ci.trim() })).data;
+  },
+  async reporte(f) {
+    const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v));
+    return (await api.get<ReporteHojasRuta>('/reportes/hojas-ruta', { params })).data;
   },
 };
