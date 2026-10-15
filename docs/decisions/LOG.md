@@ -569,3 +569,16 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    evento `CREAR`.
 3. `GET /hojas-ruta` paginado (más recientes primero) con filtros por N.º, CI o nombre del titular, estado, tipo y
    gestión.
+
+## DEC-036 — Despliegue de prueba en Coolify
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S0.12 (aprobado, v1.1) + pedido del responsable · **Estado:** activa
+
+1. Entorno de prueba en `https://siset.vertexall.com`: servicio docker-compose de Coolify con la forma de Ventas
+   Fácil (`db`, `migrar`, `api`, `web`), creado por la API de Coolify. Cloudflare es solo DNS; el certificado lo
+   saca Traefik. Reemplaza el despliegue manual de S0.9 para este entorno.
+2. Imágenes públicas en GHCR (`siset-api`, `siset-migrar`, `siset-web`), publicadas a mano por el workflow
+   _Publicar imágenes_ con las etiquetas `prueba` y `AAAA.MM.DD-sha`.
+3. Datos ficticios e idempotentes (`bd:datos-prueba`, solo con `DATOS_PRUEBA=1`): 3 del personal, 30 files y 8 hojas
+   de ruta. Contraseñas generadas por Coolify, con prefijo para cumplir DEC-011. Sin respaldos: no es producción.
+   Runbook: `docs/despliegue/prueba-coolify.md`.

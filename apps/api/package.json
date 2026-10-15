@@ -17,7 +17,8 @@
     "bd:rol-app": "tsx prisma/configurar-rol-app.ts",
     "test:bd": "vitest run --config vitest.bd.config.ts",
     "test:cobertura": "vitest run --config vitest.cobertura.config.ts --coverage",
-    "start:e2e": "tsx src/servidor.ts"
+    "start:e2e": "tsx src/servidor.ts",
+    "bd:datos-prueba": "tsx prisma/datos-prueba.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
