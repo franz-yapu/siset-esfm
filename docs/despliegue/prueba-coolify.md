@@ -52,6 +52,9 @@ Contraseña de todas: `Prueba.2026`.
 | 9000004      | COORDINADOR | ANCOCAGUA |
 | 8100024      | ESTUDIANTE  | —         |
 
+Además, **8100025** (estudiante, PRB-0025) muestra el caso en **rojo** (requisitos observados). No está en el
+recuadro del login ni se repara en cada despliegue: si alguien le cambia la contraseña, hay que restablecerla a mano.
+
 Cada despliegue las repara (`bd:datos-prueba`): vuelve la contraseña común, sin cambio obligatorio, sin bloqueo y
 sin sesiones. Si alguien cambió una contraseña o bloqueó una cuenta, basta con redesplegar. El resto de los datos
 (files, hojas de ruta, bitácora) no se reinicia.
