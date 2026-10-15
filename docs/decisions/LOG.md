@@ -545,3 +545,15 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 4. Los pasos que ocurren en Calahumana los anota Secretaría de Dirección (provisional, D-33). Un file bloqueado
    impide registrar e imprimir (DEC-029).
 5. Orden: S3.1 + S3.3 (un SDD) → S3.2 → S3.4 + S3.8 + S3.9 → S3.5 → S4.1–S4.3.
+
+## DEC-034 — Tablas de hojas de ruta y máquina de estados
+
+**Fecha:** 2026-10-14 · **Fuente:** SDD de S3.1-S3.3 (aprobado) + ADR-0005 · **Estado:** activa
+
+1. Tablas `tipo_tramite` (los 4 tipos de D-21 con `requiere_valorado`, sembrados en la migración), `hoja_ruta` y
+   `movimiento_hoja_ruta` (solo inserción, con `REVOKE` para `siset_app` y un trigger que actualiza la hoja). No se
+   crean `pase` ni `dictamen`; `modelo-datos.md` se actualizó.
+2. La máquina de estados es la tabla de ADR-0005: dos flujos, rol y sede por paso; el bloqueo del file impide los
+   pasos hasta imprimir. `business-rules.md` §Hoja de ruta se reescribió.
+3. `POST /hojas-ruta/:nro/transiciones` (409, 403, 422) y `GET /hojas-ruta/:nro` con los movimientos y las acciones
+   posibles para quien pregunta. La ingesta y el correlativo llegan con S3.4 y S3.2.

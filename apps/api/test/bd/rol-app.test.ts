@@ -40,6 +40,14 @@ describe('rol siset_app (SDD S6.4 §2.1, ADR-0003 §2)', () => {
     await expect(comoApp(sql)).rejects.toThrow(/permission denied|permiso denegado/i);
   });
 
+  it.each([
+    ['UPDATE', `UPDATE movimiento_hoja_ruta SET observacion = 'X'`],
+    ['DELETE', 'DELETE FROM movimiento_hoja_ruta'],
+    ['TRUNCATE', 'TRUNCATE movimiento_hoja_ruta'],
+  ])('no puede hacer %s en los movimientos de hojas de ruta (S3.1, regla de S6.4)', async (_op, sql) => {
+    await expect(comoApp(sql)).rejects.toThrow(/permission denied|permiso denegado/i);
+  });
+
   it('puede escribir en las tablas de negocio', async () => {
     await expect(comoApp(`UPDATE usuario SET intentos_fallidos = 0`)).resolves.toBeUndefined();
     await expect(comoApp(`DELETE FROM refresh_token WHERE false`)).resolves.toBeUndefined();

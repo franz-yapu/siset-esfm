@@ -2,7 +2,7 @@
 
 - **Tickets:** S3.1 ("Tablas hoja_ruta, movimiento_hoja_ruta + enum de estados") y S3.3 ("Servicio de máquina de estados"), rehechos por DEC-033. Comparten diseño: un solo SDD. Se crean en ClickUp al aprobarlo.
 - **Autor:** generado con Claude (Entregable 1).
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-10-14)
 - **Versión:** 1.0 · **Fecha:** 2026-10-14
 - **Fuentes de verdad citadas:**
   1. `docs/planning/2026-10-14 - Brief-modulo-hojas-ruta.md` y **DEC-033** (dos flujos según el valorado; sin dictamen; pases y observación en espera)
@@ -119,11 +119,11 @@ Enum `estado_hoja_ruta`: `RECIBIDO`, `AVISADO_KARDEX`, `EN_IMPRESION`, `IMPRESO`
 
 ## 5 · Definition of Done
 
-- [ ] SDD en `docs/sdd/S3.1-S3.3/SDD.md`, Estado = Aprobado; tickets S3.1 y S3.3 en ClickUp.
-- [ ] ADR-0005, `business-rules.md` y `modelo-datos.md` actualizados; DEC-034.
-- [ ] Tablas, triggers y servicio con la tabla del §2.2; tests del §4 en verde.
-- [ ] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
-- [ ] Commit `S3.1 y S3.3 …` en `feat/S3.1-S3.3-maquina-estados`.
+- [x] SDD en `docs/sdd/S3.1-S3.3/SDD.md`, Estado = Aprobado; tickets S3.1 y S3.3 en ClickUp.
+- [x] ADR-0005, `business-rules.md` y `modelo-datos.md` actualizados; DEC-034.
+- [x] Tablas, triggers y servicio con la tabla del §2.2; tests del §4 en verde.
+- [x] Quality gate en verde: `calidad`, `base-de-datos`, `e2e`, `docker`.
+- [x] Commit `S3.1 y S3.3 …` en `feat/S3.1-S3.3-maquina-estados`.
 
 ---
 

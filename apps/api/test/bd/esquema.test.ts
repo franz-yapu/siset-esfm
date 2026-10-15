@@ -7,7 +7,7 @@ beforeAll(() => sembrar(bd, KARDEX_DE_PRUEBA));
 afterAll(() => bd.$disconnect());
 
 describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
-  it('crea exactamente las 11 tablas: S0.11, S1.1 (parametro, refresh_token) y S2.1 (file y requisitos)', async () => {
+  it('crea exactamente las 14 tablas: S0.11, S1.1 (parametro, refresh_token), S2.1 (file y requisitos) y S3.1 (hojas de ruta)', async () => {
     const filas = await bd.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'
@@ -15,7 +15,9 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
     expect(filas.map((f) => f.table_name)).toEqual([
       'especialidad',
       'file_academico',
+      'hoja_ruta',
       'log_auditoria',
+      'movimiento_hoja_ruta',
       'parametro',
       'persona',
       'refresh_token',
@@ -23,6 +25,7 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
       'requisito_tipo',
       'rol',
       'sede',
+      'tipo_tramite',
       'usuario',
     ]);
   });
@@ -41,7 +44,7 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(11);
+    expect(fks.length).toBe(17);
     // CASCADE: los tokens se van con su usuario. SET NULL: la cadena de rotación entre tokens (S1.15).
     const excepciones: Record<string, { del: string; upd: string }> = {
       refresh_token_usuario_id_fkey: { del: 'c', upd: 'r' },

@@ -4,3 +4,4 @@ export { leerParametroEntero, leerParametrosEnteros, type ClaveParametro } from 
 export { nombreEspecialidadActiva, nombresEspecialidades } from './especialidad.repositorio';
 export { crearModuloCatalogos } from './catalogos.modulo';
 export { obtenerRequisitosActivos, type RequisitoCatalogo } from './requisito.repositorio';
+export { obtenerSedes, obtenerTiposTramite } from './tramite.repositorio';
