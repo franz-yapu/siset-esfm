@@ -54,8 +54,11 @@ const HOJAS: { tipo: string; pasos: number }[] = [
 /** CI del Kardex inicial del seed en la prueba (SEED_KARDEX_CI del compose de Coolify). */
 const CI_KARDEX_PRUEBA = '9000001';
 
-/** Estudiante de prueba para "mi file" (S2.7): file 25, estudiante, sin bloqueo y con un requisito observado. */
-const CI_ESTUDIANTE_PRUEBA = String(CI_INICIAL + 24);
+/**
+ * Estudiante de prueba para "mi file" (S2.7): file 24, sin bloqueo, con dos requisitos completos y el resto
+ * pendientes (semáforo amarillo, para la presentación del 16-oct).
+ */
+const CI_ESTUDIANTE_PRUEBA = String(CI_INICIAL + 23);
 
 /** Usuarios de las cuentas de prueba que muestra el login (SDD S0.12 §2.5). */
 export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), CI_ESTUDIANTE_PRUEBA].map((ci) =>

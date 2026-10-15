@@ -50,7 +50,7 @@ Contraseña de todas: `Prueba.2026`.
 | 9000002      | SEC_DIR     | LA_PAZ    |
 | 9000003      | SEC_COORD   | ANCOCAGUA |
 | 9000004      | COORDINADOR | ANCOCAGUA |
-| 8100025      | ESTUDIANTE  | —         |
+| 8100024      | ESTUDIANTE  | —         |
 
 Cada despliegue las repara (`bd:datos-prueba`): vuelve la contraseña común, sin cambio obligatorio, sin bloqueo y
 sin sesiones. Si alguien cambió una contraseña o bloqueó una cuenta, basta con redesplegar. El resto de los datos

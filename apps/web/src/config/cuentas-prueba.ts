@@ -20,6 +20,6 @@ export const CUENTAS_PRUEBA: readonly CuentaPrueba[] = [
   { usuario: '9000002', nombre: 'Secretaría Dirección', rol: 'SEC_DIR', sede: 'La Paz' },
   { usuario: '9000003', nombre: 'Secretaría Coordinación', rol: 'SEC_COORD', sede: 'Ancocagua' },
   { usuario: '9000004', nombre: 'Coordinador Académico', rol: 'COORDINADOR', sede: 'Ancocagua' },
-  // Estudiante sin sede (D-24): su file es el PRB-0025 de los datos de prueba (DEC-043).
-  { usuario: '8100025', nombre: 'Nancy Condori Flores', rol: 'ESTUDIANTE', sede: '—' },
+  // Estudiante sin sede (D-24): su file es el PRB-0024 de los datos de prueba, en amarillo (DEC-043).
+  { usuario: '8100024', nombre: 'Hugo Yujra Paco', rol: 'ESTUDIANTE', sede: '—' },
 ];

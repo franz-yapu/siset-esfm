@@ -680,7 +680,7 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    estudiante (semáforo, requisitos obligatorios y alertas: bloqueo, observados y pendientes) leen esos endpoints.
    Sin matrículas ni notas: no se registran en SISET (D-30, propuesta; las notas están en el sistema del Ministerio,
    D-07).
-3. Datos de prueba: cuenta de estudiante `8100025` (file PRB-0025, ficticio) con la contraseña común. Se crea con
+3. Datos de prueba: cuenta de estudiante `8100024` (file PRB-0024, ficticio, en amarillo) con la contraseña común. Se crea con
    `asegurarEstudiantePrueba` en cada corrida de `bd:datos-prueba`, aparte de la carga inicial, porque en la prueba
    los datos ya estaban cargados. Ajusta DEC-032: el login de prueba muestra el personal y un estudiante, sin
    egresados (D-08).
