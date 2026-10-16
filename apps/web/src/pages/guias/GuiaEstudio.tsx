@@ -268,13 +268,16 @@ export function GuiaEstudio() {
             <Codigo>%PDF-</Codigo>) y se guarda en la tabla <Codigo>bloqueo_file</Codigo>.
           </li>
           <li>
-            Requisitos: <Archivo>apps/api/src/modulos/files/requisitos.servicio.ts</Archivo>; el catálogo está en la
-            tabla <Codigo>requisito_tipo</Codigo> (no en el código), sembrado por la semilla.
+            Requisitos: <Archivo>apps/api/src/modulos/files/requisitos.servicio.ts</Archivo>; el catálogo (los 24 del
+            folder personal) está en la tabla <Codigo>requisito_tipo</Codigo>, sembrado por la semilla. Los por gestión
+            guardan una fila por gestión en <Codigo>requisito_file</Codigo>.
           </li>
           <li>
             Semáforo: <Codigo>semaforoDelFile</Codigo> en <Archivo>apps/api/src/modulos/files/semaforo.ts</Archivo>:
-            rojo si está bloqueado o tiene un requisito observado; amarillo si falta alguno obligatorio; verde si está
-            completo. Lo calcula la API, no la web.
+            rojo si está bloqueado, tiene un requisito observado o uno atrasado; amarillo si falta alguno obligatorio;
+            verde si está completo. Qué requisitos entran (género, modalidad, gestiones) y cuándo uno está atrasado lo
+            decide <Archivo>apps/api/src/modulos/files/requisitos-reglas.ts</Archivo> (ADR-0007). Lo calcula la API, no
+            la web.
           </li>
         </ul>
       </Seccion>

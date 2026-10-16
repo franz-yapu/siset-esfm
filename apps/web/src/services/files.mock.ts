@@ -16,7 +16,7 @@ import { delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
 import { normalizarDatosFile, validarDatosFile } from '@/lib/files';
 import { semaforoDelFile } from '@/lib/semaforo';
-import { estadosDeRequisitos } from './requisitos.mock';
+import { entradaSemaforoMock } from './requisitos.mock';
 import { LATENCIA } from './_comun';
 import type { ServicioFiles } from './files.service';
 
@@ -57,9 +57,12 @@ export const aDetalle = (f: FileMock): FileDetalle => {
     especialidad: f.especialidad,
     anioIngreso: f.anioIngreso,
     condicion: f.condicion,
+    genero: f.genero ?? null,
+    modalidad: f.modalidad ?? null,
+    anioFormacion: f.anioFormacion ?? null,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo ?? null,
-    semaforo: semaforoDelFile({ bloqueado: f.bloqueado, estados: estadosDeRequisitos(f.id) }),
+    semaforo: semaforoDelFile({ bloqueado: f.bloqueado, ...entradaSemaforoMock(f.id) }),
   };
 };
 
@@ -114,6 +117,9 @@ const aplicar = (f: FileMock, d: Partial<DatosCrearFile>) => {
   if (d.especialidadId !== undefined) f.especialidad = exigirEspecialidad(d.especialidadId);
   if (d.anioIngreso !== undefined) f.anioIngreso = d.anioIngreso;
   if (d.condicion !== undefined) f.condicion = d.condicion;
+  if (d.genero !== undefined) f.genero = d.genero;
+  if (d.modalidad !== undefined) f.modalidad = d.modalidad;
+  if (d.anioFormacion !== undefined) f.anioFormacion = d.anioFormacion;
 };
 
 export const filesMock: ServicioFiles = {

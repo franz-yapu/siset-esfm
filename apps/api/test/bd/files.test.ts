@@ -279,6 +279,25 @@ describe('PATCH /api/v1/files/:id', () => {
     });
   });
 
+  it('género, modalidad y año de formación del folder personal (DEC-051)', async () => {
+    const creado = await como('post', '/files', datosNuevo());
+    expect(creado.body).toMatchObject({ genero: null, modalidad: null, anioFormacion: null });
+    const r = await como('patch', `/files/${creado.body.id}`, {
+      genero: 'FEMENINO',
+      modalidad: 'b1',
+      anioFormacion: 4,
+    });
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ genero: 'FEMENINO', modalidad: 'B1', anioFormacion: 4 });
+    expect((await eventos(creado.body.id, 'EDITAR')).at(-1)).toMatchObject({
+      datosAntes: { genero: null, modalidad: null, anioFormacion: null },
+      datosDespues: { genero: 'FEMENINO', modalidad: 'B1', anioFormacion: 4 },
+    });
+    for (const malo of [{ anioFormacion: 6 }, { modalidad: 'B-1' }, { genero: 'OTRO' }]) {
+      expect((await como('patch', `/files/${creado.body.id}`, malo)).status).toBe(400);
+    }
+  });
+
   it('fecha de nacimiento: se guarda y se registra como texto', async () => {
     const { id } = await crear();
     const r = await como('patch', `/files/${id}`, { fechaNacimiento: '2003-01-31' });

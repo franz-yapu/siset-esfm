@@ -112,14 +112,17 @@ const ICONO_REQUISITO = {
 } as const;
 
 function Requisitos({ lista }: { lista: RequisitoDelFile[] }) {
-  const obligatorios = lista.filter((r) => r.obligatorio);
+  const obligatorios = lista.filter((r) => r.obligatorio && r.aplica);
   if (!obligatorios.length) return <p className="text-sm text-slate-500">Sin requisitos obligatorios cargados.</p>;
   return (
     <ul className="space-y-1.5 text-sm">
       {obligatorios.map((r) => (
         <li key={r.codigo} className="flex items-center gap-2">
-          {ICONO_REQUISITO[r.estado]}
-          <span className={r.estado === 'COMPLETO' ? 'text-slate-700' : 'text-amber-800'}>{r.nombre}</span>
+          {ICONO_REQUISITO[r.atrasado ? 'OBSERVADO' : r.estado]}
+          <span className={r.estado === 'COMPLETO' ? 'text-slate-700' : 'text-amber-800'}>
+            {r.nombre}
+            {r.atrasado ? ' (atrasado)' : ''}
+          </span>
         </li>
       ))}
     </ul>

@@ -9,6 +9,9 @@ const SELECCION_FILE = {
   especialidadId: true,
   anioIngreso: true,
   condicion: true,
+  genero: true,
+  modalidad: true,
+  anioFormacion: true,
   bloqueado: true,
   motivoBloqueo: true,
 } as const;
@@ -35,6 +38,9 @@ export interface NuevoFile {
   especialidadId: number;
   anioIngreso: number;
   condicion: 'ESTUDIANTE' | 'EGRESADO';
+  genero: 'FEMENINO' | 'MASCULINO' | null;
+  modalidad: string | null;
+  anioFormacion: number | null;
 }
 
 export const crearFile = (cliente: Cliente, datos: NuevoFile) =>

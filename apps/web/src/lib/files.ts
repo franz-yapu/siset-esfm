@@ -18,6 +18,9 @@ const CAMPOS: readonly CampoFile[] = [
   'especialidadId',
   'anioIngreso',
   'condicion',
+  'genero',
+  'modalidad',
+  'anioFormacion',
 ];
 
 const ANIO_MIN = 1990;
@@ -35,6 +38,7 @@ export const normalizarDatosFile = (d: DatosCrearFile): DatosCrearFile => ({
   celular: vacio(d.celular),
   email: vacio(d.email),
   codigo: d.codigo.trim(),
+  modalidad: vacio(d.modalidad)?.toUpperCase() ?? null,
 });
 
 export function validarDatosFile(
@@ -54,6 +58,10 @@ export function validarDatosFile(
   if (!Number.isInteger(d.anioIngreso) || d.anioIngreso < ANIO_MIN)
     e.anioIngreso = `El año de ingreso va de ${ANIO_MIN} en adelante`;
   else if (d.anioIngreso > anioActual + 1) e.anioIngreso = 'El año de ingreso no puede ser posterior al año siguiente';
+  if (d.modalidad && !/^[A-Z][A-Z0-9]{0,4}$/.test(d.modalidad))
+    e.modalidad = 'La modalidad es una letra y hasta 4 letras o dígitos (A, B1, B3…)';
+  if (d.anioFormacion !== null && (!Number.isInteger(d.anioFormacion) || d.anioFormacion < 1 || d.anioFormacion > 5))
+    e.anioFormacion = 'El año de formación va de 1 a 5';
   return e;
 }
 

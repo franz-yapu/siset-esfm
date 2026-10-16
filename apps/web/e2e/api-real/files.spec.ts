@@ -81,7 +81,7 @@ test.describe.serial('E11 · files', () => {
     await expect(page.getByRole('row', { name: /Desbloqueo del file/ })).toBeVisible();
   });
 
-  test('E13 · Kardex completa TACFI de 1.º año; COORDINADOR lo ve sin poder editar (S2.4)', async ({
+  test('E13 · Kardex completa el TACFI Artístico I con curso y entidad; COORDINADOR lo ve sin poder editar (DEC-051)', async ({
     page,
     browser,
   }) => {
@@ -91,10 +91,13 @@ test.describe.serial('E11 · files', () => {
     await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
     await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
     await page.getByRole('tab', { name: 'Requisitos' }).click();
-    const tarjeta = page.getByRole('article', { name: 'TACFI artístico de 1.º año' });
-    await tarjeta.getByRole('button', { name: 'Registrar' }).click();
-    const modal = page.getByRole('dialog', { name: 'TACFI artístico de 1.º año' });
-    await modal.getByLabel('Fecha').fill('2025-10-20');
+    const tacfi = 'Certificado legalizado de TACFI – Artístico I';
+    const tarjeta = page.getByRole('listitem', { name: tacfi, exact: true });
+    await tarjeta.getByRole('button', { name: `Registrar ${tacfi}`, exact: true }).click();
+    const modal = page.getByRole('dialog', { name: tacfi });
+    await modal.getByLabel('Nombre del curso').fill('Danza folklórica (E2E)');
+    await modal.getByLabel('Entidad emisora').fill('ESFM (E2E)');
+    await modal.getByLabel('Fecha en que lo tomó').fill('2025-10-20');
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(tarjeta.getByText(/Registró:/)).toBeVisible();
 
@@ -107,7 +110,7 @@ test.describe.serial('E11 · files', () => {
     await expect(coordinador).toHaveURL(new RegExp(`texto=${CI}`));
     await coordinador.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
     await coordinador.getByRole('tab', { name: 'Requisitos' }).click();
-    const vista = coordinador.getByRole('article', { name: 'TACFI artístico de 1.º año' });
+    const vista = coordinador.getByRole('listitem', { name: tacfi, exact: true });
     await expect(vista.getByText('Completo')).toBeVisible();
     await expect(vista.getByRole('button')).toHaveCount(0);
     await coordinador.context().close();

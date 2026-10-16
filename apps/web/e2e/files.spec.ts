@@ -97,7 +97,9 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     expect(problemas).toEqual([]);
   });
 
-  test('Kardex marca la defensa de TCLO básico como observada y después la completa (S2.4)', async ({ page }) => {
+  test('Kardex registra los requisitos del folder personal: observado, TACFI y matrícula por gestión (DEC-051)', async ({
+    page,
+  }) => {
     const problemas = vigilarConsola(page);
     await irAFiles(page);
     await page.getByRole('button', { name: 'Nuevo file' }).click();
@@ -108,27 +110,51 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
     await page.getByRole('button', { name: 'Guardar' }).click();
     await page.getByRole('tab', { name: 'Requisitos' }).click();
+    // Sin género, la libreta militar no se le pide.
+    await expect(page.getByRole('listitem', { name: 'Fotocopia simple de la libreta militar' })).toContainText(
+      'Solo varones',
+    );
 
-    const tarjeta = page.getByRole('article', { name: 'TCLO nivel básico' });
-    await tarjeta.getByRole('button', { name: 'Registrar' }).click();
-    const modal = page.getByRole('dialog', { name: 'TCLO nivel básico' });
+    const tcloa = 'Certificado legalizado TCLOA';
+    const fila = page.getByRole('listitem', { name: tcloa });
+    await fila.getByRole('button', { name: `Registrar ${tcloa}` }).click();
+    const modal = page.getByRole('dialog', { name: tcloa });
     await modal.getByLabel('Estado').selectOption('OBSERVADO');
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(modal.getByText(/Escriba la observación/)).toBeVisible();
     await modal.getByLabel('Observación').fill('No se presentó; se reprograma');
     await modal.getByRole('button', { name: 'Guardar' }).click();
-    await expect(tarjeta.getByText('No se presentó; se reprograma')).toBeVisible();
+    await expect(fila.getByText('No se presentó; se reprograma')).toBeVisible();
     // El semáforo de la cabecera cambia al instante (RF-06 CA2, S2.5): rojo por el requisito observado.
-    await expect(page.getByText('Requisito observado').first()).toBeVisible();
-
-    await tarjeta.getByRole('button', { name: 'Actualizar' }).click();
+    await expect(page.getByText('Requisito observado o atrasado').first()).toBeVisible();
+    await fila.getByRole('button', { name: `Actualizar ${tcloa}` }).click();
     await modal.getByLabel('Estado').selectOption('COMPLETO');
     await modal.getByLabel('Fecha').fill('2026-08-14');
     await modal.getByLabel('N.º de documento').fill('TCLO-0451');
     await modal.getByRole('button', { name: 'Guardar' }).click();
-    await expect(tarjeta.getByText('N.º: TCLO-0451')).toBeVisible();
-    await expect(tarjeta.getByText('Completo')).toBeVisible();
-    await expect(page.getByText('Requisitos pendientes').first()).toBeVisible();
+    await expect(fila.getByText('N.º: TCLO-0451')).toBeVisible();
+
+    const tacfi = 'Certificado legalizado de TACFI – Tecnológico I';
+    await page.getByRole('button', { name: `Registrar ${tacfi}`, exact: true }).click();
+    const dTacfi = page.getByRole('dialog', { name: tacfi });
+    await dTacfi.getByLabel('Fecha en que lo tomó').fill('2025-04-08');
+    await dTacfi.getByRole('button', { name: 'Guardar' }).click();
+    await expect(dTacfi.getByText('Escriba el nombre del curso')).toBeVisible();
+    await dTacfi.getByLabel('Nombre del curso').fill('Inteligencia artificial aplicada al modelo educativo');
+    await dTacfi.getByLabel('Entidad emisora').fill('Instituto Tecnológico Superior');
+    await dTacfi.getByRole('button', { name: 'Guardar' }).click();
+    await expect(page.getByRole('listitem', { name: tacfi, exact: true })).toContainText(
+      'Entidad emisora: Instituto Tecnológico Superior',
+    );
+
+    await page.getByRole('button', { name: 'Agregar gestión de Matrícula' }).click();
+    const dMat = page.getByRole('dialog', { name: 'Matrícula: nueva gestión' });
+    await dMat.getByLabel('Gestión').fill('ii/2026');
+    await dMat.getByLabel('Fecha').fill('2026-07-13');
+    await dMat.getByRole('button', { name: 'Guardar' }).click();
+    await expect(
+      page.getByRole('listitem', { name: 'Matrícula' }).getByRole('button', { name: /II\/2026/ }),
+    ).toBeVisible();
     expect(problemas).toEqual([]);
   });
 });

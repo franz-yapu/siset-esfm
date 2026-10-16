@@ -106,8 +106,12 @@ export function ManualPersonal() {
             <strong>egresado</strong>.
           </li>
           <li>
-            <strong>Requisitos:</strong> en el file, pestaña <em>Requisitos</em>, botón <em>Registrar</em> en cada
-            tarjeta: estado (completo, pendiente u observado), fecha, N.º de documento y observación.
+            <strong>Requisitos:</strong> en el file, pestaña <em>Requisitos</em>: los 24 de la hoja del folder personal,
+            en su orden. Botón <em>Registrar</em>: estado (completo, pendiente u observado), fecha, N.º de documento y
+            observación. Los TACFI piden además el nombre del curso y la entidad emisora; la matrícula y el certificado
+            de notas se agregan por gestión (<em>Agregar gestión</em>: I/2025, II/2025 o 2023). Lo que no corresponde al
+            estudiante (por género o modalidad) aparece en gris. En <em>Datos personales</em> se anotan el género, la
+            modalidad y el año de formación.
           </li>
           <li>
             <strong>Bloquear:</strong> botón rojo <em>Bloquear</em> en la cabecera del file, solo por licencia temporal
@@ -117,7 +121,7 @@ export function ManualPersonal() {
           </li>
           <li>
             El color del file (semáforo): <strong>verde</strong> todo completo, <strong>amarillo</strong> le falta algo,{' '}
-            <strong>rojo</strong> bloqueado o con un requisito observado.
+            <strong>rojo</strong> bloqueado, con un requisito observado o con un TACFI de un año que ya pasó.
           </li>
         </ol>
         <Subtitulo>Trámites</Subtitulo>
@@ -225,8 +229,8 @@ export function ManualPersonal() {
             observados o pendientes).
           </li>
           <li>
-            <em>Mi file académico</em> muestra los requisitos por año y sus datos. Es solo lectura: si algo está mal,
-            acérquese a Kardex.
+            <em>Mi file académico</em> muestra sus requisitos del folder personal y sus datos. Es solo lectura: si algo
+            está mal, acérquese a Kardex.
           </li>
           <li>Funciona en el celular. Las cuentas de estudiantes se habilitan después del piloto del personal.</li>
         </ul>

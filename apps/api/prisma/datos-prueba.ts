@@ -134,7 +134,7 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
       const sedes = Object.fromEntries((await tx.sede.findMany()).map((s) => [s.codigo, s.id]));
       const roles = Object.fromEntries((await tx.rol.findMany()).map((r) => [r.codigo, r.id]));
       const especialidades = (await tx.especialidad.findMany({ orderBy: { id: 'asc' } })).map((e) => e.id);
-      const requisitos = await tx.requisitoTipo.findMany({ where: { activo: true }, orderBy: { id: 'asc' } });
+      const requisitos = await tx.requisitoTipo.findMany({ where: { activo: true }, orderBy: { orden: 'asc' } });
       const tipos = Object.fromEntries((await tx.tipoTramite.findMany()).map((t) => [t.codigo, t]));
       const kardex = await tx.usuario.findFirstOrThrow({
         where: { rol: { codigo: 'KARDEX' } },
@@ -181,13 +181,18 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
         });
         const egresado = i < EGRESADOS;
         const bloqueado = i === 5 || i === 17;
+        const anioIngreso = egresado ? 2018 + (i % 4) : 2022 + (i % 4);
         const f = await tx.fileAcademico.create({
           data: {
             personaId: persona.id,
             codigoEstudiante: `PRB-${String(i + 1).padStart(4, '0')}`,
             especialidadId: especialidades[i % especialidades.length],
-            anioIngreso: egresado ? 2018 + (i % 4) : 2022 + (i % 4),
+            anioIngreso,
             condicion: egresado ? 'EGRESADO' : 'ESTUDIANTE',
+            // Cabecera del folder personal (DEC-051); los egresados ya no cursan.
+            genero: i % 2 ? 'MASCULINO' : 'FEMENINO',
+            modalidad: 'A',
+            anioFormacion: egresado ? null : Math.min(5, 2026 - anioIngreso + 1),
             bloqueado,
             motivoBloqueo: bloqueado ? 'Permiso obligatorio por una gestión, por reprobación (dato de prueba)' : null,
           },
@@ -195,16 +200,20 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
         // Tres de cada cuatro egresados con todo completo; observado uno de cada siete; el resto, pendientes.
         for (const [j, r] of requisitos.entries()) {
           const completo = egresado ? i % 4 !== 0 || j !== i % requisitos.length : j < i % 3;
-          const observado = i % 7 === 3 && r.codigo.startsWith('TCLO');
+          const observado = i % 7 === 3 && r.codigo === 'CERT_TCLOA';
           if (!completo && !observado) continue;
           await tx.requisitoFile.create({
             data: {
               fileId: f.id,
               requisitoTipoId: r.id,
+              // Los por gestión (matrícula, certificado de notas), en la gestión de ingreso (DEC-051).
+              gestion: r.porGestion ? String(anioIngreso) : '',
               estado: observado ? 'OBSERVADO' : 'COMPLETO',
               fecha: observado ? null : fecha(400 - i * 5 - j),
               nroDocumento: observado ? null : `DOC-${i + 1}-${j + 1}`,
               observacion: observado ? 'No se presentó a la defensa; se reprograma (dato de prueba)' : null,
+              nombreCurso: r.pideCurso && !observado ? 'Curso de prueba' : null,
+              entidadEmisora: r.pideCurso && !observado ? 'Entidad de prueba' : null,
               registradoPor: kardex.id,
             },
           });

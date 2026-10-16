@@ -10,6 +10,9 @@ export interface Especialidad {
   nombre: string;
 }
 
+/** Decide si se pide la libreta militar (DEC-051). */
+export type Genero = 'FEMENINO' | 'MASCULINO';
+
 export interface FileDetalle {
   id: number;
   codigo: string;
@@ -27,6 +30,9 @@ export interface FileDetalle {
   especialidad: string;
   anioIngreso: number;
   condicion: CondicionFile;
+  genero: Genero | null;
+  modalidad: string | null;
+  anioFormacion: number | null;
   bloqueado: boolean;
   motivoBloqueo: string | null;
   /** Calculado por la API (SDD S2.5, DEC-031). */
@@ -46,6 +52,10 @@ export interface DatosCrearFile {
   especialidadId: number;
   anioIngreso: number;
   condicion: CondicionFile;
+  /** Cabecera del folder personal (DEC-051). */
+  genero: Genero | null;
+  modalidad: string | null;
+  anioFormacion: number | null;
 }
 
 /** Todo menos el CI y el complemento (no se editan, DEC-027 #1); solo lo que cambió. */

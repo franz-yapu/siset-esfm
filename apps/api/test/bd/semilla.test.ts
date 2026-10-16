@@ -16,7 +16,7 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('es idempotente: dos corridas dejan los mismos conteos', async () => {
     const primera = await sembrar(bd, KARDEX_DE_PRUEBA);
     const segunda = await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 6 });
+    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 24 });
     // Los archivos comparten la base y otros tests crean usuarios con eventos en la
     // bitácora, que no se pueden borrar (ADR-0003): se cuenta "al menos uno".
     expect(primera.personas).toBeGreaterThanOrEqual(1);
@@ -50,15 +50,40 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
     expect(await bd.usuario.count({ where: { username: '9000002-1A' } })).toBe(1);
   });
 
-  it('siembra el catálogo provisional de requisitos con año y nivel (SDD S2.1 v1.1)', async () => {
-    const tclo = await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TCLO_INTERMEDIO' } });
-    expect(tclo).toMatchObject({ anioFormacion: 2, nivel: 'INTERMEDIO', obligatorio: true, activo: true });
-    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'CERT_NOTAS' } })).anioFormacion).toBeNull();
+  it('siembra los 24 requisitos del folder personal en su orden (DEC-051)', async () => {
+    const activos = await bd.requisitoTipo.findMany({ where: { activo: true }, orderBy: { orden: 'asc' } });
+    expect(activos.map((r) => r.orden)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_TEC_2' } })).toMatchObject({
+      anioFormacion: 4,
+      pideCurso: true,
+      obligatorio: true,
+    });
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'MATRICULA' } })).toMatchObject({
+      porGestion: true,
+    });
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'LIBRETA_MILITAR' } })).toMatchObject({
+      soloGenero: 'MASCULINO',
+    });
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'LICENCIA_TEMPORAL' } })).toMatchObject({
+      obligatorio: false,
+    });
   });
 
-  it('no pisa un requisito que Kardex editó', async () => {
+  it('da de baja los niveles del TCLO del catálogo provisional y conserva la fila', async () => {
+    await bd.requisitoTipo.upsert({
+      where: { codigo: 'TCLO_BASICO' },
+      create: { codigo: 'TCLO_BASICO', nombre: 'TCLO nivel básico', nivel: 'BASICO', anioFormacion: 1 },
+      update: { activo: true },
+    });
+    await sembrar(bd, KARDEX_DE_PRUEBA);
+    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TCLO_BASICO' } })).activo).toBe(false);
+  });
+
+  it('el seed manda sobre el catálogo mientras Kardex no pueda editarlo (DEC-051)', async () => {
     await bd.requisitoTipo.update({ where: { codigo: 'TACFI_1' }, data: { nombre: 'Nombre editado' } });
     await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_1' } })).nombre).toBe('Nombre editado');
+    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_1' } })).nombre).toBe(
+      'Certificado legalizado de TACFI – Artístico I',
+    );
   });
 });

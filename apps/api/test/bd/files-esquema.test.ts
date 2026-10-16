@@ -76,18 +76,34 @@ describe('tablas del file académico (SDD S2.1 v1.1 §4)', () => {
         },
       }),
     ).toMatchObject({ estado: 'COMPLETO' });
-    const tclo = await requisito('TCLO_BASICO');
+    const tclo = await requisito('CERT_TCLOA');
     expect(await bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: tclo.id } })).toMatchObject({
       estado: 'PENDIENTE',
       registradoPor: null,
     });
   });
 
-  it('un file no puede tener dos veces el mismo requisito', async () => {
+  it('un file no puede tener dos veces el mismo requisito en la misma gestión (DEC-051)', async () => {
     const f = await nuevoFile();
     const notas = await requisito('CERT_NOTAS');
-    await bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id } });
-    await expect(bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id } })).rejects.toThrow();
+    await bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id, gestion: 'I/2025' } });
+    await bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id, gestion: 'II/2025' } });
+    await expect(
+      bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id, gestion: 'I/2025' } }),
+    ).rejects.toThrow();
+    await expect(
+      bd.requisitoFile.create({ data: { fileId: f.id, requisitoTipoId: notas.id, gestion: 'III/2025' } }),
+    ).rejects.toThrow(/ck_requisito_gestion/);
+  });
+
+  it('el año de formación y la modalidad del file tienen formato (DEC-051)', async () => {
+    const f = await nuevoFile();
+    await expect(bd.fileAcademico.update({ where: { id: f.id }, data: { anioFormacion: 6 } })).rejects.toThrow(
+      /ck_file_anio_formacion/,
+    );
+    await expect(bd.fileAcademico.update({ where: { id: f.id }, data: { modalidad: 'b1' } })).rejects.toThrow(
+      /ck_file_modalidad/,
+    );
   });
 
   it('el año de formación del catálogo va de 1 a 5', async () => {

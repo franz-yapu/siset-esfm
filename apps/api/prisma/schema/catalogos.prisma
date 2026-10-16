@@ -51,6 +51,16 @@ model RequisitoTipo {
   nivel          NivelTclo?
   /// Cuenta para el semáforo del file.
   obligatorio    Boolean         @default(true)
+  /// N.º en la hoja "Documentación existente en folder personal" (DEC-051): el orden en pantalla.
+  orden          Int             @default(0) @db.SmallInt
+  /// Se entrega una vez por gestión (matrícula, certificado de notas).
+  porGestion     Boolean         @default(false) @map("por_gestion")
+  /// Pide el nombre del curso y la entidad emisora (TACFI).
+  pideCurso      Boolean         @default(false) @map("pide_curso")
+  /// Solo para un género (libreta militar: MASCULINO).
+  soloGenero     Genero?         @map("solo_genero")
+  /// Solo para una modalidad de ingreso; una letra vale para todas las que empiezan con ella (ADR-0007).
+  soloModalidad  String?         @map("solo_modalidad") @db.VarChar(5)
   activo         Boolean         @default(true)
   /// back-relation (ADR-0001: no usar desde otro módulo)
   requisitosFile RequisitoFile[]

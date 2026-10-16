@@ -52,7 +52,7 @@ Contraseña de todas: `Prueba.2026`.
 | 9000004      | COORDINADOR | ANCOCAGUA |
 | 8100024      | ESTUDIANTE  | —         |
 
-Además, **8100025** (estudiante, PRB-0025) muestra el caso en **rojo** (requisitos observados). No está en el
+Además, **8100025** (estudiante, PRB-0025) mostraba el caso en **rojo** por un TCLO observado; desde DEC-051 los niveles del TCLO están dados de baja y queda en amarillo. No está en el
 recuadro del login ni se repara en cada despliegue: si alguien le cambia la contraseña, hay que restablecerla a mano.
 
 Cada despliegue las repara (`bd:datos-prueba`): vuelve la contraseña común, sin cambio obligatorio, sin bloqueo y

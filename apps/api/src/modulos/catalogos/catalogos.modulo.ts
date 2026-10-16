@@ -22,12 +22,17 @@ const esquemaEspecialidad = z
 const esquemaRequisitoCatalogo = z
   .object({
     id: z.number().int(),
-    codigo: z.string().meta({ example: 'TCLO_BASICO' }),
+    codigo: z.string().meta({ example: 'TACFI_1' }),
     nombre: z.string(),
     descripcion: z.string().nullable(),
     anioFormacion: z.number().int().nullable(),
     nivel: z.enum(['BASICO', 'INTERMEDIO', 'AVANZADO']).nullable(),
     obligatorio: z.boolean(),
+    orden: z.number().int(),
+    porGestion: z.boolean(),
+    pideCurso: z.boolean(),
+    soloGenero: z.enum(['FEMENINO', 'MASCULINO']).nullable(),
+    soloModalidad: z.string().nullable(),
   })
   .meta({ id: 'RequisitoCatalogo' });
 

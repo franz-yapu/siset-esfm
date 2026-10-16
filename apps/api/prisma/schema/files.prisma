@@ -25,6 +25,14 @@ enum NivelTclo {
   @@map("nivel_tclo")
 }
 
+/// Género del estudiante: decide si se pide la libreta militar (folder personal, DEC-051).
+enum Genero {
+  FEMENINO
+  MASCULINO
+
+  @@map("genero")
+}
+
 /// Las dos causas de bloqueo que nombró la escuela (D-29, DEC-049): en ambas se espera la reincorporación.
 enum CausaBloqueo {
   LICENCIA_OBLIGATORIA
@@ -42,6 +50,12 @@ model FileAcademico {
   especialidadId   Int                 @map("especialidad_id")
   anioIngreso      Int                 @map("anio_ingreso") @db.SmallInt
   condicion        CondicionEstudiante @default(ESTUDIANTE)
+  /// Datos de la cabecera del folder personal (DEC-051); opcionales hasta que Kardex los cargue.
+  genero           Genero?
+  /// Modalidad de ingreso (A, B, B1, B3…): texto corto hasta conocer la lista (D-45).
+  modalidad        String?             @db.VarChar(5)
+  /// Año que cursa (1–5, CHECK `ck_file_anio_formacion`): decide si un TACFI está atrasado (D-31, ADR-0007).
+  anioFormacion    Int?                @map("anio_formacion") @db.SmallInt
   bloqueado        Boolean             @default(false)
   motivoBloqueo    String?             @map("motivo_bloqueo") @db.VarChar(255)
   activo           Boolean             @default(true)
@@ -63,18 +77,24 @@ model RequisitoFile {
   id              Int             @id @default(autoincrement())
   fileId          Int             @map("file_id")
   requisitoTipoId Int             @map("requisito_tipo_id")
+  /// Para los requisitos por gestión (matrícula, certificado de notas): "I/2025", "II/2025" o "2023". Vacío en
+  /// los demás (DEC-051).
+  gestion         String          @default("") @db.VarChar(10)
   estado          EstadoRequisito @default(PENDIENTE)
   /// Fecha del documento o de su recepción física.
   fecha           DateTime?       @db.Date
   nroDocumento    String?         @map("nro_documento") @db.VarChar(40)
   observacion     String?         @db.VarChar(255)
+  /// Solo en los TACFI (DEC-051): nombre del curso y entidad que lo emitió.
+  nombreCurso     String?         @map("nombre_curso") @db.VarChar(150)
+  entidadEmisora  String?         @map("entidad_emisora") @db.VarChar(150)
   registradoPor   Int?            @map("registrado_por")
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
   file            FileAcademico   @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   requisitoTipo   RequisitoTipo   @relation(fields: [requisitoTipoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   usuario         Usuario?        @relation(fields: [registradoPor], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
-  @@unique([fileId, requisitoTipoId])
+  @@unique([fileId, requisitoTipoId, gestion])
   @@index([requisitoTipoId])
   @@map("requisito_file")
 }

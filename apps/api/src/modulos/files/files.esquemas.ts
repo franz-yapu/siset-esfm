@@ -5,6 +5,7 @@ import { COLORES_SEMAFORO } from './semaforo';
 // Contratos de /files (SDD S2.2 §2.2). Los largos son los de las tablas persona y file_academico.
 
 export const CONDICIONES = ['ESTUDIANTE', 'EGRESADO'] as const;
+export const GENEROS = ['FEMENINO', 'MASCULINO'] as const;
 
 /** El CHECK de la tabla (ck_file_anio): 1990–2100; la API no acepta más allá del año siguiente. */
 const ANIO_MIN = 1990;
@@ -45,6 +46,22 @@ const camposEditables = {
     .min(ANIO_MIN, `El año de ingreso va de ${ANIO_MIN} en adelante`)
     .refine((a) => a <= anioMax(), 'El año de ingreso no puede ser posterior al año siguiente'),
   condicion: z.enum(CONDICIONES),
+  /** Cabecera del folder personal (DEC-051): deciden qué requisitos se piden y cuáles están atrasados. */
+  genero: z.enum(GENEROS).nullable(),
+  /** Texto corto en mayúsculas (A, B, B1, B3…) hasta conocer la lista (D-45). */
+  modalidad: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^([A-Z][A-Z0-9]{0,4})?$/, 'La modalidad es una letra y hasta 4 letras o dígitos (A, B1, B3…)')
+    .nullable()
+    .transform((v) => v || null),
+  anioFormacion: z
+    .number()
+    .int()
+    .min(1, 'El año de formación va de 1 a 5')
+    .max(5, 'El año de formación va de 1 a 5')
+    .nullable(),
 };
 
 const MENSAJE_APELLIDO = 'Debe tener al menos un apellido';
@@ -71,6 +88,9 @@ export const esquemaCrearFile = z
     email: camposEditables.email.default(null),
     celular: camposEditables.celular.default(null),
     condicion: camposEditables.condicion.default('ESTUDIANTE'),
+    genero: camposEditables.genero.default(null),
+    modalidad: camposEditables.modalidad.default(null),
+    anioFormacion: camposEditables.anioFormacion.default(null),
   })
   .refine((d) => d.apellidoPaterno || d.apellidoMaterno, { message: MENSAJE_APELLIDO, path: ['apellidoPaterno'] })
   .meta({ id: 'CrearFile', description: 'Persona del estudiante y su file. Se crea desbloqueado.' });
@@ -171,6 +191,9 @@ export const esquemaFileDetalle = z
     especialidad: z.string(),
     anioIngreso: z.number().int(),
     condicion: z.enum(CONDICIONES),
+    genero: z.enum(GENEROS).nullable(),
+    modalidad: z.string().nullable(),
+    anioFormacion: z.number().int().nullable(),
     bloqueado: z.boolean(),
     motivoBloqueo: z.string().nullable(),
     /** Calculado, no se guarda (SDD S2.5, DEC-031; provisional hasta D-31). */

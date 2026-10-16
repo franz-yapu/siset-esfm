@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Usuario } from '@/types';
+import type { DatosRequisito } from '@/types/requisitos';
 import { db, reset } from '@/mocks/db';
 import { ErrorApi } from '@/lib/errores';
 import { requisitosMock } from './requisitos.mock';
@@ -21,47 +22,37 @@ const codigoDe = async (p: Promise<unknown>) => {
 
 beforeEach(() => reset());
 
-describe('requisitosMock: contrato de S2.4', () => {
-  it('el catálogo provisional en orden; arranca con lo que el prototipo tenía', async () => {
+const datos = (o: Partial<DatosRequisito> = {}): DatosRequisito => ({
+  estado: 'COMPLETO',
+  fecha: '2026-03-01',
+  nroDocumento: null,
+  observacion: null,
+  gestion: null,
+  nombreCurso: null,
+  entidadEmisora: null,
+  ...o,
+});
+
+describe('requisitosMock: contrato de S2.4 y DEC-051', () => {
+  it('los 24 del folder personal en orden; arranca con lo que el prototipo tenía', async () => {
     const lista = await requisitosMock.listar(1);
-    expect(lista.map((r) => r.codigo)).toEqual([
-      'TACFI_1',
-      'TCLO_BASICO',
-      'TACFI_2',
-      'TCLO_INTERMEDIO',
-      'TCLO_AVANZADO',
-      'CERT_NOTAS',
-    ]);
+    expect(lista.map((r) => r.orden)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
     const proto = db.files.find((f) => f.id === 1)!.requisitos;
-    expect(lista[0].estado).toBe(proto.TACFI.estado === 'COMPLETO' ? 'COMPLETO' : 'PENDIENTE');
+    expect(lista.find((r) => r.codigo === 'TACFI_1')!.estado).toBe(
+      proto.TACFI.estado === 'COMPLETO' ? 'COMPLETO' : 'PENDIENTE',
+    );
   });
 
   it('registrar: valida como la API, guarda quién y cuándo, y deja el evento', async () => {
     const id = db.files.find((f) => f.requisitos.TCLO.estado === 'PENDIENTE')!.id;
-    expect(
-      await codigoDe(
-        requisitosMock.registrar(
-          id,
-          'TCLO_BASICO',
-          { estado: 'COMPLETO', fecha: null, nroDocumento: null, observacion: null },
-          kardex(),
-        ),
-      ),
-    ).toBe('VALIDACION');
-    expect(
-      await codigoDe(
-        requisitosMock.registrar(
-          id,
-          'NO_EXISTE',
-          { estado: 'PENDIENTE', fecha: null, nroDocumento: null, observacion: null },
-          kardex(),
-        ),
-      ),
-    ).toBe('NO_ENCONTRADO');
+    expect(await codigoDe(requisitosMock.registrar(id, 'CERT_TCLOA', datos({ fecha: null }), kardex()))).toBe(
+      'VALIDACION',
+    );
+    expect(await codigoDe(requisitosMock.registrar(id, 'NO_EXISTE', datos(), kardex()))).toBe('NO_ENCONTRADO');
     const r = await requisitosMock.registrar(
       id,
-      'tclo_basico',
-      { estado: 'OBSERVADO', fecha: null, nroDocumento: ' ', observacion: 'No se presentó' },
+      'cert_tcloa',
+      datos({ estado: 'OBSERVADO', fecha: null, nroDocumento: ' ', observacion: 'No se presentó' }),
       kardex(),
     );
     expect(r).toMatchObject({
@@ -70,7 +61,21 @@ describe('requisitosMock: contrato de S2.4', () => {
       nroDocumento: null,
       registradoPor: { id: 1 },
     });
-    expect(db.bitacora.at(-1)).toMatchObject({ despues: { requisito: 'TCLO_BASICO', estado: 'OBSERVADO' } });
-    expect((await requisitosMock.listar(id)).find((x) => x.codigo === 'TCLO_BASICO')!.estado).toBe('OBSERVADO');
+    expect(db.bitacora.at(-1)).toMatchObject({ despues: { requisito: 'CERT_TCLOA', estado: 'OBSERVADO' } });
+  });
+
+  it('por gestión y TACFI como la API', async () => {
+    const id = db.files[0].id;
+    expect(await codigoDe(requisitosMock.registrar(id, 'MATRICULA', datos(), kardex()))).toBe('VALIDACION');
+    const m = await requisitosMock.registrar(id, 'MATRICULA', datos({ gestion: 'i/2026' }), kardex());
+    expect(m.gestiones.map((g) => g.gestion)).toContain('I/2026');
+    expect(await codigoDe(requisitosMock.registrar(id, 'TACFI_TEC_1', datos(), kardex()))).toBe('VALIDACION');
+    const t = await requisitosMock.registrar(
+      id,
+      'TACFI_TEC_1',
+      datos({ nombreCurso: 'IA aplicada', entidadEmisora: 'Instituto' }),
+      kardex(),
+    );
+    expect(t).toMatchObject({ estado: 'COMPLETO', nombreCurso: 'IA aplicada', entidadEmisora: 'Instituto' });
   });
 });

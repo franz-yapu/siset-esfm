@@ -46,11 +46,20 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 
 ## File académico, semáforo y bloqueo (RF-07, D-04, D-07, D-18)
 
-- Requisitos en catálogo parametrizable `requisito_tipo` (TACFI, TCLO, CERT_NOTAS…), editable por Kardex.
-- Semáforo por requisito y global (DEC-031, calculado en la API; provisional hasta D-31). Solo cuentan los
-  requisitos obligatorios. Rojo: file bloqueado o algún requisito OBSERVADO. Amarillo: algún requisito pendiente.
-  Verde: todos completos. Cuándo un pendiente pasa a "atrasado" (rojo) lo define D-31.
-- TCLO pasa a "Completo" solo con el nivel exigido (D-04, por definir).
+- **Requisitos (DEC-051):** los 24 de la hoja "Documentación existente en folder personal" de Kardex, en su orden,
+  en el catálogo `requisito_tipo`. Algunos dependen del file: la libreta militar solo a varones; el certificado de
+  pueblo indígena (modalidad B1), las calificaciones de secundaria (modalidad B) y el carnet de discapacidad
+  (modalidad B3). Los "si corresponde" (licencia temporal, reincorporación, historial provisional, resolución
+  académica) no son obligatorios. Solo **Kardex** carga los files y marca los requisitos (D-13b).
+- La **matrícula** y el **certificado de notas** se registran **una vez por gestión** (I/2025, II/2025 o 2023): son
+  requisito para la defensa del diseño metodológico en 4.º y 5.º (D-30b, D-39). Importa el documento físico en el
+  file, no las notas.
+- Los **TACFI** (Artístico I en 1.º, Artístico II en 2.º, Tecnológico I en 3.º, Tecnológico II en 4.º, D-31)
+  piden la fecha en que lo tomó, el nombre del curso y la entidad emisora.
+- El file guarda **género, modalidad y año de formación** (cabecera del folder personal).
+- **Semáforo (DEC-031, ADR-0007):** cuentan los requisitos obligatorios que aplican al file. Rojo: file bloqueado,
+  algún requisito OBSERVADO o **algún requisito atrasado** (de un año que el estudiante ya pasó y sin completar,
+  D-31). Amarillo: algún pendiente. Verde: todos completos. Un requisito por gestión resume sus gestiones.
 - Notas: Kardex **no registra notas**; las cargan los docentes en un sistema del Ministerio (D-07). Reprobar no
   obliga a repetir TACFI ni TCLO (D-07b).
 - **Bloqueo (D-29, DEC-049; antes DEC-029):** Kardex bloquea el file solo por **licencia temporal obligatoria**

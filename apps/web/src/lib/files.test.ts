@@ -16,6 +16,9 @@ const base: DatosCrearFile = {
   especialidadId: 2,
   anioIngreso: 2024,
   condicion: 'ESTUDIANTE',
+  genero: null,
+  modalidad: null,
+  anioFormacion: null,
 };
 
 describe('reglas del formulario del file (SDD S2.9-S2.10 §2.5)', () => {

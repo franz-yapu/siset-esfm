@@ -4,17 +4,20 @@ type Cliente = ClienteBd | TransaccionBd;
 
 const SELECCION = {
   requisitoTipoId: true,
+  gestion: true,
   estado: true,
   fecha: true,
   nroDocumento: true,
   observacion: true,
+  nombreCurso: true,
+  entidadEmisora: true,
   registradoPor: true,
   updatedAt: true,
 } as const;
 
 /** Lo registrado de cada requisito en el file (SDD S2.4). Lo que no tiene fila está PENDIENTE. */
 export const listarRequisitosDelFile = (cliente: Cliente, fileId: number) =>
-  cliente.requisitoFile.findMany({ where: { fileId }, select: SELECCION });
+  cliente.requisitoFile.findMany({ where: { fileId }, select: SELECCION, orderBy: { gestion: 'asc' } });
 
 /** Estado de cada requisito registrado en varios files, en una consulta (semáforo del listado, SDD S2.5 §2.2). */
 export const listarEstadosDeFiles = (cliente: Cliente, fileIds: number[]) =>
@@ -22,7 +25,7 @@ export const listarEstadosDeFiles = (cliente: Cliente, fileIds: number[]) =>
     ? Promise.resolve([])
     : cliente.requisitoFile.findMany({
         where: { fileId: { in: fileIds } },
-        select: { fileId: true, requisitoTipoId: true, estado: true },
+        select: { fileId: true, requisitoTipoId: true, gestion: true, estado: true },
       });
 
 export type RequisitoFileBd = Awaited<ReturnType<typeof listarRequisitosDelFile>>[number];
@@ -32,19 +35,22 @@ export interface DatosRequisitoFile {
   fecha: Date | null;
   nroDocumento: string | null;
   observacion: string | null;
+  nombreCurso: string | null;
+  entidadEmisora: string | null;
   registradoPor: number | null;
 }
 
-/** Una sola fila por file y requisito (UNIQUE): crea o actualiza. */
+/** Una fila por file, requisito y gestión (UNIQUE; la gestión es '' si el requisito no es por gestión). */
 export const guardarRequisitoDelFile = (
   cliente: Cliente,
   fileId: number,
   requisitoTipoId: number,
+  gestion: string,
   datos: DatosRequisitoFile,
 ) =>
   cliente.requisitoFile.upsert({
-    where: { fileId_requisitoTipoId: { fileId, requisitoTipoId } },
-    create: { fileId, requisitoTipoId, ...datos },
+    where: { fileId_requisitoTipoId_gestion: { fileId, requisitoTipoId, gestion } },
+    create: { fileId, requisitoTipoId, gestion, ...datos },
     update: datos,
     select: SELECCION,
   });

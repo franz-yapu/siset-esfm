@@ -8,7 +8,14 @@ export type FileMock = FileAcademico & {
   complemento?: string;
   apellidoPaterno?: string | null;
   apellidoMaterno?: string | null;
-  /** Requisitos con el catálogo de S2.4; se arma de `requisitos` la primera vez que se lee. */
+  /** Cabecera del folder personal (DEC-051). */
+  genero?: 'FEMENINO' | 'MASCULINO' | null;
+  modalidad?: string | null;
+  anioFormacion?: number | null;
+  /**
+   * Requisitos con el catálogo de S2.4; se arma de `requisitos` la primera vez que se lee. La clave es el código, o
+   * `código@gestión` en los por gestión (DEC-051).
+   */
   requisitosCatalogo?: Record<string, RequisitoRegistradoMock>;
 };
 
@@ -18,6 +25,8 @@ export interface RequisitoRegistradoMock {
   fecha: string | null;
   nroDocumento: string | null;
   observacion: string | null;
+  nombreCurso?: string | null;
+  entidadEmisora?: string | null;
   registradoPor: { id: number; nombre: string } | null;
   actualizado: string | null;
 }

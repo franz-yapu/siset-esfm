@@ -805,3 +805,31 @@ pendientes de implementar
 7. **D-31** (TACFI por año) se aplica en DEC-051. Quedan incompletas y repreguntadas: D-10b → D-10c (formatos del
    historial), D-40 → D-40b (quién anota los datos del egresado: los 152 files son estudiantes activos, que
    tendrán cuenta) y D-41 → D-41b (fechas de capacitación; el acta se firma al final).
+
+## DEC-051 — Requisitos del folder personal: 24 del catálogo, por gestión, TACFI con curso y semáforo con atrasados
+
+**Fecha:** 2026-10-16 · **Fuente:** fotos del folder personal por WhatsApp (D-18b, D-30b), respuestas D-31 y D-39,
+ADR-0007 (modo demo, sin SDD previo) · **Estado:** activa, implementada el 2026-10-16
+
+1. **El catálogo son los 24 requisitos** de la hoja "Documentación existente en folder personal" de Kardex, en su
+   orden (`requisito_tipo.orden`). Reemplaza los 6 provisionales: los TACFI y el certificado de notas conservan su
+   código; los tres niveles del TCLO se dan de baja (lo registrado se conserva) y entran el boletín y el
+   certificado legalizado TCLOA (provisional hasta D-46). El seed manda sobre el catálogo mientras Kardex no tenga
+   cómo editarlo.
+2. **Condicionales:** libreta militar solo varones (`solo_genero`); pueblo indígena solo modalidad B1, calificaciones
+   de secundaria solo modalidad B (vale para B1, B3…; provisional hasta D-45) y carnet de discapacidad solo B3
+   (`solo_modalidad`). Si el file no tiene el dato, no se pide. Los cuatro "si corresponde" no son obligatorios.
+3. **Por gestión:** la matrícula y el certificado de notas (`por_gestion`) llevan una fila por gestión en
+   `requisito_file` (`I/2025`, `II/2025` o `2023`; UNIQUE file + requisito + gestión). El certificado de notas ya
+   registrado quedó en el año de su fecha. Qué gestiones se exigen espera D-47: por ahora basta con una.
+4. **TACFI** (`pide_curso`): Artístico I en 1.º, Artístico II en 2.º, Tecnológico I en 3.º y Tecnológico II en 4.º
+   (D-31). Completo exige la fecha en que lo tomó, el nombre del curso y la entidad emisora.
+5. **El file** suma `genero`, `modalidad` (texto corto en mayúsculas, D-45) y `anio_formacion` (1–5), de la cabecera
+   del folder personal. Los edita Kardex en "Datos personales".
+6. **Semáforo (ADR-0007):** cuentan los obligatorios que aplican; un por gestión resume sus gestiones; un requisito
+   de un año que el estudiante ya pasó y sin completar está **atrasado** y pone el file en **rojo** (D-31). La
+   autorización de las autoridades se anota en la observación o como resolución académica (requisito 24).
+7. **API:** `GET /files/:id/requisitos` devuelve por requisito `orden`, `porGestion`, `pideCurso`, `soloGenero`,
+   `soloModalidad`, `aplica`, `atrasado`, `nombreCurso`, `entidadEmisora` y `gestiones`; `PUT …/:codigo` acepta
+   `gestion`, `nombreCurso` y `entidadEmisora` (400 si faltan o sobran según el tipo). La bitácora guarda la gestión.
+8. **Datos reales:** las fotos tienen datos de una estudiante; no van al repositorio ni a la hoja.

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
-import type { CondicionFile, DatosCrearFile, Especialidad, FileDetalle } from '@/types/files';
+import type { CondicionFile, DatosCrearFile, Especialidad, FileDetalle, Genero } from '@/types/files';
 import { erroresDelFormularioFile, normalizarDatosFile, validarDatosFile, type CampoFile } from '@/lib/files';
 import { Alerta, Button, Input, Select } from '@/components/ui';
 
@@ -17,6 +17,9 @@ const vacio = (): DatosCrearFile => ({
   especialidadId: 0,
   anioIngreso: new Date().getFullYear(),
   condicion: 'ESTUDIANTE',
+  genero: null,
+  modalidad: '',
+  anioFormacion: null,
 });
 
 /** Los datos de un file existente, en la forma del formulario. */
@@ -33,6 +36,9 @@ export const datosDeFile = (f: FileDetalle): DatosCrearFile => ({
   especialidadId: f.especialidadId,
   anioIngreso: f.anioIngreso,
   condicion: f.condicion,
+  genero: f.genero,
+  modalidad: f.modalidad ?? '',
+  anioFormacion: f.anioFormacion,
 });
 
 interface Props {
@@ -179,6 +185,38 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
         >
           <option value="ESTUDIANTE">Estudiante</option>
           <option value="EGRESADO">Egresado</option>
+        </Select>
+        <Select
+          label="Género"
+          value={d.genero ?? ''}
+          onChange={(e) => set({ genero: (e.target.value || null) as Genero | null })}
+          hint="Decide si se pide la libreta militar."
+        >
+          <option value="">Sin indicar</option>
+          <option value="FEMENINO">Femenino</option>
+          <option value="MASCULINO">Masculino</option>
+        </Select>
+        <Input
+          label="Modalidad"
+          value={d.modalidad ?? ''}
+          maxLength={5}
+          onChange={(e) => set({ modalidad: e.target.value.toUpperCase() })}
+          error={errores.modalidad}
+          hint="Como en el folder personal: A, B1, B3…"
+        />
+        <Select
+          label="Año de formación"
+          value={d.anioFormacion ?? ''}
+          onChange={(e) => set({ anioFormacion: e.target.value ? Number(e.target.value) : null })}
+          error={errores.anioFormacion}
+          hint="El año que cursa: decide si un TACFI está atrasado."
+        >
+          <option value="">Sin indicar</option>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <option key={n} value={n}>
+              {['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto'][n - 1]}
+            </option>
+          ))}
         </Select>
       </fieldset>
       {!soloLectura && (

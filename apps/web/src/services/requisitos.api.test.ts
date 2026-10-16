@@ -24,9 +24,17 @@ describe('requisitosApi (SDD S2.4)', () => {
     await requisitosApi.listar(12);
     expect(p[0]).toMatchObject({ method: 'get', url: '/files/12/requisitos' });
     p = capturar({});
-    const datos = { estado: 'COMPLETO' as const, fecha: '2026-08-14', nroDocumento: null, observacion: null };
-    await requisitosApi.registrar(12, 'TCLO_BASICO', datos, {} as Usuario);
-    expect(p[0]).toMatchObject({ method: 'put', url: '/files/12/requisitos/TCLO_BASICO' });
+    const datos = {
+      estado: 'COMPLETO' as const,
+      fecha: '2026-08-14',
+      nroDocumento: null,
+      observacion: null,
+      gestion: 'II/2025',
+      nombreCurso: null,
+      entidadEmisora: null,
+    };
+    await requisitosApi.registrar(12, 'MATRICULA', datos, {} as Usuario);
+    expect(p[0]).toMatchObject({ method: 'put', url: '/files/12/requisitos/MATRICULA' });
     expect(JSON.parse(p[0].data as string)).toEqual(datos);
   });
 });

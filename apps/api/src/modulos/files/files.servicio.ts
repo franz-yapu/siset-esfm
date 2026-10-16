@@ -23,6 +23,7 @@ import type {
   FiltrosFiles,
 } from './files.esquemas';
 import { listarEstadosDeFiles } from './requisito.repositorio';
+import { entradaDelSemaforo, resumenDeGestiones, type RequisitoParaReglas } from './requisitos-reglas';
 import { semaforoDelFile, type ColorSemaforo, type EstadoParaSemaforo } from './semaforo';
 
 type Cliente = ClienteBd | TransaccionBd;
@@ -58,10 +59,9 @@ export interface EspecialidadesParaFiles {
   nombresEspecialidades(cliente: Cliente, ids: number[]): Promise<Map<number, string>>;
 }
 
-/** Lo que el semáforo necesita del catálogo de requisitos (catalogos, vía la raíz). */
-export interface RequisitoParaSemaforo {
+/** Lo que el semáforo necesita del catálogo de requisitos (catalogos, vía la raíz; ADR-0007). */
+export interface RequisitoParaSemaforo extends RequisitoParaReglas {
   id: number;
-  obligatorio: boolean;
 }
 
 export interface DependenciasFiles {
@@ -122,6 +122,9 @@ function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: Colo
     especialidad,
     anioIngreso: f.anioIngreso,
     condicion: f.condicion,
+    genero: f.genero,
+    modalidad: f.modalidad,
+    anioFormacion: f.anioFormacion,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo,
     semaforo,
@@ -150,21 +153,30 @@ export function crearServicioFiles({
   personaDeUsuario,
   describirUsuarios,
 }: DependenciasFiles) {
-  /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2). */
+  /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2, ADR-0007). */
   async function semaforos(
     cliente: Cliente,
-    files: Pick<FileBd, 'id' | 'bloqueado'>[],
+    files: Pick<FileBd, 'id' | 'bloqueado' | 'genero' | 'modalidad' | 'anioFormacion'>[],
   ): Promise<Map<number, ColorSemaforo>> {
-    const obligatorios = (await obtenerRequisitosActivos(cliente)).filter((r) => r.obligatorio).map((r) => r.id);
+    const catalogo = await obtenerRequisitosActivos(cliente);
     const filas = await listarEstadosDeFiles(
       cliente,
       files.map((f) => f.id),
     );
-    const estadoDe = new Map(filas.map((r) => [`${r.fileId}:${r.requisitoTipoId}`, r.estado]));
+    const estadosDe = new Map<string, { gestion: string; estado: EstadoParaSemaforo }[]>();
+    for (const r of filas) {
+      const k = `${r.fileId}:${r.requisitoTipoId}`;
+      estadosDe.set(k, [...(estadosDe.get(k) ?? []), r]);
+    }
     return new Map(
       files.map((f) => {
-        const estados: EstadoParaSemaforo[] = obligatorios.map((id) => estadoDe.get(`${f.id}:${id}`) ?? 'PENDIENTE');
-        return [f.id, semaforoDelFile({ bloqueado: f.bloqueado, estados })];
+        const { estados, atrasado } = entradaDelSemaforo(catalogo, f, (r) => {
+          const registros = estadosDe.get(`${f.id}:${r.id}`) ?? [];
+          return r.porGestion
+            ? resumenDeGestiones(registros.filter((x) => x.gestion !== '').map((x) => x.estado))
+            : (registros.find((x) => x.gestion === '')?.estado ?? 'PENDIENTE');
+        });
+        return [f.id, semaforoDelFile({ bloqueado: f.bloqueado, estados, atrasado })];
       }),
     );
   }
@@ -245,7 +257,17 @@ export function crearServicioFiles({
     },
 
     async crear(datos: DatosCrearFile): Promise<FileDetalle> {
-      const { codigo, especialidadId, anioIngreso, condicion, fechaNacimiento, ...persona } = datos;
+      const {
+        codigo,
+        especialidadId,
+        anioIngreso,
+        condicion,
+        genero,
+        modalidad,
+        anioFormacion,
+        fechaNacimiento,
+        ...persona
+      } = datos;
       return bd.$transaction(async (tx) => {
         const existente = await personas.buscarPersonaPorCi(tx, persona.ci, persona.complemento);
         if (existente && (await tieneFile(tx, existente.id))) {
@@ -262,6 +284,9 @@ export function crearServicioFiles({
           especialidadId,
           anioIngreso,
           condicion,
+          genero,
+          modalidad,
+          anioFormacion,
         });
         const { d } = await cargar(tx, id);
         await registrarEvento(tx, {
@@ -399,7 +424,7 @@ export function crearServicioFiles({
           antes.especialidadId = f.especialidadId;
           despues.especialidadId = cambios.especialidadId;
         }
-        for (const campo of ['anioIngreso', 'condicion'] as const) {
+        for (const campo of ['anioIngreso', 'condicion', 'genero', 'modalidad', 'anioFormacion'] as const) {
           const valor = cambios[campo];
           if (valor === undefined || valor === f[campo]) continue;
           Object.assign(cambiosFile, { [campo]: valor });

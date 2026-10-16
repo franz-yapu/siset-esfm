@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { DatosRequisito, EstadoRequisitoFile, RequisitoDelFile } from '@/types/requisitos';
+import type { DatosRequisito, EstadoRequisitoFile, RegistroDeGestion, RequisitoDelFile } from '@/types/requisitos';
 import { useToast } from '@/hooks';
 import {
   erroresDelRequisito,
@@ -13,19 +13,29 @@ import { Alerta, Button, Input, Modal, Select, Textarea } from '@/components/ui'
 
 interface Props {
   requisito: RequisitoDelFile;
+  /** En un requisito por gestión: la que se edita, o null para agregar una nueva (DEC-051). */
+  gestion?: RegistroDeGestion | null;
   onCerrar: () => void;
   /** Si lanza un error de la API, se muestra en su campo. */
   onGuardar: (d: DatosRequisito) => Promise<void>;
 }
 
-/** Registrar o actualizar un requisito del file (SDD S2.4 §2.4). OBSERVADO: defensa reprobada o no presentada (D-04b). */
-export function ModalRequisitoFile({ requisito: r, onCerrar, onGuardar }: Props) {
+/**
+ * Registrar o actualizar un requisito del file (SDD S2.4 §2.4, DEC-051). OBSERVADO: defensa reprobada o no
+ * presentada (D-04b). Los TACFI piden el curso y la entidad emisora; los por gestión, la gestión.
+ */
+export function ModalRequisitoFile({ requisito: r, gestion = null, onCerrar, onGuardar }: Props) {
   const toast = useToast();
+  const base = r.porGestion ? gestion : r;
+  const nuevo = r.porGestion ? !gestion : r.estado === 'PENDIENTE' && !r.registradoPor;
   const [d, setD] = useState<DatosRequisito>({
-    estado: r.estado === 'PENDIENTE' && !r.registradoPor ? 'COMPLETO' : r.estado,
-    fecha: r.fecha ?? '',
-    nroDocumento: r.nroDocumento ?? '',
-    observacion: r.observacion ?? '',
+    estado: nuevo ? 'COMPLETO' : (base?.estado ?? 'COMPLETO'),
+    fecha: base?.fecha ?? '',
+    nroDocumento: base?.nroDocumento ?? '',
+    observacion: base?.observacion ?? '',
+    gestion: r.porGestion ? (gestion?.gestion ?? '') : null,
+    nombreCurso: r.pideCurso ? (r.nombreCurso ?? '') : null,
+    entidadEmisora: r.pideCurso ? (r.entidadEmisora ?? '') : null,
   });
   const [enviado, setEnviado] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -33,17 +43,17 @@ export function ModalRequisitoFile({ requisito: r, onCerrar, onGuardar }: Props)
     campos: {},
     general: null,
   });
-  const errores = { ...(enviado ? validarRequisito(normalizarRequisito(d)) : {}), ...deApi.campos };
+  const errores = { ...(enviado ? validarRequisito(normalizarRequisito(d), r) : {}), ...deApi.campos };
   const set = (p: Partial<DatosRequisito>) => setD({ ...d, ...p });
 
   const guardar = async () => {
     setEnviado(true);
     const datos = normalizarRequisito(d);
-    if (Object.keys(validarRequisito(datos)).length) return;
+    if (Object.keys(validarRequisito(datos, r)).length) return;
     setGuardando(true);
     try {
       await onGuardar(datos);
-      toast.success(`${r.nombre} registrado`);
+      toast.success(`${r.nombre}${datos.gestion ? ` ${datos.gestion}` : ''} registrado`);
     } catch (e) {
       setDeApi(erroresDelRequisito(e));
     } finally {
@@ -55,7 +65,7 @@ export function ModalRequisitoFile({ requisito: r, onCerrar, onGuardar }: Props)
     <Modal
       open
       onClose={onCerrar}
-      title={r.nombre}
+      title={r.porGestion ? `${r.nombre}${gestion ? ` ${gestion.gestion}` : ': nueva gestión'}` : r.nombre}
       size="sm"
       footer={
         <>
@@ -70,6 +80,17 @@ export function ModalRequisitoFile({ requisito: r, onCerrar, onGuardar }: Props)
     >
       <div className="space-y-3">
         {deApi.general && <Alerta tipo="error">{deApi.general}</Alerta>}
+        {r.porGestion && (
+          <Input
+            label="Gestión"
+            value={d.gestion ?? ''}
+            disabled={Boolean(gestion)}
+            placeholder="II/2025"
+            onChange={(e) => set({ gestion: e.target.value.toUpperCase() })}
+            error={errores.gestion}
+            hint="Semestral (I/2025, II/2025) o anual (2023)."
+          />
+        )}
         <Select
           label="Estado"
           value={d.estado}
@@ -82,20 +103,39 @@ export function ModalRequisitoFile({ requisito: r, onCerrar, onGuardar }: Props)
             </option>
           ))}
         </Select>
+        {r.pideCurso && (
+          <>
+            <Input
+              label="Nombre del curso"
+              value={d.nombreCurso ?? ''}
+              maxLength={150}
+              onChange={(e) => set({ nombreCurso: e.target.value })}
+              error={errores.nombreCurso}
+            />
+            <Input
+              label="Entidad emisora"
+              value={d.entidadEmisora ?? ''}
+              maxLength={150}
+              onChange={(e) => set({ entidadEmisora: e.target.value })}
+              error={errores.entidadEmisora}
+            />
+          </>
+        )}
         <Input
-          label="Fecha"
+          label={r.pideCurso ? 'Fecha en que lo tomó' : 'Fecha'}
           type="date"
           max={hoyEnLaPaz()}
           value={d.fecha ?? ''}
           onChange={(e) => set({ fecha: e.target.value })}
           error={errores.fecha}
-          hint="Del documento o de su recepción."
+          hint={r.pideCurso ? 'La del certificado del TACFI.' : 'Del documento o de su recepción.'}
         />
         <Input
           label="N.º de documento"
           value={d.nroDocumento ?? ''}
           onChange={(e) => set({ nroDocumento: e.target.value })}
           error={errores.nroDocumento}
+          hint={r.porGestion ? 'Por ejemplo, el N.º del valorado.' : undefined}
         />
         <Textarea
           label="Observación"
