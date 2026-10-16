@@ -39,7 +39,7 @@ const NOMBRE_ROL = { SEC_DIR: 'Secretaría de Dirección', KARDEX: 'Kardex', COO
 const PLAN: { fileId: number; tipo: string; pasos: number }[] = [
   { fileId: 11, tipo: 'HISTORIAL_ACADEMICO', pasos: 0 },
   { fileId: 9, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 1 },
-  { fileId: 10, tipo: 'HISTORIAL_ACADEMICO', pasos: 3 },
+  { fileId: 10, tipo: 'HISTORIAL_ACADEMICO', pasos: 2 },
   { fileId: 11, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 4 },
   { fileId: 12, tipo: 'LEGALIZACION_HISTORIAL', pasos: 5 },
   { fileId: 13, tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 7 },

@@ -6,7 +6,15 @@ import { SEDES } from '@/config/catalogos';
 import { sedeHr } from '@/config/estados-hoja-ruta';
 import { delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
-import { accionesPosibles, evaluarTransicion, flujoDe, INGESTA, type CodigoSede } from '@/lib/maquina-hojas-ruta';
+import {
+  accionesPosibles,
+  ESTADOS_FINALES,
+  evaluarTransicion,
+  flujoDe,
+  INGESTA,
+  PIDEN_OBSERVACION,
+  type CodigoSede,
+} from '@/lib/maquina-hojas-ruta';
 import { aDetalle } from './files.mock';
 import { LATENCIA } from './_comun';
 import type { ServicioHojasRuta } from './hojasRuta.service';
@@ -176,6 +184,15 @@ export const hojasRutaMock: ServicioHojasRuta = {
       accion,
     );
     if (!r.ok) throw new ErrorApi(r.mensaje, r.error, STATUS[r.error]);
+    let obs = observacion?.trim() || null;
+    if (PIDEN_OBSERVACION.includes(accion) && !obs) {
+      throw new ErrorApi('Los datos enviados no son válidos.', 'VALIDACION', 400, [
+        { ruta: 'body.observacion', mensaje: 'Escriba la observación por la que se devuelve' },
+      ]);
+    }
+    // DEC-053: el historial queda anotado con el valorado en que se imprimió.
+    if (accion === 'IMPRIMIR' && h.nroValorado)
+      obs = [`Impreso en el valorado N.º ${h.nroValorado}.`, obs].filter(Boolean).join(' ').slice(0, 255);
     const fecha = new Date().toISOString();
     h.movimientos.push({
       accion,
@@ -183,13 +200,13 @@ export const hojasRutaMock: ServicioHojasRuta = {
       estadoNuevo: r.transicion.hacia,
       sede: r.transicion.sede,
       usuario: u.nombre,
-      observacion: observacion?.trim() || null,
+      observacion: obs,
       fecha,
     });
     auditar(u.nombre, MODULO, r.transicion.etiqueta, h.nro, { estado: h.estado }, { estado: r.transicion.hacia });
     h.estado = r.transicion.hacia;
     h.sedeActual = r.transicion.sede;
-    if (h.estado === 'ENTREGADO') h.fechaCierre = fecha;
+    if (ESTADOS_FINALES.includes(h.estado)) h.fechaCierre = fecha;
     return detalle(h, u);
   },
 
@@ -228,7 +245,9 @@ export const hojasRutaMock: ServicioHojasRuta = {
         (!f.tipoTramite || h.tipo === f.tipoTramite),
     );
     const ahora = Date.now();
-    const entregadas = hojas.filter((h) => h.fechaCierre);
+    // Cerradas: entregadas o devueltas (DEC-053); el tiempo promedio es solo de las entregadas.
+    const cerradas = hojas.filter((h) => h.fechaCierre);
+    const entregadas = cerradas.filter((h) => h.estado === 'ENTREGADO');
     const etapas = new Map<string, number[]>();
     for (const h of hojas) {
       for (let i = 1; i < h.movimientos.length; i++) {
@@ -245,8 +264,9 @@ export const hojasRutaMock: ServicioHojasRuta = {
     });
     return copia({
       total: hojas.length,
-      enCurso: hojas.length - entregadas.length,
+      enCurso: hojas.length - cerradas.length,
       entregados: entregadas.length,
+      devueltos: cerradas.length - entregadas.length,
       tiempoPromedioDias: entregadas.length
         ? redondear(promedio(entregadas.map((h) => (Date.parse(h.fechaCierre!) - Date.parse(h.fechaIngreso)) / DIA)))
         : null,

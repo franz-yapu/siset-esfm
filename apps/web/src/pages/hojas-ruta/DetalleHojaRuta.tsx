@@ -18,13 +18,12 @@ import {
   Cargando,
   EstadoHojaRutaBadge,
   PageHeader,
-  Textarea,
   Timeline,
   type PasoTimeline,
 } from '@/components/ui';
 import { ModalEntrega } from '@/components/hojas/ModalEntrega';
 import { textoEntrega } from '@/lib/entrega';
-import { Confirmar } from '@/components/hojas/Confirmar';
+import { ConfirmarPaso } from '@/components/hojas/ConfirmarPaso';
 
 const pasosDe = (h: Detalle): PasoTimeline[] =>
   h.movimientos.map((m) => ({
@@ -135,7 +134,7 @@ export function DetalleHojaRuta() {
               </div>
               {h.fechaCierre && (
                 <div className="col-span-2">
-                  <dt className="text-xs text-slate-500">Entregado</dt>
+                  <dt className="text-xs text-slate-500">{h.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'}</dt>
                   <dd>{fecha(h.fechaCierre)}</dd>
                 </div>
               )}
@@ -180,25 +179,17 @@ export function DetalleHojaRuta() {
           onConfirmar={entregar}
         />
       )}
-      <Confirmar
-        abierto={modal !== null && modal.accion !== 'ENTREGAR'}
-        titulo={modal?.etiqueta ?? ''}
+      <ConfirmarPaso
+        paso={modal && modal.accion !== 'ENTREGAR' ? modal : null}
+        nro={h.nro}
+        titular={h.titular.nombre}
+        nroValorado={h.nroValorado}
+        obs={obs}
+        onObs={setObs}
         cargando={mover.isPending}
         onCerrar={() => setModal(null)}
         onConfirmar={() => modal && correr(modal, obs.trim() || null)}
-      >
-        <p>
-          ¿Confirmas <strong>{modal?.etiqueta.toLowerCase()}</strong> para el trámite {h.nro} de {h.titular.nombre}?
-          Quedará registrado en el historial y en la bitácora.
-        </p>
-        <Textarea
-          className="mt-3"
-          label="Observación (opcional)"
-          value={obs}
-          maxLength={255}
-          onChange={(e) => setObs(e.target.value)}
-        />
-      </Confirmar>
+      />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Bar, Line } from 'react-chartjs-2';
-import { AlertTriangle, CheckCircle2, Clock, Layers, Loader } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Layers, Loader, Undo2 } from 'lucide-react';
 import '@/lib/graficos';
 import { AZUL, AZUL_OSCURO } from '@/lib/graficos';
 import type { FiltrosReporte } from '@/types/hojas-ruta';
@@ -72,10 +72,11 @@ export function Reportes() {
         !error && <Cargando />
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-5">
+          <div className="mb-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <KpiCard titulo="Total de trámites" valor={k.total} icono={Layers} />
             <KpiCard titulo="En curso" valor={k.enCurso} icono={Loader} color="violeta" />
             <KpiCard titulo="Entregados" valor={k.entregados} icono={CheckCircle2} color="verde" />
+            <KpiCard titulo="Devueltos con observación" valor={k.devueltos} icono={Undo2} color="ambar" />
             <KpiCard
               titulo="Tiempo promedio a la entrega"
               valor={k.tiempoPromedioDias === null ? '—' : `${k.tiempoPromedioDias} d`}

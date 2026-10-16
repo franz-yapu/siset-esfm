@@ -26,6 +26,8 @@ const VALIDAS: Fila[] = [
   ['FIRMADO_COORDINADOR', 'REMITIR', S, 'KARDEX', 'ANCOCAGUA', 'REMITIDO_CALAHUMANA', false],
   ['REMITIDO_CALAHUMANA', 'RECIBIR_CALAHUMANA', S, 'SEC_DIR', 'LA_PAZ', 'LISTO', false],
   ['LISTO', 'ENTREGAR', VS, 'SEC_DIR', 'LA_PAZ', 'ENTREGADO', false],
+  // DEC-053 (D-48): el historial con observación no se imprime y se devuelve.
+  ['EN_IMPRESION', 'DEVOLVER', V, 'KARDEX', 'ANCOCAGUA', 'DEVUELTO', false],
 ];
 
 const ROLES = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
@@ -54,7 +56,7 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
                   expect(r).toMatchObject({ ok: true, transicion: { hacia: fila[5] } });
                 }
               }
-    expect(casos).toBe(9 * 9 * 2 * 6 * 3 * 2);
+    expect(casos).toBe(10 * 10 * 2 * 6 * 3 * 2);
   });
 
   it.each([
@@ -88,5 +90,21 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
     ).toEqual([
       { accion: 'AVISAR_KARDEX', etiqueta: 'Avisar a Kardex', deshabilitada: 'El file del titular está bloqueado.' },
     ]);
+  });
+
+  it('Kardex imprime o devuelve el historial; el certificado no se devuelve (DEC-053)', () => {
+    const kardex = { rol: 'KARDEX', sede: 'ANCOCAGUA' as const };
+    const conValorado = { estado: 'EN_IMPRESION' as const, flujo: 'CON_VALORADO' as const, fileBloqueado: true };
+    expect(accionesPosibles(conValorado, kardex)).toEqual([
+      { accion: 'IMPRIMIR', etiqueta: 'Marcar como impreso', deshabilitada: 'El file del titular está bloqueado.' },
+      { accion: 'DEVOLVER', etiqueta: 'Devolver con observación', deshabilitada: null },
+    ]);
+    expect(
+      accionesPosibles({ ...conValorado, flujo: 'SIN_VALORADO', fileBloqueado: false }, kardex).map((a) => a.accion),
+    ).toEqual(['IMPRIMIR']);
+    for (const accion of ACCIONES_HOJA_RUTA)
+      expect(
+        evaluarTransicion({ estado: 'DEVUELTO', flujo: 'CON_VALORADO', fileBloqueado: false }, kardex, accion),
+      ).toMatchObject({ ok: false, error: 'TRANSICION_INVALIDA' });
   });
 });

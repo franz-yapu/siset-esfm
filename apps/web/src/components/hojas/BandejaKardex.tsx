@@ -10,18 +10,8 @@ import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ErrorApi } from '@/lib/errores';
 import { diasDesde, diasTexto, fecha, fechaHora, hoy } from '@/lib/formato';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
-import {
-  Alerta,
-  Button,
-  Card,
-  Cargando,
-  DataTable,
-  EstadoHojaRutaBadge,
-  PageHeader,
-  Tabs,
-  Textarea,
-} from '@/components/ui';
-import { Confirmar } from './Confirmar';
+import { Alerta, Button, Card, Cargando, DataTable, EstadoHojaRutaBadge, PageHeader, Tabs } from '@/components/ui';
+import { ConfirmarPaso } from './ConfirmarPaso';
 import { ModalEntrega } from './ModalEntrega';
 import { textoEntrega } from '@/lib/entrega';
 import type { Entrega } from '@/types';
@@ -45,8 +35,8 @@ const PASOS_DE_PASE: Record<string, string> = {
 
 /**
  * Bandeja de Kardex contra la API (P-43, P-44): una pestaña por estado y, al elegir un trámite, el panel con el
- * file del titular y los pasos que Kardex puede registrar (los manda la API, DEC-033). Sin revisión aparte ni
- * estado Observado (D-34, propuesta): el file bloqueado impide avanzar.
+ * file del titular y los pasos que Kardex puede registrar (los manda la API, DEC-033). En el historial, Kardex
+ * contrasta las notas con los empastes y puede devolverlo con observación (DEC-053); el file bloqueado impide imprimir.
  */
 export function BandejaKardex({
   titulo,
@@ -287,25 +277,17 @@ function Panel({
           }}
         />
       )}
-      <Confirmar
-        abierto={paso !== null && paso.accion !== 'ENTREGAR'}
-        titulo={paso?.etiqueta ?? ''}
+      <ConfirmarPaso
+        paso={paso && paso.accion !== 'ENTREGAR' ? paso : null}
+        nro={fila.nro}
+        titular={fila.titular.nombre}
+        nroValorado={fila.nroValorado}
+        obs={obs}
+        onObs={setObs}
         cargando={mover.isPending}
         onCerrar={() => setPaso(null)}
         onConfirmar={() => void confirmar()}
-      >
-        <p>
-          ¿Confirmas <strong>{paso?.etiqueta.toLowerCase()}</strong> para el trámite {fila.nro} de {fila.titular.nombre}
-          ? Quedará registrado en el historial y en la bitácora.
-        </p>
-        <Textarea
-          className="mt-3"
-          label="Observación (opcional)"
-          value={obs}
-          maxLength={255}
-          onChange={(e) => setObs(e.target.value)}
-        />
-      </Confirmar>
+      />
     </Card>
   );
 }

@@ -56,6 +56,18 @@ export const TRANSICIONES: readonly Transicion[] = [
     impideBloqueo: true,
   },
   {
+    // DEC-053 (D-48): Kardex contrasta las notas del historial con los empastes; si hay observación, no imprime y
+    // devuelve. El trámite termina en SISET: el que sigue es otro trámite, fuera del sistema. No lo impide el bloqueo.
+    accion: 'DEVOLVER',
+    etiqueta: 'Devolver con observación',
+    desde: 'EN_IMPRESION',
+    hacia: 'DEVUELTO',
+    flujos: ['CON_VALORADO'],
+    rol: 'KARDEX',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: false,
+  },
+  {
     accion: 'FIRMA_DIR_ACADEMICA',
     etiqueta: 'Registrar firma de Dirección Académica',
     desde: 'IMPRESO',
@@ -124,6 +136,12 @@ export const INGESTA = { rol: 'SEC_DIR', sede: 'LA_PAZ', hacia: 'RECIBIDO' } as 
   hacia: EstadoHojaRuta;
 };
 
+/** Estados finales: el trámite ya no se mueve (ENTREGADO, o DEVUELTO por una observación de Kardex, DEC-053). */
+export const ESTADOS_FINALES: readonly EstadoHojaRuta[] = ['ENTREGADO', 'DEVUELTO'];
+
+/** Pasos que piden una observación escrita (DEC-053: por qué se devuelve). */
+export const PIDEN_OBSERVACION: readonly AccionHojaRuta[] = ['DEVOLVER'];
+
 export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
 
 /** Los pasos del flujo en orden, desde RECIBIDO hasta ENTREGADO (para la carátula, P-32). */
@@ -131,7 +149,8 @@ export const pasosDelFlujo = (flujo: Flujo): Transicion[] => {
   const pasos: Transicion[] = [];
   let estado: EstadoHojaRuta = INGESTA.hacia;
   for (;;) {
-    const t = TRANSICIONES.find((x) => x.desde === estado && x.flujos.includes(flujo));
+    // El camino normal: la devolución (DEC-053) no es un paso del flujo.
+    const t = TRANSICIONES.find((x) => x.desde === estado && x.flujos.includes(flujo) && x.hacia !== 'DEVUELTO');
     if (!t) return pasos;
     pasos.push(t);
     estado = t.hacia;

@@ -35,6 +35,7 @@ import {
   accionesPosibles,
   evaluarTransicion,
   flujoDe,
+  PIDEN_OBSERVACION,
   INGESTA,
   type AccionHojaRuta,
   type CodigoSede,
@@ -182,7 +183,9 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
       const { hojas, movimientos } = await datosReporte(bd, { AND: where });
       const ahora = Date.now();
 
-      const entregadas = hojas.filter((h) => h.fechaCierre);
+      // Cerradas: entregadas o devueltas (DEC-053); el tiempo promedio es solo de las entregadas.
+      const cerradas = hojas.filter((h) => h.fechaCierre);
+      const entregadas = cerradas.filter((h) => h.estadoActual === 'ENTREGADO');
       const porHoja = new Map<number, typeof movimientos>();
       for (const m of movimientos) porHoja.set(m.hojaRutaId, [...(porHoja.get(m.hojaRutaId) ?? []), m]);
 
@@ -221,8 +224,9 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
 
       return {
         total: hojas.length,
-        enCurso: hojas.length - entregadas.length,
+        enCurso: hojas.length - cerradas.length,
         entregados: entregadas.length,
+        devueltos: cerradas.length - entregadas.length,
         tiempoPromedioDias: entregadas.length
           ? redondear(promedio(entregadas.map((h) => (h.fechaCierre!.getTime() - h.fechaIngreso.getTime()) / DIA)))
           : null,
@@ -374,6 +378,16 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
           accion,
         );
         if (!r.ok) throw CODIGO_ERROR[r.error](r.mensaje);
+        if (PIDEN_OBSERVACION.includes(accion) && !observacion)
+          throw new ErrorValidacion([
+            { ruta: 'body.observacion', mensaje: 'Escriba la observación por la que se devuelve' },
+          ]);
+        // DEC-053: el historial queda anotado con el valorado en que se imprimió.
+        if (accion === 'IMPRIMIR' && h.nroValorado)
+          observacion = [`Impreso en el valorado N.º ${h.nroValorado}.`, observacion]
+            .filter(Boolean)
+            .join(' ')
+            .slice(0, 255);
         await insertarMovimiento(tx, {
           hojaRutaId: h.id,
           accion,

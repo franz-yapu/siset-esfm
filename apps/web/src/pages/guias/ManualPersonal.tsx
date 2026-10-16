@@ -136,6 +136,12 @@ export function ManualPersonal() {
             <strong>Impresión:</strong> pestaña <em>Por imprimir</em>; imprima como siempre y marque{' '}
             <em>Marcar como impreso</em>. La pestaña <em>Impresos</em> muestra los que esperan firma.
           </li>
+          <li>
+            <strong>Historial y legalización:</strong> antes de imprimir, contraste las notas del sistema con los
+            empastes. Si están bien, <em>Marcar como impreso</em> deja anotado el N.º de valorado en que se imprimió. Si
+            algo no coincide, no imprima: pulse <em>Devolver con observación</em> y escriba qué no coincide. El trámite
+            termina en SISET; el egresado debe hacer otro trámite.
+          </li>
           <li>Use el buscador de cada bandeja para encontrar un trámite por N.º, nombre o CI.</li>
         </ol>
         <Subtitulo>Administración</Subtitulo>

@@ -105,3 +105,24 @@ test('SEC_DIR entrega a un familiar desde "Firma y entrega" (D-36, D-42)', async
   await expect(page.getByText('HR-2026-000005: Entregado')).toBeVisible();
   expect(problemas).toEqual([]);
 });
+
+test('Kardex devuelve un historial con observación desde Impresión (DEC-053)', async ({ page }) => {
+  const problemas = vigilarConsola(page);
+  await iniciarSesion(page, 'kardex');
+  await page.getByRole('link', { name: 'Impresión' }).first().click();
+  await expect(page.getByRole('tab', { name: /Por imprimir/ })).toHaveAttribute('aria-selected', 'true');
+  await page
+    .getByRole('row', { name: /Historial académico/ })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Devolver con observación' }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Devolver con observación' });
+  await expect(dialogo.getByText('No se imprime')).toBeVisible();
+  await expect(dialogo.getByRole('button', { name: 'Devolver' })).toBeDisabled();
+  await dialogo.getByLabel(/Observación \(obligatoria\)/).fill('La nota de 2.º año no coincide con el empaste');
+  await dialogo.getByRole('button', { name: 'Devolver' }).click();
+  await expect(page.getByText(/: Devuelto con observación$/)).toBeVisible();
+  await page.getByRole('tab', { name: /Devueltos/ }).click();
+  await expect(page.getByRole('row', { name: /Historial académico/ })).toHaveCount(1);
+  expect(problemas).toEqual([]);
+});

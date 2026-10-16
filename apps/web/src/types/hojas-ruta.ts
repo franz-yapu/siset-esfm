@@ -11,6 +11,7 @@ export const ESTADOS_HOJA_RUTA = [
   'REMITIDO_CALAHUMANA',
   'LISTO',
   'ENTREGADO',
+  'DEVUELTO',
 ] as const;
 export type EstadoHojaRuta = (typeof ESTADOS_HOJA_RUTA)[number];
 
@@ -23,7 +24,8 @@ export type AccionHojaRuta =
   | 'FIRMA_COORDINADOR'
   | 'REMITIR'
   | 'RECIBIR_CALAHUMANA'
-  | 'ENTREGAR';
+  | 'ENTREGAR'
+  | 'DEVOLVER';
 
 export interface TipoTramiteCatalogo {
   codigo: string;
@@ -115,6 +117,8 @@ export interface ReporteHojasRuta {
   total: number;
   enCurso: number;
   entregados: number;
+  /** Devueltos por una observación de Kardex (DEC-053). */
+  devueltos: number;
   tiempoPromedioDias: number | null;
   porEstado: { estado: EstadoHojaRuta; total: number }[];
   porTipo: { codigo: string; nombre: string; total: number }[];

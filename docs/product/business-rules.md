@@ -24,12 +24,18 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 | Remitir a Calahumana                                  | KARDEX      | ANCOCAGUA | sin valorado |
 | Recibir en Calahumana → Listo                         | SEC_DIR     | LA_PAZ    | sin valorado |
 | Entregar                                              | SEC_DIR     | LA_PAZ    | los dos      |
+| Devolver con observación → Devuelto (D-48, ADR-0008)  | KARDEX      | ANCOCAGUA | con valorado |
 
 - Paso que el estado o el flujo no admiten → **409** `TRANSICION_INVALIDA`; otro rol u otra sede → **403**.
 - Un file **bloqueado** (DEC-029) impide los pasos hasta imprimir → **422** `FILE_BLOQUEADO`.
 - Cada paso inserta un `movimiento_hoja_ruta` (solo inserción) y un evento `CAMBIAR_ESTADO` en la misma transacción;
   un trigger copia el estado y la sede a la hoja. Se usa `SELECT … FOR UPDATE`.
-- No hay dictamen (D-11) ni, por ahora, estado Observado (D-34) ni bandeja de pases (D-35).
+- No hay dictamen (D-11).
+- **Devolución (DEC-053, ADR-0008):** en "En impresión", Kardex contrasta las notas del historial con los empastes.
+  - Si están bien, imprime: el paso guarda "Impreso en el valorado N.º …".
+  - Si no, **devuelve con una observación obligatoria** (sin ella, 400). `DEVUELTO` es final: pone la fecha de cierre
+    y no admite más pasos. El trámite que sigue queda fuera de SISET.
+  - Un file bloqueado no impide devolver.
 
 ## Correlativo
 

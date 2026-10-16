@@ -12,6 +12,7 @@ export const ESTADOS_HOJA_RUTA = [
   'REMITIDO_CALAHUMANA',
   'LISTO',
   'ENTREGADO',
+  'DEVUELTO',
 ] as const;
 export type EstadoHojaRuta = (typeof ESTADOS_HOJA_RUTA)[number];
 
@@ -25,6 +26,7 @@ export const ACCIONES_HOJA_RUTA = [
   'REMITIR',
   'RECIBIR_CALAHUMANA',
   'ENTREGAR',
+  'DEVOLVER',
 ] as const;
 export type AccionHojaRuta = (typeof ACCIONES_HOJA_RUTA)[number];
 
@@ -79,6 +81,18 @@ export const TRANSICIONES: readonly Transicion[] = [
     rol: 'KARDEX',
     sede: 'ANCOCAGUA',
     impideBloqueo: true,
+  },
+  {
+    // DEC-053 (D-48): Kardex contrasta las notas del historial con los empastes; si hay observación, no imprime y
+    // devuelve. El trámite termina en SISET: el que sigue es otro trámite, fuera del sistema. No lo impide el bloqueo.
+    accion: 'DEVOLVER',
+    etiqueta: 'Devolver con observación',
+    desde: 'EN_IMPRESION',
+    hacia: 'DEVUELTO',
+    flujos: ['CON_VALORADO'],
+    rol: 'KARDEX',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: false,
   },
   {
     accion: 'FIRMA_DIR_ACADEMICA',
@@ -148,6 +162,12 @@ export const INGESTA = { rol: 'SEC_DIR', sede: 'LA_PAZ', hacia: 'RECIBIDO' } as 
   sede: CodigoSede;
   hacia: EstadoHojaRuta;
 };
+
+/** Estados finales: el trámite ya no se mueve (ENTREGADO, o DEVUELTO por una observación de Kardex, DEC-053). */
+export const ESTADOS_FINALES: readonly EstadoHojaRuta[] = ['ENTREGADO', 'DEVUELTO'];
+
+/** Pasos que piden una observación escrita (DEC-053: por qué se devuelve). */
+export const PIDEN_OBSERVACION: readonly AccionHojaRuta[] = ['DEVOLVER'];
 
 export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
 

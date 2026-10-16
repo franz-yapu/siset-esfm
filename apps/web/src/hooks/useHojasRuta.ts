@@ -102,8 +102,10 @@ export const useResumenCoordinador = () =>
         ),
       ]);
       const entregados = porEstado.find((e) => e.estado === 'ENTREGADO')!.total;
+      // Los devueltos (DEC-053) tampoco están en curso.
+      const devueltos = porEstado.find((e) => e.estado === 'DEVUELTO')!.total;
       const total = porEstado.reduce((s, e) => s + e.total, 0);
-      return { firmar, enCurso: total - entregados, entregados, porEstado };
+      return { firmar, enCurso: total - entregados - devueltos, entregados, porEstado };
     },
   });
 

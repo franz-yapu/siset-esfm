@@ -59,6 +59,32 @@ describe('hojasRutaMock (SDD S3.8-S3.9 §2.1)', () => {
     ).toBe('PROHIBIDO');
   });
 
+  it('el historial impreso anota el valorado; con observación se devuelve y se cierra (DEC-053)', async () => {
+    const nuevo = () =>
+      hojasRutaMock.crear(
+        { fileId: egresado().id, tipoTramite: 'HISTORIAL_ACADEMICO', nroValorado: '004522', observacion: null },
+        secDir(),
+      );
+    const enImpresion = async () => {
+      const h = await nuevo();
+      await hojasRutaMock.transicion(h.nro, 'AVISAR_KARDEX', null, secDir());
+      return hojasRutaMock.transicion(h.nro, 'RECOGER', null, kardex());
+    };
+    const a = await enImpresion();
+    expect(a.acciones.map((x) => x.accion)).toEqual(['IMPRIMIR', 'DEVOLVER']);
+    const impreso = await hojasRutaMock.transicion(a.nro, 'IMPRIMIR', null, kardex());
+    expect(impreso.movimientos.at(-1)?.observacion).toBe('Impreso en el valorado N.º 004522.');
+
+    const b = await enImpresion();
+    expect(await codigo(hojasRutaMock.transicion(b.nro, 'DEVOLVER', '  ', kardex()))).toBe('VALIDACION');
+    const devuelto = await hojasRutaMock.transicion(b.nro, 'DEVOLVER', 'Nota de 2.º año distinta', kardex());
+    expect(devuelto.estado).toBe('DEVUELTO');
+    expect(devuelto.fechaCierre).not.toBeNull();
+    expect(devuelto.acciones).toEqual([]);
+    const r = await hojasRutaMock.reporte({});
+    expect(r.devueltos).toBe(1);
+  });
+
   it('un paso de otro rol es 403 y uno fuera de estado es 409', async () => {
     const [h] = (await hojasRutaMock.listar({ estado: 'RECIBIDO' })).datos;
     expect(await codigo(hojasRutaMock.transicion(h.nro, 'AVISAR_KARDEX', null, kardex()))).toBe('PROHIBIDO');

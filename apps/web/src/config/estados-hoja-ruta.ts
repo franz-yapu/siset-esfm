@@ -1,6 +1,6 @@
 import type { EstadoHojaRuta } from '@/types/hojas-ruta';
 
-/** Etiqueta y colores de los 9 estados de ADR-0005 (SDD S3.8-S3.9 §2.3). */
+/** Etiqueta y colores de los 10 estados de ADR-0005 y ADR-0008 (SDD S3.8-S3.9 §2.3). */
 export const ESTADOS_HR: Record<EstadoHojaRuta, { etiqueta: string; badge: string; punto: string }> = {
   RECIBIDO: { etiqueta: 'Recibido', badge: 'bg-blue-50 text-blue-700 ring-blue-300', punto: 'bg-blue-600' },
   AVISADO_KARDEX: {
@@ -27,6 +27,7 @@ export const ESTADOS_HR: Record<EstadoHojaRuta, { etiqueta: string; badge: strin
   },
   LISTO: { etiqueta: 'Listo para entregar', badge: 'bg-teal-50 text-teal-700 ring-teal-300', punto: 'bg-teal-600' },
   ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-green-50 text-green-700 ring-green-300', punto: 'bg-green-600' },
+  DEVUELTO: { etiqueta: 'Devuelto con observación', badge: 'bg-red-50 text-red-700 ring-red-300', punto: 'bg-red-600' },
 };
 
 export const NOMBRE_SEDE: Record<string, string> = {

@@ -46,11 +46,11 @@ const token = async (rol: Rol, sedeId = personal[rol].sedeId) =>
     )
   ).token;
 
-const paso = async (rol: Rol, nro: string, accion: string, sedeId?: number) =>
+const paso = async (rol: Rol, nro: string, accion: string, sedeId?: number, observacion?: string) =>
   request(app)
     .post(`/api/v1/hojas-ruta/${nro}/transiciones`)
     .set('Authorization', `Bearer ${await token(rol, sedeId)}`)
-    .send({ accion });
+    .send({ accion, ...(observacion === undefined ? {} : { observacion }) });
 
 /** Una hoja de ruta RECIBIDA (la ingesta llega con S3.4: aquí se inserta directo, con su movimiento). */
 async function nuevaHoja(
@@ -152,6 +152,38 @@ describe('máquina de estados de la hoja de ruta contra la base (SDD S3.1-S3.3, 
       expect((await paso(rol, nro, accion)).status, accion).toBe(200);
     }
     expect((await bd.hojaRuta.findUniqueOrThrow({ where: { nroTramite: nro } })).estadoActual).toBe('ENTREGADO');
+  });
+
+  it('el historial impreso anota el valorado; con observación se devuelve y se cierra (DEC-053)', async () => {
+    const impreso = await nuevaHoja('HISTORIAL_ACADEMICO');
+    await paso('SEC_DIR', impreso.nro, 'AVISAR_KARDEX');
+    await paso('KARDEX', impreso.nro, 'RECOGER');
+    expect((await paso('KARDEX', impreso.nro, 'IMPRIMIR', undefined, 'Notas conformes')).status).toBe(200);
+    const ultimo = await bd.movimientoHojaRuta.findFirstOrThrow({
+      where: { hojaRuta: { nroTramite: impreso.nro } },
+      orderBy: { id: 'desc' },
+    });
+    expect(ultimo.observacion).toMatch(/^Impreso en el valorado N\.º V-\d+\. Notas conformes$/);
+
+    // Se devuelve aunque el file se haya bloqueado mientras esperaba la impresión.
+    const { nro, fileId } = await nuevaHoja('HISTORIAL_ACADEMICO');
+    await paso('SEC_DIR', nro, 'AVISAR_KARDEX');
+    await paso('KARDEX', nro, 'RECOGER');
+    await bd.fileAcademico.update({ where: { id: fileId }, data: { bloqueado: true, motivoBloqueo: 'Licencia' } });
+    const sin = await paso('KARDEX', nro, 'DEVOLVER');
+    expect(sin.status).toBe(400);
+    expect(sin.body.error.code).toBe('VALIDACION');
+    const r = await paso('KARDEX', nro, 'DEVOLVER', undefined, 'La nota de 2.º año no coincide con el empaste');
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    expect(r.body.estado).toBe('DEVUELTO');
+    expect(r.body.acciones).toEqual([]);
+    const h = await bd.hojaRuta.findUniqueOrThrow({ where: { nroTramite: nro } });
+    expect(h.fechaCierre).not.toBeNull();
+    expect((await paso('KARDEX', nro, 'IMPRIMIR')).status).toBe(409);
+    const cert = await nuevaHoja('CERT_NOTAS_ANTERIOR');
+    await paso('SEC_DIR', cert.nro, 'AVISAR_KARDEX');
+    await paso('KARDEX', cert.nro, 'RECOGER');
+    expect((await paso('KARDEX', cert.nro, 'DEVOLVER', undefined, 'x')).status).toBe(409);
   });
 
   it('paso de otro flujo o de otro estado: 409 y nada cambia', async () => {

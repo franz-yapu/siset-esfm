@@ -11,6 +11,7 @@ enum EstadoHojaRuta {
   REMITIDO_CALAHUMANA
   LISTO
   ENTREGADO
+  DEVUELTO
 
   @@map("estado_hoja_ruta")
 }
@@ -28,7 +29,7 @@ model HojaRuta {
   /// Obligatorio en la ingesta si el tipo requiere valorado (S3.4).
   nroValorado   String?              @map("nro_valorado") @db.VarChar(30)
   fechaIngreso  DateTime             @default(now()) @map("fecha_ingreso") @db.Timestamptz(6)
-  /// Al entregar (trigger).
+  /// Al entregar o devolver (trigger, DEC-053).
   fechaCierre   DateTime?            @map("fecha_cierre") @db.Timestamptz(6)
   createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)

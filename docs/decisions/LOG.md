@@ -863,3 +863,21 @@ SDD previo) · **Estado:** activa, implementada el 2026-10-16
 9. **D-32** (SEC_COORD recibe en Ancocagua los certificados sin valorado) cambia la máquina de estados: espera D-32b
    (quién avisa y dónde se entrega) antes de su ADR.
 10. Repreguntas en la hoja (filas 60–63): D-45b, D-47b, D-32b y D-41c.
+
+## DEC-053 — El historial se contrasta con los empastes: se imprime en el valorado o se devuelve
+
+**Fecha:** 2026-10-16 · **Fuente:** respuesta de la escuela por WhatsApp (D-48), modo demo, sin SDD previo ·
+**Estado:** activa, implementada el 2026-10-16
+
+1. **D-48:** el historial académico **ya existe**: lo genera el sistema del Ministerio. SISET no lo llena ni lo
+   genera (refuerza D-39).
+2. Antes de imprimir, Kardex **contrasta las notas del sistema con los empastes**:
+   - **Sin observación:** imprime. "Marcar como impreso" muestra el N.º de valorado y el paso queda con
+     "Impreso en el valorado N.º …" más la observación opcional.
+   - **Con observación:** "Devolver con observación". La observación es obligatoria, no se imprime y el trámite queda
+     en el estado final **Devuelto con observación**. El trámite que sigue ya no es del alcance de SISET.
+3. Esto afina D-34 ("Kardex no revisa nada") solo para los trámites con valorado. Cambia la máquina de estados:
+   ADR-0008, con la tabla de pruebas completa.
+4. Reportes: los devueltos no están en curso ni atrasados y se cuentan aparte ("Devueltos con observación").
+5. Se aplica al historial y a su legalización (el flujo con valorado). Se pregunta en D-48b si la legalización
+   también se contrasta (hoja, fila 65).

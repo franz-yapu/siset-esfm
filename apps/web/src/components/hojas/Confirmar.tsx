@@ -10,6 +10,8 @@ interface Props {
   cargando?: boolean;
   textoConfirmar?: string;
   peligro?: boolean;
+  /** Falta un dato obligatorio: el botón de confirmar no se puede pulsar. */
+  deshabilitado?: boolean;
 }
 
 /** Modal de confirmación genérico ("Cancelar" / "Confirmar"). */
@@ -22,6 +24,7 @@ export function Confirmar({
   cargando,
   textoConfirmar = 'Confirmar',
   peligro,
+  deshabilitado,
 }: Props) {
   return (
     <Modal
@@ -34,7 +37,13 @@ export function Confirmar({
           <Button variant="secondary" onClick={onCerrar}>
             Cancelar
           </Button>
-          <Button variant={peligro ? 'danger' : 'primary'} loading={cargando} onClick={onConfirmar} data-autofocus>
+          <Button
+            variant={peligro ? 'danger' : 'primary'}
+            loading={cargando}
+            disabled={deshabilitado}
+            onClick={onConfirmar}
+            data-autofocus
+          >
             {textoConfirmar}
           </Button>
         </>

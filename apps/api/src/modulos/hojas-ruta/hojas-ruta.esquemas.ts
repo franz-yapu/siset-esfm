@@ -164,6 +164,8 @@ export const esquemaReporteHojasRuta = z
     total: z.number().int(),
     enCurso: z.number().int(),
     entregados: z.number().int(),
+    /** Devueltos por una observación de Kardex (DEC-053). */
+    devueltos: z.number().int(),
     /** Días promedio de ingreso a entrega; null si no hay entregados. */
     tiempoPromedioDias: z.number().nullable(),
     porEstado: z.array(z.object({ estado, total: z.number().int() })),
