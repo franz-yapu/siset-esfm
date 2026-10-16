@@ -1,6 +1,14 @@
 import type { Usuario } from '@/types';
 import type { Pagina } from '@/types/pagina';
-import type { CambiosFile, DatosCrearFile, Especialidad, FileDetalle, FiltrosFiles } from '@/types/files';
+import type {
+  Bloqueo,
+  CambiosFile,
+  DatosBloqueo,
+  DatosCrearFile,
+  Especialidad,
+  FileDetalle,
+  FiltrosFiles,
+} from '@/types/files';
 import { usaApi } from './_modo';
 import { filesApi } from './files.api';
 import { filesMock } from './files.mock';
@@ -17,10 +25,14 @@ export interface ServicioFiles {
   mio(actor: Usuario): Promise<FileDetalle>;
   crear(d: DatosCrearFile, actor: Usuario): Promise<FileDetalle>;
   editar(id: number, c: CambiosFile, actor: Usuario): Promise<FileDetalle>;
-  /** Por el permiso obligatorio de una gestión (D-07b, SDD S2.6). */
-  bloquear(id: number, motivo: string, actor: Usuario): Promise<FileDetalle>;
-  /** Con el número de la resolución, que queda en la bitácora. */
-  desbloquear(id: number, resolucion: string, actor: Usuario): Promise<FileDetalle>;
+  /** Por licencia temporal, con la resolución y su PDF (D-29, DEC-049). La glosa queda como motivo del file. */
+  bloquear(id: number, d: DatosBloqueo, actor: Usuario): Promise<FileDetalle>;
+  /** Sin datos (DEC-049 #4): quién y cuándo los pone la API. */
+  desbloquear(id: number, actor: Usuario): Promise<FileDetalle>;
+  /** El bloqueo abierto, o `null` si no hay (o es de antes de DEC-049, sin resolución). */
+  bloqueo(id: number): Promise<Bloqueo | null>;
+  /** El PDF de la resolución del bloqueo abierto. */
+  pdfBloqueo(id: number): Promise<Blob>;
   especialidades(): Promise<Especialidad[]>;
 }
 

@@ -18,14 +18,14 @@ export function crearModuloFiles({
   obtenerRequisitosActivos,
   describirUsuarios,
   ...deps
-}: Omit<DependenciasFiles, 'obtenerRequisitosActivos'> &
+}: Omit<DependenciasFiles, 'obtenerRequisitosActivos' | 'describirUsuarios'> &
   Omit<DependenciasRequisitos, 'bd'> & {
     autenticar: RequestHandler;
     autorizar: AutorizarFiles;
     autorizarRequisitos: AutorizarRequisitos;
   }): ModuloHttp {
   const requisitos = crearServicioRequisitos({ bd: deps.bd, obtenerRequisitosActivos, describirUsuarios });
-  const files = crearServicioFiles({ ...deps, obtenerRequisitosActivos });
+  const files = crearServicioFiles({ ...deps, obtenerRequisitosActivos, describirUsuarios });
   return {
     router: Router()
       .use(crearRutasFiles(crearControladorFiles(files), autenticar, autorizar))

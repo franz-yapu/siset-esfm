@@ -73,6 +73,19 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     cuerpo: {},
     permitidos: SOLO_KARDEX,
   })),
+  // El bloqueo abierto y el PDF de su resolución (DEC-049): los lee el personal, como el file.
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/{id}/bloqueo',
+    ruta: `/files/${ID_INEXISTENTE}/bloqueo`,
+    permitidos: PERSONAL,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/{id}/bloqueo/pdf',
+    ruta: `/files/${ID_INEXISTENTE}/bloqueo/pdf`,
+    permitidos: PERSONAL,
+  },
   // Requisitos (SDD S2.4, DEC-015): leen SEC_COORD, COORDINADOR y KARDEX; SEC_DIR no; registra KARDEX.
   {
     metodo: 'get',

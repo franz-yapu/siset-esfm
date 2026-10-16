@@ -86,15 +86,43 @@ describe('filesApi (SDD S2.9-S2.10 §2.1)', () => {
     expect(p[0]).toMatchObject({ method: 'get', url: '/catalogos/especialidades' });
   });
 
-  it('bloquear y desbloquear van a sus rutas con su cuerpo (S2.6)', async () => {
+  it('bloquear manda el formulario con el PDF; desbloquear, un cuerpo vacío (DEC-049)', async () => {
+    const pdf = new File(['%PDF-1.7'], 'RA-045.pdf', { type: 'application/pdf' });
     let p = capturar(200, { ...detalle, bloqueado: true });
-    await filesApi.bloquear(12, 'Permiso obligatorio', actor);
+    await filesApi.bloquear(
+      12,
+      {
+        causa: 'LICENCIA_OBLIGATORIA',
+        nroResolucion: 'RA-045/2026',
+        fechaResolucion: '2026-10-10',
+        glosa: 'Glosa',
+        pdf,
+      },
+      actor,
+    );
     expect(p[0]).toMatchObject({ method: 'post', url: '/files/12/bloqueo' });
-    expect(JSON.parse(p[0].data as string)).toEqual({ motivo: 'Permiso obligatorio' });
+    const f = p[0].data as FormData;
+    expect(f).toBeInstanceOf(FormData);
+    expect(Object.fromEntries([...f.entries()].filter(([k]) => k !== 'pdf'))).toEqual({
+      causa: 'LICENCIA_OBLIGATORIA',
+      nroResolucion: 'RA-045/2026',
+      fechaResolucion: '2026-10-10',
+      glosa: 'Glosa',
+    });
+    expect((f.get('pdf') as File).name).toBe('RA-045.pdf');
     p = capturar(200, detalle);
-    await filesApi.desbloquear(12, 'RA-045/2026', actor);
+    await filesApi.desbloquear(12, actor);
     expect(p[0]).toMatchObject({ method: 'post', url: '/files/12/desbloqueo' });
-    expect(JSON.parse(p[0].data as string)).toEqual({ resolucion: 'RA-045/2026' });
+    expect(JSON.parse(p[0].data as string)).toEqual({});
+  });
+
+  it('el bloqueo y su PDF van a sus rutas', async () => {
+    let p = capturar(200, null);
+    expect(await filesApi.bloqueo(12)).toBeNull();
+    expect(p[0]).toMatchObject({ method: 'get', url: '/files/12/bloqueo' });
+    p = capturar(200, new Blob(['%PDF-']));
+    await filesApi.pdfBloqueo(12);
+    expect(p[0]).toMatchObject({ method: 'get', url: '/files/12/bloqueo/pdf', responseType: 'blob' });
   });
 
   it('los errores de la API llegan como ErrorApi con su código', async () => {

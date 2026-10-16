@@ -13,7 +13,15 @@ import {
   type CambiosFile,
   type FileBd,
 } from './file.repositorio';
-import type { CambiosFileApi, DatosCrearFile, FileDetalle, FiltrosFiles } from './files.esquemas';
+import { buscarBloqueoAbierto, buscarPdfBloqueoAbierto, cerrarBloqueo, crearBloqueo } from './bloqueo.repositorio';
+import type {
+  Bloqueo,
+  CambiosFileApi,
+  DatosBloqueo,
+  DatosCrearFile,
+  FileDetalle,
+  FiltrosFiles,
+} from './files.esquemas';
 import { listarEstadosDeFiles } from './requisito.repositorio';
 import { semaforoDelFile, type ColorSemaforo, type EstadoParaSemaforo } from './semaforo';
 
@@ -63,7 +71,25 @@ export interface DependenciasFiles {
   especialidades: EspecialidadesParaFiles;
   /** La persona del usuario de la sesión: seguridad, armado por la raíz (ADR-0001). */
   personaDeUsuario(usuarioId: number): Promise<number | null>;
+  /** Nombre de quien bloqueó (seguridad + personas, por la raíz). */
+  describirUsuarios(ids: number[]): Promise<Map<number, { usuario: string; nombre: string }>>;
 }
+
+/** El PDF de la resolución tal como llegó (ya revisado por `recibirPdfResolucion`). */
+export interface PdfResolucion {
+  contenido: Buffer;
+  nombre: string;
+}
+
+/** El nombre del archivo, sin rutas ni caracteres de control, para la cabecera de la descarga. */
+const nombrePdf = (nombre: string) => {
+  const limpio = [...nombre.replace(/^.*[\\/]/, '')]
+    .filter((c) => c >= ' ' && c !== '"')
+    .join('')
+    .trim()
+    .slice(0, 120);
+  return limpio || 'resolucion.pdf';
+};
 
 const CAMPOS_PERSONALES = [
   'nombres',
@@ -122,6 +148,7 @@ export function crearServicioFiles({
   especialidades,
   obtenerRequisitosActivos,
   personaDeUsuario,
+  describirUsuarios,
 }: DependenciasFiles) {
   /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2). */
   async function semaforos(
@@ -248,40 +275,93 @@ export function crearServicioFiles({
       });
     },
 
-    /** D-07b, SDD S2.6 §2.1: Kardex bloquea por el permiso obligatorio de una gestión. */
-    async bloquear(id: number, motivo: string): Promise<FileDetalle> {
+    /**
+     * D-29, DEC-049: Kardex bloquea por licencia temporal (obligatoria o voluntaria) con la resolución y su PDF.
+     * La glosa queda también como motivo del file (la ven Secretaría y el estudiante); el PDF, solo en
+     * `bloqueo_file`. La bitácora guarda los datos y el tamaño del PDF, no su contenido.
+     */
+    async bloquear(id: number, datos: DatosBloqueo, pdf: PdfResolucion): Promise<FileDetalle> {
       return bd.$transaction(async (tx) => {
         const { f } = await cargar(tx, id);
         if (f.bloqueado) throw new ErrorNegocio('El file ya está bloqueado.', 'ESTADO_SIN_CAMBIO');
-        await cambiarBloqueo(tx, id, motivo);
+        const pdfNombre = nombrePdf(pdf.nombre);
+        await crearBloqueo(tx, {
+          fileId: id,
+          causa: datos.causa,
+          nroResolucion: datos.nroResolucion,
+          fechaResolucion: aFecha(datos.fechaResolucion)!,
+          glosa: datos.glosa,
+          pdf: new Uint8Array(pdf.contenido),
+          pdfNombre,
+          bloqueadoPor: obtenerContexto()?.usuarioId ?? null,
+        });
+        await cambiarBloqueo(tx, id, datos.glosa);
         await registrarEvento(tx, {
           accion: 'BLOQUEAR',
           modulo: 'FILES',
           entidad: 'file_academico',
           entidadId: id,
           antes: { bloqueado: false },
-          despues: { bloqueado: true, motivo },
+          despues: {
+            bloqueado: true,
+            motivo: datos.glosa,
+            causa: datos.causa,
+            resolucion: datos.nroResolucion,
+            fechaResolucion: datos.fechaResolucion,
+            pdf: { nombre: pdfNombre, bytes: pdf.contenido.length },
+          },
         });
         return (await cargar(tx, id)).d;
       });
     },
 
-    /** La resolución que define la situación del estudiante queda en la bitácora, no en el file (§2.1). */
-    async desbloquear(id: number, resolucion: string): Promise<FileDetalle> {
+    /** DEC-049 #4: el desbloqueo no pide datos; quién y cuándo quedan en `bloqueo_file` y en la bitácora. */
+    async desbloquear(id: number): Promise<FileDetalle> {
       return bd.$transaction(async (tx) => {
         const { f } = await cargar(tx, id);
         if (!f.bloqueado) throw new ErrorNegocio('El file no está bloqueado.', 'ESTADO_SIN_CAMBIO');
+        const abierto = await buscarBloqueoAbierto(tx, id);
+        await cerrarBloqueo(tx, id, obtenerContexto()?.usuarioId ?? null);
         await cambiarBloqueo(tx, id, null);
         await registrarEvento(tx, {
           accion: 'DESBLOQUEAR',
           modulo: 'FILES',
           entidad: 'file_academico',
           entidadId: id,
-          antes: { bloqueado: true, motivo: f.motivoBloqueo },
-          despues: { bloqueado: false, resolucion },
+          antes: { bloqueado: true, motivo: f.motivoBloqueo, resolucion: abierto?.nroResolucion ?? null },
+          despues: { bloqueado: false },
         });
         return (await cargar(tx, id)).d;
       });
+    },
+
+    /**
+     * El bloqueo abierto, sin el PDF. `null` si el file no está bloqueado o se bloqueó antes de DEC-049 (sin
+     * resolución registrada).
+     */
+    async bloqueo(id: number): Promise<Bloqueo | null> {
+      await cargar(bd, id);
+      const b = await buscarBloqueoAbierto(bd, id);
+      if (!b) return null;
+      const quien =
+        b.bloqueadoPor === null ? undefined : (await describirUsuarios([b.bloqueadoPor])).get(b.bloqueadoPor);
+      return {
+        causa: b.causa,
+        nroResolucion: b.nroResolucion,
+        fechaResolucion: deFecha(b.fechaResolucion)!,
+        glosa: b.glosa,
+        pdfNombre: b.pdfNombre,
+        bloqueadoEn: b.bloqueadoEn.toISOString(),
+        bloqueadoPor: b.bloqueadoPor === null ? null : { id: b.bloqueadoPor, nombre: quien?.nombre ?? '' },
+      };
+    },
+
+    /** El PDF de la resolución del bloqueo abierto. */
+    async pdfBloqueo(id: number): Promise<PdfResolucion> {
+      await cargar(bd, id);
+      const b = await buscarPdfBloqueoAbierto(bd, id);
+      if (!b) throw new ErrorNoEncontrado('El file no tiene una resolución de bloqueo registrada.');
+      return { contenido: Buffer.from(b.pdf), nombre: b.pdfNombre };
     },
 
     async editar(id: number, cambios: CambiosFileApi): Promise<FileDetalle> {

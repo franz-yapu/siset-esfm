@@ -760,15 +760,24 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 
 ## DEC-049 — Bloqueo del file: resolución al bloquear, con PDF, por licencia temporal
 
-**Fecha:** 2026-10-16 · **Fuente:** respuesta D-29 (hoja) · **Estado:** activa; el código sigue con DEC-029 hasta su ticket
+**Fecha:** 2026-10-16 · **Fuente:** respuesta D-29 (hoja) (modo demo, sin SDD previo) · **Estado:** activa, implementada el 2026-10-16
 
 1. **Los datos se anotan al bloquear**, no al desbloquear: número de la resolución, fecha de la resolución, una
    glosa con el motivo y el **PDF de la resolución**. Cambia DEC-029 #1 y #3 (motivo al bloquear y resolución al
    desbloquear, en texto libre).
 2. **Solo hay dos causas de bloqueo:** licencia temporal **obligatoria** y licencia temporal **voluntaria**. En
    ambas se espera que el estudiante se reincorpore. La causa pasa de texto libre a una de esas dos.
-3. **Pendiente (después de la presentación):** campos de la resolución en el bloqueo (migración), subida y descarga
-   del PDF (hoy no hay ninguna carga de archivos en la API) y pantalla del bloqueo. Es la única excepción a D-22
-   (no se suben escaneos). Hasta entonces sigue DEC-029. Hay que corregir RF-07 del PRD y
-   `business-rules.md` en el mismo ticket.
-4. La respuesta no dice qué se anota al desbloquear; se registra quién lo hizo y cuándo (bitácora), como hoy.
+3. Es la única excepción a D-22 (no se suben escaneos). Se corrigieron RF-07 del PRD, `business-rules.md` y
+   `modelo-datos.md`.
+4. La respuesta no dice qué se anota al desbloquear: el desbloqueo no pide datos; quedan quién y cuándo.
+5. **Implementación.** Tabla `bloqueo_file` (dueño: files), una fila por bloqueo con la resolución y el PDF en
+   `bytea` (entra en los respaldos de la base; nada en el disco del contenedor). Índice único parcial: un bloqueo
+   abierto por file. `file_academico.motivo_bloqueo` guarda la glosa (lo leen hojas de ruta y "mi file").
+   - `POST /files/:id/bloqueo` recibe `multipart/form-data` (`causa`, `nroResolucion`, `fechaResolucion`, `glosa`
+     y el archivo `pdf`) con `multer` en memoria, 5 MB como máximo; el archivo debe empezar con `%PDF-`.
+   - `POST /files/:id/desbloqueo` con cuerpo vacío o `{}`. `GET /files/:id/bloqueo` (sin el PDF) y
+     `GET /files/:id/bloqueo/pdf`: los lee el personal, como el file.
+   - La bitácora guarda causa, resolución, fecha, glosa, nombre y tamaño del PDF, nunca su contenido.
+   - Los files bloqueados antes de esta DEC no tienen resolución: se desbloquean igual.
+   - En la web, el detalle del file muestra la resolución y el botón "Ver PDF de la resolución" (lo descarga con
+     el token y lo abre en otra pestaña).

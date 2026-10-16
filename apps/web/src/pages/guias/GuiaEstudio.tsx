@@ -263,7 +263,9 @@ export function GuiaEstudio() {
         <ul>
           <li>
             Servicio de files: <Archivo>apps/api/src/modulos/files/files.servicio.ts</Archivo> (alta, edición, búsqueda,
-            bloqueo y desbloqueo con resolución).
+            bloqueo con resolución y PDF, desbloqueo). El PDF llega por{' '}
+            <Archivo>apps/api/src/modulos/files/pdf-resolucion.ts</Archivo> (multer en memoria, 5 MB, empieza con{' '}
+            <Codigo>%PDF-</Codigo>) y se guarda en la tabla <Codigo>bloqueo_file</Codigo>.
           </li>
           <li>
             Requisitos: <Archivo>apps/api/src/modulos/files/requisitos.servicio.ts</Archivo>; el catálogo está en la

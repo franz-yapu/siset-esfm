@@ -7,12 +7,13 @@ beforeAll(() => sembrar(bd, KARDEX_DE_PRUEBA));
 afterAll(() => bd.$disconnect());
 
 describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
-  it('crea exactamente las 15 tablas: S0.11, S1.1 (parametro, refresh_token), S2.1 (file y requisitos) y S3.1-S3.2 (hojas de ruta)', async () => {
+  it('crea exactamente las 16 tablas: S0.11, S1.1 (parametro, refresh_token), S2.1 (file y requisitos), S3.1-S3.2 (hojas de ruta) y DEC-049 (bloqueo_file)', async () => {
     const filas = await bd.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'
       ORDER BY table_name`;
     expect(filas.map((f) => f.table_name)).toEqual([
+      'bloqueo_file',
       'especialidad',
       'file_academico',
       'hoja_ruta',
@@ -45,7 +46,7 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(17);
+    expect(fks.length).toBe(20);
     // CASCADE: los tokens se van con su usuario. SET NULL: la cadena de rotación entre tokens (S1.15).
     const excepciones: Record<string, { del: string; upd: string }> = {
       refresh_token_usuario_id_fkey: { del: 'c', upd: 'r' },

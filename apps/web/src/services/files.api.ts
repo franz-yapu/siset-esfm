@@ -1,5 +1,13 @@
 import type { Pagina } from '@/types/pagina';
-import type { CambiosFile, DatosCrearFile, Especialidad, FileDetalle, FiltrosFiles } from '@/types/files';
+import type {
+  Bloqueo,
+  CambiosFile,
+  DatosBloqueo,
+  DatosCrearFile,
+  Especialidad,
+  FileDetalle,
+  FiltrosFiles,
+} from '@/types/files';
 import { api } from '@/lib/api';
 import type { ServicioFiles } from './files.service';
 
@@ -33,12 +41,28 @@ export const filesApi: ServicioFiles = {
     return (await api.patch<FileDetalle>(`/files/${id}`, c)).data;
   },
 
-  async bloquear(id: number, motivo: string): Promise<FileDetalle> {
-    return (await api.post<FileDetalle>(`/files/${id}/bloqueo`, { motivo })).data;
+  /** `multipart/form-data`: Axios pone el límite del formulario al ver el `FormData`. */
+  async bloquear(id: number, d: DatosBloqueo): Promise<FileDetalle> {
+    const formulario = new FormData();
+    formulario.append('causa', d.causa);
+    formulario.append('nroResolucion', d.nroResolucion);
+    formulario.append('fechaResolucion', d.fechaResolucion);
+    formulario.append('glosa', d.glosa);
+    formulario.append('pdf', d.pdf, d.pdf.name);
+    // Un PDF de 5 MB por una conexión lenta tarda más que los 15 s de siempre.
+    return (await api.post<FileDetalle>(`/files/${id}/bloqueo`, formulario, { timeout: 120_000 })).data;
   },
 
-  async desbloquear(id: number, resolucion: string): Promise<FileDetalle> {
-    return (await api.post<FileDetalle>(`/files/${id}/desbloqueo`, { resolucion })).data;
+  async desbloquear(id: number): Promise<FileDetalle> {
+    return (await api.post<FileDetalle>(`/files/${id}/desbloqueo`, {})).data;
+  },
+
+  async bloqueo(id: number): Promise<Bloqueo | null> {
+    return (await api.get<Bloqueo | null>(`/files/${id}/bloqueo`)).data;
+  },
+
+  async pdfBloqueo(id: number): Promise<Blob> {
+    return (await api.get<Blob>(`/files/${id}/bloqueo/pdf`, { responseType: 'blob', timeout: 120_000 })).data;
   },
 
   async especialidades(): Promise<Especialidad[]> {

@@ -61,3 +61,27 @@ export interface FiltrosFiles {
   pagina?: number;
   porPagina?: number;
 }
+
+/** Las dos causas de bloqueo (D-29, DEC-049). */
+export type CausaBloqueo = 'LICENCIA_OBLIGATORIA' | 'LICENCIA_VOLUNTARIA';
+
+/** El formulario del bloqueo: la resolución y su PDF (DEC-049). */
+export interface DatosBloqueo {
+  causa: CausaBloqueo;
+  nroResolucion: string;
+  /** AAAA-MM-DD */
+  fechaResolucion: string;
+  glosa: string;
+  pdf: File;
+}
+
+/** El bloqueo abierto del file, sin el PDF (`GET /files/:id/bloqueo`). */
+export interface Bloqueo {
+  causa: CausaBloqueo;
+  nroResolucion: string;
+  fechaResolucion: string;
+  glosa: string;
+  pdfNombre: string;
+  bloqueadoEn: string;
+  bloqueadoPor: { id: number; nombre: string } | null;
+}

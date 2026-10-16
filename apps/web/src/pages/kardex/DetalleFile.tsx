@@ -15,7 +15,7 @@ import { Alerta, Card, Cargando, DataTable, EstadoHojaRutaBadge, Tabs } from '@/
 import { CabeceraFile } from '@/components/file/CabeceraFile';
 import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
 import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
-import { BloqueoFile } from '@/components/file/BloqueoFile';
+import { BloqueoFile, ResolucionBloqueo } from '@/components/file/BloqueoFile';
 import { RequisitosFile } from '@/components/file/RequisitosFile';
 
 type Tab = 'datos' | 'requisitos' | 'tramites-api' | 'historial-api' | TabDemo;
@@ -129,6 +129,7 @@ export function DetalleFile() {
   return (
     <>
       <CabeceraFile file={f} acciones={editable && <BloqueoFile file={f} />} />
+      <ResolucionBloqueo file={f} sinMotivo className="mb-4" />
       {!demo && (
         <Alerta tipo="info" className="mb-4">
           Las matrículas se habilitan en una próxima versión, cuando la escuela confirme si se registran (D-30).

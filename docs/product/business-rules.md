@@ -53,11 +53,13 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 - TCLO pasa a "Completo" solo con el nivel exigido (D-04, por definir).
 - Notas: Kardex **no registra notas**; las cargan los docentes en un sistema del Ministerio (D-07). Reprobar no
   obliga a repetir TACFI ni TCLO (D-07b).
-- **Bloqueo (D-07b, DEC-029):** Kardex bloquea el file, con un motivo, cuando el estudiante recibe el **permiso
-  obligatorio por una gestión** (por reprobación o porque no existe su especialidad para reincorporarse). Un file
+- **Bloqueo (D-29, DEC-049; antes DEC-029):** Kardex bloquea el file solo por **licencia temporal obligatoria**
+  (el permiso obligatorio por una gestión, D-07b) o **licencia temporal voluntaria**: en ambas se espera que el
+  estudiante se reincorpore. **Al bloquear** se anotan el número y la fecha de la resolución (no futura), una
+  glosa con el motivo (queda como motivo del file) y el **PDF de la resolución** (hasta 5 MB). Un file
   **BLOQUEADO** no puede ingresar trámite, dictaminar ni emitir.
-- El desbloqueo exige el **número de la resolución** que define la situación del estudiante y queda en la
-  bitácora, con quién y cuándo. No hay bloqueo automático por UF reprobadas.
+- El desbloqueo no pide datos: quedan quién y cuándo, en el bloqueo y en la bitácora. Cada bloqueo queda en el
+  historial del file (`bloqueo_file`). No hay bloqueo automático por UF reprobadas.
 
 ## Firma del Coordinador y emisión (RF-12, RF-13, D-11, DEC-040)
 

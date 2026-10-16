@@ -25,6 +25,14 @@ enum NivelTclo {
   @@map("nivel_tclo")
 }
 
+/// Las dos causas de bloqueo que nombró la escuela (D-29, DEC-049): en ambas se espera la reincorporación.
+enum CausaBloqueo {
+  LICENCIA_OBLIGATORIA
+  LICENCIA_VOLUNTARIA
+
+  @@map("causa_bloqueo")
+}
+
 /// Expediente del estudiante o egresado que custodia Kardex.
 model FileAcademico {
   id               Int                 @id @default(autoincrement())
@@ -42,6 +50,7 @@ model FileAcademico {
   persona          Persona             @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   especialidad     Especialidad        @relation(fields: [especialidadId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   requisitos       RequisitoFile[]
+  bloqueos         BloqueoFile[]
   /// back-relation (ADR-0001: no usar desde otro módulo)
   hojasRuta        HojaRuta[]
 
@@ -68,4 +77,28 @@ model RequisitoFile {
   @@unique([fileId, requisitoTipoId])
   @@index([requisitoTipoId])
   @@map("requisito_file")
+}
+
+/// Cada bloqueo del file con la resolución que lo respalda (D-29, DEC-049). El abierto es el que no tiene
+/// desbloqueo; el índice parcial `uq_bloqueo_abierto` permite uno solo por file.
+model BloqueoFile {
+  id                Int           @id @default(autoincrement())
+  fileId            Int           @map("file_id")
+  causa             CausaBloqueo
+  nroResolucion     String        @map("nro_resolucion") @db.VarChar(100)
+  fechaResolucion   DateTime      @map("fecha_resolucion") @db.Date
+  glosa             String        @db.VarChar(255)
+  /// El PDF de la resolución (hasta 5 MB, CHECK `ck_bloqueo_pdf`): queda en la base y entra en sus respaldos.
+  pdf               Bytes
+  pdfNombre         String        @map("pdf_nombre") @db.VarChar(120)
+  bloqueadoPor      Int?          @map("bloqueado_por")
+  bloqueadoEn       DateTime      @default(now()) @map("bloqueado_en") @db.Timestamptz(6)
+  desbloqueadoPor   Int?          @map("desbloqueado_por")
+  desbloqueadoEn    DateTime?     @map("desbloqueado_en") @db.Timestamptz(6)
+  file              FileAcademico @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  usuarioBloqueo    Usuario?      @relation("BloqueoPor", fields: [bloqueadoPor], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  usuarioDesbloqueo Usuario?      @relation("DesbloqueoPor", fields: [desbloqueadoPor], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([fileId])
+  @@map("bloqueo_file")
 }

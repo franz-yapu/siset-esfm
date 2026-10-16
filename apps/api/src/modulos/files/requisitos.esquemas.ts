@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import { esquemaIdFile } from './files.esquemas';
+import { esquemaIdFile, hoyEnLaPaz } from './files.esquemas';
 
 // Requisitos del file (SDD S2.4 §2.1, D-04, D-04b).
 
 export const ESTADOS_REQUISITO = ['PENDIENTE', 'COMPLETO', 'OBSERVADO'] as const;
-
-/** Hoy en La Paz (UTC−4, sin horario de verano), AAAA-MM-DD. */
-const hoyEnLaPaz = () => new Date(Date.now() - 4 * 60 * 60_000).toISOString().slice(0, 10);
 
 const textoOpcional = (max: number) =>
   z

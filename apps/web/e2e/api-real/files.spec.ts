@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { llenarBloqueo } from '../utilidades';
 import { entrarComo, irA } from './utilidades';
 
 /**
@@ -48,7 +49,9 @@ test.describe.serial('E11 · files', () => {
     await expect(page.getByLabel('Celular')).toBeDisabled();
   });
 
-  test('E12 · Kardex bloquea y desbloquea el file; el historial muestra los dos eventos (S2.6)', async ({ page }) => {
+  test('E12 · Kardex bloquea con resolución y PDF, lo ve y desbloquea; el historial muestra los dos eventos (DEC-049)', async ({
+    page,
+  }) => {
     await entrarComo(page, 'KARDEX');
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
@@ -57,13 +60,19 @@ test.describe.serial('E11 · files', () => {
 
     await page.getByRole('button', { name: 'Bloquear', exact: true }).click();
     const modal = page.getByRole('dialog', { name: 'Bloquear file' });
-    await modal.getByLabel('Motivo').fill('Permiso obligatorio por reprobación, prueba E2E');
+    await llenarBloqueo(modal, { glosa: 'Licencia temporal obligatoria por reprobación, prueba E2E' });
     await modal.getByRole('button', { name: 'Bloquear', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Desbloquear', exact: true })).toBeVisible();
+    await expect(page.getByText('RA-E2E/2026, del 01/10/2026')).toBeVisible();
+
+    // El PDF se descarga con el token y abre en otra pestaña.
+    const pestana = page.context().waitForEvent('page');
+    await page.getByRole('button', { name: 'Ver PDF de la resolución' }).click();
+    await expect.poll(async () => (await pestana).url()).toMatch(/^blob:/);
+    await (await pestana).close();
 
     await page.getByRole('button', { name: 'Desbloquear', exact: true }).click();
     const otro = page.getByRole('dialog', { name: 'Desbloquear file' });
-    await otro.getByLabel('Número de resolución').fill('RA-E2E/2026');
     await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Bloquear', exact: true })).toBeVisible();
 

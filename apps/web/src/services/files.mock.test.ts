@@ -117,17 +117,40 @@ describe('filesMock: contrato de la API de S2.2 (SDD S2.9-S2.10 §2.1)', () => {
     expect((await filesMock.especialidades())[1]).toEqual({ id: 2, nombre: 'Matemática' });
   });
 
-  it('bloquear y desbloquear: mismo contrato y errores que la API (S2.6)', async () => {
+  it('bloquear y desbloquear: mismo contrato y errores que la API (DEC-049)', async () => {
     const libre = db.files.find((f) => !f.bloqueado)!;
-    expect(await codigoDe(filesMock.bloquear(libre.id, 'x', kardex()))).toBe('VALIDACION');
-    expect(await codigoDe(filesMock.desbloquear(libre.id, 'RA-1', kardex()))).toBe('ESTADO_SIN_CAMBIO');
-    const b = await filesMock.bloquear(libre.id, ' Permiso obligatorio por reprobación ', kardex());
-    expect(b).toMatchObject({ bloqueado: true, motivoBloqueo: 'Permiso obligatorio por reprobación' });
-    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Bloquear file' });
-    expect(await codigoDe(filesMock.bloquear(libre.id, 'Otra vez el motivo', kardex()))).toBe('ESTADO_SIN_CAMBIO');
-    expect(await codigoDe(filesMock.desbloquear(libre.id, ' ', kardex()))).toBe('VALIDACION');
-    const d = await filesMock.desbloquear(libre.id, 'RA-045/2026', kardex());
+    const pdf = new File(['%PDF-1.7'], 'RA-045.pdf', { type: 'application/pdf' });
+    const datos = {
+      causa: 'LICENCIA_VOLUNTARIA',
+      nroResolucion: ' RA-045/2026 ',
+      fechaResolucion: '2026-10-10',
+      glosa: ' Licencia temporal voluntaria ',
+      pdf,
+    } as const;
+    expect(await codigoDe(filesMock.bloquear(libre.id, { ...datos, glosa: 'x' }, kardex()))).toBe('VALIDACION');
+    expect(await codigoDe(filesMock.bloquear(libre.id, { ...datos, fechaResolucion: '2100-01-01' }, kardex()))).toBe(
+      'VALIDACION',
+    );
+    expect(
+      await codigoDe(filesMock.bloquear(libre.id, { ...datos, pdf: new File(['hola'], 'nota.txt') }, kardex())),
+    ).toBe('VALIDACION');
+    expect(await codigoDe(filesMock.desbloquear(libre.id, kardex()))).toBe('ESTADO_SIN_CAMBIO');
+    expect(await filesMock.bloqueo(libre.id)).toBeNull();
+
+    const b = await filesMock.bloquear(libre.id, datos, kardex());
+    expect(b).toMatchObject({ bloqueado: true, motivoBloqueo: 'Licencia temporal voluntaria' });
+    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Bloquear file', despues: { resolucion: 'RA-045/2026' } });
+    expect(await filesMock.bloqueo(libre.id)).toMatchObject({
+      causa: 'LICENCIA_VOLUNTARIA',
+      nroResolucion: 'RA-045/2026',
+      pdfNombre: 'RA-045.pdf',
+    });
+    expect(await filesMock.pdfBloqueo(libre.id)).toBe(pdf);
+    expect(await codigoDe(filesMock.bloquear(libre.id, datos, kardex()))).toBe('ESTADO_SIN_CAMBIO');
+
+    const d = await filesMock.desbloquear(libre.id, kardex());
     expect(d).toMatchObject({ bloqueado: false, motivoBloqueo: null });
-    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Desbloquear file', despues: { resolucion: 'RA-045/2026' } });
+    expect(db.bitacora.at(-1)).toMatchObject({ accion: 'Desbloquear file', antes: { resolucion: 'RA-045/2026' } });
+    expect(await codigoDe(filesMock.pdfBloqueo(libre.id))).toBe('NO_ENCONTRADO');
   });
 });

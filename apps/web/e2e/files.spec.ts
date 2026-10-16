@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { iniciarSesion, vigilarConsola } from './utilidades';
+import { iniciarSesion, vigilarConsola, llenarBloqueo } from './utilidades';
 
 // P-40, P-41 y P-42 en la demo (SDD S2.9-S2.10 §4). El mock vive en memoria: se navega con el menú y los
 // enlaces, sin recargar, para no perder lo creado.
@@ -69,7 +69,7 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await expect(page.getByLabel('Condición')).toHaveValue('EGRESADO');
   });
 
-  test('Kardex bloquea por permiso obligatorio y desbloquea con la resolución (S2.6)', async ({ page }) => {
+  test('Kardex bloquea con la resolución y su PDF y desbloquea (DEC-049)', async ({ page }) => {
     const problemas = vigilarConsola(page);
     await irAFiles(page);
     await buscar(page, '7012345');
@@ -77,16 +77,21 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
 
     await page.getByRole('button', { name: 'Bloquear', exact: true }).click();
     const modal = page.getByRole('dialog', { name: 'Bloquear file' });
-    await modal.getByRole('button', { name: /por reprobación/ }).click();
+    await modal.getByRole('button', { name: 'Bloquear', exact: true }).click();
+    await expect(modal.getByText('Adjunte el PDF de la resolución')).toBeVisible();
+    await llenarBloqueo(modal, {
+      glosa: 'Licencia temporal obligatoria por reprobación',
+      nroResolucion: 'RA-045/2026',
+    });
     await modal.getByRole('button', { name: 'Bloquear', exact: true }).click();
     await expect(page.getByText('File bloqueado').first()).toBeVisible();
-    await expect(page.getByText(/Permiso obligatorio por una gestión, por reprobación/).first()).toBeVisible();
+    await expect(page.getByText(/Licencia temporal obligatoria por reprobación/).first()).toBeVisible();
+    await expect(page.getByText(/RA-045\/2026/).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ver PDF de la resolución' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Desbloquear', exact: true }).click();
     const otro = page.getByRole('dialog', { name: 'Desbloquear file' });
-    await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
-    await expect(otro.getByText('Escriba el número de la resolución')).toBeVisible();
-    await otro.getByLabel('Número de resolución').fill('RA-045/2026');
+    await expect(otro.getByText(/RA-045\/2026/)).toBeVisible();
     await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Bloquear', exact: true })).toBeVisible();
     expect(problemas).toEqual([]);

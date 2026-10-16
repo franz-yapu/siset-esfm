@@ -19,6 +19,14 @@ export const useFiles = (filtros: FiltrosFiles) =>
 export const useFile = (id: number) =>
   useQuery({ queryKey: [...claveFiles, 'uno', id], queryFn: () => filesService.obtener(id), enabled: id > 0 });
 
+/** El bloqueo abierto con su resolución (DEC-049); solo se pide si el file está bloqueado. */
+export const useBloqueo = (id: number, bloqueado: boolean) =>
+  useQuery({
+    queryKey: [...claveFiles, 'bloqueo', id],
+    queryFn: () => filesService.bloqueo(id),
+    enabled: id > 0 && bloqueado,
+  });
+
 /** "Mi file" del estudiante (S2.7). */
 export const useMiFile = (actor: Usuario) =>
   useQuery({ queryKey: [...claveFiles, 'mio', actor.id], queryFn: () => filesService.mio(actor), retry: false });

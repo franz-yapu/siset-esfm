@@ -110,8 +110,10 @@ export function ManualPersonal() {
             tarjeta: estado (completo, pendiente u observado), fecha, N.º de documento y observación.
           </li>
           <li>
-            <strong>Bloquear:</strong> botón rojo <em>Bloquear</em> en la cabecera del file, con el motivo (por ejemplo,
-            permiso obligatorio por una gestión). <strong>Desbloquear</strong> pide el número de la resolución.
+            <strong>Bloquear:</strong> botón rojo <em>Bloquear</em> en la cabecera del file, solo por licencia temporal
+            (obligatoria o voluntaria). Pide el número y la fecha de la resolución, una glosa con el motivo y el PDF de
+            la resolución (hasta 5 MB). <strong>Desbloquear</strong> solo pide confirmar; la resolución queda en el
+            historial.
           </li>
           <li>
             El color del file (semáforo): <strong>verde</strong> todo completo, <strong>amarillo</strong> le falta algo,{' '}
@@ -257,7 +259,10 @@ export function ManualPersonal() {
           </p>
         </Pregunta>
         <Pregunta p="El botón del paso aparece gris.">
-          <p>El file del titular está bloqueado. Kardex debe desbloquearlo con el número de la resolución.</p>
+          <p>
+            El file del titular está bloqueado por una licencia temporal. Kardex debe desbloquearlo cuando se
+            reincorpore.
+          </p>
         </Pregunta>
         <Pregunta p="Me salió “Su sesión terminó”.">
           <p>

@@ -100,29 +100,44 @@ export const esquemaFiltrosFiles = z.object({
   ...esquemaPaginacion,
 });
 
-/** Bloqueo por el permiso obligatorio de una gestión (D-07b, SDD S2.6 §2.1). Texto libre: la escuela no cerró la lista. */
+/** Las dos causas de bloqueo que nombró la escuela (D-29, DEC-049). */
+export const CAUSAS_BLOQUEO = ['LICENCIA_OBLIGATORIA', 'LICENCIA_VOLUNTARIA'] as const;
+
+/** La fecha de hoy en Bolivia (UTC−4, sin horario de verano), como AAAA-MM-DD. */
+export const hoyEnLaPaz = () => new Date(Date.now() - 4 * 60 * 60_000).toISOString().slice(0, 10);
+
+/**
+ * Bloqueo con la resolución que lo respalda (D-29, DEC-049). Llega como `multipart/form-data`: estos son los
+ * campos de texto; el PDF va en el campo `pdf` y lo revisa `recibirPdfResolucion`.
+ */
 export const esquemaBloquearFile = z
   .strictObject({
-    motivo: z
-      .string()
-      .trim()
-      .min(5, 'Escriba el motivo del bloqueo')
-      .max(255)
-      .meta({ example: 'Permiso obligatorio por reprobación, gestión 2026' }),
-  })
-  .meta({ id: 'BloquearFile' });
-
-/** El desbloqueo exige la resolución que define la situación del estudiante (D-07b, D-29). */
-export const esquemaDesbloquearFile = z
-  .strictObject({
-    resolucion: z
-      .string()
+    causa: z.enum(CAUSAS_BLOQUEO, 'Elija la causa del bloqueo'),
+    nroResolucion: z
+      .string('Escriba el número de la resolución')
       .trim()
       .min(1, 'Escriba el número de la resolución')
       .max(100)
       .meta({ example: 'RA-045/2026' }),
+    fechaResolucion: z.iso
+      .date('Fecha con formato AAAA-MM-DD')
+      .refine((f) => f <= hoyEnLaPaz(), 'La fecha de la resolución no puede ser futura'),
+    glosa: z
+      .string('Escriba la glosa con el motivo')
+      .trim()
+      .min(5, 'Escriba la glosa con el motivo')
+      .max(255)
+      .meta({ example: 'Licencia temporal obligatoria por reprobación, gestión 2026' }),
   })
-  .meta({ id: 'DesbloquearFile' });
+  .meta({ id: 'BloquearFile' });
+
+/** Formulario del bloqueo en OpenAPI: los campos de texto más el PDF. */
+export const esquemaFormularioBloqueo = esquemaBloquearFile
+  .extend({ pdf: z.string().meta({ format: 'binary', description: 'PDF de la resolución, hasta 5 MB.' }) })
+  .meta({ id: 'FormularioBloqueo' });
+
+/** El desbloqueo no pide datos (DEC-049 #4): quién y cuándo los pone la API. Cuerpo vacío o `{}`. */
+export const esquemaDesbloquearFile = z.strictObject({}).optional().meta({ id: 'DesbloquearFile' });
 
 export const esquemaIdFile = z.object({ id: z.coerce.number().int().min(1).max(2_147_483_647) });
 
@@ -136,6 +151,8 @@ export const esquemasCrearFile = { body: esquemaCrearFile };
 export const esquemasEditarFile = { params: esquemaIdFile, body: esquemaEditarFile };
 export const esquemasBloquearFile = { params: esquemaIdFile, body: esquemaBloquearFile };
 export const esquemasDesbloquearFile = { params: esquemaIdFile, body: esquemaDesbloquearFile };
+
+export type DatosBloqueo = z.output<typeof esquemaBloquearFile>;
 
 export const esquemaFileDetalle = z
   .object({
@@ -163,3 +180,17 @@ export const esquemaFileDetalle = z
 
 export type FileDetalle = z.infer<typeof esquemaFileDetalle>;
 export const esquemaPaginaFiles = esquemaPagina(esquemaFileDetalle).meta({ id: 'PaginaFiles' });
+
+export const esquemaBloqueo = z
+  .object({
+    causa: z.enum(CAUSAS_BLOQUEO),
+    nroResolucion: z.string(),
+    fechaResolucion: z.iso.date(),
+    glosa: z.string(),
+    pdfNombre: z.string().meta({ example: 'RA-045-2026.pdf' }),
+    bloqueadoEn: z.iso.datetime(),
+    bloqueadoPor: z.object({ id: z.number().int(), nombre: z.string() }).nullable(),
+  })
+  .meta({ id: 'Bloqueo', description: 'El bloqueo abierto del file, sin el PDF.' });
+
+export type Bloqueo = z.infer<typeof esquemaBloqueo>;

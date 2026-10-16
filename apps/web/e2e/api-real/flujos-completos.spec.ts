@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { llenarBloqueo } from '../utilidades';
 import { API_E2E, credenciales, entrarComo, irA, tokenDe } from './utilidades';
 
 /**
@@ -222,11 +223,14 @@ test.describe.serial('file bloqueado: no se registra el trámite hasta el desblo
     await elegirEgresado(page, ci);
   };
 
-  test('Kardex bloquea el file con un motivo', async ({ page }) => {
+  test('Kardex bloquea el file con la resolución', async ({ page }) => {
     await entrarComo(page, 'KARDEX');
     await irA(page, `/files/${fileId.bloqueo}`);
     await page.getByRole('button', { name: 'Bloquear' }).click();
-    await page.getByLabel('Motivo').fill('Permiso obligatorio por una gestión (E2E)');
+    await llenarBloqueo(page.getByRole('dialog'), {
+      glosa: 'Permiso obligatorio por una gestión (E2E)',
+      nroResolucion: `RES-E2E-${sufijo}`,
+    });
     await page.getByRole('dialog').getByRole('button', { name: 'Bloquear' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Desbloquear' })).toBeVisible();
@@ -239,11 +243,11 @@ test.describe.serial('file bloqueado: no se registra el trámite hasta el desblo
     await expect(page.getByRole('button', { name: 'Solo registrar' })).toBeDisabled();
   });
 
-  test('Kardex lo desbloquea con la resolución', async ({ page }) => {
+  test('Kardex lo desbloquea (la resolución ya está registrada)', async ({ page }) => {
     await entrarComo(page, 'KARDEX');
     await irA(page, `/files/${fileId.bloqueo}`);
     await page.getByRole('button', { name: 'Desbloquear' }).click();
-    await page.getByLabel('Número de resolución').fill(`RES-E2E-${sufijo}`);
+    await expect(page.getByRole('dialog').getByText(`RES-E2E-${sufijo}`)).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Desbloquear' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Bloquear' })).toBeVisible();

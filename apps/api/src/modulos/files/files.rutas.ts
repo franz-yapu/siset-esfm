@@ -3,10 +3,11 @@ import type { z } from 'zod';
 import type { ZodOpenApiResponseObject } from 'zod-openapi';
 import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import type { crearControladorFiles } from './files.controlador';
+import { recibirPdfResolucion } from './pdf-resolucion';
 import {
-  esquemaBloquearFile,
+  esquemaBloqueo,
+  esquemaFormularioBloqueo,
   esquemaCrearFile,
-  esquemaDesbloquearFile,
   esquemaEditarFile,
   esquemaFileDetalle,
   esquemaFiltrosFiles,
@@ -41,7 +42,16 @@ export const crearRutasFiles = (
     .get('/files/:id', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.obtener)
     .post('/files', autenticar, autorizar.crear, validar(esquemasCrearFile), controlador.crear)
     .patch('/files/:id', autenticar, autorizar.editar, validar(esquemasEditarFile), controlador.editar)
-    .post('/files/:id/bloqueo', autenticar, autorizar.editar, validar(esquemasBloquearFile), controlador.bloquear)
+    .get('/files/:id/bloqueo', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.bloqueo)
+    .get('/files/:id/bloqueo/pdf', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.pdfBloqueo)
+    .post(
+      '/files/:id/bloqueo',
+      autenticar,
+      autorizar.editar,
+      recibirPdfResolucion,
+      validar(esquemasBloquearFile),
+      controlador.bloquear,
+    )
     .post(
       '/files/:id/desbloqueo',
       autenticar,
@@ -135,19 +145,49 @@ export const openapiFiles: ZodOpenApiPathsObject = {
     },
   },
   '/api/v1/files/{id}/bloqueo': {
+    get: {
+      tags: ['Files'],
+      summary: 'Ver el bloqueo abierto del file',
+      description:
+        'La causa, la resolución y quién bloqueó, sin el PDF. `null` si el file no está bloqueado o se bloqueó antes de DEC-049.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      responses: {
+        '200': json('El bloqueo abierto o null.', esquemaBloqueo.nullable()),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
+      },
+    },
     post: {
       tags: ['Files'],
       summary: 'Bloquear un file (solo Kardex)',
-      description: 'Por el permiso obligatorio de una gestión (D-07b). El motivo queda en el file y en la bitácora.',
+      description:
+        'Por licencia temporal obligatoria o voluntaria (D-29, DEC-049), con el número, la fecha y la glosa de la resolución y su PDF (hasta 5 MB). La glosa queda como motivo del file.',
       security: [{ bearerAuth: [] }],
       requestParams: { path: esquemaIdFile },
-      requestBody: { content: { 'application/json': { schema: esquemaBloquearFile } } },
+      requestBody: { content: { 'multipart/form-data': { schema: esquemaFormularioBloqueo } } },
       responses: {
         '200': json('File bloqueado.', esquemaFileDetalle),
-        '400': error('Sin motivo (VALIDACION).'),
+        '400': error('Faltan datos, la fecha es futura o el PDF falta, pesa más de 5 MB o no es un PDF (VALIDACION).'),
         ...comunes,
         '404': error('El file no existe (NO_ENCONTRADO).'),
         '422': error('Ya estaba bloqueado (ESTADO_SIN_CAMBIO).'),
+      },
+    },
+  },
+  '/api/v1/files/{id}/bloqueo/pdf': {
+    get: {
+      tags: ['Files'],
+      summary: 'Descargar el PDF de la resolución del bloqueo abierto',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      responses: {
+        '200': {
+          description: 'El PDF.',
+          content: { 'application/pdf': { schema: { type: 'string', format: 'binary' } } },
+        },
+        ...comunes,
+        '404': error('El file no existe o no tiene resolución registrada (NO_ENCONTRADO).'),
       },
     },
   },
@@ -156,13 +196,12 @@ export const openapiFiles: ZodOpenApiPathsObject = {
       tags: ['Files'],
       summary: 'Desbloquear un file (solo Kardex)',
       description:
-        'Con el número de la resolución que define la situación del estudiante (D-07b); queda en la bitácora.',
+        'Sin datos (DEC-049 #4): quién desbloquea y cuándo quedan en el bloqueo y en la bitácora. Cuerpo vacío o `{}`.',
       security: [{ bearerAuth: [] }],
       requestParams: { path: esquemaIdFile },
-      requestBody: { content: { 'application/json': { schema: esquemaDesbloquearFile } } },
       responses: {
         '200': json('File desbloqueado.', esquemaFileDetalle),
-        '400': error('Sin resolución (VALIDACION).'),
+        '400': error('Campos desconocidos en el cuerpo (VALIDACION).'),
         ...comunes,
         '404': error('El file no existe (NO_ENCONTRADO).'),
         '422': error('No estaba bloqueado (ESTADO_SIN_CAMBIO).'),

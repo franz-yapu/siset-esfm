@@ -37,6 +37,9 @@ model Usuario {
   refreshTokens         RefreshToken[]
   /// back-relation (ADR-0001: no usar desde otro módulo)
   requisitosRegistrados RequisitoFile[]
+  /// back-relations (ADR-0001: no usar desde otro módulo)
+  bloqueosHechos        BloqueoFile[]        @relation("BloqueoPor")
+  desbloqueosHechos     BloqueoFile[]        @relation("DesbloqueoPor")
   /// back-relation (ADR-0001: no usar desde otro módulo)
   movimientosHojaRuta   MovimientoHojaRuta[]
 

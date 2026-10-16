@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Contraseña de prueba del prototipo, leída de los mocks (no es un secreto). */
 export const CLAVE_DEMO = readFileSync(new URL('../src/mocks/usuarios.ts', import.meta.url), 'utf8').match(
@@ -31,4 +31,20 @@ export async function iniciarSesion(page: Page, usuario: string, clave = CLAVE_D
   await page.getByLabel('Contraseña', { exact: true }).fill(clave);
   await page.getByRole('button', { name: /ingresar|iniciar/i }).click();
   await expect(page).not.toHaveURL(/\/login/);
+}
+
+/** Llena el formulario "Bloquear file" (DEC-049): causa, resolución, fecha, glosa y un PDF mínimo. */
+export async function llenarBloqueo(
+  dialogo: Locator,
+  { glosa, nroResolucion = 'RA-E2E/2026' }: { glosa: string; nroResolucion?: string },
+): Promise<void> {
+  await dialogo.getByLabel('Causa').selectOption({ label: 'Licencia temporal obligatoria' });
+  await dialogo.getByLabel('Número de resolución').fill(nroResolucion);
+  await dialogo.getByLabel('Fecha de la resolución').fill('2026-10-01');
+  await dialogo.getByLabel('Glosa').fill(glosa);
+  await dialogo.getByLabel('PDF de la resolución').setInputFiles({
+    name: 'resolucion.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4\n1 0 obj <<>> endobj\ntrailer <<>>\n%%EOF\n', 'latin1'),
+  });
 }

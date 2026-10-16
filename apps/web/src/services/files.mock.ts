@@ -1,6 +1,14 @@
 import type { Usuario } from '@/types';
 import type { Pagina } from '@/types/pagina';
-import type { CambiosFile, DatosCrearFile, Especialidad, FileDetalle, FiltrosFiles } from '@/types/files';
+import type {
+  Bloqueo,
+  CambiosFile,
+  DatosBloqueo,
+  DatosCrearFile,
+  Especialidad,
+  FileDetalle,
+  FiltrosFiles,
+} from '@/types/files';
 import { auditar, copia, db } from '@/mocks/db';
 import type { FileMock } from '@/mocks/fileMock';
 import { ESPECIALIDADES } from '@/config/catalogos';
@@ -54,6 +62,13 @@ export const aDetalle = (f: FileMock): FileDetalle => {
     semaforo: semaforoDelFile({ bloqueado: f.bloqueado, estados: estadosDeRequisitos(f.id) }),
   };
 };
+
+/** Como el CHECK `ck_bloqueo_pdf` de la API. */
+const PDF_MAX_BYTES = 5 * 1024 * 1024;
+const HOY_LA_PAZ = () => new Date(Date.now() - 4 * 60 * 60_000).toISOString().slice(0, 10);
+
+/** El bloqueo abierto de cada file con su PDF: solo en memoria (la demo no guarda archivos). */
+const bloqueos = new Map<number, { bloqueo: Bloqueo; pdf: Blob }>();
 
 const noEncontrado = () => new ErrorApi('El file no existe.', 'NO_ENCONTRADO', 404);
 const conflicto = (mensaje: string, codigo: string) => new ErrorApi(mensaje, codigo, 409);
@@ -199,29 +214,79 @@ export const filesMock: ServicioFiles = {
     return aDetalle(f);
   },
 
-  async bloquear(id: number, motivo: string, actor: Usuario): Promise<FileDetalle> {
+  async bloquear(id: number, d: DatosBloqueo, actor: Usuario): Promise<FileDetalle> {
     await delay(LATENCIA);
     const f = buscar(id);
-    const m = motivo.trim();
-    if (m.length < 5) throw validacion([{ ruta: 'body.motivo', mensaje: 'Escriba el motivo del bloqueo' }]);
+    const nro = d.nroResolucion.trim();
+    const glosa = d.glosa.trim();
+    const problemas: { ruta: string; mensaje: string }[] = [];
+    if (d.causa !== 'LICENCIA_OBLIGATORIA' && d.causa !== 'LICENCIA_VOLUNTARIA')
+      problemas.push({ ruta: 'body.causa', mensaje: 'Elija la causa del bloqueo' });
+    if (!nro) problemas.push({ ruta: 'body.nroResolucion', mensaje: 'Escriba el número de la resolución' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.fechaResolucion))
+      problemas.push({ ruta: 'body.fechaResolucion', mensaje: 'Fecha con formato AAAA-MM-DD' });
+    else if (d.fechaResolucion > HOY_LA_PAZ())
+      problemas.push({ ruta: 'body.fechaResolucion', mensaje: 'La fecha de la resolución no puede ser futura' });
+    if (glosa.length < 5) problemas.push({ ruta: 'body.glosa', mensaje: 'Escriba la glosa con el motivo' });
+    if (problemas.length) throw validacion(problemas);
+    if (d.pdf.size === 0 || !/\.pdf$/i.test(d.pdf.name))
+      throw validacion([{ ruta: 'body.pdf', mensaje: 'El archivo no es un PDF' }]);
+    if (d.pdf.size > PDF_MAX_BYTES) throw validacion([{ ruta: 'body.pdf', mensaje: 'El PDF pesa más de 5 MB' }]);
     if (f.bloqueado) throw new ErrorApi('El file ya está bloqueado.', 'ESTADO_SIN_CAMBIO', 422);
     f.bloqueado = true;
-    f.motivoBloqueo = m;
-    auditar(actor.nombre, MODULO, 'Bloquear file', f.codigo, { bloqueado: false }, { bloqueado: true, motivo: m });
+    f.motivoBloqueo = glosa;
+    bloqueos.set(id, {
+      bloqueo: {
+        causa: d.causa,
+        nroResolucion: nro,
+        fechaResolucion: d.fechaResolucion,
+        glosa,
+        pdfNombre: d.pdf.name,
+        bloqueadoEn: new Date().toISOString(),
+        bloqueadoPor: { id: actor.id, nombre: actor.nombre },
+      },
+      pdf: d.pdf,
+    });
+    auditar(
+      actor.nombre,
+      MODULO,
+      'Bloquear file',
+      f.codigo,
+      { bloqueado: false },
+      { bloqueado: true, motivo: glosa, causa: d.causa, resolucion: nro, fechaResolucion: d.fechaResolucion },
+    );
     return aDetalle(f);
   },
 
-  async desbloquear(id: number, resolucion: string, actor: Usuario): Promise<FileDetalle> {
+  async desbloquear(id: number, actor: Usuario): Promise<FileDetalle> {
     await delay(LATENCIA);
     const f = buscar(id);
-    const r = resolucion.trim();
-    if (!r) throw validacion([{ ruta: 'body.resolucion', mensaje: 'Escriba el número de la resolución' }]);
     if (!f.bloqueado) throw new ErrorApi('El file no está bloqueado.', 'ESTADO_SIN_CAMBIO', 422);
-    const antes = { bloqueado: true, motivo: f.motivoBloqueo ?? null };
+    const antes = {
+      bloqueado: true,
+      motivo: f.motivoBloqueo ?? null,
+      resolucion: bloqueos.get(id)?.bloqueo.nroResolucion ?? null,
+    };
     f.bloqueado = false;
     f.motivoBloqueo = undefined;
-    auditar(actor.nombre, MODULO, 'Desbloquear file', f.codigo, antes, { bloqueado: false, resolucion: r });
+    bloqueos.delete(id);
+    auditar(actor.nombre, MODULO, 'Desbloquear file', f.codigo, antes, { bloqueado: false });
     return aDetalle(f);
+  },
+
+  async bloqueo(id: number): Promise<Bloqueo | null> {
+    await delay(LATENCIA);
+    buscar(id);
+    const b = bloqueos.get(id);
+    return b ? copia(b.bloqueo) : null;
+  },
+
+  async pdfBloqueo(id: number): Promise<Blob> {
+    await delay(LATENCIA);
+    buscar(id);
+    const b = bloqueos.get(id);
+    if (!b) throw new ErrorApi('El file no tiene una resolución de bloqueo registrada.', 'NO_ENCONTRADO', 404);
+    return b.pdf;
   },
 
   async especialidades(): Promise<Especialidad[]> {
