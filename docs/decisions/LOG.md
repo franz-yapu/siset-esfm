@@ -757,3 +757,18 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    (`VITE_CUENTAS_PRUEBA`) y en la demo, no en la instalación de la escuela (`guiasDeTesis`). El manual, siempre.
 3. Todo dato citado (rutas de archivos, nombres de funciones, parámetros) se verificó contra el código. Si el código
    cambia, se actualizan las guías en el mismo commit.
+
+## DEC-049 — Bloqueo del file: resolución al bloquear, con PDF, por licencia temporal
+
+**Fecha:** 2026-10-16 · **Fuente:** respuesta D-29 (hoja) · **Estado:** activa; el código sigue con DEC-029 hasta su ticket
+
+1. **Los datos se anotan al bloquear**, no al desbloquear: número de la resolución, fecha de la resolución, una
+   glosa con el motivo y el **PDF de la resolución**. Cambia DEC-029 #1 y #3 (motivo al bloquear y resolución al
+   desbloquear, en texto libre).
+2. **Solo hay dos causas de bloqueo:** licencia temporal **obligatoria** y licencia temporal **voluntaria**. En
+   ambas se espera que el estudiante se reincorpore. La causa pasa de texto libre a una de esas dos.
+3. **Pendiente (después de la presentación):** campos de la resolución en el bloqueo (migración), subida y descarga
+   del PDF (hoy no hay ninguna carga de archivos en la API) y pantalla del bloqueo. Es la única excepción a D-22
+   (no se suben escaneos). Hasta entonces sigue DEC-029. Hay que corregir RF-07 del PRD y
+   `business-rules.md` en el mismo ticket.
+4. La respuesta no dice qué se anota al desbloquear; se registra quién lo hizo y cuándo (bitácora), como hoy.
