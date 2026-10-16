@@ -781,3 +781,27 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
    - Los files bloqueados antes de esta DEC no tienen resolución: se desbloquean igual.
    - En la web, el detalle del file muestra la resolución y el botón "Ver PDF de la resolución" (lo descarga con
      el token y lo abre en otra pestaña).
+
+## DEC-050 — Respuestas de la hoja del 16-oct (D-31 a D-44)
+
+**Fecha:** 2026-10-16 · **Fuente:** hoja de la escuela (D-14c, D-31 a D-44, D-10b) · **Estado:** activa; #2, #4, #5 y #6
+pendientes de implementar
+
+1. **Coinciden con lo que hace el sistema** (se cierran sin cambios): D-33 (los pasos en Calahumana los anota
+   SEC_DIR), D-34 (Kardex no revisa: imprime a pedido de SEC_DIR), D-37 (el Coordinador no devuelve), D-38 (un paso
+   no se deshace), D-39 (SISET no lleva notas; importa el documento físico en el file), D-43 (solo Ancocagua) y
+   D-14c (nadie tiene complemento; sigue opcional).
+2. **D-32:** los certificados sin valorado (notas y excelencia) también los puede **recibir Secretaría de
+   Coordinación en Ancocagua**. Cambia la ingesta (hoy solo SEC_DIR, sede LA_PAZ) y la máquina de estados
+   (`do-not-touch.md`): necesita un ADR antes de implementarse.
+3. **D-35:** hay que anotar quién mandó y cuándo, cuándo recibió Kardex y cuándo remitió. Ya lo cubren los pasos
+   AVISAR_KARDEX, RECOGER y REMITIR, cada uno con su usuario y su fecha: no hace falta una bandeja de pases aparte.
+4. **D-36:** "Bandeja de pases" y "Firma y entrega" **sí** van en el menú de Secretaría. Cambia DEC-044 #1; hoy esas
+   pantallas siguen con datos del prototipo.
+5. **D-42:** la entrega a un tercero solo puede ser a un familiar de **hasta primer grado de consanguinidad o
+   afinidad**, previa verificación y con firma de recojo. Falta anotar el parentesco y el nombre en la entrega.
+6. **D-44:** un trámite debe responderse en **48 a 72 horas**. El atraso de los reportes pasa de 10 días
+   (DEC-039) a **72 horas sin moverse**.
+7. **D-31** (TACFI por año) se aplica en DEC-051. Quedan incompletas y repreguntadas: D-10b → D-10c (formatos del
+   historial), D-40 → D-40b (quién anota los datos del egresado: los 152 files son estudiantes activos, que
+   tendrán cuenta) y D-41 → D-41b (fechas de capacitación; el acta se firma al final).
