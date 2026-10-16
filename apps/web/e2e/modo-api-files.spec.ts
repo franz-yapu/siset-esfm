@@ -114,6 +114,7 @@ test('P-42 en modo API: CODIGO_EXISTENTE va debajo del código; P-41 oculta lo q
   await page.getByLabel('Nombres').fill('Juana');
   await page.getByLabel('Apellido paterno').fill('Mamani');
   await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
+  await page.getByLabel('Modalidad de ingreso').selectOption('A');
   await page.getByRole('button', { name: 'Guardar' }).click();
   await expect(page.getByText('Ya existe un file con ese código de estudiante.')).toBeVisible();
 

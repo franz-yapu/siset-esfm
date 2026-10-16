@@ -4,7 +4,7 @@ import { ORDEN_ESTADOS } from '@/config/estados';
 import { aIso, delay, diasDesde, mesCorto } from '@/lib/formato';
 import { parseISO, differenceInHours } from 'date-fns';
 import { conTitular, LATENCIA, ultimoMovimiento } from './_comun';
-import { DIAS_DETENIDO, estaDetenido } from './hojasRuta-prototipo.service';
+import { HORAS_DETENIDO, estaDetenido } from './hojasRuta-prototipo.service';
 import { alertasFile, fileHabilitado } from '@/lib/reglas';
 
 export interface FiltrosReporte {
@@ -122,7 +122,7 @@ export const reportesService = {
       porImprimir: hs.filter(
         (h) => h.estado === 'DICTAMINADO' && db.files.some((x) => x.id === h.fileId && fileHabilitado(x)),
       ).length,
-      diasDetenido: DIAS_DETENIDO,
+      horasDetenido: HORAS_DETENIDO,
     };
   },
 };

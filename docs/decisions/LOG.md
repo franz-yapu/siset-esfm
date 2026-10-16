@@ -784,8 +784,8 @@ responsable del proyecto ("sí, confirma la opción B") · **Estado:** activa
 
 ## DEC-050 — Respuestas de la hoja del 16-oct (D-31 a D-44)
 
-**Fecha:** 2026-10-16 · **Fuente:** hoja de la escuela (D-14c, D-31 a D-44, D-10b) · **Estado:** activa; #2, #4, #5 y #6
-pendientes de implementar
+**Fecha:** 2026-10-16 · **Fuente:** hoja de la escuela (D-14c, D-31 a D-44, D-10b) · **Estado:** activa; #4, #5 y #6
+implementadas en DEC-052; #2 espera D-32b
 
 1. **Coinciden con lo que hace el sistema** (se cierran sin cambios): D-33 (los pasos en Calahumana los anota
    SEC_DIR), D-34 (Kardex no revisa: imprime a pedido de SEC_DIR), D-37 (el Coordinador no devuelve), D-38 (un paso
@@ -833,3 +833,33 @@ ADR-0007 (modo demo, sin SDD previo) · **Estado:** activa, implementada el 2026
    `soloModalidad`, `aplica`, `atrasado`, `nombreCurso`, `entidadEmisora` y `gestiones`; `PUT …/:codigo` acepta
    `gestion`, `nombreCurso` y `entidadEmisora` (400 si faltan o sobran según el tipo). La bitácora guarda la gestión.
 8. **Datos reales:** las fotos tienen datos de una estudiante; no van al repositorio ni a la hoja.
+
+## DEC-052 — Respuestas D-28c a D-47; atraso a las 72 horas, entrega a familiares y bandejas de Secretaría
+
+**Fecha:** 2026-10-16 · **Fuente:** hoja de la escuela (D-28c, D-40b, D-45 a D-47) y DEC-050 #4 a #6 (modo demo, sin
+SDD previo) · **Estado:** activa, implementada el 2026-10-16
+
+1. **D-28c, código de estudiante:** 209 (código de la UA Ancocagua) + iniciales + fecha de nacimiento (DDMMAA) + 00,
+   por ejemplo `209-AUM05030000`. Sigue en texto libre y único; el formulario muestra el formato.
+2. **D-45, modalidades:** A, B1, B2 y B3, y no es lo mismo una que otra. `file_academico.modalidad` solo acepta esas
+   cuatro (CHECK) y es **obligatoria al registrar un estudiante** (no al editar ni para un egresado). Cambia ADR-0007:
+   `solo_modalidad` es una lista exacta ("B1,B2,B3"); ya no vale "una letra para todas". El requisito 19 ("solo
+   modalidad B") queda para B1, B2 y B3 como **no obligatorio** hasta D-45b.
+3. **D-46, TCLOA:** se defiende, y no registrarlo es "un grave error del formulario manual". Vuelven las **3
+   defensas** (básico en 1.º, intermedio en 2.º, avanzado en 3.º; D-04b) después del certificado TCLOA, con su año:
+   una que falta de un año ya pasado está atrasada (D-31). El catálogo queda en 27 requisitos.
+4. **D-47, gestiones:** se exigen todas. Hasta D-47b: la matrícula debe cubrir un año distinto por cada año cursado
+   (incluido el actual) y el certificado de notas, uno por cada año terminado (`solo_anios_terminados`); dos
+   semestres del mismo año son un año. Si falta alguno, el requisito queda PENDIENTE. Sin año de formación, basta uno.
+5. **D-40b:** los datos del egresado los anota Kardex (como hoy).
+6. **D-36:** "Bandeja de pases" (hacia Ancocagua y hacia Calahumana, con quién mandó, quién recibió y cuándo: D-35)
+   y "Firma y entrega" (firmas de las Direcciones, llegada y entrega) vuelven al menú, **contra la API**: reusan la
+   bandeja de Kardex. Ya no usan datos del prototipo.
+7. **D-42:** la entrega es al titular o a un **familiar de hasta primer grado** (padre, madre, hijo/a, suegro/a,
+   yerno/nuera), con su nombre y CI y la confirmación de que se verificó el parentesco y firmó el recojo; todo va en
+   la observación del paso ENTREGAR.
+8. **D-44:** un trámite en curso está **atrasado a las 72 horas** sin moverse (antes, 10 días; cambia DEC-039 #2).
+   Los reportes devuelven las horas y los días.
+9. **D-32** (SEC_COORD recibe en Ancocagua los certificados sin valorado) cambia la máquina de estados: espera D-32b
+   (quién avisa y dónde se entrega) antes de su ADR.
+10. Repreguntas en la hoja (filas 60–63): D-45b, D-47b, D-32b y D-41c.

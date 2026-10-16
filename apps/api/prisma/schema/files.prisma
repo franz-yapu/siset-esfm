@@ -52,7 +52,7 @@ model FileAcademico {
   condicion        CondicionEstudiante @default(ESTUDIANTE)
   /// Datos de la cabecera del folder personal (DEC-051); opcionales hasta que Kardex los cargue.
   genero           Genero?
-  /// Modalidad de ingreso (A, B, B1, B3…): texto corto hasta conocer la lista (D-45).
+  /// Modalidad de ingreso: A, B1, B2 o B3 (D-45; CHECK `ck_file_modalidad`).
   modalidad        String?             @db.VarChar(5)
   /// Año que cursa (1–5, CHECK `ck_file_anio_formacion`): decide si un TACFI está atrasado (D-31, ADR-0007).
   anioFormacion    Int?                @map("anio_formacion") @db.SmallInt

@@ -266,14 +266,19 @@ export const hojasRutaMock: ServicioHojasRuta = {
       })),
       detenidos: hojas
         .filter((h) => !h.fechaCierre)
-        .map((h) => ({ h, dias: Math.floor((ahora - Date.parse(h.movimientos.at(-1)!.fecha)) / DIA) }))
-        .filter((x) => x.dias > 10)
-        .sort((a, b) => b.dias - a.dias)
-        .map(({ h, dias }) => ({
+        .map((h) => {
+          const horas = Math.floor((ahora - Date.parse(h.movimientos.at(-1)!.fecha)) / (60 * 60_000));
+          return { h, horas, dias: Math.floor(horas / 24) };
+        })
+        // Como la API: atrasado a las 72 horas sin moverse (D-44).
+        .filter((x) => x.horas > 72)
+        .sort((a, b) => b.horas - a.horas)
+        .map(({ h, horas, dias }) => ({
           nro: h.nro,
           titular: aDetalle(fileDe(h.fileId)).nombre,
           estado: h.estado,
           sedeActual: h.sedeActual,
+          horas,
           dias,
         })),
     });

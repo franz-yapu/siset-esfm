@@ -120,5 +120,12 @@ export interface ReporteHojasRuta {
   porTipo: { codigo: string; nombre: string; total: number }[];
   porMes: { mes: string; total: number }[];
   porEtapa: { estado: EstadoHojaRuta; dias: number }[];
-  detenidos: { nro: string; titular: string; estado: EstadoHojaRuta; sedeActual: string; dias: number }[];
+  detenidos: {
+    nro: string;
+    titular: string;
+    estado: EstadoHojaRuta;
+    sedeActual: string;
+    horas: number;
+    dias: number;
+  }[];
 }

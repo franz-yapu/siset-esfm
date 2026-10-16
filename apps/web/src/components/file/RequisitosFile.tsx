@@ -95,7 +95,13 @@ export function RequisitosFile({
               {!r.aplica ? (
                 <p className="text-sm">{noCorresponde(r)}</p>
               ) : r.porGestion ? (
-                <div className="mt-1 flex flex-wrap gap-2">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {r.gestionesEsperadas !== null && (
+                    <span className="text-xs text-slate-500">
+                      {new Set(r.gestiones.map((g) => g.gestion.slice(-4))).size} de {r.gestionesEsperadas}{' '}
+                      {r.gestionesEsperadas === 1 ? 'año' : 'años'}
+                    </span>
+                  )}
                   {r.gestiones.length === 0 && (
                     <span className="text-sm text-amber-700">Ninguna gestión registrada</span>
                   )}

@@ -25,6 +25,10 @@ export interface RequisitoDelFile {
   /** N.º en la hoja del folder personal. */
   orden: number;
   porGestion: boolean;
+  /** Por gestión: solo cuentan los años ya terminados (certificado de notas, D-47). */
+  soloAniosTerminados: boolean;
+  /** Por gestión: cuántos años distintos tiene que cubrir (D-47, provisional hasta D-47b); null en los demás. */
+  gestionesEsperadas: number | null;
   /** TACFI: pide el nombre del curso y la entidad emisora. */
   pideCurso: boolean;
   soloGenero: 'FEMENINO' | 'MASCULINO' | null;

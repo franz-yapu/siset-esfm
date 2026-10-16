@@ -105,10 +105,16 @@ export interface DocumentoEmitido {
   motivo?: string;
 }
 
+/** Familiares que pueden recoger un trámite: hasta primer grado de consanguinidad o afinidad (D-42). */
+export type Parentesco = 'Padre' | 'Madre' | 'Hijo/a' | 'Suegro/a' | 'Yerno/Nuera';
+
 export interface Entrega {
-  entregadoA: 'Titular' | 'Apoderado';
+  entregadoA: 'Titular' | 'Familiar';
   ciReceptor: string;
   fecha: string;
+  /** Solo si recoge un familiar (D-42). */
+  nombreReceptor?: string;
+  parentesco?: Parentesco;
 }
 
 export interface HojaRuta {

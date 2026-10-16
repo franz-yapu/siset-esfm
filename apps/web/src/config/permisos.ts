@@ -8,7 +8,9 @@ import {
   Signature,
   Users2,
   ClipboardCheck,
+  PackageCheck,
   Printer,
+  ArrowLeftRight,
   BarChart3,
   UserCog,
   ScrollText,
@@ -96,9 +98,9 @@ export interface ItemMenu {
 }
 
 /**
- * Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. Fuera del menú, con datos del prototipo
- * (DEC-044): "Bandeja de pases" y "Firma y entrega" (D-35, D-36: los pasos y la entrega se registran desde el
- * detalle del trámite) y "Carga masiva" (D-13b: Kardex carga los files a mano). Sus rutas siguen para la demo.
+ * Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. "Bandeja de pases" y "Firma y entrega"
+ * vuelven al menú, contra la API (D-36, DEC-052). Fuera del menú: "Carga masiva" (D-13b: Kardex carga los files a
+ * mano, DEC-044); su ruta sigue para la demo.
  */
 export const MENU: ItemMenu[] = [
   { id: 'inicio', etiqueta: 'Inicio', ruta: '', icono: Home },
@@ -107,6 +109,8 @@ export const MENU: ItemMenu[] = [
   { id: 'nueva-hr', etiqueta: 'Nueva hoja de ruta', ruta: '/hojas-ruta/nueva', icono: FilePlus2 },
   { id: 'hojas-ruta', etiqueta: 'Hojas de ruta', ruta: '/hojas-ruta', icono: Route },
   { id: 'files', etiqueta: 'Files académicos', ruta: '/files', icono: Users2 },
+  { id: 'pases', etiqueta: 'Bandeja de pases', ruta: '/pases', icono: ArrowLeftRight },
+  { id: 'entregas', etiqueta: 'Firma y entrega', ruta: '/entregas', icono: PackageCheck },
   { id: 'revision', etiqueta: 'Recojo y remisión', ruta: '/revision', icono: ClipboardCheck },
   { id: 'firmas', etiqueta: 'Firmas', ruta: '/firmas', icono: Signature },
   { id: 'emision', etiqueta: 'Impresión', ruta: '/emision', icono: Printer },

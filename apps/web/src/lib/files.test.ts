@@ -17,11 +17,18 @@ const base: DatosCrearFile = {
   anioIngreso: 2024,
   condicion: 'ESTUDIANTE',
   genero: null,
-  modalidad: null,
+  modalidad: 'A',
   anioFormacion: null,
 };
 
 describe('reglas del formulario del file (SDD S2.9-S2.10 §2.5)', () => {
+  it('D-45: la modalidad es obligatoria al registrar un estudiante, no al editar ni para un egresado', () => {
+    const sin = { ...base, modalidad: null };
+    expect(validarDatosFile(sin, true, 2026)).toEqual({ modalidad: 'Elija la modalidad de ingreso (A, B1, B2 o B3)' });
+    expect(validarDatosFile(sin, false, 2026)).toEqual({});
+    expect(validarDatosFile({ ...sin, condicion: 'EGRESADO' }, true, 2026)).toEqual({});
+  });
+
   it('normaliza como la API: recorta, complemento en mayúsculas y vacíos en null', () => {
     expect(
       normalizarDatosFile({
@@ -49,7 +56,7 @@ describe('reglas del formulario del file (SDD S2.9-S2.10 §2.5)', () => {
     ],
     ['correo inválido', { email: 'no' }, 'email', 'El correo no tiene un formato válido'],
   ])('%s', (_caso, cambio, campo, mensaje) => {
-    expect(validarDatosFile({ ...base, ...cambio }, 2026)).toEqual({ [campo]: mensaje });
+    expect(validarDatosFile({ ...base, ...cambio }, true, 2026)).toEqual({ [campo]: mensaje });
   });
 
   it('cambiosDeFile: solo lo que cambió, nunca el CI', () => {

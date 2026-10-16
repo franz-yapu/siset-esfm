@@ -39,10 +39,10 @@ export const ESPECIALIDADES = [
 type Req = {
   codigo: string;
   nombre: string;
-  orden: number;
   anioFormacion?: number;
   obligatorio?: boolean;
   porGestion?: boolean;
+  soloAniosTerminados?: boolean;
   pideCurso?: boolean;
   soloGenero?: 'MASCULINO';
   soloModalidad?: string;
@@ -52,50 +52,61 @@ type Req = {
 const TACFI = 'Certificado legalizado; se anota la fecha, el nombre del curso y la entidad emisora.';
 const DEFENSA = 'Requisito para la defensa del diseño metodológico (D-30b, D-39).';
 const SI_CORRESPONDE = 'Si corresponde.';
+const DEFENSA_TCLO = 'Defensa del taller de lengua originaria; una por año (D-04b, D-46). OBSERVADO si no la aprobó.';
 
 /**
  * Catálogo de requisitos (DEC-051): los 24 de la hoja "Documentación existente en folder personal" de Kardex, en su
  * orden. Los TACFI tienen su año (D-31); lo que todavía no se sabe va con su duda (D-45 a D-47).
  */
-export const REQUISITOS: readonly Req[] = [
-  { codigo: 'ADMISION', nombre: 'Resultado final de admisión con el V.º B.º', orden: 1 },
-  { codigo: 'POSTULACION_DGFM', nombre: 'Formulario de postulación emitido por la DGFM', orden: 2 },
-  { codigo: 'REGISTRO_SIFMWEB', nombre: 'Hoja de registro personal SIFMWEB', orden: 3 },
-  { codigo: 'FOTOCOPIA_CI', nombre: 'Fotocopia de cédula de identidad vigente', orden: 4 },
+const LISTA: readonly Req[] = [
+  { codigo: 'ADMISION', nombre: 'Resultado final de admisión con el V.º B.º' },
+  { codigo: 'POSTULACION_DGFM', nombre: 'Formulario de postulación emitido por la DGFM' },
+  { codigo: 'REGISTRO_SIFMWEB', nombre: 'Hoja de registro personal SIFMWEB' },
+  { codigo: 'FOTOCOPIA_CI', nombre: 'Fotocopia de cédula de identidad vigente' },
   {
     codigo: 'CERT_NACIMIENTO',
     nombre: 'Certificado de nacimiento original (Estado Plurinacional de Bolivia)',
-    orden: 5,
   },
-  { codigo: 'REJAP', nombre: 'Certificado de antecedentes REJAP', orden: 6 },
-  { codigo: 'CENVI', nombre: 'Certificado de no violencia CENVI', orden: 7 },
-  { codigo: 'TITULO_BACHILLER', nombre: 'Fotocopia legalizada del título de bachiller', orden: 8 },
+  { codigo: 'REJAP', nombre: 'Certificado de antecedentes REJAP' },
+  { codigo: 'CENVI', nombre: 'Certificado de no violencia CENVI' },
+  { codigo: 'TITULO_BACHILLER', nombre: 'Fotocopia legalizada del título de bachiller' },
   {
     codigo: 'LIBRETA_MILITAR',
     nombre: 'Fotocopia simple de la libreta militar',
-    orden: 9,
     soloGenero: 'MASCULINO',
     descripcion: 'Solo varones.',
   },
-  { codigo: 'MATRICULA', nombre: 'Matrícula', orden: 10, porGestion: true, descripcion: `Una por gestión. ${DEFENSA}` },
+  { codigo: 'MATRICULA', nombre: 'Matrícula', porGestion: true, descripcion: `Una por gestión. ${DEFENSA}` },
   {
     codigo: 'CERT_NOTAS',
     nombre: 'Certificado de notas',
-    orden: 11,
     porGestion: true,
+    soloAniosTerminados: true,
     descripcion: `Una por gestión. ${DEFENSA}`,
   },
   {
     codigo: 'BOLETIN_TCLOA',
     nombre: 'Boletín de calificaciones TCLOA (3 gestiones académicas)',
-    orden: 12,
     descripcion: 'Provisional hasta D-46.',
   },
-  { codigo: 'CERT_TCLOA', nombre: 'Certificado legalizado TCLOA', orden: 13, descripcion: 'Provisional hasta D-46.' },
+  { codigo: 'CERT_TCLOA', nombre: 'Certificado legalizado TCLOA', descripcion: 'Provisional hasta D-46.' },
+  // D-46: el TCLOA se defiende; el formulario manual solo anotaba el último certificado. Una defensa por año (D-04b).
+  { codigo: 'TCLO_BASICO', nombre: 'Defensa del TCLOA – nivel básico', anioFormacion: 1, descripcion: DEFENSA_TCLO },
+  {
+    codigo: 'TCLO_INTERMEDIO',
+    nombre: 'Defensa del TCLOA – nivel intermedio',
+    anioFormacion: 2,
+    descripcion: DEFENSA_TCLO,
+  },
+  {
+    codigo: 'TCLO_AVANZADO',
+    nombre: 'Defensa del TCLOA – nivel avanzado',
+    anioFormacion: 3,
+    descripcion: DEFENSA_TCLO,
+  },
   {
     codigo: 'TACFI_1',
     nombre: 'Certificado legalizado de TACFI – Artístico I',
-    orden: 14,
     anioFormacion: 1,
     pideCurso: true,
     descripcion: TACFI,
@@ -103,7 +114,6 @@ export const REQUISITOS: readonly Req[] = [
   {
     codigo: 'TACFI_2',
     nombre: 'Certificado legalizado de TACFI – Artístico II',
-    orden: 15,
     anioFormacion: 2,
     pideCurso: true,
     descripcion: TACFI,
@@ -111,7 +121,6 @@ export const REQUISITOS: readonly Req[] = [
   {
     codigo: 'TACFI_TEC_1',
     nombre: 'Certificado legalizado de TACFI – Tecnológico I',
-    orden: 16,
     anioFormacion: 3,
     pideCurso: true,
     descripcion: TACFI,
@@ -119,7 +128,6 @@ export const REQUISITOS: readonly Req[] = [
   {
     codigo: 'TACFI_TEC_2',
     nombre: 'Certificado legalizado de TACFI – Tecnológico II',
-    orden: 17,
     anioFormacion: 4,
     pideCurso: true,
     descripcion: `${TACFI} Antes de la defensa.`,
@@ -127,58 +135,55 @@ export const REQUISITOS: readonly Req[] = [
   {
     codigo: 'PUEBLO_INDIGENA',
     nombre: 'Certificado de pueblo indígena originario',
-    orden: 18,
     soloModalidad: 'B1',
     descripcion: 'Solo modalidad B1.',
   },
   {
     codigo: 'CALIF_SECUNDARIA',
     nombre: 'Certificado de calificaciones original de 1.º a 4.º de secundaria',
-    orden: 19,
-    soloModalidad: 'B',
-    descripcion: 'Solo modalidad B (D-45).',
+    soloModalidad: 'B1,B2,B3',
+    obligatorio: false,
+    descripcion: 'Solo modalidad B del folder: provisional, B1, B2 y B3 como "si corresponde" (D-45b).',
   },
   {
     codigo: 'CARNET_DISCAPACIDAD',
     nombre: 'Carnet de discapacidad CONADEPIS o IBC',
-    orden: 20,
     soloModalidad: 'B3',
     descripcion: 'Solo modalidad B3.',
   },
   {
     codigo: 'LICENCIA_TEMPORAL',
     nombre: 'Licencia temporal',
-    orden: 21,
     obligatorio: false,
     descripcion: SI_CORRESPONDE,
   },
   {
     codigo: 'FORM_REINCORPORACION',
     nombre: 'Formulario de reincorporación',
-    orden: 22,
     obligatorio: false,
     descripcion: SI_CORRESPONDE,
   },
   {
     codigo: 'HISTORIAL_PROVISIONAL',
     nombre: 'Historial académico provisional',
-    orden: 23,
     obligatorio: false,
     descripcion: 'Provisional hasta D-47.',
   },
   {
     codigo: 'RESOLUCION_ACADEMICA',
     nombre: 'Resolución académica por algún caso en particular',
-    orden: 24,
     obligatorio: false,
     descripcion: `${SI_CORRESPONDE} Por ejemplo, la autorización de un TACFI fuera de su año (D-31).`,
   },
 ];
 
-/** Los del catálogo provisional que ya no están en la hoja oficial: se dan de baja (lo registrado se conserva). */
-export const REQUISITOS_RETIRADOS = ['TCLO_BASICO', 'TCLO_INTERMEDIO', 'TCLO_AVANZADO'] as const;
+/** El orden en pantalla es el de la lista: la hoja del folder personal con las defensas del TCLOA (DEC-052). */
+export const REQUISITOS = LISTA.map((r, i) => ({ ...r, orden: i + 1 }));
 
-const datosRequisito = (r: Req) => ({
+/** Requisitos que ya no se piden: se dan de baja y lo registrado se conserva (hoy ninguno; DEC-052). */
+export const REQUISITOS_RETIRADOS: readonly string[] = [];
+
+const datosRequisito = (r: Req & { orden: number }) => ({
   nombre: r.nombre,
   orden: r.orden,
   descripcion: r.descripcion ?? null,
@@ -186,6 +191,7 @@ const datosRequisito = (r: Req) => ({
   nivel: null,
   obligatorio: r.obligatorio ?? true,
   porGestion: r.porGestion ?? false,
+  soloAniosTerminados: r.soloAniosTerminados ?? false,
   pideCurso: r.pideCurso ?? false,
   soloGenero: r.soloGenero ?? null,
   soloModalidad: r.soloModalidad ?? null,

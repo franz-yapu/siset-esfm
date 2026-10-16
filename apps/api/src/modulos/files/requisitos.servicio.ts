@@ -4,7 +4,13 @@ import { obtenerContexto } from '@/compartido/http';
 import { registrarEvento } from '@/modulos/auditoria';
 import { buscarFile, type FileBd } from './file.repositorio';
 import { guardarRequisitoDelFile, listarRequisitosDelFile, type RequisitoFileBd } from './requisito.repositorio';
-import { requisitoAplica, requisitoAtrasado, resumenDeGestiones, type RequisitoParaReglas } from './requisitos-reglas';
+import {
+  gestionesEsperadas,
+  requisitoAplica,
+  requisitoAtrasado,
+  resumenDeGestiones,
+  type RequisitoParaReglas,
+} from './requisitos-reglas';
 import type { DatosRequisito, RegistroDeGestion, RequisitoDelFile } from './requisitos.esquemas';
 
 type Cliente = ClienteBd | TransaccionBd;
@@ -98,7 +104,8 @@ export function crearServicioRequisitos({ bd, obtenerRequisitosActivos, describi
             }))
         : [];
       const unico = r.porGestion ? undefined : registros.find((g) => g.gestion === '');
-      const estado = r.porGestion ? resumenDeGestiones(gestiones.map((g) => g.estado)) : (unico?.estado ?? 'PENDIENTE');
+      const esperadas = r.porGestion ? gestionesEsperadas(r, file) : null;
+      const estado = r.porGestion ? resumenDeGestiones(gestiones, esperadas!) : (unico?.estado ?? 'PENDIENTE');
       const aplica = requisitoAplica(r, file);
       return {
         codigo: r.codigo,
@@ -112,6 +119,8 @@ export function crearServicioRequisitos({ bd, obtenerRequisitosActivos, describi
         pideCurso: r.pideCurso,
         soloGenero: r.soloGenero,
         soloModalidad: r.soloModalidad,
+        soloAniosTerminados: r.soloAniosTerminados,
+        gestionesEsperadas: esperadas,
         aplica,
         atrasado: aplica && r.obligatorio && requisitoAtrasado(r, file, estado),
         estado,

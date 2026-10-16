@@ -20,6 +20,7 @@ test.describe.serial('E11 · files', () => {
     await page.getByLabel('Nombres').fill('Prueba');
     await page.getByLabel('Apellido paterno').fill('Archivo');
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
+    await page.getByLabel('Modalidad de ingreso').selectOption('A');
     await page.getByLabel('Año de ingreso').fill('2024');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByRole('heading', { name: 'Prueba Archivo' })).toBeVisible();

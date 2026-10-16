@@ -82,7 +82,7 @@ export function Reportes() {
               icono={Clock}
               color="gris"
             />
-            <KpiCard titulo="Detenidos > 10 días" valor={k.detenidos.length} icono={AlertTriangle} color="rojo" />
+            <KpiCard titulo="Atrasados > 72 horas" valor={k.detenidos.length} icono={AlertTriangle} color="rojo" />
           </div>
           <div className="mb-4 grid gap-4 lg:grid-cols-2">
             <Card title="Trámites por estado">
@@ -178,11 +178,11 @@ export function Reportes() {
               </div>
             </Card>
           </div>
-          <Card title={`Trámites detenidos más de 10 días (${k.detenidos.length})`}>
+          <Card title={`Trámites atrasados: más de 72 horas sin moverse (${k.detenidos.length})`}>
             <DataTable
               data={k.detenidos}
               rowKey={(h) => h.nro}
-              vacio="No hay trámites detenidos"
+              vacio="No hay trámites atrasados"
               columns={[
                 {
                   key: 'nro',
@@ -200,8 +200,12 @@ export function Reportes() {
                 {
                   key: 'dias',
                   header: 'Sin movimiento',
-                  sortValue: (h) => h.dias,
-                  render: (h) => <span className="font-semibold text-red-700">{diasTexto(h.dias)}</span>,
+                  sortValue: (h) => h.horas,
+                  render: (h) => (
+                    <span className="font-semibold text-red-700">
+                      {h.dias >= 1 ? diasTexto(h.dias) : `${h.horas} h`}
+                    </span>
+                  ),
                 },
               ]}
             />

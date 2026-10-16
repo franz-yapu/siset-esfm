@@ -68,6 +68,7 @@ const datosNuevo = (extra: object = {}) => ({
   codigo: nuevoCodigo(),
   especialidadId: matematica,
   anioIngreso: 2024,
+  modalidad: 'A',
   ...extra,
 });
 
@@ -281,7 +282,7 @@ describe('PATCH /api/v1/files/:id', () => {
 
   it('género, modalidad y año de formación del folder personal (DEC-051)', async () => {
     const creado = await como('post', '/files', datosNuevo());
-    expect(creado.body).toMatchObject({ genero: null, modalidad: null, anioFormacion: null });
+    expect(creado.body).toMatchObject({ genero: null, modalidad: 'A', anioFormacion: null });
     const r = await como('patch', `/files/${creado.body.id}`, {
       genero: 'FEMENINO',
       modalidad: 'b1',
@@ -290,12 +291,20 @@ describe('PATCH /api/v1/files/:id', () => {
     expect(r.status).toBe(200);
     expect(r.body).toMatchObject({ genero: 'FEMENINO', modalidad: 'B1', anioFormacion: 4 });
     expect((await eventos(creado.body.id, 'EDITAR')).at(-1)).toMatchObject({
-      datosAntes: { genero: null, modalidad: null, anioFormacion: null },
+      datosAntes: { genero: null, modalidad: 'A', anioFormacion: null },
       datosDespues: { genero: 'FEMENINO', modalidad: 'B1', anioFormacion: 4 },
     });
-    for (const malo of [{ anioFormacion: 6 }, { modalidad: 'B-1' }, { genero: 'OTRO' }]) {
+    for (const malo of [{ anioFormacion: 6 }, { modalidad: 'B' }, { genero: 'OTRO' }]) {
       expect((await como('patch', `/files/${creado.body.id}`, malo)).status).toBe(400);
     }
+  });
+
+  it('D-45: un estudiante se registra con su modalidad (A, B1, B2 o B3); un egresado puede no tenerla', async () => {
+    const sin = await como('post', '/files', datosNuevo({ modalidad: null }));
+    expect(sin.status).toBe(400);
+    expect(sin.body.error.details[0]).toMatchObject({ ruta: 'body.modalidad' });
+    expect((await como('post', '/files', datosNuevo({ modalidad: 'B' }))).status).toBe(400);
+    expect((await como('post', '/files', datosNuevo({ modalidad: null, condicion: 'EGRESADO' }))).status).toBe(201);
   });
 
   it('fecha de nacimiento: se guarda y se registra como texto', async () => {

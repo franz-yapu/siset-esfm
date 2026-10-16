@@ -34,9 +34,9 @@ const datos = (o: Partial<DatosRequisito> = {}): DatosRequisito => ({
 });
 
 describe('requisitosMock: contrato de S2.4 y DEC-051', () => {
-  it('los 24 del folder personal en orden; arranca con lo que el prototipo tenía', async () => {
+  it('los 27 requisitos en orden; arranca con lo que el prototipo tenía', async () => {
     const lista = await requisitosMock.listar(1);
-    expect(lista.map((r) => r.orden)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+    expect(lista.map((r) => r.orden)).toEqual(Array.from({ length: 27 }, (_, i) => i + 1));
     const proto = db.files.find((f) => f.id === 1)!.requisitos;
     expect(lista.find((r) => r.codigo === 'TACFI_1')!.estado).toBe(
       proto.TACFI.estado === 'COMPLETO' ? 'COMPLETO' : 'PENDIENTE',

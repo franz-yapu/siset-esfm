@@ -37,3 +37,12 @@ certificados de notas que se entregan **una vez por gestión** (D-30b, D-39).
 - Un file sin año de formación nunca tiene requisitos atrasados.
 - Cambiar qué requisitos se piden es tocar el catálogo, no el motor. Cambiar cuándo uno es rojo sigue pidiendo un
   ADR.
+
+## Enmienda (2026-10-16, DEC-052)
+
+- **Modalidades exactas (D-45):** `solo_modalidad` es una lista separada por comas y se compara exacta. Se quita la
+  regla "una letra vale para todas las que empiezan con ella".
+- **Gestiones esperadas (D-47):** un requisito por gestión también queda PENDIENTE si cubre menos años distintos que
+  los esperados: el año de formación (matrícula) o el año de formación menos uno (certificado de notas,
+  `solo_anios_terminados`). Sin año de formación, basta uno. Tabla de casos: `CASOS_GESTIONES` y `CASOS_ESPERADAS`.
+- Las defensas del TCLOA vuelven con su año (D-46): entran en la regla de atrasado igual que los TACFI.

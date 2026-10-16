@@ -84,8 +84,11 @@ const buscar = (id: number): FileMock => {
   return f;
 };
 
-const exigirValidos = (d: DatosCrearFile) => {
-  const errores = Object.entries(validarDatosFile(d)).map(([campo, mensaje]) => ({ ruta: `body.${campo}`, mensaje }));
+const exigirValidos = (d: DatosCrearFile, creando: boolean) => {
+  const errores = Object.entries(validarDatosFile(d, creando)).map(([campo, mensaje]) => ({
+    ruta: `body.${campo}`,
+    mensaje,
+  }));
   if (errores.length) throw validacion(errores);
 };
 
@@ -165,7 +168,7 @@ export const filesMock: ServicioFiles = {
   async crear(datos: DatosCrearFile, actor: Usuario): Promise<FileDetalle> {
     await delay(LATENCIA);
     const d = normalizarDatosFile(datos);
-    exigirValidos(d);
+    exigirValidos(d, true);
     if (db.files.some((f) => f.ci === d.ci && (f.complemento ?? '') === d.complemento)) {
       throw conflicto('Esa persona ya tiene un file.', 'FILE_EXISTENTE');
     }
@@ -204,7 +207,7 @@ export const filesMock: ServicioFiles = {
     }
     const antes = aDetalle(f);
     const final = normalizarDatosFile({ ...antes, ...cambios });
-    exigirValidos(final);
+    exigirValidos(final, false);
     if (cambios.codigo !== undefined) exigirCodigoLibre(final.codigo, id);
     const previo: Record<string, unknown> = {};
     const nuevo: Record<string, unknown> = {};

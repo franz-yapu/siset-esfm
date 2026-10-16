@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
-import type { CondicionFile, DatosCrearFile, Especialidad, FileDetalle, Genero } from '@/types/files';
+import {
+  MODALIDADES,
+  type CondicionFile,
+  type DatosCrearFile,
+  type Especialidad,
+  type FileDetalle,
+  type Genero,
+  type Modalidad,
+} from '@/types/files';
 import { erroresDelFormularioFile, normalizarDatosFile, validarDatosFile, type CampoFile } from '@/lib/files';
 import { Alerta, Button, Input, Select } from '@/components/ui';
 
@@ -18,7 +26,7 @@ const vacio = (): DatosCrearFile => ({
   anioIngreso: new Date().getFullYear(),
   condicion: 'ESTUDIANTE',
   genero: null,
-  modalidad: '',
+  modalidad: null,
   anioFormacion: null,
 });
 
@@ -37,7 +45,7 @@ export const datosDeFile = (f: FileDetalle): DatosCrearFile => ({
   anioIngreso: f.anioIngreso,
   condicion: f.condicion,
   genero: f.genero,
-  modalidad: f.modalidad ?? '',
+  modalidad: f.modalidad,
   anioFormacion: f.anioFormacion,
 });
 
@@ -62,7 +70,7 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
     campos: {},
     general: null,
   });
-  const errores = { ...(enviado ? validarDatosFile(normalizarDatosFile(d)) : {}), ...deApi.campos };
+  const errores = { ...(enviado ? validarDatosFile(normalizarDatosFile(d), !editando) : {}), ...deApi.campos };
   const set = (p: Partial<DatosCrearFile>) => {
     setD({ ...d, ...p });
     // Al corregir un campo, su error de la API deja de valer.
@@ -73,7 +81,7 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
     e.preventDefault();
     setEnviado(true);
     const datos = normalizarDatosFile(d);
-    if (Object.keys(validarDatosFile(datos)).length) return;
+    if (Object.keys(validarDatosFile(datos, !editando)).length) return;
     setGuardando(true);
     setDeApi({ campos: {}, general: null });
     try {
@@ -114,8 +122,10 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
         <Input
           label="Código de estudiante"
           value={d.codigo}
+          placeholder="209-AUM05030000"
           onChange={(e) => set({ codigo: e.target.value })}
           error={errores.codigo}
+          hint="Como en la matrícula: 209 (UA Ancocagua) + iniciales + fecha de nacimiento + 00."
         />
         <Input
           label="Nombres"
@@ -196,14 +206,20 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
           <option value="FEMENINO">Femenino</option>
           <option value="MASCULINO">Masculino</option>
         </Select>
-        <Input
-          label="Modalidad"
+        <Select
+          label="Modalidad de ingreso"
           value={d.modalidad ?? ''}
-          maxLength={5}
-          onChange={(e) => set({ modalidad: e.target.value.toUpperCase() })}
+          onChange={(e) => set({ modalidad: (e.target.value || null) as Modalidad | null })}
           error={errores.modalidad}
-          hint="Como en el folder personal: A, B1, B3…"
-        />
+          hint="Como en el folder personal. Obligatoria para un estudiante."
+        >
+          <option value="">Sin indicar</option>
+          {MODALIDADES.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Select>
         <Select
           label="Año de formación"
           value={d.anioFormacion ?? ''}

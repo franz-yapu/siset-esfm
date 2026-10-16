@@ -198,19 +198,27 @@ test.describe.serial('historial con valorado: las firmas de las direcciones las 
     await expect(page.getByText('Acción disponible:')).toHaveCount(0);
   });
 
-  test('SEC_DIR registra las dos firmas y la entrega a un apoderado de otro día', async ({ page }) => {
+  test('SEC_DIR registra las dos firmas y la entrega a un familiar de otro día (D-42)', async ({ page }) => {
     await entrarComo(page, 'SEC_DIR');
     await pasoEnDetalle(page, nro, 'Registrar firma de Dirección Académica', 'Firmado por Dir. Académica');
     await pasoEnDetalle(page, nro, 'Registrar firma de Dirección General', 'Listo para entregar');
     await page.getByRole('button', { name: 'Registrar entrega' }).click();
-    await page.getByLabel('Entregado a').selectOption('Apoderado');
+    await page.getByLabel('Entregado a').selectOption('Familiar');
+    await page.getByLabel('Parentesco', { exact: true }).selectOption('Madre');
+    await page.getByLabel('Nombre de quien recibe').fill('Rosa Flujo');
     await page.getByLabel('CI de quien recibe').fill('5566778');
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Registrar entrega' })).toBeDisabled();
+    await page.getByLabel('Verifiqué el parentesco y firmó el recojo.').check();
     const ayer = new Date(Date.now() - 28 * 3600_000).toISOString().slice(0, 10);
     await page.getByLabel('Fecha').fill(ayer);
     await page.getByRole('dialog').getByRole('button', { name: 'Registrar entrega' }).click();
     await expect(page.getByText(`${nro}: Entregado`)).toBeVisible();
     const [a, m, d] = ayer.split('-');
-    await expect(page.getByText(`Entregado a apoderado (CI 5566778) el ${d}/${m}/${a}`)).toBeVisible();
+    await expect(
+      page.getByText(
+        `Entregado a familiar: madre, Rosa Flujo (CI 5566778); parentesco verificado y firma de recojo el ${d}/${m}/${a}`,
+      ),
+    ).toBeVisible();
   });
 });
 

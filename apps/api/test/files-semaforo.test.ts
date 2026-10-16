@@ -2,17 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { semaforoDelFile } from '@/modulos/files/semaforo';
 import {
   entradaDelSemaforo,
+  gestionesEsperadas,
   requisitoAplica,
   requisitoAtrasado,
   resumenDeGestiones,
   type RequisitoParaReglas,
 } from '@/modulos/files/requisitos-reglas';
-import { CASOS_APLICA, CASOS_ATRASADO, CASOS_GESTIONES, CASOS_SEMAFORO } from './fixtures/casos-semaforo';
+import {
+  CASOS_APLICA,
+  CASOS_ATRASADO,
+  CASOS_ESPERADAS,
+  CASOS_GESTIONES,
+  CASOS_SEMAFORO,
+} from './fixtures/casos-semaforo';
 
 const req = (o: Partial<RequisitoParaReglas>): RequisitoParaReglas => ({
   obligatorio: true,
   anioFormacion: null,
   porGestion: false,
+  soloAniosTerminados: false,
   soloGenero: null,
   soloModalidad: null,
   ...o,
@@ -29,8 +37,13 @@ describe('qué entra al semáforo (ADR-0007)', () => {
     expect(requisitoAplica(requisito, file)).toBe(aplica);
   });
 
-  it.each(CASOS_GESTIONES)('gestiones: $caso → $resumen', ({ estados, resumen }) => {
-    expect(resumenDeGestiones(estados)).toBe(resumen);
+  it.each(CASOS_GESTIONES)('gestiones: $caso → $resumen', ({ gestiones, esperadas, resumen }) => {
+    expect(resumenDeGestiones(gestiones, esperadas)).toBe(resumen);
+  });
+
+  it.each(CASOS_ESPERADAS)('esperadas: $caso → $esperadas', ({ anioFile, soloTerminados, esperadas }) => {
+    const file = { genero: null, modalidad: null, anioFormacion: anioFile };
+    expect(gestionesEsperadas(req({ porGestion: true, soloAniosTerminados: soloTerminados }), file)).toBe(esperadas);
   });
 
   it.each(CASOS_ATRASADO)('atrasado: $caso → $atrasado', ({ anioRequisito, anioFile, estado, atrasado }) => {

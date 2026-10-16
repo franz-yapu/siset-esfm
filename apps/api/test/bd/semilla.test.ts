@@ -16,7 +16,7 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('es idempotente: dos corridas dejan los mismos conteos', async () => {
     const primera = await sembrar(bd, KARDEX_DE_PRUEBA);
     const segunda = await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 24 });
+    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 27 });
     // Los archivos comparten la base y otros tests crean usuarios con eventos en la
     // bitácora, que no se pueden borrar (ADR-0003): se cuenta "al menos uno".
     expect(primera.personas).toBeGreaterThanOrEqual(1);
@@ -50,9 +50,9 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
     expect(await bd.usuario.count({ where: { username: '9000002-1A' } })).toBe(1);
   });
 
-  it('siembra los 24 requisitos del folder personal en su orden (DEC-051)', async () => {
+  it('siembra los 24 del folder personal y las 3 defensas del TCLOA, en orden (DEC-051, DEC-052)', async () => {
     const activos = await bd.requisitoTipo.findMany({ where: { activo: true }, orderBy: { orden: 'asc' } });
-    expect(activos.map((r) => r.orden)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+    expect(activos.map((r) => r.orden)).toEqual(Array.from({ length: 27 }, (_, i) => i + 1));
     expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_TEC_2' } })).toMatchObject({
       anioFormacion: 4,
       pideCurso: true,
@@ -69,14 +69,16 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
     });
   });
 
-  it('da de baja los niveles del TCLO del catálogo provisional y conserva la fila', async () => {
-    await bd.requisitoTipo.upsert({
-      where: { codigo: 'TCLO_BASICO' },
-      create: { codigo: 'TCLO_BASICO', nombre: 'TCLO nivel básico', nivel: 'BASICO', anioFormacion: 1 },
-      update: { activo: true },
+  it('D-46: las defensas del TCLOA están activas, una por año, y el certificado de notas cuenta años terminados', async () => {
+    const tclo = await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TCLO_INTERMEDIO' } });
+    expect(tclo).toMatchObject({ activo: true, anioFormacion: 2, nombre: 'Defensa del TCLOA – nivel intermedio' });
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'CERT_NOTAS' } })).toMatchObject({
+      soloAniosTerminados: true,
     });
-    await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TCLO_BASICO' } })).activo).toBe(false);
+    expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'CALIF_SECUNDARIA' } })).toMatchObject({
+      soloModalidad: 'B1,B2,B3',
+      obligatorio: false,
+    });
   });
 
   it('el seed manda sobre el catálogo mientras Kardex no pueda editarlo (DEC-051)', async () => {

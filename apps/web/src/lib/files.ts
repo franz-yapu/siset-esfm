@@ -1,4 +1,4 @@
-import type { CambiosFile, DatosCrearFile } from '@/types/files';
+import { MODALIDADES, type CambiosFile, type DatosCrearFile } from '@/types/files';
 import { erroresDeFormulario, type ErroresDeFormulario } from './formularios';
 
 // Reglas del formulario del file (SDD S2.9-S2.10 §2.5). Repiten las de
@@ -38,11 +38,13 @@ export const normalizarDatosFile = (d: DatosCrearFile): DatosCrearFile => ({
   celular: vacio(d.celular),
   email: vacio(d.email),
   codigo: d.codigo.trim(),
-  modalidad: vacio(d.modalidad)?.toUpperCase() ?? null,
+  modalidad: (vacio(d.modalidad)?.toUpperCase() ?? null) as DatosCrearFile['modalidad'],
 });
 
+/** `creando`: la modalidad solo se exige al registrar un estudiante, como en la API (D-45). */
 export function validarDatosFile(
   d: DatosCrearFile,
+  creando = true,
   anioActual = new Date().getFullYear(),
 ): Partial<Record<CampoFile, string>> {
   const e: Partial<Record<CampoFile, string>> = {};
@@ -58,8 +60,11 @@ export function validarDatosFile(
   if (!Number.isInteger(d.anioIngreso) || d.anioIngreso < ANIO_MIN)
     e.anioIngreso = `El año de ingreso va de ${ANIO_MIN} en adelante`;
   else if (d.anioIngreso > anioActual + 1) e.anioIngreso = 'El año de ingreso no puede ser posterior al año siguiente';
-  if (d.modalidad && !/^[A-Z][A-Z0-9]{0,4}$/.test(d.modalidad))
-    e.modalidad = 'La modalidad es una letra y hasta 4 letras o dígitos (A, B1, B3…)';
+  if (d.modalidad && !(MODALIDADES as readonly string[]).includes(d.modalidad))
+    e.modalidad = 'Elija la modalidad de ingreso (A, B1, B2 o B3)';
+  // D-45: el estudiante se registra con su modalidad de ingreso.
+  if (creando && !d.modalidad && d.condicion === 'ESTUDIANTE')
+    e.modalidad = 'Elija la modalidad de ingreso (A, B1, B2 o B3)';
   if (d.anioFormacion !== null && (!Number.isInteger(d.anioFormacion) || d.anioFormacion < 1 || d.anioFormacion > 5))
     e.anioFormacion = 'El año de formación va de 1 a 5';
   return e;

@@ -1,6 +1,7 @@
 import type { Entrega, EstadoTramite, HojaRuta, HojaRutaConTitular, Movimiento, TipoTramite, Usuario } from '@/types';
 import { auditar, copia, db } from '@/mocks/db';
-import { ahora, delay, diasDesde } from '@/lib/formato';
+import { ahora, delay } from '@/lib/formato';
+import { textoEntrega } from '@/lib/entrega';
 import {
   accionesDisponibles,
   aplicarTransicion,
@@ -26,11 +27,11 @@ export interface NuevaHojaRuta {
   obs?: string;
 }
 
-/** Días sin movimiento a partir de los cuales un trámite se marca como detenido. */
-export const DIAS_DETENIDO = 10;
+/** Horas sin movimiento desde las que un trámite está atrasado: debe responderse en 48 a 72 h (D-44). */
+export const HORAS_DETENIDO = 72;
 
 export const estaDetenido = (h: HojaRuta): boolean =>
-  h.estado !== 'ENTREGADO' && diasDesde(ultimoMovimiento(h)) > DIAS_DETENIDO;
+  h.estado !== 'ENTREGADO' && Date.now() - Date.parse(ultimoMovimiento(h)) > HORAS_DETENIDO * 60 * 60_000;
 
 /** RF-08 CA2: HR-AAAA-NNNNNN, correlativo por gestión. En la API real va en una transacción con secuencia. */
 const siguienteCorrelativo = (): string => {
@@ -84,7 +85,7 @@ export const hojasRutaPrototipoService = {
     await delay(LATENCIA);
     if (!entrega.ciReceptor.trim()) throw new ErrorNegocio('El CI de quien recibe es obligatorio');
     const h = aplicarTransicion(nro, 'ENTREGAR', u, {
-      obs: `Entregado a ${entrega.entregadoA.toLowerCase()} (CI ${entrega.ciReceptor.trim()})`,
+      obs: textoEntrega(entrega),
     });
     h.entrega = { ...entrega, ciReceptor: entrega.ciReceptor.trim(), fecha: entrega.fecha || ahora() };
   },

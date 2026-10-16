@@ -172,13 +172,14 @@ export const esquemaReporteHojasRuta = z
     porMes: z.array(z.object({ mes: z.string(), total: z.number().int() })),
     /** Días promedio que los trámites pasaron en cada estado (solo los que ya salieron de él). */
     porEtapa: z.array(z.object({ estado, dias: z.number() })),
-    /** En curso y sin movimiento hace más de `DIAS_DETENIDO` días, los más quietos primero. */
+    /** En curso y sin movimiento hace más de `HORAS_DETENIDO` (72) horas, los más quietos primero (D-44). */
     detenidos: z.array(
       z.object({
         nro: z.string(),
         titular: z.string(),
         estado,
         sedeActual: z.string(),
+        horas: z.number().int(),
         dias: z.number().int(),
       }),
     ),

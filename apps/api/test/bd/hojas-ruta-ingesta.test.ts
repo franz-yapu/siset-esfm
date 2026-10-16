@@ -247,7 +247,7 @@ describe('POST /seguimiento (RF-09, S4.1)', () => {
 });
 
 describe('GET /reportes/hojas-ruta (RF-13)', () => {
-  it('cuenta por estado y tipo, y marca como detenido lo que no se mueve hace más de 10 días', async () => {
+  it('cuenta por estado y tipo, y marca como atrasado lo que no se mueve hace más de 72 horas (D-44)', async () => {
     const f = await nuevoFile({ nombres: 'Reportada' });
     const nro = (await ingresar({ fileId: f.fileId, tipoTramite: 'CERT_EXCELENCIA_ANTERIOR' })).body.nro as string;
     // Los movimientos son inmutables (trigger): se adelanta el reloj 15 días en vez de cambiar su fecha.
@@ -267,7 +267,9 @@ describe('GET /reportes/hojas-ruta (RF-13)', () => {
       r.body.total,
     );
     expect(r.body.porMes).toHaveLength(6);
-    expect(r.body.detenidos).toContainEqual(expect.objectContaining({ nro, titular: 'Reportada Ingesta', dias: 15 }));
+    expect(r.body.detenidos).toContainEqual(
+      expect.objectContaining({ nro, titular: 'Reportada Ingesta', dias: 15, horas: 15 * 24 }),
+    );
     expect((await pedir({ desde: '2099-01-01' })).body.total).toBe(0);
     expect((await pedir({}, 'SEC_COORD')).status).toBe(403);
     vi.useRealTimers();

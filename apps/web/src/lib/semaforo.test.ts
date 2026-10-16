@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
   CASOS_APLICA,
   CASOS_ATRASADO,
+  CASOS_ESPERADAS,
   CASOS_GESTIONES,
   CASOS_SEMAFORO,
 } from '../../../api/test/fixtures/casos-semaforo';
 import { semaforoDelFile, textoSemaforo } from './semaforo';
-import { requisitoAplica, requisitoAtrasado, resumenDeGestiones } from './requisitos-reglas';
+import { gestionesEsperadas, requisitoAplica, requisitoAtrasado, resumenDeGestiones } from './requisitos-reglas';
 
 describe('paridad del semáforo con la API (SDD S2.5 §2.1, ADR-0007)', () => {
   it.each(CASOS_SEMAFORO)('$caso → $color', ({ bloqueado, estados, atrasado, color }) => {
@@ -18,8 +19,20 @@ describe('paridad del semáforo con la API (SDD S2.5 §2.1, ADR-0007)', () => {
     expect(requisitoAplica(requisito, file)).toBe(aplica);
   });
 
-  it.each(CASOS_GESTIONES)('gestiones: $caso → $resumen', ({ estados, resumen }) => {
-    expect(resumenDeGestiones(estados)).toBe(resumen);
+  it.each(CASOS_GESTIONES)('gestiones: $caso → $resumen', ({ gestiones, esperadas, resumen }) => {
+    expect(resumenDeGestiones(gestiones, esperadas)).toBe(resumen);
+  });
+
+  it.each(CASOS_ESPERADAS)('esperadas: $caso → $esperadas', ({ anioFile, soloTerminados, esperadas }) => {
+    const r = {
+      obligatorio: true,
+      anioFormacion: null,
+      porGestion: true,
+      soloAniosTerminados: soloTerminados,
+      soloGenero: null,
+      soloModalidad: null,
+    };
+    expect(gestionesEsperadas(r, { genero: null, modalidad: null, anioFormacion: anioFile })).toBe(esperadas);
   });
 
   it.each(CASOS_ATRASADO)('atrasado: $caso → $atrasado', ({ anioRequisito, anioFile, estado, atrasado }) => {
@@ -27,6 +40,7 @@ describe('paridad del semáforo con la API (SDD S2.5 §2.1, ADR-0007)', () => {
       obligatorio: true,
       anioFormacion: anioRequisito,
       porGestion: false,
+      soloAniosTerminados: false,
       soloGenero: null,
       soloModalidad: null,
     };

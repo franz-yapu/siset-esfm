@@ -90,12 +90,12 @@ beforeAll(async () => {
 afterAll(() => bd.$disconnect());
 
 describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
-  it('lista los 24 del folder personal en su orden, todo PENDIENTE sin registros (DEC-051)', async () => {
+  it('lista los 27 requisitos en su orden, todo PENDIENTE sin registros (DEC-051, DEC-052)', async () => {
     const id = await nuevoFile();
     const r = await como('COORDINADOR', 'get', `/files/${id}/requisitos`);
     expect(r.status).toBe(200);
-    expect(r.body).toHaveLength(24);
-    expect(r.body.map((x: { orden: number }) => x.orden)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+    expect(r.body).toHaveLength(27);
+    expect(r.body.map((x: { orden: number }) => x.orden)).toEqual(Array.from({ length: 27 }, (_, i) => i + 1));
     expect(r.body.find((x: Item) => x.codigo === 'TACFI_1')).toMatchObject({
       nombre: 'Certificado legalizado de TACFI – Artístico I',
       anioFormacion: 1,
@@ -112,7 +112,7 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
     expect(r.body.find((x: Item) => x.codigo === 'MATRICULA')).toMatchObject({ porGestion: true, gestiones: [] });
   });
 
-  it('libreta militar solo a varones; los de modalidad, solo a su modalidad ("B" vale para B3)', async () => {
+  it('libreta militar solo a varones; los de modalidad, solo a su modalidad exacta (D-45)', async () => {
     const aplica = async (id: number) =>
       Object.fromEntries(
         ((await como('KARDEX', 'get', `/files/${id}/requisitos`)).body as Item[]).map((x) => [x.codigo, x.aplica]),
@@ -126,6 +126,28 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
       CARNET_DISCAPACIDAD: true,
       PUEBLO_INDIGENA: false,
     });
+    expect(await aplica(await nuevoFile({ modalidad: 'A' }))).toMatchObject({ CALIF_SECUNDARIA: false });
+  });
+
+  it('D-47: en 3.º año la matrícula pide 3 años y el certificado de notas 2; dos semestres son un año', async () => {
+    const id = await nuevoFile({ anioFormacion: 3 });
+    const estado = async (c: string) =>
+      (
+        (await como('KARDEX', 'get', `/files/${id}/requisitos`)).body as (Item & {
+          estado: string;
+          gestionesEsperadas: number;
+        })[]
+      ).find((x) => x.codigo === c)!;
+    const poner = (c: string, gestion: string) =>
+      como('KARDEX', 'put', `/files/${id}/requisitos/${c}`, { estado: 'COMPLETO', fecha: '2026-03-01', gestion });
+    expect(await estado('MATRICULA')).toMatchObject({ gestionesEsperadas: 3, estado: 'PENDIENTE' });
+    expect(await estado('CERT_NOTAS')).toMatchObject({ gestionesEsperadas: 2 });
+    for (const g of ['2024', 'I/2025', 'II/2025']) await poner('MATRICULA', g);
+    expect((await estado('MATRICULA')).estado).toBe('PENDIENTE');
+    await poner('MATRICULA', 'I/2026');
+    expect((await estado('MATRICULA')).estado).toBe('COMPLETO');
+    for (const g of ['2024', 'II/2025']) await poner('CERT_NOTAS', g);
+    expect((await estado('CERT_NOTAS')).estado).toBe('COMPLETO');
   });
 
   it('matrícula por gestión: una fila por gestión, resumen del estado y la gestión en la bitácora', async () => {
@@ -190,17 +212,21 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
     expect(ajeno.status).toBe(400);
   });
 
-  it('D-31: en 3.º año, el TACFI de 1.º que falta está atrasado y pone el file en rojo', async () => {
+  it('D-31: en 3.º año, los TACFI y las defensas del TCLOA de años pasados que faltan están atrasados (rojo)', async () => {
     const id = await nuevoFile({ anioFormacion: 3 });
     const lista = (await como('KARDEX', 'get', `/files/${id}/requisitos`)).body as (Item & { atrasado: boolean })[];
-    expect(lista.filter((x) => x.atrasado).map((x) => x.codigo)).toEqual(['TACFI_1', 'TACFI_2']);
+    expect(lista.filter((x) => x.atrasado).map((x) => x.codigo)).toEqual([
+      'TCLO_BASICO',
+      'TCLO_INTERMEDIO',
+      'TACFI_1',
+      'TACFI_2',
+    ]);
     expect((await como('KARDEX', 'get', `/files/${id}`)).body.semaforo).toBe('ROJO');
-    for (const c of ['TACFI_1', 'TACFI_2']) {
+    for (const c of ['TACFI_1', 'TACFI_2', 'TCLO_BASICO', 'TCLO_INTERMEDIO']) {
       await como('KARDEX', 'put', `/files/${id}/requisitos/${c}`, {
         estado: 'COMPLETO',
         fecha: '2024-10-01',
-        nombreCurso: 'Curso',
-        entidadEmisora: 'Entidad',
+        ...(c.startsWith('TACFI') ? { nombreCurso: 'Curso', entidadEmisora: 'Entidad' } : {}),
       });
     }
     expect((await como('KARDEX', 'get', `/files/${id}`)).body.semaforo).toBe('AMARILLO');
@@ -289,7 +315,7 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
   it('GET /catalogos/requisitos: el catálogo activo', async () => {
     const r = await como('COORDINADOR', 'get', '/catalogos/requisitos');
     expect(r.status).toBe(200);
-    expect(r.body).toHaveLength(24);
+    expect(r.body).toHaveLength(27);
     expect(r.body[0]).toMatchObject({ codigo: 'ADMISION', orden: 1, obligatorio: true, porGestion: false });
   });
 

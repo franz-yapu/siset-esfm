@@ -8,7 +8,7 @@ import { useBandejasHojasRuta, useHojaRuta, useMutacionHojasRuta } from '@/hooks
 import { useRequisitos } from '@/hooks/useRequisitos';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ErrorApi } from '@/lib/errores';
-import { diasDesde, diasTexto } from '@/lib/formato';
+import { diasDesde, diasTexto, fecha, fechaHora, hoy } from '@/lib/formato';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import {
   Alerta,
@@ -22,13 +22,26 @@ import {
   Textarea,
 } from '@/components/ui';
 import { Confirmar } from './Confirmar';
+import { ModalEntrega } from './ModalEntrega';
+import { textoEntrega } from '@/lib/entrega';
+import type { Entrega } from '@/types';
 
 export interface BandejaKardexTab {
   estado: EstadoHojaRuta;
   label: string;
-  /** Lo que se muestra en el panel cuando Kardex no tiene un paso que registrar. */
+  /** Lo que se muestra en el panel cuando el usuario no tiene un paso que registrar. */
   esperando: string;
+  /** Solo las filas que cumplen (p. ej., las firmas de las Direcciones son solo de los trámites con valorado). */
+  filtro?: (h: FilaHojaRuta) => boolean;
 }
+
+/** Pasos que mueven el documento entre sedes (D-35): quién lo mandó, quién lo recibió y cuándo. */
+const PASOS_DE_PASE: Record<string, string> = {
+  AVISAR_KARDEX: 'Secretaría avisó a Kardex',
+  RECOGER: 'Kardex lo recogió en Calahumana',
+  REMITIR: 'Kardex lo remitió a Calahumana',
+  RECIBIR_CALAHUMANA: 'Llegó a Calahumana',
+};
 
 /**
  * Bandeja de Kardex contra la API (P-43, P-44): una pestaña por estado y, al elegir un trámite, el panel con el
@@ -39,15 +52,22 @@ export function BandejaKardex({
   titulo,
   subtitulo,
   tabs,
+  conRequisitos = true,
+  mostrarPases = false,
 }: {
   titulo: string;
   subtitulo: string;
   tabs: readonly BandejaKardexTab[];
+  /** SEC_DIR no lee requisitos (DEC-015): su panel no los muestra. */
+  conRequisitos?: boolean;
+  /** Bandeja de pases (D-35): el panel muestra los envíos entre sedes. */
+  mostrarPases?: boolean;
 }) {
   const [tab, setTab] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
-  const { data, isLoading, error } = useBandejasHojasRuta(tabs.map((t) => t.estado));
+  const { data: crudo, isLoading, error } = useBandejasHojasRuta(tabs.map((t) => t.estado));
   if (error) return <Alerta tipo="error">{error.message}</Alerta>;
+  const data = crudo?.map((lista, i) => (tabs[i].filtro ? lista.filter(tabs[i].filtro) : lista));
   const filas = data?.[tab] ?? [];
   const actual = filas.find((h) => h.nro === sel) ?? null;
 
@@ -98,7 +118,14 @@ export function BandejaKardex({
           />
         </div>
         {actual && (
-          <Panel key={actual.nro} fila={actual} esperando={tabs[tab].esperando} onCerrar={() => setSel(null)} />
+          <Panel
+            key={actual.nro}
+            fila={actual}
+            esperando={tabs[tab].esperando}
+            conRequisitos={conRequisitos}
+            mostrarPases={mostrarPases}
+            onCerrar={() => setSel(null)}
+          />
         )}
       </div>
     </>
@@ -129,22 +156,34 @@ function Requisitos({ lista }: { lista: RequisitoDelFile[] }) {
   );
 }
 
-/** Panel lateral: titular, requisitos del file y los pasos de Kardex sobre el trámite. */
-function Panel({ fila, esperando, onCerrar }: { fila: FilaHojaRuta; esperando: string; onCerrar: () => void }) {
+/** Panel lateral: titular, requisitos del file (o los pases) y los pasos que el usuario puede registrar. */
+function Panel({
+  fila,
+  esperando,
+  conRequisitos,
+  mostrarPases,
+  onCerrar,
+}: {
+  fila: FilaHojaRuta;
+  esperando: string;
+  conRequisitos: boolean;
+  mostrarPases: boolean;
+  onCerrar: () => void;
+}) {
   const u = useUsuario();
   const toast = useToast();
   const { data: h, isLoading, refetch } = useHojaRuta(fila.nro, u);
-  const { data: requisitos, isLoading: cargandoReq } = useRequisitos(fila.titular.fileId);
+  const { data: requisitos, isLoading: cargandoReq } = useRequisitos(fila.titular.fileId, conRequisitos);
   const [paso, setPaso] = useState<AccionPosible | null>(null);
   const [obs, setObs] = useState('');
   const mover = useMutacionHojasRuta((a: { accion: AccionPosible; observacion: string | null }) =>
     hojasRutaService.transicion(fila.nro, a.accion.accion, a.observacion, u),
   );
 
-  const confirmar = async () => {
+  const confirmar = async (observacion = obs.trim() || null) => {
     if (!paso) return;
     try {
-      const nuevo = await mover.mutateAsync({ accion: paso, observacion: obs.trim() || null });
+      const nuevo = await mover.mutateAsync({ accion: paso, observacion });
       toast.success(`${nuevo.nro}: ${ESTADOS_HR[nuevo.estado].etiqueta}`);
       onCerrar();
     } catch (e) {
@@ -190,14 +229,36 @@ function Panel({ fila, esperando, onCerrar }: { fila: FilaHojaRuta; esperando: s
           </p>
           {h.titular.bloqueado && (
             <Alerta tipo="error" className="mt-3">
-              El file del titular está bloqueado: no se puede recoger ni imprimir hasta que se desbloquee.
+              El file del titular está bloqueado: el trámite no avanza hasta que Kardex lo desbloquee.
             </Alerta>
           )}
-          <h3 className="mt-4 mb-2 text-sm font-semibold text-slate-700">Requisitos obligatorios del file</h3>
-          {cargandoReq || !requisitos ? <Cargando /> : <Requisitos lista={requisitos} />}
-          <Link to={`/files/${h.titular.fileId}`} className="mt-2 inline-block text-sm text-acento hover:underline">
-            Abrir el file
-          </Link>
+          {mostrarPases && (
+            <>
+              <h3 className="mt-4 mb-2 text-sm font-semibold text-slate-700">Envíos entre sedes</h3>
+              <ul className="space-y-1.5 text-sm">
+                {h.movimientos
+                  .filter((m) => m.accion in PASOS_DE_PASE)
+                  .map((m) => (
+                    <li key={`${m.accion}-${m.fecha}`}>
+                      <span className="font-medium text-slate-800">{PASOS_DE_PASE[m.accion]}</span>
+                      <span className="text-slate-500">
+                        {' '}
+                        · {m.usuario.nombre} · {fechaHora(m.fecha)}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </>
+          )}
+          {conRequisitos && !mostrarPases && (
+            <>
+              <h3 className="mt-4 mb-2 text-sm font-semibold text-slate-700">Requisitos obligatorios del file</h3>
+              {cargandoReq || !requisitos ? <Cargando /> : <Requisitos lista={requisitos} />}
+              <Link to={`/files/${h.titular.fileId}`} className="mt-2 inline-block text-sm text-acento hover:underline">
+                Abrir el file
+              </Link>
+            </>
+          )}
           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
             {h.acciones.length === 0 && <p className="text-sm text-slate-500">{esperando}</p>}
             {h.acciones.map((a) => (
@@ -213,8 +274,21 @@ function Panel({ fila, esperando, onCerrar }: { fila: FilaHojaRuta; esperando: s
           </div>
         </>
       )}
+      {paso?.accion === 'ENTREGAR' && (
+        <ModalEntrega
+          abierto
+          nro={fila.nro}
+          ciTitular={fila.titular.ci}
+          onCerrar={() => setPaso(null)}
+          onConfirmar={(e: Entrega) => {
+            // Como en el detalle: si la entrega fue otro día, la fecha va en la observación (DEC-046).
+            const dia = e.fecha.slice(0, 10);
+            return confirmar(`${textoEntrega(e)}${dia === hoy() ? '' : ` el ${fecha(dia)}`}`);
+          }}
+        />
+      )}
       <Confirmar
-        abierto={paso !== null}
+        abierto={paso !== null && paso.accion !== 'ENTREGAR'}
         titulo={paso?.etiqueta ?? ''}
         cargando={mover.isPending}
         onCerrar={() => setPaso(null)}

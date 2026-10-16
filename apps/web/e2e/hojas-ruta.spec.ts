@@ -86,3 +86,22 @@ test('seguimiento público con el QR: N.º + CI muestran el avance; un CI equivo
   await expect(page.getByText('Recibido').first()).toBeVisible();
   expect(problemas).toEqual([]);
 });
+
+test('SEC_DIR entrega a un familiar desde "Firma y entrega" (D-36, D-42)', async ({ page }) => {
+  const problemas = vigilarConsola(page);
+  await iniciarSesion(page, 'secdir');
+  await page.getByRole('link', { name: 'Firma y entrega' }).click();
+  await page.getByRole('tab', { name: /Por entregar/ }).click();
+  await page.getByRole('row', { name: /HR-2026-000005/ }).click();
+  await page.getByRole('button', { name: 'Registrar entrega' }).click();
+  const dialogo = page.getByRole('dialog', { name: /Registrar entrega/ });
+  await dialogo.getByLabel('Entregado a').selectOption('Familiar');
+  await dialogo.getByLabel('Parentesco', { exact: true }).selectOption('Hijo/a');
+  await dialogo.getByLabel('Nombre de quien recibe').fill('Ana Tarqui');
+  await dialogo.getByLabel('CI de quien recibe').fill('7788990');
+  await expect(dialogo.getByRole('button', { name: 'Registrar entrega' })).toBeDisabled();
+  await dialogo.getByLabel('Verifiqué el parentesco y firmó el recojo.').check();
+  await dialogo.getByRole('button', { name: 'Registrar entrega' }).click();
+  await expect(page.getByText('HR-2026-000005: Entregado')).toBeVisible();
+  expect(problemas).toEqual([]);
+});

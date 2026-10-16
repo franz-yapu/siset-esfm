@@ -10,7 +10,7 @@ export type FileMock = FileAcademico & {
   apellidoMaterno?: string | null;
   /** Cabecera del folder personal (DEC-051). */
   genero?: 'FEMENINO' | 'MASCULINO' | null;
-  modalidad?: string | null;
+  modalidad?: 'A' | 'B1' | 'B2' | 'B3' | null;
   anioFormacion?: number | null;
   /**
    * Requisitos con el catálogo de S2.4; se arma de `requisitos` la primera vez que se lee. La clave es el código, o

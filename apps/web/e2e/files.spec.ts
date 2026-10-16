@@ -28,6 +28,7 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.getByLabel('Apellido paterno').fill('Zuñiga');
     await page.getByLabel('Apellido materno').fill('Quispe');
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
+    await page.getByLabel('Modalidad de ingreso').selectOption('A');
     await page.getByLabel('Año de ingreso').fill('2026');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByRole('heading', { name: 'Juana Zuñiga Quispe' })).toBeVisible();
@@ -40,6 +41,7 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.getByLabel('Nombres').fill('Otra');
     await page.getByLabel('Apellido paterno').fill('Persona');
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
+    await page.getByLabel('Modalidad de ingreso').selectOption('A');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByText('Ya existe un file con ese código de estudiante.')).toBeVisible();
 
@@ -108,6 +110,7 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.getByLabel('Nombres').fill('Elsa');
     await page.getByLabel('Apellido paterno').fill('Choque');
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
+    await page.getByLabel('Modalidad de ingreso').selectOption('A');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await page.getByRole('tab', { name: 'Requisitos' }).click();
     // Sin género, la libreta militar no se le pide.

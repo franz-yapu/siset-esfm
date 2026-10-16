@@ -23,7 +23,12 @@ import type {
   FiltrosFiles,
 } from './files.esquemas';
 import { listarEstadosDeFiles } from './requisito.repositorio';
-import { entradaDelSemaforo, resumenDeGestiones, type RequisitoParaReglas } from './requisitos-reglas';
+import {
+  entradaDelSemaforo,
+  gestionesEsperadas,
+  resumenDeGestiones,
+  type RequisitoParaReglas,
+} from './requisitos-reglas';
 import { semaforoDelFile, type ColorSemaforo, type EstadoParaSemaforo } from './semaforo';
 
 type Cliente = ClienteBd | TransaccionBd;
@@ -123,7 +128,8 @@ function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: Colo
     anioIngreso: f.anioIngreso,
     condicion: f.condicion,
     genero: f.genero,
-    modalidad: f.modalidad,
+    // El CHECK `ck_file_modalidad` asegura que es una de MODALIDADES.
+    modalidad: f.modalidad as FileDetalle['modalidad'],
     anioFormacion: f.anioFormacion,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo,
@@ -173,7 +179,10 @@ export function crearServicioFiles({
         const { estados, atrasado } = entradaDelSemaforo(catalogo, f, (r) => {
           const registros = estadosDe.get(`${f.id}:${r.id}`) ?? [];
           return r.porGestion
-            ? resumenDeGestiones(registros.filter((x) => x.gestion !== '').map((x) => x.estado))
+            ? resumenDeGestiones(
+                registros.filter((x) => x.gestion !== ''),
+                gestionesEsperadas(r, f),
+              )
             : (registros.find((x) => x.gestion === '')?.estado ?? 'PENDIENTE');
         });
         return [f.id, semaforoDelFile({ bloqueado: f.bloqueado, estados, atrasado })];

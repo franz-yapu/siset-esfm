@@ -6,6 +6,8 @@ import { COLORES_SEMAFORO } from './semaforo';
 
 export const CONDICIONES = ['ESTUDIANTE', 'EGRESADO'] as const;
 export const GENEROS = ['FEMENINO', 'MASCULINO'] as const;
+/** Modalidades de ingreso (D-45): no es lo mismo A, B1, B2 y B3. */
+export const MODALIDADES = ['A', 'B1', 'B2', 'B3'] as const;
 
 /** El CHECK de la tabla (ck_file_anio): 1990–2100; la API no acepta más allá del año siguiente. */
 const ANIO_MIN = 1990;
@@ -37,8 +39,16 @@ const camposEditables = {
   fechaNacimiento,
   email,
   celular: textoOpcional(20),
-  /** Texto libre y único hasta conocer el formato de la escuela (DEC-016 #4, D-28). */
-  codigo: z.string().trim().min(1, 'El código de estudiante es obligatorio').max(20).meta({ example: 'EST-2024-015' }),
+  /**
+   * Único y en texto libre (DEC-016 #4). El de la escuela (D-28c): 209 (UA Ancocagua) + iniciales + fecha de
+   * nacimiento (DDMMAA) + 00, por ejemplo 209-AUM05030000; se escribe como en la matrícula.
+   */
+  codigo: z
+    .string()
+    .trim()
+    .min(1, 'El código de estudiante es obligatorio')
+    .max(20)
+    .meta({ example: '209-AUM05030000' }),
   especialidadId: z.number().int().min(1),
   anioIngreso: z
     .number()
@@ -48,14 +58,13 @@ const camposEditables = {
   condicion: z.enum(CONDICIONES),
   /** Cabecera del folder personal (DEC-051): deciden qué requisitos se piden y cuáles están atrasados. */
   genero: z.enum(GENEROS).nullable(),
-  /** Texto corto en mayúsculas (A, B, B1, B3…) hasta conocer la lista (D-45). */
+  /** En mayúsculas: "b1" vale como B1. */
   modalidad: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^([A-Z][A-Z0-9]{0,4})?$/, 'La modalidad es una letra y hasta 4 letras o dígitos (A, B1, B3…)')
-    .nullable()
-    .transform((v) => v || null),
+    .pipe(z.enum(MODALIDADES, 'Elija la modalidad de ingreso (A, B1, B2 o B3)'))
+    .nullable(),
   anioFormacion: z
     .number()
     .int()
@@ -93,6 +102,11 @@ export const esquemaCrearFile = z
     anioFormacion: camposEditables.anioFormacion.default(null),
   })
   .refine((d) => d.apellidoPaterno || d.apellidoMaterno, { message: MENSAJE_APELLIDO, path: ['apellidoPaterno'] })
+  // D-45: el estudiante se registra con su modalidad de ingreso; a un egresado se le puede no conocer.
+  .refine((d) => d.condicion !== 'ESTUDIANTE' || d.modalidad, {
+    message: 'Elija la modalidad de ingreso (A, B1, B2 o B3)',
+    path: ['modalidad'],
+  })
   .meta({ id: 'CrearFile', description: 'Persona del estudiante y su file. Se crea desbloqueado.' });
 
 /** Sin CI ni complemento (identidad) ni bloqueo (S2.3, D-07b): `strictObject` los rechaza con 400. */
@@ -192,7 +206,7 @@ export const esquemaFileDetalle = z
     anioIngreso: z.number().int(),
     condicion: z.enum(CONDICIONES),
     genero: z.enum(GENEROS).nullable(),
-    modalidad: z.string().nullable(),
+    modalidad: z.enum(MODALIDADES).nullable(),
     anioFormacion: z.number().int().nullable(),
     bloqueado: z.boolean(),
     motivoBloqueo: z.string().nullable(),

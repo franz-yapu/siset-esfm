@@ -17,6 +17,7 @@ export async function obtenerRequisitosActivos(cliente: ClienteBd | TransaccionB
       pideCurso: true,
       soloGenero: true,
       soloModalidad: true,
+      soloAniosTerminados: true,
     },
     orderBy: [{ orden: 'asc' }, { codigo: 'asc' }],
   });

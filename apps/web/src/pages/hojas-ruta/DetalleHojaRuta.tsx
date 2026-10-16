@@ -23,6 +23,7 @@ import {
   type PasoTimeline,
 } from '@/components/ui';
 import { ModalEntrega } from '@/components/hojas/ModalEntrega';
+import { textoEntrega } from '@/lib/entrega';
 import { Confirmar } from '@/components/hojas/Confirmar';
 
 const pasosDe = (h: Detalle): PasoTimeline[] =>
@@ -69,9 +70,7 @@ export function DetalleHojaRuta() {
   const entregar = (e: Entrega) => {
     const dia = e.fecha.slice(0, 10);
     const cuando = dia === hoy() ? '' : ` el ${fecha(dia)}`;
-    return modal
-      ? correr(modal, `Entregado a ${e.entregadoA.toLowerCase()} (CI ${e.ciReceptor.trim()})${cuando}`)
-      : Promise.resolve();
+    return modal ? correr(modal, `${textoEntrega(e)}${cuando}`) : Promise.resolve();
   };
 
   return (

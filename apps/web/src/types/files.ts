@@ -13,6 +13,10 @@ export interface Especialidad {
 /** Decide si se pide la libreta militar (DEC-051). */
 export type Genero = 'FEMENINO' | 'MASCULINO';
 
+/** Modalidades de ingreso (D-45): no es lo mismo A, B1, B2 y B3. */
+export const MODALIDADES = ['A', 'B1', 'B2', 'B3'] as const;
+export type Modalidad = (typeof MODALIDADES)[number];
+
 export interface FileDetalle {
   id: number;
   codigo: string;
@@ -31,7 +35,7 @@ export interface FileDetalle {
   anioIngreso: number;
   condicion: CondicionFile;
   genero: Genero | null;
-  modalidad: string | null;
+  modalidad: Modalidad | null;
   anioFormacion: number | null;
   bloqueado: boolean;
   motivoBloqueo: string | null;
@@ -54,7 +58,7 @@ export interface DatosCrearFile {
   condicion: CondicionFile;
   /** Cabecera del folder personal (DEC-051). */
   genero: Genero | null;
-  modalidad: string | null;
+  modalidad: Modalidad | null;
   anioFormacion: number | null;
 }
 

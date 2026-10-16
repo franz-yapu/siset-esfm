@@ -28,6 +28,7 @@ const req = (o: Partial<RequisitoParaReglas> = {}): RequisitoParaReglas => ({
   obligatorio: true,
   anioFormacion: null,
   porGestion: false,
+  soloAniosTerminados: false,
   soloGenero: null,
   soloModalidad: null,
   ...o,
@@ -62,18 +63,77 @@ export const CASOS_APLICA: { caso: string; requisito: RequisitoParaReglas; file:
     file: file({ modalidad: 'B3' }),
     aplica: false,
   },
-  { caso: '"B" a modalidad B3', requisito: req({ soloModalidad: 'B' }), file: file({ modalidad: 'B3' }), aplica: true },
-  { caso: '"B" a modalidad A', requisito: req({ soloModalidad: 'B' }), file: file({ modalidad: 'A' }), aplica: false },
-  { caso: 'por modalidad sin modalidad', requisito: req({ soloModalidad: 'B' }), file: file(), aplica: false },
+  // D-45: las modalidades son exactas; una lista vale para cada una de ellas.
+  {
+    caso: 'B1,B2,B3 a modalidad B2',
+    requisito: req({ soloModalidad: 'B1,B2,B3' }),
+    file: file({ modalidad: 'B2' }),
+    aplica: true,
+  },
+  {
+    caso: 'B1,B2,B3 a modalidad A',
+    requisito: req({ soloModalidad: 'B1,B2,B3' }),
+    file: file({ modalidad: 'A' }),
+    aplica: false,
+  },
+  { caso: 'por modalidad sin modalidad', requisito: req({ soloModalidad: 'B1' }), file: file(), aplica: false },
 ];
 
-/** Resumen de un requisito por gestión (ADR-0007 §2). */
-export const CASOS_GESTIONES: { caso: string; estados: EstadoParaSemaforo[]; resumen: EstadoParaSemaforo }[] = [
-  { caso: 'sin gestiones', estados: [], resumen: 'PENDIENTE' },
-  { caso: 'todas completas', estados: ['COMPLETO', 'COMPLETO'], resumen: 'COMPLETO' },
-  { caso: 'una pendiente', estados: ['COMPLETO', 'PENDIENTE'], resumen: 'PENDIENTE' },
-  { caso: 'una observada', estados: ['PENDIENTE', 'OBSERVADO'], resumen: 'OBSERVADO' },
+/** Resumen de un requisito por gestión (ADR-0007 §2, D-47): sus estados y cuántos años distintos cubre. */
+export const CASOS_GESTIONES: {
+  caso: string;
+  gestiones: { gestion: string; estado: EstadoParaSemaforo }[];
+  esperadas: number;
+  resumen: EstadoParaSemaforo;
+}[] = [
+  { caso: 'sin gestiones', gestiones: [], esperadas: 1, resumen: 'PENDIENTE' },
+  { caso: 'sin gestiones y ninguna esperada', gestiones: [], esperadas: 0, resumen: 'COMPLETO' },
+  {
+    caso: 'todas completas',
+    gestiones: [
+      { gestion: '2023', estado: 'COMPLETO' },
+      { gestion: 'I/2024', estado: 'COMPLETO' },
+    ],
+    esperadas: 2,
+    resumen: 'COMPLETO',
+  },
+  {
+    caso: 'dos semestres del mismo año cuentan como un año',
+    gestiones: [
+      { gestion: 'I/2025', estado: 'COMPLETO' },
+      { gestion: 'II/2025', estado: 'COMPLETO' },
+    ],
+    esperadas: 2,
+    resumen: 'PENDIENTE',
+  },
+  {
+    caso: 'una pendiente',
+    gestiones: [
+      { gestion: '2024', estado: 'COMPLETO' },
+      { gestion: '2025', estado: 'PENDIENTE' },
+    ],
+    esperadas: 1,
+    resumen: 'PENDIENTE',
+  },
+  {
+    caso: 'una observada',
+    gestiones: [
+      { gestion: '2024', estado: 'PENDIENTE' },
+      { gestion: '2025', estado: 'OBSERVADO' },
+    ],
+    esperadas: 1,
+    resumen: 'OBSERVADO',
+  },
 ];
+
+/** D-47 (provisional hasta D-47b): años que debe cubrir un por gestión según el año de formación. */
+export const CASOS_ESPERADAS: { caso: string; anioFile: number | null; soloTerminados: boolean; esperadas: number }[] =
+  [
+    { caso: 'matrícula en 3.º: tres años', anioFile: 3, soloTerminados: false, esperadas: 3 },
+    { caso: 'certificado de notas en 3.º: dos años terminados', anioFile: 3, soloTerminados: true, esperadas: 2 },
+    { caso: 'certificado de notas en 1.º: ninguno todavía', anioFile: 1, soloTerminados: true, esperadas: 0 },
+    { caso: 'sin año de formación: basta con uno', anioFile: null, soloTerminados: true, esperadas: 1 },
+  ];
 
 /** D-31: cuándo un requisito con año está atrasado (ADR-0007 §2). */
 export const CASOS_ATRASADO: {

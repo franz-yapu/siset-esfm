@@ -87,7 +87,11 @@ export const esquemaRequisitoDelFile = z
     porGestion: z.boolean(),
     pideCurso: z.boolean(),
     soloGenero: z.enum(['FEMENINO', 'MASCULINO']).nullable(),
-    soloModalidad: z.string().nullable(),
+    soloModalidad: z.string().nullable().meta({ example: 'B1,B2,B3' }),
+    /** Por gestión: solo cuentan los años ya terminados (certificado de notas, D-47). */
+    soloAniosTerminados: z.boolean(),
+    /** Por gestión: cuántos años distintos tiene que cubrir (D-47, provisional hasta D-47b); null en los demás. */
+    gestionesEsperadas: z.number().int().nullable(),
     /** Se le pide a este file según su género y modalidad (ADR-0007). */
     aplica: z.boolean(),
     /** De un año que el estudiante ya pasó y sin completar (D-31). */

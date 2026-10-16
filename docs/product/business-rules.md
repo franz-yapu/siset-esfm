@@ -49,11 +49,16 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 - **Requisitos (DEC-051):** los 24 de la hoja "Documentación existente en folder personal" de Kardex, en su orden,
   en el catálogo `requisito_tipo`. Algunos dependen del file: la libreta militar solo a varones; el certificado de
   pueblo indígena (modalidad B1), las calificaciones de secundaria (modalidad B) y el carnet de discapacidad
-  (modalidad B3). Los "si corresponde" (licencia temporal, reincorporación, historial provisional, resolución
-  académica) no son obligatorios. Solo **Kardex** carga los files y marca los requisitos (D-13b).
+  (modalidad B3). Las modalidades son **A, B1, B2 y B3** y se comparan exactas (D-45); el requisito 19 ("solo
+  modalidad B") queda para B1, B2 y B3 como no obligatorio hasta D-45b. Los "si corresponde" (licencia temporal,
+  reincorporación, historial provisional, resolución académica) no son obligatorios. Solo **Kardex** carga los files
+  y marca los requisitos (D-13b); un estudiante se registra con su modalidad.
+- **TCLOA (D-46):** el boletín y el certificado, más las **3 defensas** (básico en 1.º, intermedio en 2.º, avanzado
+  en 3.º; D-04b).
 - La **matrícula** y el **certificado de notas** se registran **una vez por gestión** (I/2025, II/2025 o 2023): son
   requisito para la defensa del diseño metodológico en 4.º y 5.º (D-30b, D-39). Importa el documento físico en el
-  file, no las notas.
+  file, no las notas. Se exigen **todas** las gestiones (D-47): una matrícula por cada año cursado y un certificado
+  por cada año terminado (provisional hasta D-47b).
 - Los **TACFI** (Artístico I en 1.º, Artístico II en 2.º, Tecnológico I en 3.º, Tecnológico II en 4.º, D-31)
   piden la fecha en que lo tomó, el nombre del curso y la entidad emisora.
 - El file guarda **género, modalidad y año de formación** (cabecera del folder personal).

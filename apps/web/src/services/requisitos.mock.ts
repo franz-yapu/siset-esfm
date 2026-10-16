@@ -8,6 +8,7 @@ import { ErrorApi } from '@/lib/errores';
 import { normalizarRequisito, validarRequisito } from '@/lib/requisitos';
 import {
   entradaDelSemaforo,
+  gestionesEsperadas,
   requisitoAplica,
   requisitoAtrasado,
   resumenDeGestiones,
@@ -40,7 +41,10 @@ function inicial(f: FileMock): Record<string, RequisitoRegistradoMock> {
     r.TACFI_1 = completo(TACFI.fecha, TACFI.nro, TACFI.responsable, true);
     r.TACFI_2 = completo(TACFI.fecha, TACFI.nro, TACFI.responsable, true);
   }
-  if (TCLO.estado === 'COMPLETO') r.CERT_TCLOA = completo(TCLO.fecha, TCLO.nro, TCLO.responsable);
+  if (TCLO.estado === 'COMPLETO') {
+    r.CERT_TCLOA = completo(TCLO.fecha, TCLO.nro, TCLO.responsable);
+    r.TCLO_BASICO = completo(TCLO.fecha, TCLO.nro, TCLO.responsable);
+  }
   if (CERT_NOTAS.estado === 'COMPLETO') {
     const gestion = (CERT_NOTAS.fecha ?? '2025').slice(0, 4);
     r[clave('CERT_NOTAS', gestion)] = completo(CERT_NOTAS.fecha, CERT_NOTAS.nro, CERT_NOTAS.responsable);
@@ -79,10 +83,12 @@ function gestionesDe(f: FileMock, codigo: string): RegistroDeGestion[] {
 function armar(item: RequisitoCatalogo, f: FileMock): RequisitoDelFile {
   const gestiones = item.porGestion ? gestionesDe(f, item.codigo) : [];
   const r = item.porGestion ? undefined : f.requisitosCatalogo?.[item.codigo];
-  const estado = item.porGestion ? resumenDeGestiones(gestiones.map((g) => g.estado)) : (r?.estado ?? 'PENDIENTE');
+  const esperadas = item.porGestion ? gestionesEsperadas(item, paraReglas(f)) : null;
+  const estado = item.porGestion ? resumenDeGestiones(gestiones, esperadas!) : (r?.estado ?? 'PENDIENTE');
   const aplica = requisitoAplica(item, paraReglas(f));
   return {
     ...item,
+    gestionesEsperadas: esperadas,
     nivel: null,
     aplica,
     atrasado: aplica && item.obligatorio && requisitoAtrasado(item, paraReglas(f), estado),

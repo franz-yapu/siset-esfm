@@ -43,8 +43,8 @@ import {
 
 type Cliente = ClienteBd | TransaccionBd;
 
-/** Días sin movimiento desde los que un trámite en curso cuenta como detenido (el ⚠ del prototipo, P-31). */
-export const DIAS_DETENIDO = 10;
+/** Horas sin movimiento desde las que un trámite en curso está atrasado: debe responderse en 48 a 72 h (D-44). */
+export const HORAS_DETENIDO = 72;
 const DIA = 24 * 60 * 60_000;
 const redondear = (n: number) => Math.round(n * 10) / 10;
 
@@ -211,10 +211,11 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
         .filter((h) => !h.fechaCierre)
         .map((h) => {
           const ultimo = porHoja.get(h.id)?.at(-1)?.fecha ?? h.fechaIngreso;
-          return { h, dias: Math.floor((ahora - ultimo.getTime()) / DIA) };
+          const horas = Math.floor((ahora - ultimo.getTime()) / (60 * 60_000));
+          return { h, horas, dias: Math.floor(horas / 24) };
         })
-        .filter((x) => x.dias > DIAS_DETENIDO)
-        .sort((a, b) => b.dias - a.dias)
+        .filter((x) => x.horas > HORAS_DETENIDO)
+        .sort((a, b) => b.horas - a.horas)
         .slice(0, 50);
       const titulares = await deps.titularesDeFiles(bd, [...new Set(quietos.map((x) => x.h.fileId))]);
 
@@ -239,11 +240,12 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
           estado,
           dias: redondear(promedio(etapas.get(estado)!)),
         })),
-        detenidos: quietos.map(({ h, dias }) => ({
+        detenidos: quietos.map(({ h, horas, dias }) => ({
           nro: h.nroTramite,
           titular: titulares.get(h.fileId)?.nombre ?? '',
           estado: h.estadoActual,
           sedeActual: sedes.find((s) => s.id === h.sedeActualId)?.codigo ?? '',
+          horas,
           dias,
         })),
       };

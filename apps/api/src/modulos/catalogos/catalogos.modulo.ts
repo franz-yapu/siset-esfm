@@ -33,6 +33,7 @@ const esquemaRequisitoCatalogo = z
     pideCurso: z.boolean(),
     soloGenero: z.enum(['FEMENINO', 'MASCULINO']).nullable(),
     soloModalidad: z.string().nullable(),
+    soloAniosTerminados: z.boolean(),
   })
   .meta({ id: 'RequisitoCatalogo' });
 

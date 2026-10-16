@@ -107,11 +107,12 @@ export function ManualPersonal() {
           </li>
           <li>
             <strong>Requisitos:</strong> en el file, pestaña <em>Requisitos</em>: los 24 de la hoja del folder personal,
-            en su orden. Botón <em>Registrar</em>: estado (completo, pendiente u observado), fecha, N.º de documento y
-            observación. Los TACFI piden además el nombre del curso y la entidad emisora; la matrícula y el certificado
-            de notas se agregan por gestión (<em>Agregar gestión</em>: I/2025, II/2025 o 2023). Lo que no corresponde al
-            estudiante (por género o modalidad) aparece en gris. En <em>Datos personales</em> se anotan el género, la
-            modalidad y el año de formación.
+            en su orden, más las tres defensas del TCLOA. Botón <em>Registrar</em>: estado (completo, pendiente u
+            observado), fecha, N.º de documento y observación. Los TACFI piden además el nombre del curso y la entidad
+            emisora; la matrícula y el certificado de notas se agregan por gestión (<em>Agregar gestión</em>: I/2025,
+            II/2025 o 2023), una por cada año cursado. Lo que no corresponde al estudiante (por género o modalidad)
+            aparece en gris. En <em>Datos personales</em> se anotan el género, la modalidad de ingreso (A, B1, B2 o B3;
+            obligatoria al registrar un estudiante) y el año de formación.
           </li>
           <li>
             <strong>Bloquear:</strong> botón rojo <em>Bloquear</em> en la cabecera del file, solo por licencia temporal
@@ -149,8 +150,8 @@ export function ManualPersonal() {
             registro afectado muestra su historial completo.
           </li>
           <li>
-            <strong>Reportes:</strong> trámites por estado, por tipo y por mes, tiempo promedio y trámites detenidos más
-            de 10 días.
+            <strong>Reportes:</strong> trámites por estado, por tipo y por mes, tiempo promedio y trámites atrasados
+            (más de 72 horas sin moverse: el trámite debe responderse en 48 a 72 horas).
           </li>
         </ul>
       </Seccion>
@@ -176,18 +177,25 @@ export function ManualPersonal() {
           </li>
           <li>
             <strong>Firmas en Calahumana:</strong> cuando Dirección Académica y luego Dirección General firman el
-            historial, regístrelo desde el detalle (<em>Registrar firma de…</em>).
+            historial, regístrelo desde el detalle o desde el menú <em>Firma y entrega</em>, que junta lo que espera una
+            firma, la llegada o la entrega.
           </li>
           <li>
             <strong>Certificados que llegan de Ancocagua:</strong> <em>Confirmar que llegó a Calahumana</em>.
           </li>
           <li>
-            <strong>Entrega:</strong> <em>Registrar entrega</em>: al titular o a un apoderado, con el CI de quien
-            recibe. Si la entrega fue otro día, ponga esa fecha: queda en el historial.
+            <strong>Entrega:</strong> <em>Registrar entrega</em> (en el detalle o en <em>Firma y entrega</em>): al
+            titular o a un familiar de hasta primer grado (padre, madre, hijo/a, suegro/a, yerno/nuera), con su nombre y
+            CI, después de verificar el parentesco y con su firma de recojo. Si la entrega fue otro día, ponga esa
+            fecha: queda en el historial.
           </li>
           <li>
             <em>Hojas de ruta</em> lista todos los trámites con filtros por estado y tipo; la campana avisa los que
             esperan un paso suyo.
+          </li>
+          <li>
+            <em>Bandeja de pases</em>: los trámites en camino hacia Ancocagua o hacia Calahumana, con quién los mandó,
+            quién los recibió y cuándo. Kardex y Secretaría de Coordinación también la ven.
           </li>
         </ol>
       </Seccion>
@@ -306,7 +314,7 @@ export function ManualPersonal() {
               '3. Trámites en Calahumana',
               'Secretaría de Dirección',
               '60 min',
-              'Registrar un historial y un certificado, imprimir la carátula, registrar las dos firmas, confirmar la llegada y entregar a un apoderado.',
+              'Registrar un historial y un certificado, imprimir la carátula, registrar las dos firmas, confirmar la llegada y entregar a un familiar.',
             ],
             [
               '4. Trámites en Ancocagua',

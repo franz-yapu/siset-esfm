@@ -72,6 +72,6 @@ Y a mano: el recuadro de cuentas debajo del login, entrar con cada rol, búsqued
 
 Conectado a la API (al 15-oct): sesión, usuarios, bitácora, files (búsqueda, detalle, requisitos, bloqueo), "mi file"
 del estudiante (DEC-043), hojas de ruta (ingesta, lista, detalle, pasos y carátula con QR), firmas del Coordinador
-(DEC-040), bandejas de Kardex (DEC-041), seguimiento público, reportes y los inicios de todos los roles. Siguen con
-**datos de ejemplo del prototipo**: la bandeja de pases y firma y entrega (D-35, D-36) y las plantillas de documentos
-(D-10, D-39).
+(DEC-040), bandejas de Kardex (DEC-041), bandeja de pases y firma y entrega (DEC-052), seguimiento público, reportes
+y los inicios de todos los roles. Siguen con **datos de ejemplo del prototipo**: las plantillas de documentos (D-10,
+D-39).

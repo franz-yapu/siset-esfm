@@ -27,7 +27,7 @@ const nuevo = (extra: Partial<DatosCrearFile> = {}): DatosCrearFile => ({
   anioIngreso: 2026,
   condicion: 'ESTUDIANTE',
   genero: null,
-  modalidad: null,
+  modalidad: 'A',
   anioFormacion: null,
   ...extra,
 });
