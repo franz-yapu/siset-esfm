@@ -14,7 +14,7 @@ const ESPERADA: Record<string, Record<string, string[]>> = {
   usuarios: { ADMIN: [C, L, E] },
   files: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
   requisitos: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
-  'hojas-ruta': { SEC_DIR: [C, L], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [L, E] },
+  'hojas-ruta': { SEC_DIR: [C, L], SEC_COORD: [C, L], COORDINADOR: [L], KARDEX: [L, E] },
   pases: { SEC_DIR: [C, L], SEC_COORD: [C, L], COORDINADOR: [L], KARDEX: [C, L] },
   dictamenes: { COORDINADOR: [C, L], KARDEX: [L] },
   documentos: { KARDEX: [C, L] },

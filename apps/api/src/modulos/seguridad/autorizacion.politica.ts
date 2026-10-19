@@ -43,6 +43,8 @@ export const POLITICA: readonly Permiso[] = [
   // Hoja de ruta
   ['SEC_DIR', 'hojas-ruta', 'crear'],
   ['SEC_DIR', 'hojas-ruta', 'leer'],
+  // D-32b (ADR-0011): SEC_COORD recibe en Ancocagua los certificados sin valorado; la máquina decide el resto.
+  ['SEC_COORD', 'hojas-ruta', 'crear'],
   ['SEC_COORD', 'hojas-ruta', 'leer'],
   ['COORDINADOR', 'hojas-ruta', 'leer'],
   ['KARDEX', 'hojas-ruta', 'leer'],

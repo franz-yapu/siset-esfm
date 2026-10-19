@@ -24,4 +24,14 @@ describe('pasosDelFlujo', () => {
       'ENTREGADO',
     ]);
   });
+
+  it('certificado recibido en Ancocagua: SEC_COORD lo deriva y lo entrega después de la firma (ADR-0011)', () => {
+    expect(pasosDelFlujo('SIN_VALORADO_ANCOCAGUA').map((t) => [t.hacia, t.rol])).toEqual([
+      ['AVISADO_KARDEX', 'SEC_COORD'],
+      ['EN_IMPRESION', 'KARDEX'],
+      ['IMPRESO', 'KARDEX'],
+      ['FIRMADO_COORDINADOR', 'COORDINADOR'],
+      ['ENTREGADO', 'SEC_COORD'],
+    ]);
+  });
 });

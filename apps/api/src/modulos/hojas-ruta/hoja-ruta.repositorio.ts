@@ -11,6 +11,7 @@ const SELECCION = {
   tipoTramiteId: true,
   estadoActual: true,
   sedeActualId: true,
+  sedeIngresoId: true,
   nroValorado: true,
   fechaIngreso: true,
   fechaCierre: true,
@@ -76,6 +77,8 @@ export interface NuevaHojaRuta {
   fileId: number;
   tipoTramiteId: number;
   sedeActualId: number;
+  /** Dónde se recibió (ADR-0011): no cambia. */
+  sedeIngresoId: number;
   nroValorado: string | null;
 }
 

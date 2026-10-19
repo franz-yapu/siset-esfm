@@ -17,23 +17,29 @@ type Fila = [EstadoHojaRuta, AccionHojaRuta, Flujo[], string, CodigoSede, Estado
 const V: Flujo[] = ['CON_VALORADO'];
 const S: Flujo[] = ['SIN_VALORADO'];
 const VS: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO'];
+// D-32b (ADR-0011): el certificado recibido en Ancocagua.
+const A: Flujo[] = ['SIN_VALORADO_ANCOCAGUA'];
+const SA: Flujo[] = ['SIN_VALORADO', 'SIN_VALORADO_ANCOCAGUA'];
+const VSA: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO', 'SIN_VALORADO_ANCOCAGUA'];
 const VALIDAS: Fila[] = [
   ['RECIBIDO', 'AVISAR_KARDEX', VS, 'SEC_DIR', 'LA_PAZ', 'AVISADO_KARDEX', true],
-  ['AVISADO_KARDEX', 'RECOGER', VS, 'KARDEX', 'ANCOCAGUA', 'EN_IMPRESION', true],
-  ['EN_IMPRESION', 'IMPRIMIR', VS, 'KARDEX', 'ANCOCAGUA', 'IMPRESO', true],
+  ['RECIBIDO', 'AVISAR_KARDEX', A, 'SEC_COORD', 'ANCOCAGUA', 'AVISADO_KARDEX', true],
+  ['AVISADO_KARDEX', 'RECOGER', VSA, 'KARDEX', 'ANCOCAGUA', 'EN_IMPRESION', true],
+  ['EN_IMPRESION', 'IMPRIMIR', VSA, 'KARDEX', 'ANCOCAGUA', 'IMPRESO', true],
   ['IMPRESO', 'FIRMA_DIR_ACADEMICA', V, 'SEC_DIR', 'LA_PAZ', 'FIRMADO_DIR_ACADEMICA', false],
   ['FIRMADO_DIR_ACADEMICA', 'FIRMA_DIR_GENERAL', V, 'SEC_DIR', 'LA_PAZ', 'LISTO', false],
-  ['IMPRESO', 'FIRMA_COORDINADOR', S, 'COORDINADOR', 'ANCOCAGUA', 'FIRMADO_COORDINADOR', false],
+  ['IMPRESO', 'FIRMA_COORDINADOR', SA, 'COORDINADOR', 'ANCOCAGUA', 'FIRMADO_COORDINADOR', false],
   ['FIRMADO_COORDINADOR', 'REMITIR', S, 'KARDEX', 'ANCOCAGUA', 'REMITIDO_CALAHUMANA', false],
   ['REMITIDO_CALAHUMANA', 'RECIBIR_CALAHUMANA', S, 'SEC_DIR', 'LA_PAZ', 'LISTO', false],
   ['LISTO', 'ENTREGAR', VS, 'SEC_DIR', 'LA_PAZ', 'ENTREGADO', false],
+  ['FIRMADO_COORDINADOR', 'ENTREGAR', A, 'SEC_COORD', 'ANCOCAGUA', 'ENTREGADO', false],
   // DEC-053 (D-48): el historial con observación no se imprime y se devuelve; la legalización no (D-48b, DEC-056).
   ['EN_IMPRESION', 'DEVOLVER', V, 'KARDEX', 'ANCOCAGUA', 'DEVUELTO', false, ['HISTORIAL_ACADEMICO']],
 ];
 
 const ROLES = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
 const SEDES: (CodigoSede | null)[] = ['LA_PAZ', 'ANCOCAGUA', null];
-const FLUJOS: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO'];
+const FLUJOS: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO', 'SIN_VALORADO_ANCOCAGUA'];
 const TIPOS = ['HISTORIAL_ACADEMICO', 'LEGALIZACION_HISTORIAL'];
 
 describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
@@ -65,7 +71,7 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
                     expect(r).toMatchObject({ ok: true, transicion: { hacia: fila[5] } });
                   }
                 }
-    expect(casos).toBe(10 * 10 * 2 * 2 * 6 * 3 * 2);
+    expect(casos).toBe(10 * 10 * 3 * 2 * 6 * 3 * 2);
   });
 
   it.each([
@@ -74,10 +80,11 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
       'SIN_VALORADO',
       ['AVISAR_KARDEX', 'RECOGER', 'IMPRIMIR', 'FIRMA_COORDINADOR', 'REMITIR', 'RECIBIR_CALAHUMANA', 'ENTREGAR'],
     ],
+    ['SIN_VALORADO_ANCOCAGUA', ['AVISAR_KARDEX', 'RECOGER', 'IMPRIMIR', 'FIRMA_COORDINADOR', 'ENTREGAR']],
   ] as const)('el flujo %s va de RECIBIDO a ENTREGADO con quien corresponde', (flujo, pasos) => {
     let estado: EstadoHojaRuta = 'RECIBIDO';
     for (const accion of pasos) {
-      const fila = VALIDAS.find(([e, a]) => e === estado && a === accion)!;
+      const fila = VALIDAS.find(([e, a, f]) => e === estado && a === accion && f.includes(flujo))!;
       const r = evaluarTransicion(
         { estado, flujo, tipo: 'HISTORIAL_ACADEMICO', fileBloqueado: false },
         { rol: fila[3], sede: fila[4] },

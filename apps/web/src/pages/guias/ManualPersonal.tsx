@@ -88,6 +88,18 @@ export function ManualPersonal() {
             ['8. Entregado', 'Secretaría de Dirección', 'Calahumana'],
           ]}
         />
+        <Subtitulo>Certificados recibidos en Ancocagua (sin valorado, D-32b)</Subtitulo>
+        <Tabla
+          cabecera={['Paso', 'Quién lo registra', 'Dónde']}
+          filas={[
+            ['1. Recibido', 'Secretaría de Coordinación', 'Ancocagua'],
+            ['2. Avisado a Kardex (derivado)', 'Secretaría de Coordinación', 'Ancocagua'],
+            ['3. En impresión', 'Kardex', 'Ancocagua'],
+            ['4. Impreso', 'Kardex', 'Ancocagua'],
+            ['5. Firmado por el Coordinador', 'Coordinador', 'Ancocagua'],
+            ['6. Entregado', 'Secretaría de Coordinación', 'Ancocagua'],
+          ]}
+        />
         <Nota>
           Si el <strong>file del egresado está bloqueado</strong>, no se puede registrar el trámite ni recogerlo ni
           imprimirlo hasta que Kardex lo desbloquee. Un paso registrado por error no se borra: se aclara en la
@@ -230,16 +242,22 @@ export function ManualPersonal() {
       </Seccion>
 
       <Seccion id="sec-coord" titulo="6. Secretaría de Coordinación (Ancocagua)">
-        <ul>
+        <ol>
           <li>
-            Su inicio muestra lo que está en Ancocagua: en impresión, impresos por firmar y por remitir, y los últimos
-            trámites.
+            <strong>Recibir un certificado:</strong> menú <em>Nueva hoja de ruta</em> (o <em>Recibir un certificado</em>{' '}
+            en el inicio). En Ancocagua solo se reciben los certificados de notas y de excelencia; el historial y su
+            legalización van a Calahumana. <em>Registrar y avisar a Kardex</em> lo deriva a Kardex en un solo paso.
           </li>
           <li>
-            Puede consultar las hojas de ruta y los files. En este flujo no registra pasos: los registran Kardex y el
-            Coordinador.
+            <strong>Firma y entrega:</strong> pestañas <em>Por derivar a Kardex</em>, <em>Por firmar</em> (Kardex ya lo
+            imprimió; lléveselo al Coordinador) y <em>Por entregar</em> (ya firmado). <em>Registrar entrega</em> pide
+            quién lo recibe: el titular o un familiar de hasta primer grado.
           </li>
-        </ul>
+          <li>
+            Su inicio cuenta los certificados por derivar y por entregar; la campana avisa cuando hay alguno. También
+            puede consultar las hojas de ruta y los files.
+          </li>
+        </ol>
       </Seccion>
 
       <Seccion id="coordinador" titulo="7. Coordinador Académico">

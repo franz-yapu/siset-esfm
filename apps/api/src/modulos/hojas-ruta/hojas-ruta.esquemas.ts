@@ -57,6 +57,8 @@ export const esquemaFiltrosHojasRuta = z.object({
   estado: z.enum(ESTADOS_HOJA_RUTA).optional(),
   tipoTramite: z.string().trim().toUpperCase().min(1).max(40).optional(),
   gestion: z.coerce.number().int().min(2000).max(2100).optional(),
+  /** Dónde se recibió (ADR-0011): separa las bandejas de Calahumana y de Ancocagua. */
+  sedeIngreso: z.enum(['LA_PAZ', 'ANCOCAGUA']).optional(),
   ...esquemaPaginacion,
 });
 
@@ -77,6 +79,8 @@ export const esquemaDetalleHojaRuta = z
     tipo: z.object({ codigo: z.string(), nombre: z.string(), requiereValorado: z.boolean() }),
     estado,
     sedeActual: z.object({ codigo: z.string(), nombre: z.string() }),
+    /** Dónde se recibió (ADR-0011). */
+    sedeIngreso: z.object({ codigo: z.string(), nombre: z.string() }),
     nroValorado: z.string().nullable(),
     fechaIngreso: z.iso.datetime(),
     fechaCierre: z.iso.datetime().nullable(),
@@ -110,6 +114,8 @@ export const esquemaFilaHojaRuta = z
     tipo: z.object({ codigo: z.string(), nombre: z.string() }),
     estado,
     sedeActual: z.string(),
+    /** Código de la sede donde se recibió (ADR-0011). */
+    sedeIngreso: z.string(),
     titular: z.object({ fileId: z.number().int(), nombre: z.string(), ci: z.string() }),
     nroValorado: z.string().nullable(),
     fechaIngreso: z.iso.datetime(),

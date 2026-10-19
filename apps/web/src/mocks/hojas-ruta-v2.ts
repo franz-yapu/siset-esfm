@@ -27,16 +27,23 @@ export interface HojaRutaMock {
   tipo: string;
   estado: EstadoHojaRuta;
   sedeActual: 'LA_PAZ' | 'ANCOCAGUA';
+  /** Dónde se recibió (ADR-0011). */
+  sedeIngreso: 'LA_PAZ' | 'ANCOCAGUA';
   nroValorado: string | null;
   fechaIngreso: string;
   fechaCierre: string | null;
   movimientos: MovimientoMock[];
 }
 
-const NOMBRE_ROL = { SEC_DIR: 'Secretaría de Dirección', KARDEX: 'Kardex', COORDINADOR: 'Coordinación' } as const;
+const NOMBRE_ROL = {
+  SEC_DIR: 'Secretaría de Dirección',
+  SEC_COORD: 'Secretaría de Coordinación',
+  KARDEX: 'Kardex',
+  COORDINADOR: 'Coordinación',
+} as const;
 
 /** Files egresados de la demo (mocks/files.ts, ids 9 a 13; Betty (13) está bloqueada) con cuántos pasos lleva cada trámite. */
-const PLAN: { fileId: number; tipo: string; pasos: number }[] = [
+const PLAN: { fileId: number; tipo: string; pasos: number; sede?: 'ANCOCAGUA' }[] = [
   { fileId: 11, tipo: 'HISTORIAL_ACADEMICO', pasos: 0 },
   { fileId: 9, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 1 },
   { fileId: 10, tipo: 'HISTORIAL_ACADEMICO', pasos: 2 },
@@ -45,6 +52,8 @@ const PLAN: { fileId: number; tipo: string; pasos: number }[] = [
   { fileId: 13, tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 7 },
   { fileId: 9, tipo: 'HISTORIAL_ACADEMICO', pasos: 6 },
   { fileId: 10, tipo: 'CERT_NOTAS_ANTERIOR', pasos: 3 },
+  // D-32b: un certificado recibido en Ancocagua, ya firmado y por entregar allí.
+  { fileId: 12, tipo: 'CERT_EXCELENCIA_ANTERIOR', pasos: 4, sede: 'ANCOCAGUA' },
 ];
 
 export function seedHojasRutaV2(): HojaRutaMock[] {
@@ -52,15 +61,16 @@ export function seedHojasRutaV2(): HojaRutaMock[] {
   const dia = 24 * 60 * 60_000;
   return PLAN.map((p, i) => {
     const requiereValorado = TIPOS_TRAMITE_MOCK.find((t) => t.codigo === p.tipo)!.requiereValorado;
-    const flujo = flujoDe(requiereValorado);
+    const sedeIngreso = p.sede ?? 'LA_PAZ';
+    const flujo = flujoDe(requiereValorado, sedeIngreso);
     const inicio = Date.now() - (PLAN.length - i) * 3 * dia;
     const movimientos: MovimientoMock[] = [
       {
         accion: 'REGISTRAR',
         estadoAnterior: null,
         estadoNuevo: 'RECIBIDO',
-        sede: 'LA_PAZ',
-        usuario: NOMBRE_ROL.SEC_DIR,
+        sede: sedeIngreso,
+        usuario: sedeIngreso === 'ANCOCAGUA' ? NOMBRE_ROL.SEC_COORD : NOMBRE_ROL.SEC_DIR,
         observacion: null,
         fecha: new Date(inicio).toISOString(),
       },
@@ -88,6 +98,7 @@ export function seedHojasRutaV2(): HojaRutaMock[] {
       tipo: p.tipo,
       estado,
       sedeActual: ultimo.sede,
+      sedeIngreso,
       nroValorado: requiereValorado ? String(4500 + i).padStart(6, '0') : null,
       fechaIngreso: movimientos[0].fecha,
       fechaCierre: estado === 'ENTREGADO' ? ultimo.fecha : null,

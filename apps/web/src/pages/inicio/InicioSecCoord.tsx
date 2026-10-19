@@ -1,17 +1,24 @@
 import { Link, useNavigate } from 'react-router';
-import { PenLine, Printer, Truck } from 'lucide-react';
+import { BellRing, FilePlus2, PackageCheck, Printer } from 'lucide-react';
 import { useUsuario } from '@/hooks';
 import { useConteosHojasRuta } from '@/hooks/useHojasRuta';
 import { fecha } from '@/lib/formato';
-import { Alerta, Card, Cargando, DataTable, EstadoHojaRutaBadge, KpiCard } from '@/components/ui';
+import { Alerta, Button, Card, Cargando, DataTable, EstadoHojaRutaBadge, KpiCard } from '@/components/ui';
 import { GrillaKpi, Saludo } from './comun';
 
-/** Lo que pasa en Ancocagua (ADR-0005): impresión en Kardex, firma del Coordinador y remisión a Calahumana. */
-const EN_ANCOCAGUA = ['EN_IMPRESION', 'IMPRESO', 'FIRMADO_COORDINADOR'] as const;
+/**
+ * Lo que pasa en Ancocagua: los certificados que recibe Secretaría de Coordinación (D-32b, ADR-0011) por derivar y por
+ * entregar, y lo que está en impresión en Kardex.
+ */
+const EN_ANCOCAGUA = [
+  { estado: 'RECIBIDO', sedeIngreso: 'ANCOCAGUA' },
+  { estado: 'FIRMADO_COORDINADOR', sedeIngreso: 'ANCOCAGUA' },
+  { estado: 'EN_IMPRESION' },
+] as const;
 
 /**
- * P-13 · Inicio Secretaría de Coordinación (Ancocagua), contra GET /hojas-ruta. En el flujo de DEC-033 no registra
- * pasos: ve el avance de los trámites que están en Ancocagua.
+ * P-13 · Inicio Secretaría de Coordinación (Ancocagua), contra GET /hojas-ruta. Desde D-32b recibe los certificados
+ * en Ancocagua: los deriva a Kardex y los entrega cuando el Coordinador los firmó (ADR-0011).
  */
 export function InicioSecCoord() {
   const u = useUsuario();
@@ -19,31 +26,30 @@ export function InicioSecCoord() {
   const { data, isLoading, error } = useConteosHojasRuta(EN_ANCOCAGUA);
   if (isLoading) return <Cargando />;
   if (error || !data) return <Alerta tipo="error">{error?.message ?? 'No se pudo cargar el inicio'}</Alerta>;
-  const [enImpresion, impresos, porRemitir] = data.totales;
+  const [porDerivar, porEntregar, enImpresion] = data.totales;
 
   return (
     <>
       <Saludo nombre={u.nombre}>Secretaría de Coordinación · UA Ancocagua</Saludo>
+      <div className="mb-4">
+        <Button icon={FilePlus2} onClick={() => nav('/hojas-ruta/nueva')}>
+          Recibir un certificado
+        </Button>
+      </div>
       <GrillaKpi>
+        <KpiCard titulo="Por derivar a Kardex" valor={porDerivar} icono={BellRing} color="ambar" to="/entregas" />
+        <KpiCard
+          titulo="Firmados, por entregar"
+          valor={porEntregar}
+          icono={PackageCheck}
+          color="violeta"
+          to="/entregas"
+        />
         <KpiCard
           titulo="En impresión (Kardex)"
           valor={enImpresion}
           icono={Printer}
           to="/hojas-ruta?estado=EN_IMPRESION"
-        />
-        <KpiCard
-          titulo="Impresos, por firmar"
-          valor={impresos}
-          icono={PenLine}
-          color="violeta"
-          to="/hojas-ruta?estado=IMPRESO"
-        />
-        <KpiCard
-          titulo="Por remitir a Calahumana"
-          valor={porRemitir}
-          icono={Truck}
-          color="ambar"
-          to="/hojas-ruta?estado=FIRMADO_COORDINADOR"
         />
       </GrillaKpi>
       <Card

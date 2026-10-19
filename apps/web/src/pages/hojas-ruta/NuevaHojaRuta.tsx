@@ -37,7 +37,10 @@ export function NuevaHojaRuta() {
     return () => clearTimeout(t);
   }, [texto]);
 
-  const { data: tipos = [] } = useTiposTramite();
+  // En Ancocagua, Secretaría de Coordinación solo recibe los certificados, sin valorado (D-32b, ADR-0011).
+  const enAncocagua = u.rol === 'SEC_COORD';
+  const { data: todosLosTipos = [] } = useTiposTramite();
+  const tipos = enAncocagua ? todosLosTipos.filter((t) => !t.requiereValorado) : todosLosTipos;
   const tipoElegido = tipos.find((t) => t.codigo === tipo) ?? tipos[0];
   const { data: sugerencias } = useTitulares(buscado);
   const lista = !titular && buscado.length >= 2 ? (sugerencias ?? []) : [];
@@ -99,7 +102,14 @@ export function NuevaHojaRuta() {
 
   return (
     <>
-      <PageHeader titulo="Nueva hoja de ruta" subtitulo="Registra el trámite del egresado y genera el código con QR." />
+      <PageHeader
+        titulo="Nueva hoja de ruta"
+        subtitulo={
+          enAncocagua
+            ? 'Recibe en Ancocagua el pedido de un certificado de notas o de excelencia y genera el código con QR.'
+            : 'Registra el trámite del egresado y genera el código con QR.'
+        }
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="1 · Buscar titular">
           {!titular ? (

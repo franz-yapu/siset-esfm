@@ -11,7 +11,14 @@ import { claveHojasRuta } from './useHojasRuta';
 import { useCambios } from './index';
 
 /** Un aviso por cada estado que espera un paso de este rol (DEC-033), con su bandeja. */
-type Regla = { estado: EstadoHojaRuta; texto: (n: number) => string; to: string; valorado?: boolean };
+type Regla = {
+  estado: EstadoHojaRuta;
+  texto: (n: number) => string;
+  to: string;
+  valorado?: boolean;
+  /** Solo los recibidos en esa sede (ADR-0011): Calahumana y Ancocagua tienen bandejas propias. */
+  sedeIngreso?: 'LA_PAZ' | 'ANCOCAGUA';
+};
 
 /** "1 trámite" / "2 trámites". */
 const de = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
@@ -20,6 +27,7 @@ const REGLAS: Partial<Record<Usuario['rol'], Regla[]>> = {
   SEC_DIR: [
     {
       estado: 'RECIBIDO',
+      sedeIngreso: 'LA_PAZ',
       texto: (n) => `${de(n, 'trámite', 'trámites')} por avisar a Kardex`,
       to: '/hojas-ruta?estado=RECIBIDO',
     },
@@ -50,8 +58,24 @@ const REGLAS: Partial<Record<Usuario['rol'], Regla[]>> = {
     { estado: 'EN_IMPRESION', texto: (n) => `${de(n, 'trámite', 'trámites')} por imprimir`, to: '/emision' },
     {
       estado: 'FIRMADO_COORDINADOR',
+      sedeIngreso: 'LA_PAZ',
       texto: (n) => `${de(n, 'certificado', 'certificados')} por remitir`,
       to: '/revision',
+    },
+  ],
+  // D-32b (ADR-0011): los certificados que Secretaría de Coordinación recibe en Ancocagua.
+  SEC_COORD: [
+    {
+      estado: 'RECIBIDO',
+      sedeIngreso: 'ANCOCAGUA',
+      texto: (n) => `${de(n, 'certificado', 'certificados')} por derivar a Kardex`,
+      to: '/entregas',
+    },
+    {
+      estado: 'FIRMADO_COORDINADOR',
+      sedeIngreso: 'ANCOCAGUA',
+      texto: (n) => `${de(n, 'certificado firmado', 'certificados firmados')} por entregar`,
+      to: '/entregas',
     },
   ],
   COORDINADOR: [
@@ -66,7 +90,8 @@ const REGLAS: Partial<Record<Usuario['rol'], Regla[]>> = {
 
 /** Cuántos trámites hay en el estado; con `valorado`, solo los de ese flujo (por tipo). */
 async function contar(r: Regla): Promise<number> {
-  if (r.valorado === undefined) return (await hojasRutaService.listar({ estado: r.estado, porPagina: 1 })).total;
+  if (r.valorado === undefined)
+    return (await hojasRutaService.listar({ estado: r.estado, sedeIngreso: r.sedeIngreso, porPagina: 1 })).total;
   const tipos = (await hojasRutaService.tipos()).filter((t) => t.requiereValorado === r.valorado);
   const totales = await Promise.all(
     tipos.map(

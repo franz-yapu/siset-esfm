@@ -947,3 +947,17 @@ D-27 del 14-oct) · **Estado:** activa, implementada el 2026-10-19 · ADR-0009
 8. **D-41c:** la capacitación será de **2 días, el 28 y 29 de octubre**; el horario todavía no lo saben: D-41d.
 9. **D-10c:** dijo que sí enviará las fotos del historial y su legalización; sigue abierta hasta recibirlas.
 10. Preguntas nuevas en la hoja: D-49b, D-41d y D-51 (filas 68–70).
+
+## DEC-057 — Secretaría de Coordinación recibe y entrega los certificados en Ancocagua
+
+**Fecha:** 2026-10-19 · **Fuente:** D-32b (hoja) y confirmación del usuario para implementarlo · **Estado:** activa,
+implementada el 2026-10-19 · ADR-0011
+
+1. En Ancocagua, **Secretaría de Coordinación registra** el pedido de un certificado de notas o de excelencia (sin
+   valorado) en "Nueva hoja de ruta". El historial y su legalización siguen siendo solo de Calahumana.
+2. Lo **deriva a Kardex**; Kardex lo recoge e imprime; el **Coordinador lo firma**; Secretaría de Coordinación lo
+   **entrega** al titular o a un familiar de hasta primer grado (D-42), en Ancocagua.
+3. Kardex no lo remite a Calahumana: su pestaña "Por remitir" solo muestra los recibidos en Calahumana.
+4. Pantallas de SEC_COORD: inicio con "Por derivar a Kardex" y "Firmados, por entregar", menú "Nueva hoja de ruta" y
+   "Firma y entrega" (por derivar, por firmar y por entregar), y avisos en la campana.
+5. La demo trae un certificado de Ancocagua ya firmado y por entregar.

@@ -50,6 +50,8 @@ export interface FilaHojaRuta {
   estado: EstadoHojaRuta;
   /** Código de la sede: LA_PAZ | ANCOCAGUA. */
   sedeActual: string;
+  /** Código de la sede donde se recibió (ADR-0011). */
+  sedeIngreso: string;
   titular: { fileId: number; nombre: string; ci: string };
   nroValorado: string | null;
   fechaIngreso: string;
@@ -79,6 +81,8 @@ export interface DetalleHojaRuta {
   tipo: TipoTramiteCatalogo;
   estado: EstadoHojaRuta;
   sedeActual: { codigo: string; nombre: string };
+  /** Dónde se recibió (ADR-0011): decide el flujo con el valorado. */
+  sedeIngreso: { codigo: string; nombre: string };
   nroValorado: string | null;
   fechaIngreso: string;
   fechaCierre: string | null;
@@ -92,6 +96,8 @@ export interface FiltrosHojasRuta {
   estado?: EstadoHojaRuta;
   tipoTramite?: string;
   gestion?: number;
+  /** Dónde se recibió (ADR-0011): separa las bandejas de Calahumana y Ancocagua. */
+  sedeIngreso?: 'LA_PAZ' | 'ANCOCAGUA';
   pagina?: number;
   porPagina?: number;
 }

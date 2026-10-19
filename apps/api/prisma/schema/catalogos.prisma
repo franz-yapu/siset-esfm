@@ -12,6 +12,8 @@ model Sede {
   /// back-relation (ADR-0001: no usar desde otro módulo)
   hojasRutaActuales   HojaRuta[]           @relation("SedeActualHojaRuta")
   /// back-relation (ADR-0001: no usar desde otro módulo)
+  hojasRutaIngresadas HojaRuta[]           @relation("SedeIngresoHojaRuta")
+  /// back-relation (ADR-0001: no usar desde otro módulo)
   movimientosHojaRuta MovimientoHojaRuta[]
 
   @@map("sede")

@@ -11,9 +11,10 @@ const bd = clienteDeTest();
 const app = crearApp({ bd, config: configDePrueba() });
 let siguiente = 6900100;
 
-type Rol = 'SEC_DIR' | 'KARDEX' | 'COORDINADOR';
+type Rol = 'SEC_DIR' | 'SEC_COORD' | 'KARDEX' | 'COORDINADOR';
 const personal: Record<Rol, { id: number; sedeId: number }> = {
   SEC_DIR: { id: 0, sedeId: 0 },
+  SEC_COORD: { id: 0, sedeId: 0 },
   KARDEX: { id: 0, sedeId: 0 },
   COORDINADOR: { id: 0, sedeId: 0 },
 };
@@ -80,6 +81,7 @@ async function nuevaHoja(
       fileId: file.id,
       tipoTramiteId: t.id,
       sedeActualId: sedes.LA_PAZ,
+      sedeIngresoId: sedes.LA_PAZ,
       nroValorado: tipo === 'HISTORIAL_ACADEMICO' ? `V-${n}` : null,
     },
   });
@@ -100,6 +102,7 @@ beforeAll(async () => {
   sedes.LA_PAZ = (await bd.sede.findUniqueOrThrow({ where: { codigo: 'LA_PAZ' } })).id;
   sedes.ANCOCAGUA = (await bd.sede.findUniqueOrThrow({ where: { codigo: 'ANCOCAGUA' } })).id;
   personal.SEC_DIR = await crearUsuario('SEC_DIR', sedes.LA_PAZ);
+  personal.SEC_COORD = await crearUsuario('SEC_COORD', sedes.ANCOCAGUA);
   personal.KARDEX = await crearUsuario('KARDEX', sedes.ANCOCAGUA);
   personal.COORDINADOR = await crearUsuario('COORDINADOR', sedes.ANCOCAGUA);
   especialidadId = (await bd.especialidad.findFirstOrThrow()).id;
@@ -278,5 +281,84 @@ describe('máquina de estados de la hoja de ruta contra la base (SDD S3.1-S3.3, 
       ['CERT_NOTAS_ANTERIOR', false],
       ['CERT_EXCELENCIA_ANTERIOR', false],
     ]);
+  });
+});
+
+describe('certificado recibido en Ancocagua (D-32b, ADR-0011)', () => {
+  const ingresar = async (cuerpo: object, rol: Rol = 'SEC_COORD') =>
+    request(app)
+      .post('/api/v1/hojas-ruta')
+      .set('Authorization', `Bearer ${await token(rol)}`)
+      .send(cuerpo);
+
+  async function egresado() {
+    const n = siguiente++;
+    const persona = await bd.persona.create({
+      data: { ci: String(n), nombres: 'Egresado', apellidoPaterno: 'Ancocagua' },
+    });
+    const f = await bd.fileAcademico.create({
+      data: {
+        personaId: persona.id,
+        codigoEstudiante: `AN-${n}`,
+        especialidadId,
+        anioIngreso: 2017,
+        condicion: 'EGRESADO',
+      },
+    });
+    return f.id;
+  }
+
+  it('SEC_COORD lo registra, lo deriva a Kardex, Kardex imprime, firma el Coordinador y lo entrega SEC_COORD', async () => {
+    const r = await ingresar({ fileId: await egresado(), tipoTramite: 'CERT_NOTAS_ANTERIOR', nroValorado: null });
+    expect(r.status, JSON.stringify(r.body)).toBe(201);
+    expect(r.body).toMatchObject({ estado: 'RECIBIDO', sedeIngreso: { codigo: 'ANCOCAGUA' } });
+    expect(r.body.acciones.map((a: { etiqueta: string }) => a.etiqueta)).toEqual(['Derivar a Kardex']);
+    const nro = r.body.nro as string;
+    const pasos: [Rol, string, string][] = [
+      ['SEC_COORD', 'AVISAR_KARDEX', 'AVISADO_KARDEX'],
+      ['KARDEX', 'RECOGER', 'EN_IMPRESION'],
+      ['KARDEX', 'IMPRIMIR', 'IMPRESO'],
+      ['COORDINADOR', 'FIRMA_COORDINADOR', 'FIRMADO_COORDINADOR'],
+    ];
+    for (const [rol, accion, estado] of pasos) {
+      const p = await paso(rol, nro, accion);
+      expect(p.status, `${accion}: ${JSON.stringify(p.body)}`).toBe(200);
+      expect(p.body.estado).toBe(estado);
+    }
+    // No pasa por Calahumana: Kardex no lo remite y SEC_DIR no lo entrega.
+    expect((await paso('KARDEX', nro, 'REMITIR')).status).toBe(409);
+    expect((await paso('SEC_DIR', nro, 'ENTREGAR')).status).toBe(403);
+    const entrega = await paso('SEC_COORD', nro, 'ENTREGAR', undefined, 'Entregado al titular, CI 1234567.');
+    expect(entrega.status).toBe(200);
+    expect(entrega.body.estado).toBe('ENTREGADO');
+    const h = await bd.hojaRuta.findUniqueOrThrow({ where: { nroTramite: nro } });
+    expect(h).toMatchObject({ sedeIngresoId: sedes.ANCOCAGUA, sedeActualId: sedes.ANCOCAGUA });
+    expect(h.fechaCierre).not.toBeNull();
+  });
+
+  it('en Ancocagua no se recibe el historial (lleva valorado); SEC_DIR no deriva ni entrega los de Ancocagua', async () => {
+    const conValorado = await ingresar({
+      fileId: await egresado(),
+      tipoTramite: 'HISTORIAL_ACADEMICO',
+      nroValorado: '009999',
+    });
+    expect(conValorado.status).toBe(403);
+    const r = await ingresar({ fileId: await egresado(), tipoTramite: 'CERT_EXCELENCIA_ANTERIOR', nroValorado: null });
+    expect((await paso('SEC_DIR', r.body.nro, 'AVISAR_KARDEX')).status).toBe(403);
+  });
+
+  it('la lista filtra por sede de ingreso y cada fila dice dónde se recibió', async () => {
+    const r = await ingresar({ fileId: await egresado(), tipoTramite: 'CERT_NOTAS_ANTERIOR', nroValorado: null });
+    const lista = async (sedeIngreso: string) =>
+      (
+        await request(app)
+          .get('/api/v1/hojas-ruta')
+          .query({ sedeIngreso, estado: 'RECIBIDO', porPagina: 100 })
+          .set('Authorization', `Bearer ${await token('KARDEX')}`)
+      ).body.datos as { nro: string; sedeIngreso: string }[];
+    const ancocagua = await lista('ANCOCAGUA');
+    expect(ancocagua.map((h) => h.nro)).toContain(r.body.nro);
+    expect(new Set(ancocagua.map((h) => h.sedeIngreso))).toEqual(new Set(['ANCOCAGUA']));
+    expect((await lista('LA_PAZ')).map((h) => h.nro)).not.toContain(r.body.nro);
   });
 });

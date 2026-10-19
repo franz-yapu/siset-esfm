@@ -24,6 +24,7 @@ export const POLITICA_MOCK: readonly (readonly [Rol, Recurso, Accion])[] = [
   ['KARDEX', 'requisitos', 'editar'],
   ['SEC_DIR', 'hojas-ruta', 'crear'],
   ['SEC_DIR', 'hojas-ruta', 'leer'],
+  ['SEC_COORD', 'hojas-ruta', 'crear'],
   ['SEC_COORD', 'hojas-ruta', 'leer'],
   ['COORDINADOR', 'hojas-ruta', 'leer'],
   ['KARDEX', 'hojas-ruta', 'leer'],

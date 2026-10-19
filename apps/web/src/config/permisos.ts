@@ -73,7 +73,7 @@ export const PERMISO_RUTA = {
   'detalle-hr': { recurso: 'hojas-ruta', accion: 'leer' },
   caratula: { recurso: 'hojas-ruta', accion: 'leer' },
   pases: { recurso: 'pases', accion: 'crear' },
-  // Puente hasta S3.x: firma y entrega es de SEC_DIR, pero su permiso propio todavía no está en la política.
+  // Puente: firma y entrega es de SEC_DIR y, en Ancocagua, de SEC_COORD (ADR-0011); no tiene permiso propio.
   entregas: { recurso: 'hojas-ruta', accion: 'crear' },
   files: { recurso: 'files', accion: 'leer' },
   'detalle-file': { recurso: 'files', accion: 'leer' },

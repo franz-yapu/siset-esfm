@@ -38,6 +38,7 @@ import {
   flujoDe,
   PIDEN_OBSERVACION,
   INGESTA,
+  reglaIngesta,
   type AccionHojaRuta,
   type CodigoSede,
   type EstadoParaTransicion,
@@ -112,17 +113,19 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
     const usuarios = await deps.describirUsuarios([...new Set(movimientos.map((m) => m.usuarioId))]);
     const estado: EstadoParaTransicion = {
       estado: h.estadoActual,
-      flujo: flujoDe(tipo.requiereValorado),
+      flujo: flujoDe(tipo.requiereValorado, sedeCodigo(sedes, h.sedeIngresoId) ?? 'LA_PAZ'),
       tipo: tipo.codigo,
       fileBloqueado: titular.bloqueado,
     };
     const sedeActual = sedes.find((s) => s.id === h.sedeActualId);
+    const sedeIngreso = sedes.find((s) => s.id === h.sedeIngresoId);
     return {
       nro: h.nroTramite,
       gestion: h.gestion,
       tipo: { codigo: tipo.codigo, nombre: tipo.nombre, requiereValorado: tipo.requiereValorado },
       estado: h.estadoActual,
       sedeActual: { codigo: sedeActual?.codigo ?? '', nombre: sedeActual?.nombre ?? '' },
+      sedeIngreso: { codigo: sedeIngreso?.codigo ?? '', nombre: sedeIngreso?.nombre ?? '' },
       nroValorado: h.nroValorado,
       fechaIngreso: h.fechaIngreso.toISOString(),
       fechaCierre: h.fechaCierre?.toISOString() ?? null,
@@ -275,11 +278,19 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
     /** Ingesta (SDD S3.2-S3.4 §2.2): correlativo, hoja RECIBIDA, primer movimiento y evento, en una transacción. */
     async crear(datos: DatosCrearHojaRuta, sesion: SesionHojaRuta): Promise<DetalleHojaRuta> {
       const sedes = await deps.obtenerSedes(bd);
-      if (sesion.rol !== INGESTA.rol || sedeCodigo(sedes, sesion.sedeId) !== INGESTA.sede) {
-        throw new ErrorProhibido('La ingesta la registra Secretaría de Dirección en Calahumana.');
+      const regla = reglaIngesta({ rol: sesion.rol, sede: sedeCodigo(sedes, sesion.sedeId) });
+      if (!regla) {
+        throw new ErrorProhibido(
+          'La ingesta la registra Secretaría de Dirección en Calahumana o Secretaría de Coordinación en Ancocagua.',
+        );
       }
       const tipo = (await deps.obtenerTiposTramite(bd)).find((t) => t.codigo === datos.tipoTramite && t.activo);
       if (!tipo) throw new ErrorNegocio('El tipo de trámite no existe.', 'TIPO_TRAMITE_INEXISTENTE');
+      if (regla.soloSinValorado && tipo.requiereValorado) {
+        throw new ErrorProhibido(
+          'En Ancocagua solo se reciben los certificados (sin valorado); el historial y su legalización van a Calahumana (D-32).',
+        );
+      }
       if (tipo.requiereValorado && !datos.nroValorado) {
         throw new ErrorValidacion([{ ruta: 'body.nroValorado', mensaje: 'Este trámite necesita el N.º de valorado' }]);
       }
@@ -307,6 +318,7 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
           fileId: datos.fileId,
           tipoTramiteId: tipo.id,
           sedeActualId: sesion.sedeId!,
+          sedeIngresoId: sesion.sedeId!,
           nroValorado: datos.nroValorado,
         });
         await insertarMovimiento(tx, {
@@ -341,6 +353,7 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
       const where: Prisma.HojaRutaWhereInput[] = [];
       if (f.estado) where.push({ estadoActual: f.estado });
       if (f.gestion) where.push({ gestion: f.gestion });
+      if (f.sedeIngreso) where.push({ sedeIngresoId: sedes.find((s) => s.codigo === f.sedeIngreso)?.id ?? -1 });
       if (f.tipoTramite) where.push({ tipoTramiteId: tipos.find((t) => t.codigo === f.tipoTramite)?.id ?? -1 });
       if (f.texto) {
         const fileIds = await deps.buscarFileIdsPorTitular(bd, f.texto);
@@ -358,6 +371,7 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
             tipo: { codigo: tipo.codigo, nombre: tipo.nombre },
             estado: h.estadoActual,
             sedeActual: sedes.find((s) => s.id === h.sedeActualId)?.codigo ?? '',
+            sedeIngreso: sedes.find((s) => s.id === h.sedeIngresoId)?.codigo ?? '',
             titular: { fileId: h.fileId, ...(titulares.get(h.fileId) ?? { nombre: '', ci: '' }) },
             nroValorado: h.nroValorado,
             fechaIngreso: h.fechaIngreso.toISOString(),
@@ -384,7 +398,7 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
         const r = evaluarTransicion(
           {
             estado: h.estadoActual,
-            flujo: flujoDe(tipo.requiereValorado),
+            flujo: flujoDe(tipo.requiereValorado, sedeCodigo(sedes, h.sedeIngresoId) ?? 'LA_PAZ'),
             tipo: tipo.codigo,
             fileBloqueado: titular.bloqueado,
           },

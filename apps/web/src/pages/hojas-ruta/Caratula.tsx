@@ -13,6 +13,7 @@ import { ZonaImpresion } from '@/pages/documentos/Plantillas';
 
 const RESPONSABLE: Record<RolHojaRuta, string> = {
   SEC_DIR: 'Secretaría de Dirección',
+  SEC_COORD: 'Secretaría de Coordinación',
   KARDEX: 'Kardex',
   COORDINADOR: 'Coordinador',
 };
@@ -58,7 +59,8 @@ export function Caratula() {
 
 /** La hoja carta: se muestra en pantalla y se repite en la zona de impresión. */
 function Hoja({ h }: { h: DetalleHojaRuta }) {
-  const pasos = pasosDelFlujo(flujoDe(h.tipo.requiereValorado));
+  const sedeIngreso = h.sedeIngreso.codigo === 'ANCOCAGUA' ? 'ANCOCAGUA' : 'LA_PAZ';
+  const pasos = pasosDelFlujo(flujoDe(h.tipo.requiereValorado, sedeIngreso));
   return (
     <article className="mx-auto min-h-[11in] max-w-[8.5in] bg-white p-[0.75in] text-slate-900 shadow-lg print:min-h-0 print:max-w-none print:p-0 print:shadow-none">
       <header className="flex items-start justify-between gap-6 border-b-2 border-slate-900 pb-4">

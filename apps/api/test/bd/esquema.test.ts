@@ -46,7 +46,8 @@ describe('migraciones del modelo v1 (SDD S0.11, S1.1, S2.1)', () => {
     const fks = await bd.$queryRaw<{ conname: string; del: string; upd: string }[]>`
       SELECT conname, confdeltype::text AS del, confupdtype::text AS upd FROM pg_constraint
       WHERE contype = 'f' AND connamespace = 'public'::regnamespace`;
-    expect(fks.length).toBe(20);
+    // 21 con hoja_ruta.sede_ingreso_id (ADR-0011).
+    expect(fks.length).toBe(21);
     // CASCADE: los tokens se van con su usuario. SET NULL: la cadena de rotación entre tokens (S1.15).
     const excepciones: Record<string, { del: string; upd: string }> = {
       refresh_token_usuario_id_fkey: { del: 'c', upd: 'r' },

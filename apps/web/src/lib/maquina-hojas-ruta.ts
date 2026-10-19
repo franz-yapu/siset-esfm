@@ -3,10 +3,13 @@
 
 import type { AccionHojaRuta, EstadoHojaRuta } from '@/types/hojas-ruta';
 
-/** Con valorado: historial y legalización. Sin valorado: certificados (D-05). */
-export type Flujo = 'CON_VALORADO' | 'SIN_VALORADO';
+/**
+ * Con valorado: historial y legalización. Sin valorado: certificados (D-05), recibidos en Calahumana o, desde
+ * D-32b, en Ancocagua por Secretaría de Coordinación (`SIN_VALORADO_ANCOCAGUA`, ADR-0011).
+ */
+export type Flujo = 'CON_VALORADO' | 'SIN_VALORADO' | 'SIN_VALORADO_ANCOCAGUA';
 export type CodigoSede = 'LA_PAZ' | 'ANCOCAGUA';
-export type RolHojaRuta = 'SEC_DIR' | 'KARDEX' | 'COORDINADOR';
+export type RolHojaRuta = 'SEC_DIR' | 'SEC_COORD' | 'KARDEX' | 'COORDINADOR';
 
 export interface Transicion {
   accion: AccionHojaRuta;
@@ -23,7 +26,9 @@ export interface Transicion {
   impideBloqueo: boolean;
 }
 
-const AMBOS = ['CON_VALORADO', 'SIN_VALORADO'] as const;
+const TODOS = ['CON_VALORADO', 'SIN_VALORADO', 'SIN_VALORADO_ANCOCAGUA'] as const;
+/** Los certificados, se reciban donde se reciban: los firma el Coordinador. */
+const CERTIFICADOS = ['SIN_VALORADO', 'SIN_VALORADO_ANCOCAGUA'] as const;
 
 /** La tabla del §2.2. Los pasos de Dirección Académica y General los anota SEC_DIR (D-33, propuesta). */
 export const TRANSICIONES: readonly Transicion[] = [
@@ -32,9 +37,20 @@ export const TRANSICIONES: readonly Transicion[] = [
     etiqueta: 'Avisar a Kardex',
     desde: 'RECIBIDO',
     hacia: 'AVISADO_KARDEX',
-    flujos: AMBOS,
+    flujos: ['CON_VALORADO', 'SIN_VALORADO'],
     rol: 'SEC_DIR',
     sede: 'LA_PAZ',
+    impideBloqueo: true,
+  },
+  {
+    // D-32b: en Ancocagua, Secretaría de Coordinación recibe el pedido y lo deriva a Kardex.
+    accion: 'AVISAR_KARDEX',
+    etiqueta: 'Derivar a Kardex',
+    desde: 'RECIBIDO',
+    hacia: 'AVISADO_KARDEX',
+    flujos: ['SIN_VALORADO_ANCOCAGUA'],
+    rol: 'SEC_COORD',
+    sede: 'ANCOCAGUA',
     impideBloqueo: true,
   },
   {
@@ -42,7 +58,7 @@ export const TRANSICIONES: readonly Transicion[] = [
     etiqueta: 'Registrar que Kardex lo recogió',
     desde: 'AVISADO_KARDEX',
     hacia: 'EN_IMPRESION',
-    flujos: AMBOS,
+    flujos: TODOS,
     rol: 'KARDEX',
     sede: 'ANCOCAGUA',
     impideBloqueo: true,
@@ -52,7 +68,7 @@ export const TRANSICIONES: readonly Transicion[] = [
     etiqueta: 'Marcar como impreso',
     desde: 'EN_IMPRESION',
     hacia: 'IMPRESO',
-    flujos: AMBOS,
+    flujos: TODOS,
     rol: 'KARDEX',
     sede: 'ANCOCAGUA',
     impideBloqueo: true,
@@ -96,7 +112,7 @@ export const TRANSICIONES: readonly Transicion[] = [
     etiqueta: 'Firmar',
     desde: 'IMPRESO',
     hacia: 'FIRMADO_COORDINADOR',
-    flujos: ['SIN_VALORADO'],
+    flujos: CERTIFICADOS,
     rol: 'COORDINADOR',
     sede: 'ANCOCAGUA',
     impideBloqueo: false,
@@ -126,19 +142,46 @@ export const TRANSICIONES: readonly Transicion[] = [
     etiqueta: 'Registrar entrega',
     desde: 'LISTO',
     hacia: 'ENTREGADO',
-    flujos: AMBOS,
+    flujos: ['CON_VALORADO', 'SIN_VALORADO'],
     rol: 'SEC_DIR',
     sede: 'LA_PAZ',
     impideBloqueo: false,
   },
+  {
+    // D-32b: firmado por el Coordinador, Secretaría de Coordinación lo entrega en Ancocagua (sin pasar por Calahumana).
+    accion: 'ENTREGAR',
+    etiqueta: 'Registrar entrega',
+    desde: 'FIRMADO_COORDINADOR',
+    hacia: 'ENTREGADO',
+    flujos: ['SIN_VALORADO_ANCOCAGUA'],
+    rol: 'SEC_COORD',
+    sede: 'ANCOCAGUA',
+    impideBloqueo: false,
+  },
 ];
 
-/** La ingesta (S3.4): la registra SEC_DIR en Calahumana (D-05; D-32 pregunta por los certificados). Deja RECIBIDO. */
-export const INGESTA = { rol: 'SEC_DIR', sede: 'LA_PAZ', hacia: 'RECIBIDO' } as const satisfies {
+export interface ReglaIngesta {
   rol: RolHojaRuta;
   sede: CodigoSede;
-  hacia: EstadoHojaRuta;
-};
+  /** Solo los trámites sin valorado (certificados). */
+  soloSinValorado: boolean;
+}
+
+/**
+ * Quién registra la ingesta (S3.4) y desde dónde. Deja RECIBIDO. SEC_DIR en Calahumana, cualquier trámite (D-05);
+ * SEC_COORD en Ancocagua, solo los certificados (D-32, D-32b, ADR-0011).
+ */
+export const INGESTA = {
+  hacia: 'RECIBIDO',
+  reglas: [
+    { rol: 'SEC_DIR', sede: 'LA_PAZ', soloSinValorado: false },
+    { rol: 'SEC_COORD', sede: 'ANCOCAGUA', soloSinValorado: true },
+  ],
+} as const satisfies { hacia: EstadoHojaRuta; reglas: readonly ReglaIngesta[] };
+
+/** La regla de ingesta de este usuario, o null si no registra trámites. */
+export const reglaIngesta = (u: UsuarioParaTransicion): ReglaIngesta | null =>
+  INGESTA.reglas.find((r) => r.rol === u.rol && r.sede === u.sede) ?? null;
 
 /** Estados finales: el trámite ya no se mueve (ENTREGADO, o DEVUELTO por una observación de Kardex, DEC-053). */
 export const ESTADOS_FINALES: readonly EstadoHojaRuta[] = ['ENTREGADO', 'DEVUELTO'];
@@ -146,20 +189,9 @@ export const ESTADOS_FINALES: readonly EstadoHojaRuta[] = ['ENTREGADO', 'DEVUELT
 /** Pasos que piden una observación escrita (DEC-053: por qué se devuelve). */
 export const PIDEN_OBSERVACION: readonly AccionHojaRuta[] = ['DEVOLVER'];
 
-export const flujoDe = (requiereValorado: boolean): Flujo => (requiereValorado ? 'CON_VALORADO' : 'SIN_VALORADO');
-
-/** Los pasos del flujo en orden, desde RECIBIDO hasta ENTREGADO (para la carátula, P-32). */
-export const pasosDelFlujo = (flujo: Flujo): Transicion[] => {
-  const pasos: Transicion[] = [];
-  let estado: EstadoHojaRuta = INGESTA.hacia;
-  for (;;) {
-    // El camino normal: la devolución (DEC-053) no es un paso del flujo.
-    const t = TRANSICIONES.find((x) => x.desde === estado && x.flujos.includes(flujo) && x.hacia !== 'DEVUELTO');
-    if (!t) return pasos;
-    pasos.push(t);
-    estado = t.hacia;
-  }
-};
+/** El flujo sale del tipo (con o sin valorado) y de dónde se recibió el trámite (ADR-0011). */
+export const flujoDe = (requiereValorado: boolean, sedeIngreso: CodigoSede): Flujo =>
+  requiereValorado ? 'CON_VALORADO' : sedeIngreso === 'ANCOCAGUA' ? 'SIN_VALORADO_ANCOCAGUA' : 'SIN_VALORADO';
 
 export interface EstadoParaTransicion {
   estado: EstadoHojaRuta;
@@ -222,3 +254,16 @@ export const accionesPosibles = (h: EstadoParaTransicion, u: UsuarioParaTransici
     etiqueta: t.etiqueta,
     deshabilitada: t.impideBloqueo && h.fileBloqueado ? 'El file del titular está bloqueado.' : null,
   }));
+
+/** Los pasos del flujo en orden, desde RECIBIDO hasta ENTREGADO (para la carátula, P-32). */
+export const pasosDelFlujo = (flujo: Flujo): Transicion[] => {
+  const pasos: Transicion[] = [];
+  let estado: EstadoHojaRuta = INGESTA.hacia;
+  for (;;) {
+    // El camino normal: la devolución (DEC-053) no es un paso del flujo.
+    const t = TRANSICIONES.find((x) => x.desde === estado && x.flujos.includes(flujo) && x.hacia !== 'DEVUELTO');
+    if (!t) return pasos;
+    pasos.push(t);
+    estado = t.hacia;
+  }
+};

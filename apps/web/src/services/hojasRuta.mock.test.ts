@@ -12,6 +12,8 @@ vi.mock('@/lib/formato', async (original) => ({
 const usuario = (rol: Rol, sedeId: number): Usuario => ({ ...db.usuarios[0], rol, sedeId, nombre: rol });
 const secDir = () => usuario('SEC_DIR', 1);
 const kardex = () => usuario('KARDEX', 2);
+const secCoord = () => usuario('SEC_COORD', 2);
+const coordinador = () => usuario('COORDINADOR', 2);
 const egresado = () => db.files.find((f) => f.condicion === 'EGRESADO' && !f.bloqueado)!;
 const codigo = (p: Promise<unknown>) =>
   p.then(
@@ -27,7 +29,7 @@ describe('hojasRutaMock (SDD S3.8-S3.9 §2.1)', () => {
       { fileId: egresado().id, tipoTramite: 'HISTORIAL_ACADEMICO', nroValorado: '004522', observacion: null },
       secDir(),
     );
-    expect(h.nro).toMatch(/^HR-\d{4}-0000(09)$/);
+    expect(h.nro).toMatch(/^HR-\d{4}-0000(10)$/);
     expect(h.estado).toBe('RECIBIDO');
     expect(h.acciones.map((a) => a.accion)).toEqual(['AVISAR_KARDEX']);
     await hojasRutaMock.transicion(h.nro, 'AVISAR_KARDEX', null, secDir());
@@ -93,7 +95,7 @@ describe('hojasRutaMock (SDD S3.8-S3.9 §2.1)', () => {
 
   it('lista con filtros y paginación', async () => {
     const todas = await hojasRutaMock.listar({});
-    expect(todas.total).toBe(8);
+    expect(todas.total).toBe(9);
     const pag = await hojasRutaMock.listar({ porPagina: 3, pagina: 2 });
     expect(pag.datos).toHaveLength(3);
     expect(
@@ -101,5 +103,25 @@ describe('hojasRutaMock (SDD S3.8-S3.9 §2.1)', () => {
         (h) => h.tipo.codigo === 'HISTORIAL_ACADEMICO',
       ),
     ).toBe(true);
+  });
+
+  it('certificado recibido en Ancocagua: SEC_COORD lo deriva y lo entrega; el historial no se recibe allí (ADR-0011)', async () => {
+    const base = { fileId: egresado().id, nroValorado: null, observacion: null };
+    expect(
+      await codigo(hojasRutaMock.crear({ ...base, tipoTramite: 'HISTORIAL_ACADEMICO', nroValorado: '1' }, secCoord())),
+    ).toBe('PROHIBIDO');
+    const h = await hojasRutaMock.crear({ ...base, tipoTramite: 'CERT_NOTAS_ANTERIOR' }, secCoord());
+    expect(h.sedeIngreso.codigo).toBe('ANCOCAGUA');
+    expect(h.acciones.map((a) => a.etiqueta)).toEqual(['Derivar a Kardex']);
+    await hojasRutaMock.transicion(h.nro, 'AVISAR_KARDEX', null, secCoord());
+    await hojasRutaMock.transicion(h.nro, 'RECOGER', null, kardex());
+    await hojasRutaMock.transicion(h.nro, 'IMPRIMIR', null, kardex());
+    const firmado = await hojasRutaMock.transicion(h.nro, 'FIRMA_COORDINADOR', null, coordinador());
+    expect(firmado.acciones).toEqual([]);
+    expect(await codigo(hojasRutaMock.transicion(h.nro, 'REMITIR', null, kardex()))).toBe('TRANSICION_INVALIDA');
+    const entregado = await hojasRutaMock.transicion(h.nro, 'ENTREGAR', 'Al titular.', secCoord());
+    expect(entregado.estado).toBe('ENTREGADO');
+    const ancocagua = await hojasRutaMock.listar({ sedeIngreso: 'ANCOCAGUA', porPagina: 100 });
+    expect(ancocagua.datos.map((x) => x.nro)).toContain(h.nro);
   });
 });

@@ -144,7 +144,7 @@ export const openapiHojasRuta: ZodOpenApiPathsObject = {
       tags: ['Hojas de ruta'],
       summary: 'Registrar un trámite (ingesta)',
       description:
-        'Secretaría de Dirección en Calahumana. Genera el N.º HR-AAAA-NNNNNN (ADR-0006) y deja el trámite RECIBIDO. El valorado solo para historial y legalización.',
+        'Secretaría de Dirección en Calahumana, o Secretaría de Coordinación en Ancocagua para los certificados sin valorado (D-32b, ADR-0011). Genera el N.º HR-AAAA-NNNNNN (ADR-0006) y deja el trámite RECIBIDO. El valorado solo para historial y legalización.',
       security: [{ bearerAuth: [] }],
       requestBody: { content: { 'application/json': { schema: esquemaCrearHojaRuta } } },
       responses: {
@@ -154,7 +154,7 @@ export const openapiHojasRuta: ZodOpenApiPathsObject = {
         },
         '400': error('Datos inválidos o valorado que no corresponde al tipo (VALIDACION).'),
         '401': comunes['401'],
-        '403': error('Solo SEC_DIR desde Calahumana.'),
+        '403': error('Solo SEC_DIR desde Calahumana, o SEC_COORD desde Ancocagua para los certificados (ADR-0011).'),
         '422': error('Tipo o file inexistente, file que no es de un egresado o bloqueado.'),
       },
     },
@@ -190,7 +190,7 @@ export const openapiHojasRuta: ZodOpenApiPathsObject = {
         },
         '400': error('Texto de menos de 2 caracteres (VALIDACION).'),
         '401': comunes['401'],
-        '403': error('Sin permiso `hojas-ruta`/`crear` (solo SEC_DIR).'),
+        '403': error('Sin permiso `hojas-ruta`/`crear` (SEC_DIR y SEC_COORD).'),
       },
     },
   },

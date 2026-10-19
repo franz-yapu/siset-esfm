@@ -139,14 +139,20 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
   })),
   // Hojas de ruta (SDD S3.1-S3.3): Casbin exige `hojas-ruta`/`leer`; cada paso lo decide la máquina (ADR-0005).
   { metodo: 'get', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', permitidos: PERSONAL },
-  // Ingesta: `hojas-ruta`/`crear`, solo SEC_DIR (DEC-015, SDD S3.2-S3.4).
-  { metodo: 'post', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', cuerpo: {}, permitidos: ['SEC_DIR'] },
-  // El buscador de titulares de la ingesta: SEC_DIR elige al egresado sin leer files (DEC-054).
+  // Ingesta: `hojas-ruta`/`crear`: SEC_DIR, y SEC_COORD para los certificados de Ancocagua (ADR-0011).
+  {
+    metodo: 'post',
+    documentada: '/api/v1/hojas-ruta',
+    ruta: '/hojas-ruta',
+    cuerpo: {},
+    permitidos: ['SEC_DIR', 'SEC_COORD'],
+  },
+  // El buscador de titulares de la ingesta: SEC_DIR elige al egresado sin leer files (DEC-054); SEC_COORD también.
   {
     metodo: 'get',
     documentada: '/api/v1/hojas-ruta/titulares',
     ruta: '/hojas-ruta/titulares?texto=zz',
-    permitidos: ['SEC_DIR'],
+    permitidos: ['SEC_DIR', 'SEC_COORD'],
   },
   // Reportes (RF-13): `reportes`/`leer`.
   {

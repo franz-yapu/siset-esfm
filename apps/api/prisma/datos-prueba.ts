@@ -276,6 +276,7 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
             fileId: egresados[k],
             tipoTramiteId: tipo.id,
             sedeActualId: sedes.LA_PAZ,
+            sedeIngresoId: sedes.LA_PAZ,
             nroValorado: tipo.requiereValorado ? String(4500 + k).padStart(6, '0') : null,
             fechaIngreso: fecha(20 - k * 2),
           },

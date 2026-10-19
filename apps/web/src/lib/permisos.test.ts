@@ -15,7 +15,8 @@ const MENU_ESPERADO: Record<Rol, IdMenu[]> = {
   EGRESADO: ['inicio', 'perfil'],
   // "Bandeja de pases" y "Firma y entrega" vuelven al menú (D-36, DEC-052). Sin files (DEC-054).
   SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'pases', 'entregas', 'reportes', 'perfil'],
-  SEC_COORD: ['inicio', 'hojas-ruta', 'files', 'pases', 'perfil'],
+  // D-32b (ADR-0011): recibe certificados en Ancocagua y los entrega (Nueva hoja de ruta, Firma y entrega).
+  SEC_COORD: ['inicio', 'nueva-hr', 'hojas-ruta', 'files', 'pases', 'entregas', 'perfil'],
   COORDINADOR: ['inicio', 'hojas-ruta', 'files', 'firmas', 'reportes', 'perfil'],
   // Usuarios y Bitácora pasan al Administrador; Kardex administra los requisitos por modalidad (DEC-054, DEC-055).
   KARDEX: [

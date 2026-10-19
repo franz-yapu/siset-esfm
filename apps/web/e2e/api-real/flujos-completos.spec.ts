@@ -12,6 +12,7 @@ const EGRESADOS = {
   certificado: { ci: `61${sufijo}`, nombres: 'Certificada', paterno: 'Flujo' },
   historial: { ci: `62${sufijo}`, nombres: 'Historiada', paterno: 'Flujo' },
   bloqueo: { ci: `63${sufijo}`, nombres: 'Bloqueada', paterno: 'Flujo' },
+  ancocagua: { ci: `64${sufijo}`, nombres: 'Ancocagüeña', paterno: 'Flujo' },
 } as const;
 type Egresado = keyof typeof EGRESADOS;
 const fileId: Partial<Record<Egresado, number>> = {};
@@ -63,9 +64,15 @@ async function elegirEgresado(page: Page, ci: string) {
   await expect(page.getByText(`CI ${ci}`)).toBeVisible();
 }
 
-/** SEC_DIR registra el trámite del egresado, avisa a Kardex y devuelve el N.º. */
-async function registrarTramite(page: Page, ci: string, tipo: string, valorado?: string): Promise<string> {
-  await entrarComo(page, 'SEC_DIR');
+/** SEC_DIR (o SEC_COORD en Ancocagua) registra el trámite del egresado, avisa a Kardex y devuelve el N.º. */
+async function registrarTramite(
+  page: Page,
+  ci: string,
+  tipo: string,
+  valorado?: string,
+  cuenta: 'SEC_DIR' | 'SEC_COORD' = 'SEC_DIR',
+): Promise<string> {
+  await entrarComo(page, cuenta);
   await irA(page, '/hojas-ruta/nueva');
   await elegirEgresado(page, ci);
   await page.getByLabel('Tipo de trámite').selectOption({ label: tipo });
@@ -265,5 +272,57 @@ test.describe.serial('file bloqueado: no se registra el trámite hasta el desblo
     await elegirTitular(page);
     await page.getByLabel('Tipo de trámite').selectOption({ label: 'Certificado de excelencia de años pasados' });
     await expect(page.getByRole('button', { name: 'Registrar y avisar a Kardex' })).toBeEnabled();
+  });
+});
+
+test.describe.serial('certificado recibido en Ancocagua: SEC_COORD → Kardex → Coordinador → SEC_COORD (D-32b)', () => {
+  let nro = '';
+  const { ci } = EGRESADOS.ancocagua;
+
+  test('en Ancocagua SEC_COORD solo puede recibir certificados', async ({ page }) => {
+    await entrarComo(page, 'SEC_COORD');
+    await irA(page, '/hojas-ruta/nueva');
+    const tipos = page.getByLabel('Tipo de trámite').locator('option');
+    await expect(tipos).toHaveCount(2);
+    await expect(tipos.filter({ hasText: 'Historial académico' })).toHaveCount(0);
+  });
+
+  test('SEC_COORD lo recibe y lo deriva a Kardex', async ({ page }) => {
+    nro = await registrarTramite(page, ci, 'Certificado de excelencia de años pasados', undefined, 'SEC_COORD');
+  });
+
+  test('Kardex lo recoge y lo imprime; no aparece para remitir', async ({ page }) => {
+    await entrarComo(page, 'KARDEX');
+    await pasoEnBandeja(page, '/revision', /Por recoger/, nro, 'Registrar que Kardex lo recogió', 'En impresión');
+    await pasoEnBandeja(page, '/emision', /Por imprimir/, nro, 'Marcar como impreso', 'Impreso');
+  });
+
+  test('el Coordinador lo firma', async ({ page }) => {
+    await entrarComo(page, 'COORDINADOR');
+    await irA(page, '/firmas');
+    await page.getByPlaceholder('Buscar…').fill(nro);
+    await page.getByRole('row').filter({ hasText: nro }).getByRole('button', { name: 'Firmar' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Firmar' }).click();
+    await expect(page.getByText(`Firmaste el trámite ${nro}`)).toBeVisible();
+  });
+
+  test('Kardex no lo tiene para remitir a Calahumana', async ({ page }) => {
+    await entrarComo(page, 'KARDEX');
+    await irA(page, '/revision');
+    await page.getByRole('tab', { name: /Por remitir/ }).click();
+    await page.getByPlaceholder('Buscar…').fill(nro);
+    await expect(page.getByRole('row').filter({ hasText: nro })).toHaveCount(0);
+  });
+
+  test('SEC_COORD lo entrega en Ancocagua desde Firma y entrega', async ({ page }) => {
+    await entrarComo(page, 'SEC_COORD');
+    await irA(page, '/entregas');
+    await page.getByRole('tab', { name: /Por entregar/ }).click();
+    await page.getByPlaceholder('Buscar…').fill(nro);
+    await page.getByRole('row').filter({ hasText: nro }).click();
+    await page.getByRole('button', { name: 'Registrar entrega' }).click();
+    await expect(page.getByLabel('CI de quien recibe')).toHaveValue(ci);
+    await page.getByRole('dialog').getByRole('button', { name: 'Registrar entrega' }).click();
+    await expect(page.getByText(`${nro}: Entregado`)).toBeVisible();
   });
 });

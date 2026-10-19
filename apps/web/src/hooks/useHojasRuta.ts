@@ -52,8 +52,9 @@ export const useResumenHojasRuta = () =>
   useQuery({
     queryKey: [...claveHojasRuta, 'resumen'],
     queryFn: async () => {
+      // Solo los recibidos en Calahumana: los de Ancocagua los maneja Secretaría de Coordinación (ADR-0011).
       const contar = async (estado: FiltrosHojasRuta['estado']) =>
-        (await hojasRutaService.listar({ estado, porPagina: 1 })).total;
+        (await hojasRutaService.listar({ estado, sedeIngreso: 'LA_PAZ', porPagina: 1 })).total;
       const [porAvisar, impresos, remitidos, listos, ultimos] = await Promise.all([
         contar('RECIBIDO'),
         contar('IMPRESO'),
@@ -123,9 +124,14 @@ export const useResumenKardexHojas = () =>
     queryKey: [...claveHojasRuta, 'resumen-kardex'],
     queryFn: async () => {
       const [porRecoger, enImpresion, porRemitir] = await Promise.all(
-        (['AVISADO_KARDEX', 'EN_IMPRESION', 'FIRMADO_COORDINADOR'] as const).map(
-          async (estado) => (await hojasRutaService.listar({ estado, porPagina: 1 })).total,
-        ),
+        (
+          [
+            { estado: 'AVISADO_KARDEX' },
+            { estado: 'EN_IMPRESION' },
+            // Los firmados que se recibieron en Ancocagua no se remiten: los entrega SEC_COORD (ADR-0011).
+            { estado: 'FIRMADO_COORDINADOR', sedeIngreso: 'LA_PAZ' },
+          ] as const
+        ).map(async (f) => (await hojasRutaService.listar({ ...f, porPagina: 1 })).total),
       );
       return { porRecoger, enImpresion, porRemitir };
     },
@@ -145,13 +151,13 @@ export const useBandejasHojasRuta = (estados: readonly EstadoHojaRuta[]) =>
       ),
   });
 
-/** Cuántos trámites hay en cada estado pedido, y los 5 últimos (inicio de SEC_COORD, solo lectura). */
-export const useConteosHojasRuta = (estados: readonly EstadoHojaRuta[]) =>
+/** Cuántos trámites cumple cada filtro (estado y sede de ingreso), y los 5 últimos (inicio de SEC_COORD). */
+export const useConteosHojasRuta = (filtros: readonly Pick<FiltrosHojasRuta, 'estado' | 'sedeIngreso'>[]) =>
   useQuery({
-    queryKey: [...claveHojasRuta, 'conteos', estados],
+    queryKey: [...claveHojasRuta, 'conteos', filtros],
     queryFn: async () => {
       const [totales, ultimos] = await Promise.all([
-        Promise.all(estados.map(async (estado) => (await hojasRutaService.listar({ estado, porPagina: 1 })).total)),
+        Promise.all(filtros.map(async (f) => (await hojasRutaService.listar({ ...f, porPagina: 1 })).total)),
         hojasRutaService.listar({ porPagina: 5 }),
       ]);
       return { totales, ultimos: ultimos.datos };

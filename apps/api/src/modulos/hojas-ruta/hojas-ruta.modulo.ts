@@ -15,7 +15,7 @@ export function crearModuloHojasRuta({
 }: DependenciasHojasRuta & {
   autenticar: RequestHandler;
   autorizarLectura: RequestHandler;
-  /** `autorizar('hojas-ruta', 'crear')`: solo SEC_DIR (DEC-015). */
+  /** `autorizar('hojas-ruta', 'crear')`: SEC_DIR y SEC_COORD (DEC-015, ADR-0011). */
   autorizarIngesta: RequestHandler;
   sesionDe: (res: Response) => SesionHojaRuta;
   /** Consultas públicas por minuto e IP (el mismo límite del login, RNF-10). */

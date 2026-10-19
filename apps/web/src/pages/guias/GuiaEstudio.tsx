@@ -236,10 +236,10 @@ export function GuiaEstudio() {
         <ul>
           <li>
             <strong>Máquina de estados:</strong> <Archivo>apps/api/src/modulos/hojas-ruta/maquina.ts</Archivo>. La tabla{' '}
-            <Codigo>TRANSICIONES</Codigo> tiene cada paso: desde qué estado, hacia cuál, en qué flujo (con o sin
-            valorado), qué rol y desde qué sede. <Codigo>evaluarTransicion</Codigo> decide si se puede (409 si el paso
-            no corresponde, 403 si es de otro rol o sede, 422 si el file está bloqueado) (
-            <Archivo>docs/adr/0005-maquina-estados-hojas-ruta.md</Archivo>).
+            <Codigo>TRANSICIONES</Codigo> tiene cada paso: desde qué estado, hacia cuál, en qué flujo (con valorado, sin
+            valorado o sin valorado recibido en Ancocagua, ADR-0011), qué rol y desde qué sede.{' '}
+            <Codigo>evaluarTransicion</Codigo> decide si se puede (409 si el paso no corresponde, 403 si es de otro rol
+            o sede, 422 si el file está bloqueado) (<Archivo>docs/adr/0005-maquina-estados-hojas-ruta.md</Archivo>).
           </li>
           <li>
             <strong>Correlativo HR-AAAA-NNNNNN:</strong> la función SQL <Codigo>fn_siguiente_nro_hoja_ruta</Codigo> (
@@ -346,7 +346,7 @@ export function GuiaEstudio() {
               'De punta a punta',
               <Archivo key="a">apps/web/e2e</Archivo>,
               <>
-                Playwright en el navegador. <Archivo>e2e/api-real/flujos-completos.spec.ts</Archivo> recorre los dos
+                Playwright en el navegador. <Archivo>e2e/api-real/flujos-completos.spec.ts</Archivo> recorre los tres
                 flujos del trámite con cada rol.
               </>,
             ],

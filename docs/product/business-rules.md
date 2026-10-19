@@ -5,26 +5,32 @@ D-xx son provisionales hasta que el Registro de Dudas las cierre.
 
 ## Hoja de ruta — máquina de estados (DEC-033, DEC-034, ADR-0005)
 
-Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/api/src/modulos/hojas-ruta/maquina.ts`.
+Tres flujos según el tipo de trámite (D-05) y dónde se recibió (D-32b, ADR-0011). La tabla completa vive en
+`apps/api/src/modulos/hojas-ruta/maquina.ts`.
 
 - **Con valorado** (historial académico, legalización de historial):
   `RECIBIDO → AVISADO_KARDEX → EN_IMPRESION → IMPRESO → FIRMADO_DIR_ACADEMICA → LISTO → ENTREGADO`.
 - **Sin valorado** (certificados de notas y de excelencia de años pasados):
   `RECIBIDO → AVISADO_KARDEX → EN_IMPRESION → IMPRESO → FIRMADO_COORDINADOR → REMITIDO_CALAHUMANA → LISTO → ENTREGADO`.
+- **Sin valorado recibido en Ancocagua** (los mismos certificados, pedidos a Secretaría de Coordinación; D-32b):
+  `RECIBIDO → AVISADO_KARDEX → EN_IMPRESION → IMPRESO → FIRMADO_COORDINADOR → ENTREGADO`. No pasa por Calahumana.
 
-| Paso (acción)                                         | Rol         | Sede      | Flujo        |
-| ----------------------------------------------------- | ----------- | --------- | ------------ |
-| Ingesta → Recibido (S3.4)                             | SEC_DIR     | LA_PAZ    | los dos      |
-| Avisar a Kardex                                       | SEC_DIR     | LA_PAZ    | los dos      |
-| Recoger (Kardex retira el valorado o el pedido)       | KARDEX      | ANCOCAGUA | los dos      |
-| Imprimir                                              | KARDEX      | ANCOCAGUA | los dos      |
-| Firma de Dirección Académica (la anota SEC_DIR, D-33) | SEC_DIR     | LA_PAZ    | con valorado |
-| Firma de Dirección General → Listo                    | SEC_DIR     | LA_PAZ    | con valorado |
-| Firma del Coordinador (D-11)                          | COORDINADOR | ANCOCAGUA | sin valorado |
-| Remitir a Calahumana                                  | KARDEX      | ANCOCAGUA | sin valorado |
-| Recibir en Calahumana → Listo                         | SEC_DIR     | LA_PAZ    | sin valorado |
-| Entregar                                              | SEC_DIR     | LA_PAZ    | los dos      |
-| Devolver con observación → Devuelto (D-48, ADR-0008)  | KARDEX      | ANCOCAGUA | con valorado |
+| Paso (acción)                                         | Rol         | Sede      | Flujo                           |
+| ----------------------------------------------------- | ----------- | --------- | ------------------------------- |
+| Ingesta → Recibido (S3.4)                             | SEC_DIR     | LA_PAZ    | con valorado y sin valorado     |
+| Ingesta → Recibido (D-32b)                            | SEC_COORD   | ANCOCAGUA | sin valorado en Ancocagua       |
+| Avisar a Kardex                                       | SEC_DIR     | LA_PAZ    | con valorado y sin valorado     |
+| Derivar a Kardex (D-32b)                              | SEC_COORD   | ANCOCAGUA | sin valorado en Ancocagua       |
+| Recoger (Kardex retira el valorado o el pedido)       | KARDEX      | ANCOCAGUA | los tres                        |
+| Imprimir                                              | KARDEX      | ANCOCAGUA | los tres                        |
+| Firma de Dirección Académica (la anota SEC_DIR, D-33) | SEC_DIR     | LA_PAZ    | con valorado                    |
+| Firma de Dirección General → Listo                    | SEC_DIR     | LA_PAZ    | con valorado                    |
+| Firma del Coordinador (D-11)                          | COORDINADOR | ANCOCAGUA | sin valorado (las dos sedes)    |
+| Remitir a Calahumana                                  | KARDEX      | ANCOCAGUA | sin valorado                    |
+| Recibir en Calahumana → Listo                         | SEC_DIR     | LA_PAZ    | sin valorado                    |
+| Entregar (desde Listo)                                | SEC_DIR     | LA_PAZ    | con valorado y sin valorado     |
+| Entregar (desde Firmado por el Coordinador, D-32b)    | SEC_COORD   | ANCOCAGUA | sin valorado en Ancocagua       |
+| Devolver con observación → Devuelto (D-48, D-48b)     | KARDEX      | ANCOCAGUA | con valorado, solo el historial |
 
 - Paso que el estado o el flujo no admiten → **409** `TRANSICION_INVALIDA`; otro rol u otra sede → **403**.
 - Un file **bloqueado** (DEC-029) impide los pasos hasta imprimir → **422** `FILE_BLOQUEADO`.
@@ -44,7 +50,8 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 
 ## Ingesta (RF-08, DEC-035)
 
-- La registra **SEC_DIR desde Calahumana** (sede LA_PAZ; D-32 pregunta por los certificados).
+- La registra **SEC_DIR desde Calahumana** (sede LA_PAZ), cualquier tipo; o **SEC_COORD desde Ancocagua**, solo los
+  certificados sin valorado (D-32b, ADR-0011). La sede de ingreso queda en `hoja_ruta.sede_ingreso_id` y no cambia.
 - **N.º de valorado** obligatorio solo si el tipo lo requiere (historial y legalización); los certificados no lo
   llevan (D-05).
 - El file debe existir, ser de un **egresado** (provisional, D-09) y **no estar bloqueado** (DEC-029).
@@ -54,9 +61,9 @@ Dos flujos según el tipo de trámite (D-05). La tabla completa vive en `apps/ap
 
 - **Requisitos (DEC-051):** los 24 de la hoja "Documentación existente en folder personal" de Kardex, en su orden,
   en el catálogo `requisito_tipo`. Algunos dependen del file: la libreta militar solo a varones; el certificado de
-  pueblo indígena (modalidad B1), las calificaciones de secundaria (modalidad B) y el carnet de discapacidad
-  (modalidad B3). Las modalidades son **A, B1, B2 y B3** y se comparan exactas (D-45); el requisito 19 ("solo
-  modalidad B") queda para B1, B2 y B3 como no obligatorio hasta D-45b. Los "si corresponde" (licencia temporal,
+  pueblo indígena (modalidad B1), las calificaciones de secundaria (solo B1, obligatorio; D-45b) y el carnet de
+  discapacidad (modalidad B3). Las modalidades son **A, B1, B2 y B3** y se comparan exactas (D-45). Kardex edita a
+  qué modalidades se pide cada requisito, agrega y da de baja requisitos (DEC-055). Los "si corresponde" (licencia temporal,
   reincorporación, historial provisional, resolución académica) no son obligatorios. Solo **Kardex** carga los files
   y marca los requisitos (D-13b); un estudiante se registra con su modalidad.
 - **TCLOA (D-46):** el boletín y el certificado, más las **3 defensas** (básico en 1.º, intermedio en 2.º, avanzado

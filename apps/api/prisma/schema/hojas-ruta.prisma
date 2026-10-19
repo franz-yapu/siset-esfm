@@ -26,6 +26,9 @@ model HojaRuta {
   tipoTramiteId Int                  @map("tipo_tramite_id")
   estadoActual  EstadoHojaRuta       @default(RECIBIDO) @map("estado_actual")
   sedeActualId  Int                  @map("sede_actual_id")
+  /// Dónde se recibió el trámite: Calahumana (SEC_DIR) o Ancocagua (SEC_COORD, solo certificados). Decide el flujo
+  /// junto con el valorado (ADR-0011). No cambia después de la ingesta.
+  sedeIngresoId Int                  @map("sede_ingreso_id")
   /// Obligatorio en la ingesta si el tipo requiere valorado (S3.4).
   nroValorado   String?              @map("nro_valorado") @db.VarChar(30)
   fechaIngreso  DateTime             @default(now()) @map("fecha_ingreso") @db.Timestamptz(6)
@@ -36,10 +39,12 @@ model HojaRuta {
   file          FileAcademico        @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   tipoTramite   TipoTramite          @relation(fields: [tipoTramiteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   sedeActual    Sede                 @relation("SedeActualHojaRuta", fields: [sedeActualId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sedeIngreso   Sede                 @relation("SedeIngresoHojaRuta", fields: [sedeIngresoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   movimientos   MovimientoHojaRuta[]
 
   @@index([fileId])
   @@index([estadoActual])
+  @@index([sedeIngresoId])
   @@map("hoja_ruta")
 }
 

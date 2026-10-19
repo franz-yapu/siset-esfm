@@ -95,11 +95,12 @@ export function PreguntasDefensa() {
             no respondan D-34, no hay estado “Observado”: el file bloqueado impide avanzar.
           </p>
         </Pregunta>
-        <Pregunta p="¿Por qué hay dos flujos de trámite?">
+        <Pregunta p="¿Por qué hay tres flujos de trámite?">
           <p>
-            Porque así funciona la escuela (D-05): el historial y la legalización llevan valorado y los firman las
-            direcciones en Calahumana; los certificados no llevan valorado, los firma el Coordinador en Ancocagua y se
-            remiten a Calahumana. Están en la tabla <Codigo>TRANSICIONES</Codigo> de{' '}
+            Porque así funciona la escuela (D-05, D-32b): el historial y la legalización llevan valorado y los firman
+            las direcciones en Calahumana; los certificados no llevan valorado, los firma el Coordinador en Ancocagua y
+            se remiten a Calahumana, salvo que el egresado los pida en Ancocagua: entonces los recibe y entrega allí
+            Secretaría de Coordinación (ADR-0011). Están en la tabla <Codigo>TRANSICIONES</Codigo> de{' '}
             <Archivo>apps/api/src/modulos/hojas-ruta/maquina.ts</Archivo>.
           </p>
         </Pregunta>
@@ -234,7 +235,7 @@ export function PreguntasDefensa() {
           <p>
             En cuatro niveles, más de 800 pruebas automáticas: unitarias de la API y de la web, de integración contra
             PostgreSQL real (cada endpoint y la matriz completa de permisos) y de punta a punta con Playwright en el
-            navegador, que recorren los dos flujos del trámite con cada rol (
+            navegador, que recorren los tres flujos del trámite con cada rol (
             <Archivo>apps/web/e2e/api-real/flujos-completos.spec.ts</Archivo>). Corren solas en cada cambio (
             <Archivo>.github/workflows/ci.yml</Archivo>); si una falla, el cambio no se considera terminado.
           </p>

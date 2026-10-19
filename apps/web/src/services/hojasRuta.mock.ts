@@ -11,7 +11,7 @@ import {
   ESTADOS_FINALES,
   evaluarTransicion,
   flujoDe,
-  INGESTA,
+  reglaIngesta,
   PIDEN_OBSERVACION,
   type CodigoSede,
 } from '@/lib/maquina-hojas-ruta';
@@ -49,6 +49,7 @@ const detalle = (h: HojaRutaMock, u: Usuario): DetalleHojaRuta => {
     tipo,
     estado: h.estado,
     sedeActual: { codigo: h.sedeActual, nombre: sedeHr(h.sedeActual) },
+    sedeIngreso: { codigo: h.sedeIngreso, nombre: sedeHr(h.sedeIngreso) },
     nroValorado: h.nroValorado,
     fechaIngreso: h.fechaIngreso,
     fechaCierre: h.fechaCierre,
@@ -63,7 +64,12 @@ const detalle = (h: HojaRutaMock, u: Usuario): DetalleHojaRuta => {
       fecha: m.fecha,
     })),
     acciones: accionesPosibles(
-      { estado: h.estado, flujo: flujoDe(tipo.requiereValorado), tipo: tipo.codigo, fileBloqueado: f.bloqueado },
+      {
+        estado: h.estado,
+        flujo: flujoDe(tipo.requiereValorado, h.sedeIngreso),
+        tipo: tipo.codigo,
+        fileBloqueado: f.bloqueado,
+      },
       { rol: u.rol, sede: sedeDe(u) },
     ),
   });
@@ -78,6 +84,7 @@ const fila = (h: HojaRutaMock): FilaHojaRuta => {
     tipo: { codigo: tipo.codigo, nombre: tipo.nombre },
     estado: h.estado,
     sedeActual: h.sedeActual,
+    sedeIngreso: h.sedeIngreso,
     titular: { fileId: f.id, nombre: aDetalle(f).nombre, ci: f.ci },
     nroValorado: h.nroValorado,
     fechaIngreso: h.fechaIngreso,
@@ -96,7 +103,8 @@ export const hojasRutaMock: ServicioHojasRuta = {
           (!t || [h.nro, h.titular.ci, h.titular.nombre].some((v) => v.toLowerCase().includes(t))) &&
           (!f.estado || h.estado === f.estado) &&
           (!f.tipoTramite || h.tipo.codigo === f.tipoTramite) &&
-          (!f.gestion || h.gestion === f.gestion),
+          (!f.gestion || h.gestion === f.gestion) &&
+          (!f.sedeIngreso || h.sedeIngreso === f.sedeIngreso),
       )
       .sort((a, b) => b.fechaIngreso.localeCompare(a.fechaIngreso));
     const pagina = f.pagina ?? 1;
@@ -116,11 +124,24 @@ export const hojasRutaMock: ServicioHojasRuta = {
 
   async crear(d, u) {
     await delay(LATENCIA);
-    if (u.rol !== INGESTA.rol || sedeDe(u) !== INGESTA.sede) {
-      throw new ErrorApi('La ingesta la registra Secretaría de Dirección en Calahumana.', 'PROHIBIDO', 403);
+    const sede = sedeDe(u);
+    const regla = reglaIngesta({ rol: u.rol, sede });
+    if (!regla || !sede) {
+      throw new ErrorApi(
+        'La ingesta la registra Secretaría de Dirección en Calahumana o Secretaría de Coordinación en Ancocagua.',
+        'PROHIBIDO',
+        403,
+      );
     }
     const tipo = TIPOS_TRAMITE_MOCK.find((t) => t.codigo === d.tipoTramite);
     if (!tipo) throw new ErrorApi('El tipo de trámite no existe.', 'TIPO_TRAMITE_INEXISTENTE', 422);
+    if (regla.soloSinValorado && tipo.requiereValorado) {
+      throw new ErrorApi(
+        'En Ancocagua solo se reciben los certificados (sin valorado); el historial y su legalización van a Calahumana (D-32).',
+        'PROHIBIDO',
+        403,
+      );
+    }
     const valorado = d.nroValorado?.trim() || null;
     if (tipo.requiereValorado !== Boolean(valorado)) {
       const mensaje = valorado ? 'Este trámite no lleva valorado (D-05)' : 'Este trámite necesita el N.º de valorado';
@@ -153,7 +174,8 @@ export const hojasRutaMock: ServicioHojasRuta = {
       fileId: f.id,
       tipo: tipo.codigo,
       estado: 'RECIBIDO',
-      sedeActual: 'LA_PAZ',
+      sedeActual: sede,
+      sedeIngreso: sede,
       nroValorado: valorado,
       fechaIngreso: fecha,
       fechaCierre: null,
@@ -162,7 +184,7 @@ export const hojasRutaMock: ServicioHojasRuta = {
           accion: 'REGISTRAR',
           estadoAnterior: null,
           estadoNuevo: 'RECIBIDO',
-          sede: 'LA_PAZ',
+          sede,
           usuario: u.nombre,
           observacion: d.observacion?.trim() || null,
           fecha,
@@ -181,7 +203,7 @@ export const hojasRutaMock: ServicioHojasRuta = {
     const r = evaluarTransicion(
       {
         estado: h.estado,
-        flujo: flujoDe(tipo.requiereValorado),
+        flujo: flujoDe(tipo.requiereValorado, h.sedeIngreso),
         tipo: tipo.codigo,
         fileBloqueado: fileDe(h.fileId).bloqueado,
       },
