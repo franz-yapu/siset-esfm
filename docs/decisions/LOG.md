@@ -986,3 +986,12 @@ más modalidades") · **Estado:** activa, implementada el 2026-10-19
    - "Todas las activas" se guarda como "todas" (`NULL`), así que esos requisitos también se piden a las modalidades
      que se agreguen después.
 6. El motor del semáforo (ADR-0007) no cambia: sigue comparando el código del file con la lista del requisito.
+
+## DEC-059 — Historial devuelto: Secretaría avisa y el valorado vuelve con el trámite
+
+**Fecha:** 2026-10-19 · **Fuente:** D-49b (hoja, fila 68) · **Estado:** activa
+
+1. Cuando Kardex devuelve el historial con observación (DEC-053), el **valorado sin usar vuelve a la secretaría** que
+   remitió el trámite, junto con el informe técnico. Secretaría de Dirección General avisa al egresado.
+2. Se confirma la propuesta de D-49b: el valorado se maneja como hoy, fuera del sistema. El trámite sigue terminando en
+   DEVUELTO y el código no cambia; solo el manual de Kardex lo explica.

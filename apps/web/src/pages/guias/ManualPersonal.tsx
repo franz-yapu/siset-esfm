@@ -154,8 +154,8 @@ export function ManualPersonal() {
             <strong>Historial académico:</strong> antes de imprimir, contraste las notas del sistema con los empastes.
             Si están bien, <em>Marcar como impreso</em> deja anotado el N.º de valorado en que se imprimió. Si algo no
             coincide, no imprima: pulse <em>Devolver con observación</em> y escriba el informe técnico. El historial
-            vuelve a la secretaría que lo remitió y el trámite termina en SISET. La legalización no se contrasta: se
-            imprime directamente (D-48b).
+            vuelve a la secretaría que lo remitió junto con el valorado sin usar, y el trámite termina en SISET; esa
+            secretaría avisa al egresado (D-49b). La legalización no se contrasta: se imprime directamente (D-48b).
           </li>
           <li>Use el buscador de cada bandeja para encontrar un trámite por N.º, nombre o CI.</li>
         </ol>
