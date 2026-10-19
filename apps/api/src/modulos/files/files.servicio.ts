@@ -112,7 +112,7 @@ const deFecha = (d: Date | null): string | null => (d ? d.toISOString().slice(0,
 
 const nombreCompleto = (p: PersonaFile) => [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
 
-function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: ColorSemaforo): FileDetalle {
+function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: ColorSemaforo | null): FileDetalle {
   return {
     id: f.id,
     codigo: f.codigoEstudiante,
@@ -163,11 +163,14 @@ export function crearServicioFiles({
   personaDeUsuario,
   describirUsuarios,
 }: DependenciasFiles) {
-  /** Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2, ADR-0007). */
+  /**
+   * Semáforo de varios files: el catálogo una vez y los estados en una consulta (SDD S2.5 §2.2, ADR-0007). El egresado
+   * no tiene semáforo (`null`): ya se tituló y no se le piden requisitos (DEC-060).
+   */
   async function semaforos(
     cliente: Cliente,
-    files: Pick<FileBd, 'id' | 'bloqueado' | 'genero' | 'modalidad' | 'anioFormacion'>[],
-  ): Promise<Map<number, ColorSemaforo>> {
+    files: Pick<FileBd, 'id' | 'bloqueado' | 'genero' | 'modalidad' | 'anioFormacion' | 'condicion'>[],
+  ): Promise<Map<number, ColorSemaforo | null>> {
     const catalogo = await obtenerRequisitosActivos(cliente);
     const filas = await listarEstadosDeFiles(
       cliente,
@@ -180,6 +183,7 @@ export function crearServicioFiles({
     }
     return new Map(
       files.map((f) => {
+        if (f.condicion === 'EGRESADO') return [f.id, null];
         const { estados, atrasado } = entradaDelSemaforo(catalogo, f, (r) => {
           const registros = estadosDe.get(`${f.id}:${r.id}`) ?? [];
           return r.porGestion
@@ -200,7 +204,7 @@ export function crearServicioFiles({
     const p = (await personas.obtenerPersonas(cliente, [f.personaId])).get(f.personaId);
     if (!p) throw new Error(`El file ${id} no tiene persona.`);
     const nombre = (await especialidades.nombresEspecialidades(cliente, [f.especialidadId])).get(f.especialidadId);
-    const semaforo = (await semaforos(cliente, [f])).get(f.id)!;
+    const semaforo = (await semaforos(cliente, [f])).get(f.id) ?? null;
     return { f, p, d: detalle(f, p, nombre ?? '', semaforo) };
   }
 
@@ -251,7 +255,7 @@ export function crearServicioFiles({
       return {
         datos: filas
           .slice(skip, skip + take)
-          .map(({ f, p }) => detalle(f, p, nombres.get(f.especialidadId) ?? '', colores.get(f.id)!)),
+          .map(({ f, p }) => detalle(f, p, nombres.get(f.especialidadId) ?? '', colores.get(f.id) ?? null)),
         pagina: filtros.pagina,
         porPagina: filtros.porPagina,
         total: filas.length,

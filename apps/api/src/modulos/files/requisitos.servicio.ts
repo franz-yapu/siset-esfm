@@ -1,5 +1,5 @@
 import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
-import { ErrorNoEncontrado, ErrorValidacion } from '@/compartido/errores';
+import { ErrorNegocio, ErrorNoEncontrado, ErrorValidacion } from '@/compartido/errores';
 import { obtenerContexto } from '@/compartido/http';
 import { registrarEvento } from '@/modulos/auditoria';
 import { buscarFile, type FileBd } from './file.repositorio';
@@ -138,6 +138,8 @@ export function crearServicioRequisitos({ bd, obtenerRequisitosActivos, describi
 
   async function listar(fileId: number): Promise<RequisitoDelFile[]> {
     const file = await cargarFile(bd, fileId);
+    // El egresado ya se tituló: presentó todo antes y no se le piden requisitos (DEC-060).
+    if (file.condicion === 'EGRESADO') return [];
     return armar(await obtenerRequisitosActivos(bd), await listarRequisitosDelFile(bd, fileId), file);
   }
 
@@ -150,6 +152,9 @@ export function crearServicioRequisitos({ bd, obtenerRequisitosActivos, describi
      */
     async registrar(fileId: number, codigo: string, datos: DatosRequisito): Promise<RequisitoDelFile> {
       const file = await cargarFile(bd, fileId);
+      if (file.condicion === 'EGRESADO') {
+        throw new ErrorNegocio('Los egresados no tienen requisitos: ya se titularon (DEC-060).', 'FILE_EGRESADO');
+      }
       const catalogo = await obtenerRequisitosActivos(bd);
       const tipo = catalogo.find((r) => r.codigo === codigo);
       if (!tipo) throw new ErrorNoEncontrado('Ese requisito no existe en el catálogo.');

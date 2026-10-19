@@ -138,6 +138,10 @@ export function ManualPersonal() {
             El color del file (semáforo): <strong>verde</strong> todo completo, <strong>amarillo</strong> le falta algo,{' '}
             <strong>rojo</strong> bloqueado, con un requisito observado o con un TACFI de un año que ya pasó.
           </li>
+          <li>
+            Los <strong>egresados no tienen requisitos</strong>: ya se titularon y presentaron todo antes. Su file no
+            muestra la pestaña Requisitos ni el semáforo.
+          </li>
         </ol>
         <Subtitulo>Trámites</Subtitulo>
         <ol>

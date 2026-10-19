@@ -79,6 +79,8 @@ Tres flujos según el tipo de trámite (D-05) y dónde se recibió (D-32b, ADR-0
 - **Semáforo (DEC-031, ADR-0007):** cuentan los requisitos obligatorios que aplican al file. Rojo: file bloqueado,
   algún requisito OBSERVADO o **algún requisito atrasado** (de un año que el estudiante ya pasó y sin completar,
   D-31). Amarillo: algún pendiente. Verde: todos completos. Un requisito por gestión resume sus gestiones.
+- **Egresados sin requisitos (DEC-060):** el egresado ya se tituló y presentó todo antes, así que su file no muestra
+  requisitos ni semáforo, y la API rechaza registrarle uno (422 `FILE_EGRESADO`). Lo ya registrado se conserva.
 - Notas: Kardex **no registra notas**; las cargan los docentes en un sistema del Ministerio (D-07). Reprobar no
   obliga a repetir TACFI ni TCLO (D-07b).
 - **Bloqueo (D-29, DEC-049; antes DEC-029):** Kardex bloquea el file solo por **licencia temporal obligatoria**

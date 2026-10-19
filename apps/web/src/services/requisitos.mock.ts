@@ -126,6 +126,8 @@ export const requisitosMock: ServicioRequisitos = {
   async listar(fileId: number): Promise<RequisitoDelFile[]> {
     await delay(LATENCIA);
     const f = buscar(fileId);
+    // El egresado ya se tituló: no se le piden requisitos (DEC-060).
+    if (f.condicion === 'EGRESADO') return [];
     return copia(catalogo().map((item) => armar(item, f)));
   },
 
@@ -136,6 +138,9 @@ export const requisitosMock: ServicioRequisitos = {
   async registrar(fileId: number, codigo: string, datos: DatosRequisito, actor: Usuario): Promise<RequisitoDelFile> {
     await delay(LATENCIA);
     const f = buscar(fileId);
+    if (f.condicion === 'EGRESADO') {
+      throw new ErrorApi('Los egresados no tienen requisitos: ya se titularon (DEC-060).', 'FILE_EGRESADO', 422);
+    }
     const item = catalogo().find((c) => c.codigo === codigo.toUpperCase());
     if (!item) throw new ErrorApi('Ese requisito no existe en el catálogo.', 'NO_ENCONTRADO', 404);
     const d = normalizarRequisito(datos);

@@ -161,11 +161,16 @@ export function Files() {
             header: 'Ingreso',
             render: (x) => (x.condicion === 'EGRESADO' ? `${x.anioIngreso} · Egresado` : x.anioIngreso),
           },
-          // Calculado por la API (S2.5); provisional hasta D-31.
+          // Calculado por la API (S2.5); el egresado no tiene (DEC-060).
           {
             key: 'sem',
             header: 'Semáforo',
-            render: (x) => <Semaforo color={x.semaforo} texto={textoSemaforo(x.semaforo, x.bloqueado)} size="sm" />,
+            render: (x) =>
+              x.semaforo ? (
+                <Semaforo color={x.semaforo} texto={textoSemaforo(x.semaforo, x.bloqueado)} size="sm" />
+              ) : (
+                <span className="text-xs text-slate-500">Sin requisitos (egresado)</span>
+              ),
           },
           {
             key: 'bloq',

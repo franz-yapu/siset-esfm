@@ -209,8 +209,8 @@ export const esquemaFileDetalle = z
     anioFormacion: z.number().int().nullable(),
     bloqueado: z.boolean(),
     motivoBloqueo: z.string().nullable(),
-    /** Calculado, no se guarda (SDD S2.5, DEC-031; provisional hasta D-31). */
-    semaforo: z.enum(COLORES_SEMAFORO),
+    /** Calculado, no se guarda (SDD S2.5, DEC-031). `null` en el egresado: no se le piden requisitos (DEC-060). */
+    semaforo: z.enum(COLORES_SEMAFORO).nullable(),
   })
   .meta({ id: 'FileDetalle', description: 'File académico con los datos de la persona.' });
 

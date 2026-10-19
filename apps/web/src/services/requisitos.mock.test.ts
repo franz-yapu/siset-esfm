@@ -78,4 +78,12 @@ describe('requisitosMock: contrato de S2.4 y DEC-051', () => {
     );
     expect(t).toMatchObject({ estado: 'COMPLETO', nombreCurso: 'IA aplicada', entidadEmisora: 'Instituto' });
   });
+
+  it('DEC-060: el egresado no tiene requisitos y no se le registran', async () => {
+    const egresado = db.files.find((f) => f.condicion === 'EGRESADO')!;
+    expect(await requisitosMock.listar(egresado.id)).toEqual([]);
+    expect(await codigoDe(requisitosMock.registrar(egresado.id, 'CERT_TCLOA', datos(), kardex()))).toBe(
+      'FILE_EGRESADO',
+    );
+  });
 });

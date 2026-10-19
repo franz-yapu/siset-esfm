@@ -995,3 +995,15 @@ más modalidades") · **Estado:** activa, implementada el 2026-10-19
    remitió el trámite, junto con el informe técnico. Secretaría de Dirección General avisa al egresado.
 2. Se confirma la propuesta de D-49b: el valorado se maneja como hoy, fuera del sistema. El trámite sigue terminando en
    DEVUELTO y el código no cambia; solo el manual de Kardex lo explica.
+
+## DEC-060 — Los egresados no tienen requisitos
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario ("los egresados no necesitan los requisitos, ya se titularon y
+presentaron todo antes") · **Estado:** activa, implementada el 2026-10-19
+
+1. El file con condición **EGRESADO** no tiene requisitos: `GET /files/:id/requisitos` devuelve una lista vacía y
+   `PUT /files/:id/requisitos/:codigo` responde 422 `FILE_EGRESADO`.
+2. Su **semáforo es `null`** ("sin requisitos"): no sale en el filtro por color ni en los avisos de files en rojo.
+3. En la web, su file no muestra la pestaña Requisitos y la lista de files dice "Sin requisitos (egresado)".
+4. Lo que se registró mientras era estudiante no se borra; vuelve a verse si el file vuelve a ESTUDIANTE.
+5. El motor del semáforo (ADR-0007) no cambia: la regla se aplica antes, en el servicio.

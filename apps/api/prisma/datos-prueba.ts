@@ -175,6 +175,10 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
       const roles = Object.fromEntries((await tx.rol.findMany()).map((r) => [r.codigo, r.id]));
       const especialidades = (await tx.especialidad.findMany({ orderBy: { id: 'asc' } })).map((e) => e.id);
       const requisitos = await tx.requisitoTipo.findMany({ where: { activo: true }, orderBy: { orden: 'asc' } });
+      // Un obligatorio que se pide a todos y no es de un año: el que falta en los files amarillos.
+      const sinAnio = requisitos.find(
+        (r) => r.obligatorio && r.anioFormacion === null && !r.porGestion && !r.soloGenero && !r.soloModalidad,
+      )?.codigo;
       const tipos = Object.fromEntries((await tx.tipoTramite.findMany()).map((t) => [t.codigo, t]));
       const kardex = await tx.usuario.findFirstOrThrow({
         where: { rol: { codigo: 'KARDEX' } },
@@ -237,26 +241,35 @@ export async function cargarDatosPrueba(bd: ClienteBd, password: string): Promis
             motivoBloqueo: bloqueado ? 'Permiso obligatorio por una gestión, por reprobación (dato de prueba)' : null,
           },
         });
-        // Tres de cada cuatro egresados con todo completo; observado uno de cada siete; el resto, pendientes.
+        // Tres de cada cuatro egresados con todo completo (lo cargado cuando eran estudiantes; DEC-060 ya no se lo
+        // pide); observado uno de cada siete; el resto, pendientes. Dos estudiantes con todo, para ver el verde.
+        // Y dos con todo menos un requisito sin año (amarillo: nada atrasado).
+        const todoCompleto = !egresado && (i % 4 === 2 || i % 4 === 3);
+        const queda = i % 4 === 3 ? sinAnio : undefined;
+        const aniosCursados = Array.from({ length: todoCompleto ? 2026 - anioIngreso + 1 : 1 }, (_, k) =>
+          String(anioIngreso + k),
+        );
         for (const [j, r] of requisitos.entries()) {
-          const completo = egresado ? i % 4 !== 0 || j !== i % requisitos.length : j < i % 3;
+          const completo = egresado ? i % 4 !== 0 || j !== i % requisitos.length : todoCompleto || j < i % 3;
           const observado = i % 7 === 3 && r.codigo === 'CERT_TCLOA';
-          if (!completo && !observado) continue;
-          await tx.requisitoFile.create({
-            data: {
-              fileId: f.id,
-              requisitoTipoId: r.id,
-              // Los por gestión (matrícula, certificado de notas), en la gestión de ingreso (DEC-051).
-              gestion: r.porGestion ? String(anioIngreso) : '',
-              estado: observado ? 'OBSERVADO' : 'COMPLETO',
-              fecha: observado ? null : fecha(400 - i * 5 - j),
-              nroDocumento: observado ? null : `DOC-${i + 1}-${j + 1}`,
-              observacion: observado ? 'No se presentó a la defensa; se reprograma (dato de prueba)' : null,
-              nombreCurso: r.pideCurso && !observado ? 'Curso de prueba' : null,
-              entidadEmisora: r.pideCurso && !observado ? 'Entidad de prueba' : null,
-              registradoPor: kardex.id,
-            },
-          });
+          if ((!completo && !observado) || r.codigo === queda) continue;
+          // Los por gestión (matrícula, certificado de notas), una por año cursado; si no, en la de ingreso (DEC-051).
+          for (const gestion of r.porGestion ? aniosCursados : ['']) {
+            await tx.requisitoFile.create({
+              data: {
+                fileId: f.id,
+                requisitoTipoId: r.id,
+                gestion,
+                estado: observado ? 'OBSERVADO' : 'COMPLETO',
+                fecha: observado ? null : fecha(400 - i * 5 - j),
+                nroDocumento: observado ? null : `DOC-${i + 1}-${j + 1}`,
+                observacion: observado ? 'No se presentó a la defensa; se reprograma (dato de prueba)' : null,
+                nombreCurso: r.pideCurso && !observado ? 'Curso de prueba' : null,
+                entidadEmisora: r.pideCurso && !observado ? 'Entidad de prueba' : null,
+                registradoPor: kardex.id,
+              },
+            });
+          }
         }
         if (egresado && !bloqueado) egresados.push(f.id);
       }

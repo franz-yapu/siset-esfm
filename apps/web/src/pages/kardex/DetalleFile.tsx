@@ -86,12 +86,12 @@ export function DetalleFile() {
   const editable = usePermiso('editar-file');
   const leeBitacora = usePermiso('bitacora');
   const { puede } = usePermisos();
-  // SEC_DIR no ve requisitos (DEC-015); solo KARDEX los registra.
-  const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' });
+  // SEC_DIR no ve requisitos (DEC-015); solo KARDEX los registra. El egresado no tiene (DEC-060).
   const registraRequisitos = puede({ recurso: 'requisitos', accion: 'editar' });
   const leeTramites = puede({ recurso: 'hojas-ruta', accion: 'leer' });
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
+  const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' }) && f?.condicion !== 'EGRESADO';
   const { data: especialidades = [] } = useEspecialidades();
   const editar = useMutacionFiles((d: DatosCrearFile) =>
     filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
@@ -146,7 +146,7 @@ export function DetalleFile() {
             onGuardar={guardar}
           />
         )}
-        {tab === 'requisitos' && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
+        {tab === 'requisitos' && leeRequisitos && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
         {tab === 'tramites-api' && <TramitesFile fileId={f.id} ci={f.ci} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
         {tab !== 'datos' && tab !== 'requisitos' && tab !== 'tramites-api' && tab !== 'historial-api' && (

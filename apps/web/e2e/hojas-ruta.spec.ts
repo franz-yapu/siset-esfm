@@ -87,6 +87,19 @@ test('seguimiento público con el QR: N.º + CI muestran el avance; un CI equivo
   expect(problemas).toEqual([]);
 });
 
+test('seguimiento sin QR: el N.º se escribe tecla por tecla sin que el foco salte al CI', async ({ page }) => {
+  const problemas = vigilarConsola(page);
+  const nro = `HR-${new Date().getFullYear()}-000001`;
+  await page.goto('/seguimiento');
+  const campo = page.getByLabel('N.º de hoja de ruta');
+  await expect(campo).toBeFocused();
+  await page.keyboard.type(nro.toLowerCase());
+  await expect(campo).toHaveValue(nro);
+  await expect(campo).toBeFocused();
+  await expect(page.getByLabel('CI del titular')).toHaveValue('');
+  expect(problemas).toEqual([]);
+});
+
 test('SEC_DIR entrega a un familiar desde "Firma y entrega" (D-36, D-42)', async ({ page }) => {
   const problemas = vigilarConsola(page);
   await iniciarSesion(page, 'secdir');

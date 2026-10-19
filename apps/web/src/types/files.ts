@@ -41,8 +41,8 @@ export interface FileDetalle {
   anioFormacion: number | null;
   bloqueado: boolean;
   motivoBloqueo: string | null;
-  /** Calculado por la API (SDD S2.5, DEC-031). */
-  semaforo: ColorSemaforo;
+  /** Calculado por la API (SDD S2.5, DEC-031). `null` en el egresado: no se le piden requisitos (DEC-060). */
+  semaforo: ColorSemaforo | null;
 }
 
 export interface DatosCrearFile {

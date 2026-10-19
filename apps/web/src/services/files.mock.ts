@@ -62,7 +62,8 @@ export const aDetalle = (f: FileMock): FileDetalle => {
     anioFormacion: f.anioFormacion ?? null,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo ?? null,
-    semaforo: semaforoDelFile({ bloqueado: f.bloqueado, ...entradaSemaforoMock(f.id) }),
+    semaforo:
+      f.condicion === 'EGRESADO' ? null : semaforoDelFile({ bloqueado: f.bloqueado, ...entradaSemaforoMock(f.id) }),
   };
 };
 

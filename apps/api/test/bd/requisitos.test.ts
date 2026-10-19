@@ -43,7 +43,12 @@ const como = async (rol: 'KARDEX' | 'COORDINADOR', metodo: 'get' | 'put', ruta: 
 };
 
 async function nuevoFile(
-  extra: { genero?: 'FEMENINO' | 'MASCULINO'; modalidad?: string; anioFormacion?: number } = {},
+  extra: {
+    genero?: 'FEMENINO' | 'MASCULINO';
+    modalidad?: string;
+    anioFormacion?: number;
+    condicion?: 'ESTUDIANTE' | 'EGRESADO';
+  } = {},
 ): Promise<number> {
   const n = siguiente++;
   const persona = await bd.persona.create({
@@ -372,5 +377,21 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
     expect(await ids('VERDE')).not.toContain(amarillo);
     expect(await ids('AMARILLO')).toContain(amarillo);
     expect((await como('KARDEX', 'get', '/files?semaforo=AZUL')).status).toBe(400);
+  });
+
+  it('DEC-060: el egresado no tiene requisitos ni semáforo, y no se le registran', async () => {
+    const id = await nuevoFile({ condicion: 'EGRESADO', anioFormacion: 3 });
+    expect((await como('KARDEX', 'get', `/files/${id}/requisitos`)).body).toEqual([]);
+    expect((await como('KARDEX', 'get', `/files/${id}`)).body.semaforo).toBeNull();
+    const res = await como('KARDEX', 'put', `/files/${id}/requisitos/CERT_TCLOA`, {
+      estado: 'COMPLETO',
+      fecha: '2026-01-10',
+    });
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('FILE_EGRESADO');
+    const rojos = (await como('KARDEX', 'get', '/files?texto=Requisitos&semaforo=ROJO&porPagina=100')).body.datos as {
+      id: number;
+    }[];
+    expect(rojos.map((f) => f.id)).not.toContain(id);
   });
 });

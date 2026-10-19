@@ -16,9 +16,10 @@ export function Seguimiento() {
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
+  // Solo al abrir: con el N.º del QR (?hr=) el foco va al CI. Si dependiera de `nro`, saltaría al CI al teclear.
   useEffect(() => {
-    document.getElementById(nro ? 'ci-titular' : 'nro-hr')?.focus();
-  }, [nro]);
+    document.getElementById(params.get('hr') ? 'ci-titular' : 'nro-hr')?.focus();
+  }, [params]);
 
   const consultar = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,7 +93,8 @@ export function Seguimiento() {
                 <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
                   <MapPin className="size-3.5" />
                   Ahora en: {res.sedeActual} · Ingresó el {fecha(res.fechaIngreso)}
-                  {res.fechaCierre && ` · Entregado el ${fecha(res.fechaCierre)}`}
+                  {res.fechaCierre &&
+                    ` · ${res.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'} el ${fecha(res.fechaCierre)}`}
                 </p>
               </div>
               <EstadoHojaRutaBadge estado={res.estado} className="text-sm" />
