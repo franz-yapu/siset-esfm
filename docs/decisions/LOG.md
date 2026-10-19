@@ -881,3 +881,69 @@ SDD previo) · **Estado:** activa, implementada el 2026-10-16
 4. Reportes: los devueltos no están en curso ni atrasados y se cuentan aparte ("Devueltos con observación").
 5. Se aplica al historial y a su legalización (el flujo con valorado). Se pregunta en D-48b si la legalización
    también se contrasta (hoja, fila 65).
+
+## DEC-054 — Rol Administrador aparte: usuarios, roles y bitácora; Secretaría de Dirección sin files
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario tras consultarlo con la escuela (cambia la respuesta de
+D-27 del 14-oct) · **Estado:** activa, implementada el 2026-10-19 · ADR-0009
+
+1. **Rol `ADMIN` ("Administrador")**, separado de Kardex y sin trámites. Tiene `usuarios` (crear, leer, editar) y
+   `auditoria` (leer): crea cuentas, asigna roles, da de baja, reactiva, restablece contraseñas, desbloquea y mira la
+   bitácora. Su inicio es `/admin` (cuentas activas, bloqueadas y de baja). No ve files, requisitos ni hojas de ruta.
+2. **Kardex pierde Usuarios y Bitácora.** También pierde la pestaña "Historial" del file, que sale de la bitácora:
+   ese historial lo consulta el Administrador en la bitácora filtrada por el file. Restablecer contraseñas (D-14b)
+   pasa al Administrador.
+3. La regla "el sistema no se queda sin administrador" (DEC-020 #4) pasa del último Kardex activo al **último ADMIN
+   activo** (`ULTIMO_ADMIN`); ya no protege a Kardex.
+4. **SEC_DIR deja de ver files** (ni la lista, ni el detalle, ni las especialidades). Para registrar un trámite elige
+   al egresado con `GET /hojas-ruta/titulares?texto=` (`hojas-ruta`/`crear`): hasta 8 egresados con nombre, CI,
+   especialidad y bloqueo, sin semáforo ni requisitos. En el detalle del trámite ya no ve "Ver file".
+5. Cuenta inicial: el seed crea el Administrador si vienen `SEED_ADMIN_CI` y `SEED_ADMIN_PASSWORD` (mismas reglas que
+   el Kardex inicial). La migración `20261019120000` agrega el rol en las bases existentes. En la prueba, la cuenta
+   es **9000005** (Prueba.2026), creada por `bd:datos-prueba` también en una base que ya tenía los datos.
+6. Queda por saber quién será el Administrador en producción (nombre y CI): D-51 en la hoja.
+
+## DEC-055 — Kardex administra el catálogo de requisitos por modalidad
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario ("los requisitos cambian según la modalidad de ingreso") ·
+**Estado:** activa, implementada el 2026-10-19
+
+1. Pantalla de Kardex **"Requisitos por modalidad"** (`/requisitos`, permiso `requisitos`/`crear`): una fila por
+   requisito y una columna por modalidad (A, B1, B2, B3). Marcar o desmarcar cambia a quién se le pide, con efecto
+   inmediato en los requisitos y el semáforo de los files. Pestañas por modalidad con su conteo y "Dados de baja".
+2. **Agregar:** nombre, descripción, modalidades, año de formación, género, obligatorio, si pide curso y entidad, y si
+   es por gestión (con "solo años terminados"). El código sale del nombre y va al final del orden.
+3. **Editar:** todo menos "por gestión" y "solo años terminados", que cambiarían cómo se leen los registros que ya
+   hay. Un requisito tiene que pedirse al menos a una modalidad; todas marcadas se guarda como "todas" (`NULL`).
+4. **Eliminar = dar de baja** (`activo = false`): deja de pedirse y de contar para el semáforo; lo registrado en los
+   files se conserva y vuelve a verse al reactivarlo. Nunca se borra (las filas de `requisito_file` lo referencian).
+5. Cada alta, edición, baja y reactivación deja su evento en la bitácora (módulo CATALOGOS, `requisito_tipo`).
+6. **El seed ya no pisa el catálogo:** solo crea los requisitos que faltan. Un cambio que venga de la escuela va en
+   una migración de datos (como D-45b en `20261019120000`). El motor del semáforo (ADR-0007) no cambia: sigue leyendo
+   `solo_modalidad` del catálogo activo.
+
+## DEC-056 — Respuestas de la hoja del 19-oct (D-45b, D-47b, D-32b, D-48b, D-49, D-50, D-41c)
+
+**Fecha:** 2026-10-19 · **Fuente:** hoja de preguntas (la escuela escribió las respuestas en la columna Estado) ·
+**Estado:** activa; #1 y #4 implementados el 2026-10-19
+
+1. **D-45b:** el certificado de calificaciones de 1.º a 4.º de secundaria es **solo para B1**, y obligatorio (migración
+   `20261019120000`; antes B1, B2 y B3 como "si corresponde").
+2. **D-47b:** se confirma la regla de D-47 (una matrícula por año cursado, un certificado de notas por año terminado;
+   si el año fue semestral, Kardex anota los dos semestres). Deja de ser provisional; el código no cambia.
+3. **D-32b:** en Ancocagua, el egresado pide el certificado (sin valorado) a **Secretaría de Coordinación**, que lo
+   deriva a Kardex; Kardex imprime y lo devuelve a Secretaría de Coordinación, que lo hace firmar con el Coordinador y
+   lo **entrega en Ancocagua**. Es un tercer camino en la máquina de estados (ingesta por SEC_COORD y entrega sin
+   pasar por Calahumana): queda como tarea con su ADR; hasta entonces solo SEC_DIR registra trámites.
+4. **D-48b:** el contraste con los empastes es **solo del historial académico**, no de su legalización. `DEVOLVER`
+   queda limitado al tipo `HISTORIAL_ACADEMICO` (ADR-0010).
+5. **D-48** (nota de la escuela): el historial se imprime desde otro sistema; SISET solo muestra el seguimiento del
+   trámite. Coincide con DEC-053.
+6. **D-49:** al encontrar una incongruencia, Kardex **devuelve el historial a la secretaría que se lo remitió, con un
+   informe técnico** de las observaciones. La observación obligatoria de `DEVOLVER` es ese informe. No respondió
+   quién avisa al egresado ni qué pasa con el valorado: D-49b.
+7. **D-50:** se confirma la propuesta: la autorización para un TACFI fuera de su año es **escrita** y dice hasta
+   cuándo debe regularizar; se anota en la observación del requisito y el file sigue en rojo hasta completarlo.
+8. **D-41c:** la capacitación será de **2 días, el 28 y 29 de octubre**; el horario todavía no lo saben: D-41d.
+9. **D-10c:** dijo que sí enviará las fotos del historial y su legalización; sigue abierta hasta recibirlas.
+10. Preguntas nuevas en la hoja: D-49b, D-41d y D-51 (filas 68–70).

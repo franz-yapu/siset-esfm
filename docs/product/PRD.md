@@ -65,23 +65,24 @@ Fuera del alcance
 | SEC_DIR     | Secretaría de Dirección General       | La Paz    | Ingresa hojas de ruta, deriva       |
 | SEC_COORD   | Secretaría de Coordinación            | Ancocagua | Recibe y deriva expedientes         |
 | COORDINADOR | Coordinador Académico                 | Ancocagua | Dictamina, ve reportes              |
-| KARDEX      | Responsable de Archivo Kardex (admin) | Ancocagua | Administra, valida, emite e imprime |
+| KARDEX      | Responsable de Archivo Kardex         | Ancocagua | Valida, emite e imprime; requisitos |
+| ADMIN       | Administrador del sistema (DEC-054)   | Ancocagua | Usuarios, roles y bitácora          |
 
 Matriz RBAC (C = crear, L = leer, E = editar, — = sin acceso; "propio" = solo sus registros)
 
-| Recurso                         | ESTUDIANTE | EGRESADO                | SEC_DIR | SEC_COORD | COORDINADOR | KARDEX |
-| ------------------------------- | ---------- | ----------------------- | ------- | --------- | ----------- | ------ |
-| Usuarios y roles                | —          | —                       | —       | —         | —           | C/L/E  |
-| File académico                  | L propio   | L propio                | L       | L         | L           | C/L/E  |
-| Requisitos (TACFI, TCLO, notas) | L propio   | L propio                | —       | L         | L           | C/L/E  |
-| Hoja de ruta                    | —          | L propio                | C/L     | L         | L           | L/E    |
-| Pases                           | —          | L propio (vía tracking) | C/L     | C/L       | L           | C/L    |
-| Dictamen                        | —          | L propio                | —       | —         | C/L         | L      |
-| Emisión e impresión             | —          | —                       | —       | —         | —           | C/L    |
-| Dashboard y reportes            | —          | —                       | L       | —         | L           | L      |
-| Bitácora                        | —          | —                       | —       | —         | —           | L      |
+| Recurso                         | ESTUDIANTE | EGRESADO                | SEC_DIR | SEC_COORD | COORDINADOR | KARDEX | ADMIN |
+| ------------------------------- | ---------- | ----------------------- | ------- | --------- | ----------- | ------ | ----- |
+| Usuarios y roles                | —          | —                       | —       | —         | —           | —      | C/L/E |
+| File académico                  | L propio   | L propio                | —       | L         | L           | C/L/E  | —     |
+| Requisitos (TACFI, TCLO, notas) | L propio   | L propio                | —       | L         | L           | C/L/E  | —     |
+| Hoja de ruta                    | —          | L propio                | C/L     | L         | L           | L/E    | —     |
+| Pases                           | —          | L propio (vía tracking) | C/L     | C/L       | L           | C/L    | —     |
+| Dictamen                        | —          | L propio                | —       | —         | C/L         | L      | —     |
+| Emisión e impresión             | —          | —                       | —       | —         | —           | C/L    | —     |
+| Dashboard y reportes            | —          | —                       | L       | —         | L           | L      | —     |
+| Bitácora                        | —          | —                       | —       | —         | —           | —      | L     |
 
-La matriz es una propuesta derivada del borrador; debe validarla el Product Owner (D-16).
+La matriz es una propuesta derivada del borrador; debe validarla el Product Owner (D-16). DEC-054: usuarios y bitácora pasan al ADMIN y SEC_DIR deja de ver files (elige al titular de la ingesta con un buscador propio).
 
 ## 3. Flujos de negocio y estados
 
@@ -120,7 +121,7 @@ Cada RF es "terminado" solo si cumple todos sus criterios de aceptación (CA) y 
 | ------ | ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | RF-01  | Autenticación y cierre de sesión   | Must      | CA1: login con CI + contraseña (D-14). CA2: 5 intentos fallidos bloquean la cuenta 15 min. CA3: sesión expira tras 15 min sin actividad (RNF-02). CA4: logout invalida el refresh token. CA5: MFA solo si D-03 lo confirma.                                                                                                |
 | RF-02  | Control de acceso por roles (RBAC) | Must      | CA1: el menú muestra solo módulos del rol. CA2: una ruta de API sin permiso responde 403 aunque se llame por URL directa. CA3: "propio" se valida en backend (un estudiante no lee el file de otro cambiando el id).                                                                                                       |
-| RF-03  | Gestión de usuarios                | Must      | CA1: Kardex crea, edita, da de baja y reactiva usuarios. CA2: la baja es lógica (nunca DELETE). CA3: CI único. CA4: reseteo de contraseña por Kardex obliga a cambiarla en el siguiente login.                                                                                                                             |
+| RF-03  | Gestión de usuarios                | Must      | CA1: el Administrador (DEC-054) crea, edita, da de baja y reactiva usuarios. CA2: la baja es lógica (nunca DELETE). CA3: CI único. CA4: reseteo de contraseña por el Administrador obliga a cambiarla en el siguiente login.                                                                                               |
 | RF-04  | Consulta del file académico        | Must      | CA1: el estudiante ve sus requisitos del folder personal, con la matrícula y el certificado de notas de cada gestión (DEC-051). CA2: vista de solo lectura. CA3: Kardex busca files por CI, nombre, código, especialidad y año, con paginación de servidor.                                                                |
 | RF-05  | Asentamiento TCLO                  | Must      | CA1: Kardex registra nivel(es) acreditado(s), fecha y número de certificado. CA2: el requisito pasa a "Completo" solo con el nivel exigido (D-04).                                                                                                                                                                         |
 | RF-06  | Recepción física TACFI             | Must      | CA1: Kardex marca recibido con fecha y responsable. CA2: el semáforo del estudiante se actualiza al instante.                                                                                                                                                                                                              |
@@ -131,7 +132,7 @@ Cada RF es "terminado" solo si cumple todos sus criterios de aceptación (CA) y 
 | RF-11  | Vista previa de documentos         | Must      | CA1: PDF renderizado en pantalla antes de imprimir. CA2: incluye marca de agua "VISTA PREVIA". CA3: genera en < 2 s.                                                                                                                                                                                                       |
 | RF-12  | Impresión oficial                  | Must      | CA1: plantillas oficiales por tipo de documento (D-10). CA2: cada impresión registra número de valorado y usuario. CA3: reimprimir exige motivo.                                                                                                                                                                           |
 | RF-13  | Dictamen, reportes y dashboard     | Should    | CA1: el Coordinador emite dictamen (Aprobado / Observado) con observación (D-11). CA2: dashboard con volumen por estado, tiempo promedio por etapa y trámites detenidos > N días. CA3: exporta a PDF y Excel.                                                                                                              |
-| RF-14  | Bitácora de auditoría              | Should    | CA1: registra fecha, usuario, IP, acción, módulo, valores antes/después. CA2: la tabla no admite UPDATE ni DELETE desde la app. CA3: Kardex filtra por fecha, usuario y módulo.                                                                                                                                            |
+| RF-14  | Bitácora de auditoría              | Should    | CA1: registra fecha, usuario, IP, acción, módulo, valores antes/después. CA2: la tabla no admite UPDATE ni DELETE desde la app. CA3: el Administrador (DEC-054) filtra por fecha, usuario y módulo.                                                                                                                        |
 
 Prioridad MoSCoW: Must = bloquea el Go-Live; Should = entra si el calendario lo permite (D-06).
 
@@ -195,20 +196,20 @@ Bitácora (RF-14). Un trigger no conoce la IP del cliente. Propuesta: la API reg
 
 API REST (resumen, prefijo /api/v1)
 
-| Método y ruta                                                | Uso                               | Roles                                                       |
-| ------------------------------------------------------------ | --------------------------------- | ----------------------------------------------------------- |
-| POST /auth/login · /auth/refresh · /auth/logout              | Sesión                            | Todos                                                       |
-| GET/POST/PATCH /usuarios                                     | Gestión de usuarios               | KARDEX                                                      |
-| GET /files · GET /files/:id                                  | Búsqueda y detalle de file        | KARDEX, COORDINADOR, SEC_*; propio para ESTUDIANTE/EGRESADO |
-| PATCH /files/:id/requisitos/:tipo                            | TACFI, TCLO, certificado de notas | KARDEX                                                      |
-| POST /files/:id/resultados                                   | Resultado anual de notas          | KARDEX                                                      |
-| POST /hojas-ruta                                             | Ingesta                           | SEC_DIR                                                     |
-| GET /hojas-ruta/:nro/tracking                                | Timeline                          | Público con CI o autenticado (D-08)                         |
-| POST /hojas-ruta/:id/pases · PATCH /pases/:id/recepcion      | Derivar y recibir                 | SEC_DIR, SEC_COORD, KARDEX                                  |
-| POST /hojas-ruta/:id/dictamen                                | Dictamen                          | COORDINADOR                                                 |
-| GET /hojas-ruta/:id/documentos/:tipo/preview · POST …/emitir | PDF y emisión                     | KARDEX                                                      |
-| GET /reportes/kpi · GET /reportes/export?formato=pdf o xlsx  | Dashboard                         | COORDINADOR, SEC_DIR, KARDEX                                |
-| GET /auditoria                                               | Bitácora                          | KARDEX                                                      |
+| Método y ruta                                                | Uso                               | Roles                                                  |
+| ------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------ |
+| POST /auth/login · /auth/refresh · /auth/logout              | Sesión                            | Todos                                                  |
+| GET/POST/PATCH /usuarios                                     | Gestión de usuarios               | ADMIN (DEC-054)                                        |
+| GET /files · GET /files/:id                                  | Búsqueda y detalle de file        | KARDEX, COORDINADOR, SEC_COORD; propio para ESTUDIANTE |
+| PATCH /files/:id/requisitos/:tipo                            | TACFI, TCLO, certificado de notas | KARDEX                                                 |
+| POST /files/:id/resultados                                   | Resultado anual de notas          | KARDEX                                                 |
+| POST /hojas-ruta                                             | Ingesta                           | SEC_DIR                                                |
+| GET /hojas-ruta/:nro/tracking                                | Timeline                          | Público con CI o autenticado (D-08)                    |
+| POST /hojas-ruta/:id/pases · PATCH /pases/:id/recepcion      | Derivar y recibir                 | SEC_DIR, SEC_COORD, KARDEX                             |
+| POST /hojas-ruta/:id/dictamen                                | Dictamen                          | COORDINADOR                                            |
+| GET /hojas-ruta/:id/documentos/:tipo/preview · POST …/emitir | PDF y emisión                     | KARDEX                                                 |
+| GET /reportes/kpi · GET /reportes/export?formato=pdf o xlsx  | Dashboard                         | COORDINADOR, SEC_DIR, KARDEX                           |
+| GET /auditoria                                               | Bitácora                          | ADMIN (DEC-054)                                        |
 
 Errores en formato único: { "error": { "code", "message", "details" } }. Documentación con OpenAPI (Swagger) generada desde el código.
 

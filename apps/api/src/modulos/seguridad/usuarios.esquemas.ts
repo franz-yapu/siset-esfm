@@ -4,7 +4,7 @@ import { esquemaPagina, esquemaPaginacion } from '@/compartido/http';
 // Contratos de /usuarios (SDD S1.8 §2.2). Los largos son los de la tabla persona.
 
 /** Esta API crea solo cuentas del personal (DEC-020 #1): estudiantes con el file; egresados, nunca (D-08). */
-export const ROLES_PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
+export const ROLES_PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX', 'ADMIN'] as const;
 export type RolPersonal = (typeof ROLES_PERSONAL)[number];
 
 export const ESTADOS_USUARIO = ['ACTIVO', 'INACTIVO', 'BLOQUEADO'] as const;

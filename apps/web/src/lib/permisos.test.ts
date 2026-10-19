@@ -13,29 +13,30 @@ const MENU_ESPERADO: Record<Rol, IdMenu[]> = {
   ESTUDIANTE: ['inicio', 'mi-file', 'perfil'],
   // D-08: los egresados no tienen cuenta, así que no tienen permisos.
   EGRESADO: ['inicio', 'perfil'],
-  // "Bandeja de pases" y "Firma y entrega" vuelven al menú (D-36, DEC-052).
-  SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'files', 'pases', 'entregas', 'reportes', 'perfil'],
+  // "Bandeja de pases" y "Firma y entrega" vuelven al menú (D-36, DEC-052). Sin files (DEC-054).
+  SEC_DIR: ['inicio', 'nueva-hr', 'hojas-ruta', 'pases', 'entregas', 'reportes', 'perfil'],
   SEC_COORD: ['inicio', 'hojas-ruta', 'files', 'pases', 'perfil'],
   COORDINADOR: ['inicio', 'hojas-ruta', 'files', 'firmas', 'reportes', 'perfil'],
+  // Usuarios y Bitácora pasan al Administrador; Kardex administra los requisitos por modalidad (DEC-054, DEC-055).
   KARDEX: [
     'inicio',
     'hojas-ruta',
     'files',
+    'catalogo-requisitos',
     'pases',
     'revision',
     'emision',
     'reportes',
-    'usuarios',
-    'bitacora',
     'perfil',
   ],
+  ADMIN: ['inicio', 'usuarios', 'bitacora', 'perfil'],
 };
 
 /** Pantallas fuera del menú: quién puede abrirlas. */
 const OTRAS_RUTAS: Partial<Record<IdRuta, Rol[]>> = {
   'detalle-hr': ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'],
   caratula: ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'],
-  'detalle-file': ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'],
+  'detalle-file': ['SEC_COORD', 'COORDINADOR', 'KARDEX'],
   'nuevo-file': ['KARDEX'],
   'editar-file': ['KARDEX'],
   'mis-tramites': [],

@@ -18,7 +18,7 @@ const token = async (rol: string, cpw = false) =>
       new Date(),
     )
   ).token;
-const consultar = async (query: Record<string, string | number> = {}, rol = 'KARDEX', cpw = false) =>
+const consultar = async (query: Record<string, string | number> = {}, rol = 'ADMIN', cpw = false) =>
   request(app)
     .get('/api/v1/auditoria')
     .query({ entidad: 'prueba-consulta', ...query })
@@ -79,7 +79,7 @@ beforeAll(async () => {
 afterAll(() => bd.$disconnect());
 
 describe('GET /api/v1/auditoria (SDD S6.4 §2.2)', () => {
-  it('KARDEX: página con datos, total y orden fecha DESC, id DESC, con el nombre del usuario', async () => {
+  it('ADMIN: página con datos, total y orden fecha DESC, id DESC, con el nombre del usuario', async () => {
     const r = await consultar();
     expect(r.status).toBe(200);
     expect(r.body).toMatchObject({ pagina: 1, porPagina: 50, total: 5 });
@@ -149,14 +149,15 @@ describe('GET /api/v1/auditoria (SDD S6.4 §2.2)', () => {
     const r = await request(app)
       .get('/api/v1/auditoria')
       .query({ entidadId: '1' })
-      .set('Authorization', `Bearer ${await token('KARDEX')}`);
+      .set('Authorization', `Bearer ${await token('ADMIN')}`);
     expect(r.status).toBe(400);
   });
 
-  it('SEC_DIR → 403; sin token → 401; KARDEX con cpw → 403 CAMBIO_PASSWORD_REQUERIDO', async () => {
+  it('SEC_DIR y KARDEX → 403; sin token → 401; ADMIN con cpw → 403 CAMBIO_PASSWORD_REQUERIDO', async () => {
     expect((await consultar({}, 'SEC_DIR')).status).toBe(403);
+    expect((await consultar({}, 'KARDEX')).status).toBe(403);
     expect((await request(app).get('/api/v1/auditoria')).status).toBe(401);
-    const r = await consultar({}, 'KARDEX', true);
+    const r = await consultar({}, 'ADMIN', true);
     expect(r.status).toBe(403);
     expect(r.body.error.code).toBe('CAMBIO_PASSWORD_REQUERIDO');
   });

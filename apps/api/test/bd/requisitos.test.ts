@@ -122,10 +122,12 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
     const varonB3 = await aplica(await nuevoFile({ genero: 'MASCULINO', modalidad: 'B3' }));
     expect(varonB3).toMatchObject({
       LIBRETA_MILITAR: true,
-      CALIF_SECUNDARIA: true,
+      CALIF_SECUNDARIA: false,
       CARNET_DISCAPACIDAD: true,
       PUEBLO_INDIGENA: false,
     });
+    // D-45b: el certificado de secundaria es solo de B1.
+    expect(await aplica(await nuevoFile({ modalidad: 'B1' }))).toMatchObject({ CALIF_SECUNDARIA: true });
     expect(await aplica(await nuevoFile({ modalidad: 'A' }))).toMatchObject({ CALIF_SECUNDARIA: false });
   });
 

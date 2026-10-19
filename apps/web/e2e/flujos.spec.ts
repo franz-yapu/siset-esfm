@@ -25,8 +25,8 @@ test.describe('flujos interactivos (S0.3)', () => {
       .fill('zzzz-sin-resultados');
     await expect.poll(() => filas.count()).not.toBe(total);
 
-    await page.goto('/usuarios');
-    await page.getByRole('button', { name: /nuevo usuario/i }).click();
+    await page.goto('/requisitos');
+    await page.getByRole('button', { name: /agregar requisito/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);

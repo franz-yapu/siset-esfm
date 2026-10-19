@@ -70,11 +70,11 @@ const exigirValidos = (d: DatosCrearUsuario): void => {
   if (!SEDES.some((s) => s.id === d.sedeId)) throw negocio('La sede indicada no existe.', 'SEDE_INEXISTENTE');
 };
 
-/** Sin un KARDEX activo nadie podría administrar el sistema (D-27, DEC-020 #4). */
-const exigirOtroKardex = (u: UsuarioMock): void => {
-  if (!u.activo || u.rol !== 'KARDEX') return;
-  if (!db.usuarios.some((x) => x.id !== u.id && x.activo && x.rol === 'KARDEX'))
-    throw negocio('El sistema no puede quedarse sin un Kardex activo.', 'ULTIMO_KARDEX');
+/** Sin un ADMIN activo nadie podría administrar el sistema (DEC-020 #4, DEC-054). */
+const exigirOtroAdmin = (u: UsuarioMock): void => {
+  if (!u.activo || u.rol !== 'ADMIN') return;
+  if (!db.usuarios.some((x) => x.id !== u.id && x.activo && x.rol === 'ADMIN'))
+    throw negocio('El sistema no puede quedarse sin un Administrador activo.', 'ULTIMO_ADMIN');
 };
 
 const apellidoDe = (d: UsuarioDetalle): string => d.apellidoPaterno ?? d.apellidoMaterno ?? '';
@@ -164,7 +164,7 @@ export const usuariosMock: ServicioUsuarios = {
     exigirValidos(d);
     if (d.rol !== u.rol) {
       if (u.id === actor.id) throw negocio('No puede cambiar su propio rol.', 'OPERACION_SOBRE_SI_MISMO');
-      if (u.rol === 'KARDEX') exigirOtroKardex(u);
+      if (u.rol === 'ADMIN') exigirOtroAdmin(u);
     }
 
     const nuevo = {
@@ -208,7 +208,7 @@ export const usuariosMock: ServicioUsuarios = {
     if (id === actor.id) throw negocio('No puede darse de baja a sí mismo.', 'OPERACION_SOBRE_SI_MISMO');
     const u = buscar(id);
     if (!u.activo) throw negocio('El usuario ya está dado de baja.', 'ESTADO_SIN_CAMBIO');
-    exigirOtroKardex(u);
+    exigirOtroAdmin(u);
     u.activo = false;
     auditar(actor.nombre, MODULO, 'Dar de baja usuario', u.usuario, { activo: true }, { activo: false });
     return detalleCopia(u);

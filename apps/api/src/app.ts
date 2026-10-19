@@ -25,7 +25,13 @@ import {
   obtenerSedes,
   obtenerTiposTramite,
 } from '@/modulos/catalogos';
-import { crearModuloFiles, datosBasicosFile, fileIdsDePersonas, personasDeFiles } from '@/modulos/files';
+import {
+  crearModuloFiles,
+  datosBasicosFile,
+  egresadosDePersonas,
+  fileIdsDePersonas,
+  personasDeFiles,
+} from '@/modulos/files';
 import { crearModuloHojasRuta } from '@/modulos/hojas-ruta';
 import {
   actualizarPersona,
@@ -142,6 +148,7 @@ export function crearApp({
       autenticar,
       autorizarLectura: autorizar('files', 'leer'),
       autorizarRequisitos: autorizar('requisitos', 'leer'),
+      autorizarAdminRequisitos: { crear: autorizar('requisitos', 'crear'), editar: autorizar('requisitos', 'editar') },
     }),
     // Hojas de ruta (SDD S3.1-S3.3): el titular sale de files + personas; tipos y sedes, de catalogos.
     crearModuloHojasRuta({
@@ -187,6 +194,29 @@ export function crearApp({
       buscarFileIdsPorTitular: async (cliente, texto) => {
         const ids = [...(await buscarIdsPorNombre(cliente, texto)), ...(await buscarIdsPorCi(cliente, texto))];
         return fileIdsDePersonas(cliente, [...new Set(ids)]);
+      },
+      buscarTitularesEgresados: async (cliente, texto) => {
+        const ids = [...(await buscarIdsPorCi(cliente, texto)), ...(await buscarIdsPorNombre(cliente, texto))];
+        const files = await egresadosDePersonas(cliente, [...new Set(ids)]);
+        const personas = await obtenerPersonas(
+          cliente,
+          files.map((f) => f.personaId),
+        );
+        const especialidades = await nombresEspecialidades(
+          cliente,
+          files.map((f) => f.especialidadId),
+        );
+        return files.map((f) => {
+          const p = personas.get(f.personaId)!;
+          return {
+            fileId: f.id,
+            nombre: [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' '),
+            ci: p.complemento ? `${p.ci}-${p.complemento}` : p.ci,
+            especialidad: especialidades.get(f.especialidadId) ?? '',
+            bloqueado: f.bloqueado,
+            motivoBloqueo: f.motivoBloqueo,
+          };
+        });
       },
       describirUsuarios: describir,
     }),

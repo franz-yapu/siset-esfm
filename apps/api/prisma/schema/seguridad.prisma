@@ -2,7 +2,7 @@
 
 model Rol {
   id          Int       @id @default(autoincrement())
-  /// ESTUDIANTE, EGRESADO, SEC_DIR, SEC_COORD, COORDINADOR, KARDEX
+  /// ESTUDIANTE, EGRESADO, SEC_DIR, SEC_COORD, COORDINADOR, KARDEX, ADMIN
   codigo      String    @unique @db.VarChar(20)
   /// Nombre corto del prototipo.
   nombre      String    @db.VarChar(80)

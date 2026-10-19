@@ -6,6 +6,18 @@ import { seedFiles } from './files';
 import { seedDictamenes, seedDocumentos, seedHojasRuta } from './hojasRuta';
 import { ipDe, seedBitacora } from './bitacora';
 import { seedHojasRutaV2, type HojaRutaMock } from './hojas-ruta-v2';
+import type { RequisitoAdmin } from '@/types/catalogo-requisitos';
+import type { Modalidad } from '@/types/files';
+import { CATALOGO_REQUISITOS } from '@/config/requisitos';
+
+/** El catálogo editable de la demo (DEC-055), a partir de la copia del seed. */
+const seedRequisitos = (): RequisitoAdmin[] =>
+  CATALOGO_REQUISITOS.map(({ soloModalidad, ...r }, i) => ({
+    ...r,
+    id: i + 1,
+    modalidades: soloModalidad ? (soloModalidad.split(',') as Modalidad[]) : [],
+    activo: true,
+  }));
 
 interface Store {
   usuarios: UsuarioMock[];
@@ -16,6 +28,8 @@ interface Store {
   dictamenes: Dictamen[];
   documentos: DocumentoEmitido[];
   bitacora: RegistroBitacora[];
+  /** Catálogo de requisitos que Kardex administra (DEC-055). */
+  requisitos: RequisitoAdmin[];
   /** Intentos fallidos de login por usuario (se pierde al recargar). */
   intentos: Record<string, number>;
 }
@@ -31,6 +45,7 @@ const crear = (): Store => {
     dictamenes: seedDictamenes(hojasRuta),
     documentos: seedDocumentos(hojasRuta),
     bitacora: seedBitacora(hojasRuta, usuarios),
+    requisitos: seedRequisitos(),
     intentos: {},
   };
 };

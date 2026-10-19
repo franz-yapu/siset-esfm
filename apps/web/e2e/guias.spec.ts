@@ -9,7 +9,7 @@ test('desde el login se abren el manual, la guía de estudio y las preguntas de 
   await expect(page.getByRole('heading', { name: 'Guías de SISET' })).toBeVisible();
 
   await page.getByRole('link', { name: /Manual del personal y capacitación/ }).click();
-  await expect(page.getByRole('heading', { name: '10. Plan de capacitación' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '11. Plan de capacitación' })).toBeVisible();
 
   await page.goto('/guia/estudio');
   await expect(page.getByRole('heading', { name: '3. Contraseñas: dónde está el hash' })).toBeVisible();

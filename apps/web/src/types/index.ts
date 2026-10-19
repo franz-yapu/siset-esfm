@@ -1,4 +1,4 @@
-export type Rol = 'ESTUDIANTE' | 'EGRESADO' | 'SEC_DIR' | 'SEC_COORD' | 'COORDINADOR' | 'KARDEX';
+export type Rol = 'ESTUDIANTE' | 'EGRESADO' | 'SEC_DIR' | 'SEC_COORD' | 'COORDINADOR' | 'KARDEX' | 'ADMIN';
 
 export type EstadoTramite =
   | 'REGISTRADO'

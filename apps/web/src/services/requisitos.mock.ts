@@ -2,7 +2,7 @@ import type { Usuario } from '@/types';
 import type { DatosRequisito, EstadoRequisitoFile, RegistroDeGestion, RequisitoDelFile } from '@/types/requisitos';
 import { auditar, copia, db } from '@/mocks/db';
 import type { FileMock, RequisitoRegistradoMock } from '@/mocks/fileMock';
-import { CATALOGO_REQUISITOS, type RequisitoCatalogo } from '@/config/requisitos';
+import type { RequisitoCatalogo } from '@/config/requisitos';
 import { delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
 import { normalizarRequisito, validarRequisito } from '@/lib/requisitos';
@@ -51,6 +51,16 @@ function inicial(f: FileMock): Record<string, RequisitoRegistradoMock> {
   }
   return r;
 }
+
+/** El catálogo activo de la demo: el que Kardex edita en "Requisitos por modalidad" (DEC-055). */
+const catalogo = (): RequisitoCatalogo[] =>
+  db.requisitos
+    .filter((r) => r.activo)
+    .sort((a, b) => a.orden - b.orden)
+    .map(({ id: _id, activo: _activo, modalidades, ...r }) => ({
+      ...r,
+      soloModalidad: modalidades.length ? modalidades.join(',') : null,
+    }));
 
 const buscar = (id: number): FileMock => {
   const f = db.files.find((x) => x.id === id);
@@ -107,15 +117,16 @@ function armar(item: RequisitoCatalogo, f: FileMock): RequisitoDelFile {
 /** Lo que el semáforo del mock recibe (ADR-0007): los obligatorios que aplican y si alguno está atrasado. */
 export const entradaSemaforoMock = (fileId: number) => {
   const f = buscar(fileId);
-  const porCodigo = new Map(CATALOGO_REQUISITOS.map((c) => [c.codigo, armar(c, f)]));
-  return entradaDelSemaforo(CATALOGO_REQUISITOS, paraReglas(f), (c) => porCodigo.get(c.codigo)!.estado);
+  const lista = catalogo();
+  const porCodigo = new Map(lista.map((c) => [c.codigo, armar(c, f)]));
+  return entradaDelSemaforo(lista, paraReglas(f), (c) => porCodigo.get(c.codigo)!.estado);
 };
 
 export const requisitosMock: ServicioRequisitos = {
   async listar(fileId: number): Promise<RequisitoDelFile[]> {
     await delay(LATENCIA);
     const f = buscar(fileId);
-    return copia(CATALOGO_REQUISITOS.map((item) => armar(item, f)));
+    return copia(catalogo().map((item) => armar(item, f)));
   },
 
   async mios(actor: Usuario): Promise<RequisitoDelFile[]> {
@@ -125,7 +136,7 @@ export const requisitosMock: ServicioRequisitos = {
   async registrar(fileId: number, codigo: string, datos: DatosRequisito, actor: Usuario): Promise<RequisitoDelFile> {
     await delay(LATENCIA);
     const f = buscar(fileId);
-    const item = CATALOGO_REQUISITOS.find((c) => c.codigo === codigo.toUpperCase());
+    const item = catalogo().find((c) => c.codigo === codigo.toUpperCase());
     if (!item) throw new ErrorApi('Ese requisito no existe en el catálogo.', 'NO_ENCONTRADO', 404);
     const d = normalizarRequisito(datos);
     const errores = Object.entries(validarRequisito(d, item)).map(([campo, mensaje]) => ({

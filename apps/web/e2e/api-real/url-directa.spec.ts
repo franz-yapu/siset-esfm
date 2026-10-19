@@ -11,15 +11,17 @@ import { entrarComo, INICIO, irA, recargar, ROLES_PERSONAL, vistaDenegada, type 
  * hace en ella: firmas pide `dictamenes/crear`, solo del COORDINADOR, DEC-040). El resto ve la vista 403.
  */
 const RUTAS: { ruta: string; titulo: RegExp; pasan: readonly RolPersonal[] }[] = [
-  { ruta: '/usuarios', titulo: /usuarios/i, pasan: ['KARDEX'] },
-  { ruta: '/bitacora', titulo: /bitácora/i, pasan: ['KARDEX'] },
-  { ruta: '/files', titulo: /files/i, pasan: ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] },
+  // Usuarios y bitácora son del Administrador; SEC_DIR no ve files (DEC-054).
+  { ruta: '/usuarios', titulo: /usuarios/i, pasan: ['ADMIN'] },
+  { ruta: '/bitacora', titulo: /bitácora/i, pasan: ['ADMIN'] },
+  { ruta: '/files', titulo: /files/i, pasan: ['SEC_COORD', 'COORDINADOR', 'KARDEX'] },
+  { ruta: '/requisitos', titulo: /requisitos por modalidad/i, pasan: ['KARDEX'] },
   { ruta: '/reportes', titulo: /reportes/i, pasan: ['SEC_DIR', 'COORDINADOR', 'KARDEX'] },
   { ruta: '/firmas', titulo: /firmas/i, pasan: ['COORDINADOR'] },
 ];
 
-/** Etiquetas del menú que solo ve KARDEX. */
-const MENU_SOLO_KARDEX = ['Usuarios', 'Bitácora'];
+/** Etiquetas del menú que solo ve el Administrador (DEC-054). */
+const MENU_SOLO_ADMIN = ['Usuarios', 'Bitácora'];
 
 test.describe('E1 · sin sesión', () => {
   for (const ruta of ['/usuarios', '/bitacora', '/files', '/kardex']) {
@@ -58,26 +60,25 @@ for (const rol of ROLES_PERSONAL) {
 
     test('E3 · el menú no muestra lo que daría 403', async ({ page }) => {
       const menu = page.getByRole('navigation');
-      for (const etiqueta of MENU_SOLO_KARDEX) {
+      for (const etiqueta of MENU_SOLO_ADMIN) {
         const enlace = menu.getByRole('link', { name: etiqueta, exact: true });
-        if (rol === 'KARDEX') await expect(enlace).toBeVisible();
+        if (rol === 'ADMIN') await expect(enlace).toBeVisible();
         else await expect(enlace).toHaveCount(0);
       }
     });
 
     test('E4 · al recargar sigue la sesión y sigue la vista 403', async ({ page }) => {
-      await irA(page, '/files');
+      // El Administrador no hace trámites y el resto no administra usuarios (DEC-054).
+      const [permitida, prohibida] = rol === 'ADMIN' ? ['/usuarios', '/hojas-ruta'] : ['/hojas-ruta', '/usuarios'];
+      await irA(page, permitida);
       await recargar(page);
-      await expect(page).toHaveURL(/\/files$/);
+      await expect(page).toHaveURL(new RegExp(`${permitida}$`));
       await expect(vistaDenegada(page)).toHaveCount(0);
 
-      const prohibida = rol === 'KARDEX' ? null : '/usuarios';
-      if (prohibida) {
-        await irA(page, prohibida);
-        await recargar(page);
-        await expect(page).toHaveURL(new RegExp(`${prohibida}$`));
-        await expect(vistaDenegada(page)).toBeVisible();
-      }
+      await irA(page, prohibida);
+      await recargar(page);
+      await expect(page).toHaveURL(new RegExp(`${prohibida}$`));
+      await expect(vistaDenegada(page)).toBeVisible();
     });
   });
 }

@@ -166,7 +166,7 @@ test.describe.serial('certificado sin valorado: Calahumana → Ancocagua → Coo
   });
 
   test('la bitácora tiene la ingesta y los 7 cambios de estado', async ({ page }) => {
-    await entrarComo(page, 'KARDEX');
+    await entrarComo(page, 'ADMIN');
     await irA(page, `/bitacora?entidad=hoja_ruta&entidadId=${nro}`);
     const filas = page.locator('table tbody tr');
     await expect(filas.filter({ hasText: 'Cambio de estado' })).toHaveCount(7);

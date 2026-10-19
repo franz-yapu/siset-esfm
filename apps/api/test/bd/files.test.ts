@@ -50,8 +50,9 @@ const como = async (
   metodo: 'get' | 'post' | 'patch',
   ruta: string,
   cuerpo?: object,
-  quien: 'KARDEX' | 'SEC_DIR' = 'KARDEX',
+  quien: 'KARDEX' | 'SEC_DIR' | 'SEC_COORD' = 'KARDEX',
 ) => {
+  // El permiso sale del rol del token; para el personal que no es Kardex basta con un usuario existente.
   const id = quien === 'KARDEX' ? kardexId : secDirId;
   const r = request(app)
     [metodo](`/api/v1${ruta}`)
@@ -239,8 +240,9 @@ describe('GET /api/v1/files', () => {
     expect(r.body.datos.map((f: { nombre: string }) => f.nombre)).toEqual(['Beto Zapana Apaza']);
   });
 
-  it('el personal lee (SEC_DIR) y ve el bloqueo con su motivo', async () => {
-    const r = await como('get', `/files/${ids[2]}`, undefined, 'SEC_DIR');
+  it('el personal lee (SEC_COORD) y ve el bloqueo con su motivo; SEC_DIR no ve files (DEC-054)', async () => {
+    expect((await como('get', `/files/${ids[2]}`, undefined, 'SEC_DIR')).status).toBe(403);
+    const r = await como('get', `/files/${ids[2]}`, undefined, 'SEC_COORD');
     expect(r.status).toBe(200);
     expect(r.body).toMatchObject({ bloqueado: true, motivoBloqueo: 'Permiso obligatorio' });
   });
@@ -361,7 +363,7 @@ describe('GET /api/v1/catalogos/especialidades', () => {
     // Se borra al final: el test del seed cuenta las especialidades.
     const inactiva = await bd.especialidad.create({ data: { nombre: 'Zz Especialidad inactiva', activo: false } });
     try {
-      const r = await como('get', '/catalogos/especialidades', undefined, 'SEC_DIR');
+      const r = await como('get', '/catalogos/especialidades', undefined, 'SEC_COORD');
       expect(r.status).toBe(200);
       const nombres = (r.body as { nombre: string }[]).map((e) => e.nombre);
       expect(nombres).toContain('Matemática');

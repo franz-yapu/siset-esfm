@@ -5,13 +5,15 @@ import { iniciarSesion, vigilarConsola } from './utilidades';
 // menú, sin recargar, para no perder lo creado.
 
 const irAUsuarios = async (page: Page) => {
-  await iniciarSesion(page, 'kardex');
+  await iniciarSesion(page, 'admin');
   await page.getByRole('link', { name: 'Usuarios' }).first().click();
   await expect(page.getByRole('heading', { name: 'Usuarios' })).toBeVisible();
 };
 
 test.describe('P-47 usuarios (S1.13)', () => {
-  test('Kardex crea un usuario, ve la temporal una vez y esa persona entra y debe cambiarla', async ({ page }) => {
+  test('el Administrador crea un usuario, ve la temporal una vez y esa persona entra y debe cambiarla', async ({
+    page,
+  }) => {
     const problemas = vigilarConsola(page);
     await irAUsuarios(page);
 

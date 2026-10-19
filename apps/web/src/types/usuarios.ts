@@ -3,7 +3,7 @@ import type { Rol } from './index';
 // Contrato de /api/v1/usuarios (SDD S1.8 §2.2). El mock lo imita (SDD S1.13 §2.1).
 
 /** La API crea y edita solo cuentas del personal (DEC-020 #1). */
-export const ROLES_PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
+export const ROLES_PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX', 'ADMIN'] as const;
 export type RolPersonal = (typeof ROLES_PERSONAL)[number];
 
 export const ESTADOS_USUARIO = ['ACTIVO', 'INACTIVO', 'BLOQUEADO'] as const;

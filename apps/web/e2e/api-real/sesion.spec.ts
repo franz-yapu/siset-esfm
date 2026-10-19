@@ -37,8 +37,8 @@ test.describe('E8 y E9 · login fallido y bloqueo', () => {
 
   test.describe('cuenta que se bloquea', () => {
     test.afterAll(async ({ request }) => {
-      const { KARDEX, BLOQUEO } = credenciales();
-      const token = await tokenDe(request, KARDEX.usuario, KARDEX.password);
+      const { ADMIN, BLOQUEO } = credenciales();
+      const token = await tokenDe(request, ADMIN.usuario, ADMIN.password);
       const r = await request.post(`${API_E2E}/usuarios/${BLOQUEO.id}/desbloquear`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -63,8 +63,8 @@ test('E10 · recargar dos veces seguidas sin esperar no cierra la sesión ni reg
   page,
   request,
 }) => {
-  const { KARDEX, SEC_COORD } = credenciales();
-  const token = await tokenDe(request, KARDEX.usuario, KARDEX.password);
+  const { ADMIN, SEC_COORD } = credenciales();
+  const token = await tokenDe(request, ADMIN.usuario, ADMIN.password);
   const reusos = async () => {
     const r = await request.get(`${API_E2E}/auditoria`, {
       headers: { Authorization: `Bearer ${token}` },

@@ -1,9 +1,9 @@
 import { crearClienteBd } from '../src/compartido/bd';
-import { leerKardexInicial, sembrar } from './semilla';
+import { leerAdminInicial, leerKardexInicial, sembrar } from './semilla';
 
 const bd = crearClienteBd();
 try {
-  const r = await sembrar(bd, leerKardexInicial());
+  const r = await sembrar(bd, leerKardexInicial(), leerAdminInicial());
   // Solo conteos: nunca la contraseña ni el hash (RNF-01).
   // eslint-disable-next-line no-console
   console.info(

@@ -27,6 +27,14 @@ export const useHojaRuta = (nro: string, actor: Usuario) =>
 export const useTiposTramite = () =>
   useQuery({ queryKey: ['tipos-tramite'], queryFn: () => hojasRutaService.tipos(), staleTime: Infinity });
 
+/** Egresados para la ingesta (DEC-054): desde 2 caracteres. */
+export const useTitulares = (texto: string) =>
+  useQuery({
+    queryKey: ['titulares', texto],
+    queryFn: () => hojasRutaService.titulares(texto),
+    enabled: texto.length >= 2,
+  });
+
 /** Crear o mover: al terminar bien invalida la lista y el detalle, y avisa del cambio (la campana). */
 export function useMutacionHojasRuta<A, R>(fn: (a: A) => Promise<R>) {
   const cliente = useQueryClient();

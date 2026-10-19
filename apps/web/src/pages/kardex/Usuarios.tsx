@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { KeyRound, LockOpen, Pencil, UserCheck, UserPlus, UserX } from 'lucide-react';
 import {
   ESTADOS_USUARIO,
@@ -58,15 +59,20 @@ const aTemporal = (r: UsuarioConPassword): Temporal => ({
   passwordTemporal: r.passwordTemporal,
 });
 
-/** P-47 · Usuarios (KARDEX), conectada a /api/v1/usuarios (SDD S1.13). */
+/** El filtro de estado que llega del inicio del Administrador (`?estado=BLOQUEADO`). */
+const estadoDeUrl = (v: string | null): EstadoUsuario | '' =>
+  (ESTADOS_USUARIO as readonly string[]).includes(v ?? '') ? (v as EstadoUsuario) : '';
+
+/** P-47 · Usuarios (ADMIN, DEC-054), conectada a /api/v1/usuarios (SDD S1.13). */
 export function Usuarios() {
   const yo = useUsuario();
+  const [params] = useSearchParams();
   const toast = useToast();
   const [texto, setTexto] = useState('');
   const [buscado, setBuscado] = useState('');
   const [rol, setRol] = useState<RolPersonal | ''>('');
   const [sedeId, setSedeId] = useState<number | ''>('');
-  const [estado, setEstado] = useState<EstadoUsuario | ''>('');
+  const [estado, setEstado] = useState<EstadoUsuario | ''>(() => estadoDeUrl(params.get('estado')));
   const [pagina, setPagina] = useState(1);
   const [form, setForm] = useState<UsuarioDetalle | 'nuevo' | null>(null);
   const [pend, setPend] = useState<Pendiente>(null);

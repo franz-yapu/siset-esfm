@@ -21,7 +21,7 @@ const ingresarSinRecargar = async (page: Page, usuario: string) => {
 };
 
 test.describe('P-48 bitácora en modo mock (SDD S6.5 §4)', () => {
-  test('Kardex ve el login y la edición hechos por otro usuario', async ({ page }) => {
+  test('el Administrador ve el login y la edición hechos por otro usuario', async ({ page }) => {
     const problemas = vigilarConsola(page);
 
     // SEC_DIR inicia sesión y avisa a Kardex de un trámite recibido (cambio de estado de una hoja de ruta).
@@ -36,8 +36,8 @@ test.describe('P-48 bitácora en modo mock (SDD S6.5 §4)', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await cerrarSesion(page);
 
-    // Kardex abre la bitácora y filtra por ese usuario.
-    await ingresarSinRecargar(page, 'kardex');
+    // El Administrador abre la bitácora y filtra por ese usuario (DEC-054).
+    await ingresarSinRecargar(page, 'admin');
     await irPorMenu(page, /^bitácora$/i);
     await expect(page.getByText('Registro de solo lectura. No se puede modificar ni borrar.')).toBeVisible();
     await page.getByRole('combobox', { name: 'Usuario' }).fill('Rosa');
@@ -62,7 +62,7 @@ test.describe('P-48 bitácora en modo mock (SDD S6.5 §4)', () => {
 
   test('clic en "Registro afectado" muestra su historial y "atrás" vuelve al filtro anterior', async ({ page }) => {
     const problemas = vigilarConsola(page);
-    await iniciarSesion(page, 'kardex');
+    await iniciarSesion(page, 'admin');
     await page.goto('/bitacora?modulo=FILES');
     await expect(page.getByLabel('Módulo')).toHaveValue('FILES');
 

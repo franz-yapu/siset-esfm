@@ -275,3 +275,38 @@ describe('GET /reportes/hojas-ruta (RF-13)', () => {
     vi.useRealTimers();
   });
 });
+
+describe('buscador de titulares de la ingesta (DEC-054)', () => {
+  const buscar = async (texto: string, rol?: string) =>
+    request(app)
+      .get('/api/v1/hojas-ruta/titulares')
+      .query({ texto })
+      .set('Authorization', `Bearer ${await token(rol)}`);
+
+  it('SEC_DIR encuentra egresados por CI o nombre, con lo justo para elegir; sin estudiantes', async () => {
+    const egresado = await nuevoFile({ nombres: 'Titularina', bloqueado: true });
+    await nuevoFile({ nombres: 'Titularina', condicion: 'ESTUDIANTE' });
+    const r = await buscar('Titularina');
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual([
+      {
+        fileId: egresado.fileId,
+        nombre: 'Titularina Ingesta',
+        ci: egresado.ci,
+        especialidad: expect.any(String),
+        bloqueado: true,
+        motivoBloqueo: 'Permiso obligatorio',
+      },
+    ]);
+    expect((await buscar(egresado.ci)).body.map((t: { fileId: number }) => t.fileId)).toEqual([egresado.fileId]);
+    // Nada de semáforo ni requisitos: SEC_DIR no ve files.
+    expect(Object.keys(r.body[0]).sort()).toEqual(
+      ['bloqueado', 'ci', 'especialidad', 'fileId', 'motivoBloqueo', 'nombre'].sort(),
+    );
+  });
+
+  it('menos de 2 caracteres: 400; Kardex: 403', async () => {
+    expect((await buscar('a')).status).toBe(400);
+    expect((await buscar('Titularina', 'KARDEX')).status).toBe(403);
+  });
+});

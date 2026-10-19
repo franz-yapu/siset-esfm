@@ -15,6 +15,8 @@ import { InicioSecDir } from '@/pages/inicio/InicioSecDir';
 import { InicioSecCoord } from '@/pages/inicio/InicioSecCoord';
 import { InicioCoordinador } from '@/pages/inicio/InicioCoordinador';
 import { InicioKardex } from '@/pages/inicio/InicioKardex';
+import { InicioAdmin } from '@/pages/inicio/InicioAdmin';
+import { RequisitosModalidad } from '@/pages/kardex/RequisitosModalidad';
 import { MiFile } from '@/pages/estudiante/MiFile';
 import { NuevaHojaRuta } from '@/pages/hojas-ruta/NuevaHojaRuta';
 import { HojasRuta } from '@/pages/hojas-ruta/HojasRuta';
@@ -121,6 +123,14 @@ export function App() {
             </Inicio>
           }
         />
+        <Route
+          path="/admin"
+          element={
+            <Inicio rol="ADMIN">
+              <InicioAdmin />
+            </Inicio>
+          }
+        />
         <Route path="/perfil" element={<MiPerfil />} />
 
         <Route path="/mi-file" element={P('mi-file', <MiFile />)} />
@@ -140,6 +150,7 @@ export function App() {
         <Route path="/revision" element={P('revision', <Revision />)} />
         <Route path="/emision" element={P('emision', <Emision />)} />
         <Route path="/carga-masiva" element={P('carga', <CargaMasiva />)} />
+        <Route path="/requisitos" element={P('catalogo-requisitos', <RequisitosModalidad />)} />
         <Route path="/usuarios" element={P('usuarios', <Usuarios />)} />
         <Route path="/bitacora" element={P('bitacora', <Bitacora />)} />
 

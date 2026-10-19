@@ -7,11 +7,10 @@ import type { Accion, Recurso } from '@/config/permisos';
  * falla si se desalinean (SDD S1.11 §2.3).
  */
 export const POLITICA_MOCK: readonly (readonly [Rol, Recurso, Accion])[] = [
-  ['KARDEX', 'usuarios', 'crear'],
-  ['KARDEX', 'usuarios', 'leer'],
-  ['KARDEX', 'usuarios', 'editar'],
+  ['ADMIN', 'usuarios', 'crear'],
+  ['ADMIN', 'usuarios', 'leer'],
+  ['ADMIN', 'usuarios', 'editar'],
   ['ESTUDIANTE', 'files', 'leer_propio'],
-  ['SEC_DIR', 'files', 'leer'],
   ['SEC_COORD', 'files', 'leer'],
   ['COORDINADOR', 'files', 'leer'],
   ['KARDEX', 'files', 'crear'],
@@ -44,5 +43,5 @@ export const POLITICA_MOCK: readonly (readonly [Rol, Recurso, Accion])[] = [
   ['SEC_DIR', 'reportes', 'leer'],
   ['COORDINADOR', 'reportes', 'leer'],
   ['KARDEX', 'reportes', 'leer'],
-  ['KARDEX', 'auditoria', 'leer'],
+  ['ADMIN', 'auditoria', 'leer'],
 ];

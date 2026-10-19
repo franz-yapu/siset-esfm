@@ -2,7 +2,7 @@
 // Parte de la matriz RBAC del PRD §2 (DEC-015). EGRESADO no tiene cuenta (D-08), así
 // que no tiene permisos. La matriz la validan Coordinación y Kardex (D-16).
 
-export const ROLES = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
+export const ROLES = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX', 'ADMIN'] as const;
 export const RECURSOS = [
   'usuarios',
   'files',
@@ -22,13 +22,12 @@ export type Accion = (typeof ACCIONES)[number];
 export type Permiso = readonly [CodigoRol, Recurso, Accion];
 
 export const POLITICA: readonly Permiso[] = [
-  // Usuarios y roles: solo Kardex, que administra el sistema (D-27)
-  ['KARDEX', 'usuarios', 'crear'],
-  ['KARDEX', 'usuarios', 'leer'],
-  ['KARDEX', 'usuarios', 'editar'],
-  // File académico
+  // Usuarios y roles: solo el Administrador, que no hace trámites (DEC-054, ADR-0009; reemplaza a D-27)
+  ['ADMIN', 'usuarios', 'crear'],
+  ['ADMIN', 'usuarios', 'leer'],
+  ['ADMIN', 'usuarios', 'editar'],
+  // File académico. SEC_DIR no ve files (DEC-054): elige al titular con /hojas-ruta/titulares.
   ['ESTUDIANTE', 'files', 'leer_propio'],
-  ['SEC_DIR', 'files', 'leer'],
   ['SEC_COORD', 'files', 'leer'],
   ['COORDINADOR', 'files', 'leer'],
   ['KARDEX', 'files', 'crear'],
@@ -67,8 +66,8 @@ export const POLITICA: readonly Permiso[] = [
   ['SEC_DIR', 'reportes', 'leer'],
   ['COORDINADOR', 'reportes', 'leer'],
   ['KARDEX', 'reportes', 'leer'],
-  // Bitácora
-  ['KARDEX', 'auditoria', 'leer'],
+  // Bitácora: el Administrador (DEC-054)
+  ['ADMIN', 'auditoria', 'leer'],
 ];
 
 export const permisosDe = (rol: string): { recurso: Recurso; accion: Accion }[] =>

@@ -5,7 +5,7 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test';
 export const API_E2E = 'http://localhost:3100/api/v1';
 export const ARCHIVO_USUARIOS = new URL('../.auth/usuarios.json', import.meta.url);
 
-export type RolPersonal = 'SEC_DIR' | 'SEC_COORD' | 'COORDINADOR' | 'KARDEX';
+export type RolPersonal = 'SEC_DIR' | 'SEC_COORD' | 'COORDINADOR' | 'KARDEX' | 'ADMIN';
 export type CuentaE2E = RolPersonal | 'BLOQUEO' | 'TEMPORAL';
 export interface Credencial {
   id: number;
@@ -17,13 +17,14 @@ export interface Credencial {
 export const credenciales = (): Record<CuentaE2E, Credencial> =>
   JSON.parse(readFileSync(ARCHIVO_USUARIOS, 'utf8')) as Record<CuentaE2E, Credencial>;
 
-export const ROLES_PERSONAL: readonly RolPersonal[] = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
+export const ROLES_PERSONAL: readonly RolPersonal[] = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX', 'ADMIN'];
 
 export const INICIO: Record<RolPersonal, string> = {
   SEC_DIR: '/sec-dir',
   SEC_COORD: '/sec-coord',
   COORDINADOR: '/coordinador',
   KARDEX: '/kardex',
+  ADMIN: '/admin',
 };
 
 /** Llena el formulario de login (nombres accesibles de hoy, SDD S1.14 §2.7 S1.10 #4). */

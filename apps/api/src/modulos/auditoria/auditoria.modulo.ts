@@ -23,7 +23,7 @@ const openapiAuditoria: ZodOpenApiPathsObject = {
   '/api/v1/auditoria': {
     get: {
       tags: ['Bitácora'],
-      summary: 'Consultar la bitácora (solo Kardex)',
+      summary: 'Consultar la bitácora (solo el Administrador)',
       description: 'Filtros por usuario, módulo, acción, fechas (hora de La Paz, inclusivas) y entidad; paginada.',
       security: [{ bearerAuth: [] }],
       requestParams: { query: esquemaFiltrosAuditoria },

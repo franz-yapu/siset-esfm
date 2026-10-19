@@ -33,6 +33,16 @@ export interface TipoTramiteCatalogo {
   requiereValorado: boolean;
 }
 
+/** El titular que elige SEC_DIR en la ingesta, sin semáforo ni requisitos: no ve files (DEC-054). */
+export interface TitularIngesta {
+  fileId: number;
+  nombre: string;
+  ci: string;
+  especialidad: string;
+  bloqueado: boolean;
+  motivoBloqueo: string | null;
+}
+
 export interface FilaHojaRuta {
   nro: string;
   gestion: number;

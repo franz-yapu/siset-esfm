@@ -12,8 +12,8 @@ import { sembrar } from '../../prisma/semilla';
 const bd = clienteDeTest();
 const app = crearApp({ bd, config: configDePrueba({ loginLimitePorMinuto: 1000 }) });
 
-// Un Kardex inicial propio: nace del seed con la contraseña por cambiar, sin que otro archivo lo toque.
-const KARDEX_INICIAL = { ...KARDEX_DE_PRUEBA, ci: '9000140' };
+// Un Administrador inicial propio (DEC-054): nace del seed con la contraseña por cambiar, sin que otro archivo lo toque.
+const ADMIN_INICIAL = { ...KARDEX_DE_PRUEBA, ci: '9000140', nombres: 'Administrador' };
 const NUEVA_KARDEX = 'kardex.nueva-140';
 const NUEVA_SEC_DIR = 'secdir.nueva-141';
 const CI_SEC_DIR = '9000141';
@@ -28,7 +28,7 @@ const cambiar = (token: string, passwordActual: string, passwordNueva: string) =
   con(token, 'post', '/auth/cambiar-password', { passwordActual, passwordNueva });
 
 beforeAll(async () => {
-  await sembrar(bd, KARDEX_INICIAL);
+  await sembrar(bd, { ...KARDEX_DE_PRUEBA, ci: '9000142' }, ADMIN_INICIAL);
   // Otros archivos cambian estos parámetros: el recorrido usa los valores de la regla (5 intentos, 15 min).
   for (const [clave, valor] of [
     ['MAX_INTENTOS_LOGIN', '5'],
@@ -39,9 +39,9 @@ beforeAll(async () => {
 afterAll(() => bd.$disconnect());
 
 describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
-  it('Kardex del seed → cambia su contraseña → crea un SEC_DIR → 403 → bloqueo → desbloqueo → bitácora', async () => {
-    // 1. Kardex entra con la contraseña del seed: solo puede ver sus permisos y cambiarla.
-    const primero = await login(KARDEX_INICIAL.ci, KARDEX_INICIAL.password);
+  it('Administrador del seed → cambia su contraseña → crea un SEC_DIR → 403 → bloqueo → desbloqueo → bitácora', async () => {
+    // 1. El Administrador entra con la contraseña del seed: solo puede ver sus permisos y cambiarla.
+    const primero = await login(ADMIN_INICIAL.ci, ADMIN_INICIAL.password);
     expect(primero.status).toBe(200);
     expect(primero.body.usuario.debeCambiarPassword).toBe(true);
     const kardexCpw = primero.body.accessToken as string;
@@ -51,7 +51,7 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
     expect((await con(kardexCpw, 'get', '/auth/mis-permisos')).status).toBe(200);
 
     // 2. La cambia y ya administra usuarios.
-    const cambio = await cambiar(kardexCpw, KARDEX_INICIAL.password, NUEVA_KARDEX);
+    const cambio = await cambiar(kardexCpw, ADMIN_INICIAL.password, NUEVA_KARDEX);
     expect(cambio.status).toBe(200);
     expect(cambio.body.usuario.debeCambiarPassword).toBe(false);
     const kardex = cambio.body.accessToken as string;
@@ -93,7 +93,7 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
     expect(durante.status).toBe(401);
     expect(durante.body.error.code).toBe('CREDENCIALES_INVALIDAS');
 
-    // 6. Kardex lo desbloquea y entra.
+    // 6. El Administrador lo desbloquea y entra.
     expect((await con(kardex, 'post', `/usuarios/${secDirId}/desbloquear`)).status).toBe(200);
     const despues = await login(CI_SEC_DIR, NUEVA_SEC_DIR);
     expect(despues.status).toBe(200);
@@ -131,7 +131,7 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
     expect(deKardex.map((e) => e.accion)).toEqual(['LOGIN', 'CAMBIAR_PASSWORD', 'CREAR', 'DESBLOQUEAR_CUENTA']);
 
     const todo = JSON.stringify([...delSecDir, ...deKardex]);
-    for (const secreto of [KARDEX_INICIAL.password, NUEVA_KARDEX, NUEVA_SEC_DIR, creado.body.passwordTemporal])
+    for (const secreto of [ADMIN_INICIAL.password, NUEVA_KARDEX, NUEVA_SEC_DIR, creado.body.passwordTemporal])
       expect(todo).not.toContain(secreto);
   });
 });

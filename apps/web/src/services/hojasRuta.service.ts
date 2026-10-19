@@ -10,6 +10,7 @@ import type {
   ReporteHojasRuta,
   Seguimiento,
   TipoTramiteCatalogo,
+  TitularIngesta,
 } from '@/types/hojas-ruta';
 import { usaApi } from './_modo';
 import { hojasRutaApi } from './hojasRuta.api';
@@ -25,6 +26,8 @@ export interface ServicioHojasRuta {
   crear(d: DatosCrearHojaRuta, actor: Usuario): Promise<DetalleHojaRuta>;
   transicion(nro: string, accion: AccionHojaRuta, observacion: string | null, actor: Usuario): Promise<DetalleHojaRuta>;
   tipos(): Promise<TipoTramiteCatalogo[]>;
+  /** Egresados por CI o nombre para la ingesta (DEC-054), hasta 8. */
+  titulares(texto: string): Promise<TitularIngesta[]>;
   /** Pública, sin sesión (RF-09): N.º + CI del titular. */
   seguimiento(nro: string, ci: string): Promise<Seguimiento>;
   /** RF-13: SEC_DIR, COORDINADOR y KARDEX. */

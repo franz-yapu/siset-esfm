@@ -37,6 +37,8 @@ const PERSONAL = [
   { ci: '9000002', nombres: 'Secretaría', paterno: 'Dirección', rol: 'SEC_DIR', sede: 'LA_PAZ' },
   { ci: '9000003', nombres: 'Secretaría', paterno: 'Coordinación', rol: 'SEC_COORD', sede: 'ANCOCAGUA' },
   { ci: '9000004', nombres: 'Coordinador', paterno: 'Académico', rol: 'COORDINADOR', sede: 'ANCOCAGUA' },
+  // DEC-054: el Administrador (usuarios, roles y bitácora). Se crea también en bases que ya tenían los datos.
+  { ci: '9000005', nombres: 'Administrador', paterno: 'Sistema', rol: 'ADMIN', sede: 'ANCOCAGUA' },
 ] as const;
 
 /** Cuántos pasos avanza cada hoja de prueba desde RECIBIDO, por tipo (los dos flujos, ADR-0005). */
@@ -55,38 +57,76 @@ const HOJAS: { tipo: string; pasos: number }[] = [
 const CI_KARDEX_PRUEBA = '9000001';
 
 /**
- * Estudiante de prueba para "mi file" (S2.7): file 24, sin bloqueo, con dos requisitos completos y el resto
- * pendientes (semáforo amarillo, para la presentación del 16-oct).
+ * Estudiantes de prueba para "mi file" (S2.7): cada file de prueba tiene su cuenta con el CI como usuario, para que
+ * en la presentación entre cualquiera. El login muestra solo el file 24 (sin bloqueo, semáforo amarillo).
  */
-const CI_ESTUDIANTE_PRUEBA = String(CI_INICIAL + 23);
+const CIS_ESTUDIANTES_PRUEBA = Array.from({ length: TOTAL_FILES }, (_, i) => String(CI_INICIAL + i));
 
-/** Usuarios de las cuentas de prueba que muestra el login (SDD S0.12 §2.5). */
-export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), CI_ESTUDIANTE_PRUEBA].map((ci) =>
+/** Usuarios de las cuentas de prueba que repara cada despliegue (SDD S0.12 §2.5). */
+export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), ...CIS_ESTUDIANTES_PRUEBA].map((ci) =>
   usernameDe(ci, ''),
 );
 
 /**
- * Crea la cuenta del estudiante de prueba si su file existe y aún no tiene cuenta (DEC-043). Va aparte de
+ * Crea la cuenta de estudiante de cada file de prueba que aún no la tiene (DEC-043). Va aparte de
  * `cargarDatosPrueba` porque en la prueba los datos ya estaban cargados; la contraseña la pone `repararCuentasPrueba`.
+ * Devuelve cuántas creó.
  */
-export async function asegurarEstudiantePrueba(bd: ClienteBd): Promise<boolean> {
-  const persona = await bd.persona.findUnique({
-    where: { ci_complemento: { ci: CI_ESTUDIANTE_PRUEBA, complemento: '' } },
-    select: { id: true, usuario: { select: { id: true } } },
+export async function asegurarEstudiantesPrueba(bd: ClienteBd): Promise<number> {
+  const personas = await bd.persona.findMany({
+    where: { ci: { in: CIS_ESTUDIANTES_PRUEBA }, complemento: '', usuario: null },
+    select: { id: true, ci: true },
   });
-  if (!persona || persona.usuario) return false;
+  if (!personas.length) return 0;
   const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } });
-  await bd.usuario.create({
-    data: {
-      personaId: persona.id,
+  // Se reemplaza enseguida con la contraseña común (repararCuentasPrueba).
+  const hash = await hashPassword(randomUUID());
+  await bd.usuario.createMany({
+    data: personas.map((p) => ({
+      personaId: p.id,
       rolId: rol.id,
-      username: usernameDe(CI_ESTUDIANTE_PRUEBA, ''),
-      // Se reemplaza enseguida con la contraseña común (repararCuentasPrueba).
-      passwordHash: await hashPassword(randomUUID()),
+      username: usernameDe(p.ci, ''),
+      passwordHash: hash,
       debeCambiarPassword: false,
-    },
+    })),
+    skipDuplicates: true,
   });
-  return true;
+  return personas.length;
+}
+
+/**
+ * Crea las cuentas del personal de prueba que falten (DEC-054: el Administrador llegó después de cargar los datos en
+ * la prueba). La contraseña la pone `repararCuentasPrueba`. Devuelve cuántas creó.
+ */
+export async function asegurarPersonalPrueba(bd: ClienteBd): Promise<number> {
+  const existentes = new Set(
+    (
+      await bd.usuario.findMany({ where: { username: { in: PERSONAL.map((p) => p.ci) } }, select: { username: true } })
+    ).map((u) => u.username),
+  );
+  const faltan = PERSONAL.filter((p) => !existentes.has(usernameDe(p.ci, '')));
+  if (!faltan.length) return 0;
+  const hash = await hashPassword(randomUUID());
+  const sedes = Object.fromEntries((await bd.sede.findMany()).map((s) => [s.codigo, s.id]));
+  const roles = Object.fromEntries((await bd.rol.findMany()).map((r) => [r.codigo, r.id]));
+  for (const p of faltan) {
+    const persona = await bd.persona.upsert({
+      where: { ci_complemento: { ci: p.ci, complemento: '' } },
+      create: { ci: p.ci, nombres: p.nombres, apellidoPaterno: p.paterno },
+      update: {},
+    });
+    await bd.usuario.create({
+      data: {
+        personaId: persona.id,
+        rolId: roles[p.rol]!,
+        sedeId: sedes[p.sede]!,
+        username: usernameDe(p.ci, ''),
+        passwordHash: hash,
+        debeCambiarPassword: false,
+      },
+    });
+  }
+  return faltan.length;
 }
 
 /**
@@ -288,7 +328,8 @@ if (process.argv[1]?.endsWith('datos-prueba.ts')) {
     try {
       const password = process.env.DATOS_PRUEBA_PASSWORD ?? '';
       const r = await cargarDatosPrueba(bd, password);
-      await asegurarEstudiantePrueba(bd);
+      await asegurarPersonalPrueba(bd);
+      await asegurarEstudiantesPrueba(bd);
       const cuentas = await repararCuentasPrueba(bd, password);
       // eslint-disable-next-line no-console
       console.info(

@@ -16,6 +16,7 @@ describe('cuentas de prueba del login (SDD S0.12 §2.5)', () => {
 
   it('una cuenta por rol del personal y un estudiante (S2.7, DEC-043); sin egresados (D-08, DEC-032)', () => {
     expect(CUENTAS_PRUEBA.map((c) => c.rol).sort()).toEqual([
+      'ADMIN',
       'COORDINADOR',
       'ESTUDIANTE',
       'KARDEX',

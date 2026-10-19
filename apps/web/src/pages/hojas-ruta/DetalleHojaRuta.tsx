@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Lock, Printer } from 'lucide-react';
 import type { Entrega } from '@/types';
 import type { AccionPosible, DetalleHojaRuta as Detalle } from '@/types/hojas-ruta';
-import { useToast, useUsuario } from '@/hooks';
+import { usePermisos, useToast, useUsuario } from '@/hooks';
 import { useHojaRuta, useMutacionHojasRuta } from '@/hooks/useHojasRuta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ESTADOS_HR, sedeHr } from '@/config/estados-hoja-ruta';
@@ -38,6 +38,8 @@ const pasosDe = (h: Detalle): PasoTimeline[] =>
 /** P-31 · Detalle de la hoja de ruta contra la API (SDD S3.8-S3.9 §2.5). Las acciones las manda la API. */
 export function DetalleHojaRuta() {
   const { nro = '' } = useParams();
+  // SEC_DIR no ve files (DEC-054): el enlace al file solo para quien puede abrirlo.
+  const { puedeAbrir } = usePermisos();
   const u = useUsuario();
   const toast = useToast();
   const { data: h, isLoading, error, refetch } = useHojaRuta(nro, u);
@@ -143,9 +145,11 @@ export function DetalleHojaRuta() {
           <Card
             title="Titular"
             actions={
-              <Link to={`/files/${h.titular.fileId}`} className="text-sm text-acento hover:underline">
-                Ver file
-              </Link>
+              puedeAbrir('detalle-file') && (
+                <Link to={`/files/${h.titular.fileId}`} className="text-sm text-acento hover:underline">
+                  Ver file
+                </Link>
+              )
             }
           >
             <div className="flex items-start justify-between gap-3">

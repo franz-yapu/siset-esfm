@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { llenarBloqueo } from '../utilidades';
-import { entrarComo, irA } from './utilidades';
+import { entrarComo, irA, vistaDenegada } from './utilidades';
 
 /**
  * E11 · Files contra la API real (SDD S2.9-S2.10 §4): Kardex registra un file, lo busca, lo edita y lo ve en
@@ -34,24 +34,20 @@ test.describe.serial('E11 · files', () => {
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByText('Datos actualizados')).toBeVisible();
 
-    await page.getByRole('tab', { name: 'Historial' }).click();
-    await expect(page.getByRole('row', { name: /Edición/ }).first()).toBeVisible();
+    // El historial es de la bitácora, que mira el Administrador (DEC-054): Kardex ya no tiene la pestaña.
+    await expect(page.getByRole('tab', { name: 'Historial' })).toHaveCount(0);
   });
 
-  test('SEC_DIR ve el file, sin "Nuevo file" ni "Guardar"', async ({ page }) => {
+  test('SEC_DIR no ve files: ni en el menú ni por URL (DEC-054)', async ({ page }) => {
     await entrarComo(page, 'SEC_DIR');
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Files académicos' })).toHaveCount(0);
     await irA(page, '/files');
-    await expect(page.getByRole('button', { name: 'Nuevo file' })).toHaveCount(0);
-    await page.getByLabel('Buscar').fill(CI);
-    await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
-    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
-    await expect(page.getByRole('heading', { name: 'Prueba Archivo' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Guardar' })).toHaveCount(0);
-    await expect(page.getByLabel('Celular')).toBeDisabled();
+    await expect(vistaDenegada(page)).toBeVisible();
   });
 
-  test('E12 · Kardex bloquea con resolución y PDF, lo ve y desbloquea; el historial muestra los dos eventos (DEC-049)', async ({
+  test('E12 · Kardex bloquea con resolución y PDF, lo ve y desbloquea; la bitácora del file muestra los dos eventos (DEC-049)', async ({
     page,
+    browser,
   }) => {
     await entrarComo(page, 'KARDEX');
     await irA(page, '/files');
@@ -77,9 +73,14 @@ test.describe.serial('E11 · files', () => {
     await otro.getByRole('button', { name: 'Desbloquear', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Bloquear', exact: true })).toBeVisible();
 
-    await page.getByRole('tab', { name: 'Historial' }).click();
-    await expect(page.getByRole('row', { name: /Bloqueo del file/ })).toBeVisible();
-    await expect(page.getByRole('row', { name: /Desbloqueo del file/ })).toBeVisible();
+    // El Administrador lo ve en la bitácora (DEC-054), en otra ventana para no cerrar la sesión de Kardex.
+    const fileId = /\/files\/(\d+)/.exec(page.url())![1];
+    const admin = await (await browser.newContext()).newPage();
+    await entrarComo(admin, 'ADMIN');
+    await irA(admin, `/bitacora?entidad=file_academico&entidadId=${fileId}`);
+    await expect(admin.getByRole('row', { name: /Bloqueo del file/ })).toBeVisible();
+    await expect(admin.getByRole('row', { name: /Desbloqueo del file/ })).toBeVisible();
+    await admin.context().close();
   });
 
   test('E13 · Kardex completa el TACFI Artístico I con curso y entidad; COORDINADOR lo ve sin poder editar (DEC-051)', async ({

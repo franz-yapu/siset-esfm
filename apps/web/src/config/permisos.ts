@@ -15,6 +15,7 @@ import {
   UserCog,
   ScrollText,
   UserCircle,
+  ListChecks,
 } from 'lucide-react';
 import type { Rol } from '@/types';
 
@@ -34,6 +35,8 @@ export const ROLES: Record<Rol, { nombre: string; inicio: string; badge: string 
     badge: 'bg-violet-50 text-violet-700 ring-violet-300',
   },
   KARDEX: { nombre: 'Kardex', inicio: '/kardex', badge: 'bg-indigo-50 text-indigo-700 ring-indigo-300' },
+  // Usuarios, roles y bitácora; no hace trámites (DEC-054).
+  ADMIN: { nombre: 'Administrador', inicio: '/admin', badge: 'bg-slate-100 text-slate-700 ring-slate-300' },
 };
 
 /** Recursos y acciones de la política de la API (`autorizacion.politica.ts`); un test de paridad los compara. */
@@ -81,6 +84,8 @@ export const PERMISO_RUTA = {
   firmas: { recurso: 'dictamenes', accion: 'crear' },
   emision: { recurso: 'documentos', accion: 'crear' },
   carga: { recurso: 'files', accion: 'crear' },
+  // Catálogo de requisitos por modalidad (DEC-055): solo Kardex tiene `requisitos:crear`.
+  'catalogo-requisitos': { recurso: 'requisitos', accion: 'crear' },
   reportes: { recurso: 'reportes', accion: 'leer' },
   usuarios: { recurso: 'usuarios', accion: 'leer' },
   bitacora: { recurso: 'auditoria', accion: 'leer' },
@@ -109,6 +114,7 @@ export const MENU: ItemMenu[] = [
   { id: 'nueva-hr', etiqueta: 'Nueva hoja de ruta', ruta: '/hojas-ruta/nueva', icono: FilePlus2 },
   { id: 'hojas-ruta', etiqueta: 'Hojas de ruta', ruta: '/hojas-ruta', icono: Route },
   { id: 'files', etiqueta: 'Files académicos', ruta: '/files', icono: Users2 },
+  { id: 'catalogo-requisitos', etiqueta: 'Requisitos por modalidad', ruta: '/requisitos', icono: ListChecks },
   { id: 'pases', etiqueta: 'Bandeja de pases', ruta: '/pases', icono: ArrowLeftRight },
   { id: 'entregas', etiqueta: 'Firma y entrega', ruta: '/entregas', icono: PackageCheck },
   { id: 'revision', etiqueta: 'Recojo y remisión', ruta: '/revision', icono: ClipboardCheck },

@@ -14,6 +14,8 @@ export interface Transicion {
   desde: EstadoHojaRuta;
   hacia: EstadoHojaRuta;
   flujos: readonly Flujo[];
+  /** Solo para estos tipos de trámite (código); sin la lista, para todos los del flujo. */
+  soloTipos?: readonly string[];
   rol: RolHojaRuta;
   /** Sede desde la que se registra el paso. LA_PAZ es la ESFM en Calahumana (D-15). */
   sede: CodigoSede;
@@ -58,11 +60,13 @@ export const TRANSICIONES: readonly Transicion[] = [
   {
     // DEC-053 (D-48): Kardex contrasta las notas del historial con los empastes; si hay observación, no imprime y
     // devuelve. El trámite termina en SISET: el que sigue es otro trámite, fuera del sistema. No lo impide el bloqueo.
+    // D-48b (DEC-056): el contraste es solo del historial, no de su legalización.
     accion: 'DEVOLVER',
     etiqueta: 'Devolver con observación',
     desde: 'EN_IMPRESION',
     hacia: 'DEVUELTO',
     flujos: ['CON_VALORADO'],
+    soloTipos: ['HISTORIAL_ACADEMICO'],
     rol: 'KARDEX',
     sede: 'ANCOCAGUA',
     impideBloqueo: false,
@@ -160,8 +164,14 @@ export const pasosDelFlujo = (flujo: Flujo): Transicion[] => {
 export interface EstadoParaTransicion {
   estado: EstadoHojaRuta;
   flujo: Flujo;
+  /** Código del tipo de trámite (HISTORIAL_ACADEMICO…): algunos pasos son de un solo tipo (D-48b). */
+  tipo: string;
   fileBloqueado: boolean;
 }
+
+/** El paso existe para el estado, el flujo y el tipo del trámite. */
+const aplica = (t: Transicion, h: EstadoParaTransicion): boolean =>
+  t.desde === h.estado && t.flujos.includes(h.flujo) && (!t.soloTipos || t.soloTipos.includes(h.tipo));
 
 export interface UsuarioParaTransicion {
   rol: string;
@@ -182,7 +192,7 @@ export function evaluarTransicion(
   u: UsuarioParaTransicion,
   accion: AccionHojaRuta,
 ): ResultadoTransicion {
-  const t = TRANSICIONES.find((x) => x.accion === accion && x.desde === h.estado && x.flujos.includes(h.flujo));
+  const t = TRANSICIONES.find((x) => x.accion === accion && aplica(x, h));
   if (!t)
     return { ok: false, error: 'TRANSICION_INVALIDA', mensaje: 'El trámite no admite ese paso en su estado actual.' };
   if (t.rol !== u.rol || t.sede !== u.sede) {
@@ -207,9 +217,7 @@ export interface AccionPosible {
 
 /** Los pasos que este usuario ve ahora sobre el trámite: los de su rol y su sede (para los botones del detalle). */
 export const accionesPosibles = (h: EstadoParaTransicion, u: UsuarioParaTransicion): AccionPosible[] =>
-  TRANSICIONES.filter(
-    (t) => t.desde === h.estado && t.flujos.includes(h.flujo) && t.rol === u.rol && t.sede === u.sede,
-  ).map((t) => ({
+  TRANSICIONES.filter((t) => aplica(t, h) && t.rol === u.rol && t.sede === u.sede).map((t) => ({
     accion: t.accion,
     etiqueta: t.etiqueta,
     deshabilitada: t.impideBloqueo && h.fileBloqueado ? 'El file del titular está bloqueado.' : null,

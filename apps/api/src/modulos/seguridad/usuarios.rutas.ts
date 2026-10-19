@@ -18,7 +18,7 @@ import {
   esquemaUsuarioDetalle,
 } from './usuarios.esquemas';
 
-/** `/usuarios`, solo KARDEX (SDD S1.8 §2.1, DEC-015). */
+/** `/usuarios`, solo ADMIN (SDD S1.8 §2.1, DEC-054). */
 export const crearRutasUsuarios = (
   controlador: ReturnType<typeof crearControladorUsuarios>,
   autenticar: RequestHandler,
@@ -47,7 +47,7 @@ const json = (description: string, schema: z.ZodType): ZodOpenApiResponseObject 
 
 const comunes = {
   '401': error('Falta el access token o no es válido (NO_AUTENTICADO).'),
-  '403': error('Sin permiso (solo Kardex) o con cambio de contraseña pendiente.'),
+  '403': error('Sin permiso (solo el Administrador) o con cambio de contraseña pendiente.'),
 };
 const deUno = { ...comunes, '404': error('El usuario no existe (NO_ENCONTRADO).') };
 
@@ -121,7 +121,7 @@ export const openapiUsuarios: ZodOpenApiPathsObject = {
         '400': error('Datos inválidos, sin campos o con el CI (VALIDACION).'),
         ...deUno,
         '422': error(
-          'Quitarse el rol KARDEX (OPERACION_SOBRE_SI_MISMO), dejar sin Kardex (ULTIMO_KARDEX) o sede inexistente.',
+          'Cambiarse el propio rol (OPERACION_SOBRE_SI_MISMO), dejar sin Administrador (ULTIMO_ADMIN) o sede inexistente.',
         ),
       },
     },
@@ -132,7 +132,7 @@ export const openapiUsuarios: ZodOpenApiPathsObject = {
     json('Usuario dado de baja.', esquemaUsuarioDetalle),
     {
       '422': error(
-        'Ya estaba de baja (ESTADO_SIN_CAMBIO), es uno mismo (OPERACION_SOBRE_SI_MISMO) o el último Kardex (ULTIMO_KARDEX).',
+        'Ya estaba de baja (ESTADO_SIN_CAMBIO), es uno mismo (OPERACION_SOBRE_SI_MISMO) o el último Administrador (ULTIMO_ADMIN).',
       ),
     },
   ),

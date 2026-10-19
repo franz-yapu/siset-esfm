@@ -74,6 +74,15 @@ export const fileIdsDePersonas = async (cliente: Cliente, personaIds: number[]):
         (f) => f.id,
       );
 
+/** Egresados de varias personas, para el buscador de titulares de la ingesta (DEC-054). */
+export const egresadosDePersonas = (cliente: Cliente, personaIds: number[]) =>
+  cliente.fileAcademico.findMany({
+    where: { personaId: { in: personaIds }, condicion: 'EGRESADO', activo: true },
+    select: { id: true, personaId: true, especialidadId: true, bloqueado: true, motivoBloqueo: true },
+    take: 8,
+    orderBy: { id: 'asc' },
+  });
+
 /** Persona de varios files, para mostrar los titulares de una página de hojas de ruta. */
 export const personasDeFiles = (cliente: Cliente, ids: number[]) =>
   cliente.fileAcademico.findMany({

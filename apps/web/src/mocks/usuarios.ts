@@ -96,6 +96,18 @@ export const seedUsuarios = (): UsuarioMock[] => [
     ultimoAcceso: haceDias(3, '09:20'),
     bloqueadoHasta: haceDias(-1, '10:00'),
   },
+  // Administrador: usuarios, roles y bitácora; no hace trámites (DEC-054).
+  {
+    ...persona('4523456', 'Luis', 'Calle', 'Copa', '71234505'),
+    id: 19,
+    usuario: 'admin',
+    nombre: 'Luis Calle Copa',
+    rol: 'ADMIN',
+    sedeId: 2,
+    activo: true,
+    correo: 'sistemas@esfm-ancocagua.edu.bo',
+    ultimoAcceso: haceDias(0, '07:50'),
+  },
   // Estudiantes (usuario = CI)
   {
     id: 11,

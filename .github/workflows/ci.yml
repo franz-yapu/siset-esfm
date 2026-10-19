@@ -65,6 +65,8 @@ jobs:
       DATABASE_URL_TEST: postgresql://siset:siset_ci@localhost:5432/siset_test
       SEED_KARDEX_CI: '9000001'
       SEED_KARDEX_PASSWORD: ci-12345678
+      SEED_ADMIN_CI: '9000005'
+      SEED_ADMIN_PASSWORD: ci-admin-12345678
       JWT_SECRET: ci-secreto-del-runner-de-32-caracteres-o-mas
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -106,6 +108,8 @@ jobs:
       DATABASE_URL: postgresql://siset:siset_ci@localhost:5432/siset
       SEED_KARDEX_CI: '9000001'
       SEED_KARDEX_PASSWORD: ci-12345678
+      SEED_ADMIN_CI: '9000005'
+      SEED_ADMIN_PASSWORD: ci-admin-12345678
       JWT_SECRET: ci-secreto-del-runner-de-32-caracteres-o-mas
       E2E_API_REAL: '1'
     steps:

@@ -125,6 +125,27 @@ export const esquemaTipoTramite = z
   .meta({ id: 'TipoTramite' });
 export type TipoTramite = z.infer<typeof esquemaTipoTramite>;
 
+/**
+ * Buscador de titulares de la ingesta (DEC-054): SEC_DIR ya no lee files, así que solo recibe lo que necesita para
+ * elegir al egresado. Sin semáforo ni requisitos.
+ */
+export const esquemaConsultaTitulares = z
+  .strictObject({ texto: z.string().trim().min(2).max(60).meta({ example: '81000' }) })
+  .meta({ id: 'ConsultaTitulares' });
+export const esquemasTitulares = { query: esquemaConsultaTitulares };
+
+export const esquemaTitularIngesta = z
+  .object({
+    fileId: z.number().int(),
+    nombre: z.string(),
+    ci: z.string(),
+    especialidad: z.string(),
+    bloqueado: z.boolean(),
+    motivoBloqueo: z.string().nullable(),
+  })
+  .meta({ id: 'TitularIngesta' });
+export type TitularIngesta = z.infer<typeof esquemaTitularIngesta>;
+
 /** Consulta pública (RF-09 CA2-CA3, S4.1): N.º + CI en el cuerpo, para que el CI no quede en la URL ni en los logs. */
 export const esquemaConsultaSeguimiento = z
   .strictObject({

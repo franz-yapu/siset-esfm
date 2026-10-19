@@ -28,7 +28,7 @@ const whereDe = (f: FiltrosAuditoria): Prisma.LogAuditoriaWhereInput => ({
 
 /**
  * Consulta de la bitácora (SDD S6.4 §2.2). Consultar no genera eventos: sería uno por cada
- * página que mira Kardex, sin valor de auditoría (DEC-017).
+ * página que mira el Administrador, sin valor de auditoría (DEC-017).
  */
 export const crearServicioConsultaAuditoria = (bd: ClienteBd, describirUsuarios: DescribirUsuarios) => ({
   async listar(filtros: FiltrosAuditoria): Promise<Pagina<RegistroAuditoria>> {

@@ -2,27 +2,27 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { BellRing, CheckCircle2, Eye, Printer, Save, Search, X } from 'lucide-react';
-import type { FileDetalle } from '@/types/files';
-import type { DetalleHojaRuta } from '@/types/hojas-ruta';
+import type { DetalleHojaRuta, TitularIngesta } from '@/types/hojas-ruta';
 import { useToast, useUsuario } from '@/hooks';
-import { useFiles } from '@/hooks/useFiles';
-import { useMutacionHojasRuta, useTiposTramite } from '@/hooks/useHojasRuta';
+import { useMutacionHojasRuta, useTiposTramite, useTitulares } from '@/hooks/useHojasRuta';
 import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ErrorApi } from '@/lib/errores';
-import { textoSemaforo } from '@/lib/semaforo';
 import { urlSeguimiento } from '@/lib/qr';
-import { Alerta, Button, Card, Input, Modal, PageHeader, Select, Semaforo, Textarea } from '@/components/ui';
+import { Alerta, Button, Card, Input, Modal, PageHeader, Select, Textarea } from '@/components/ui';
 
 const ESPERA_BUSQUEDA = 300;
 
-/** P-30 · Nueva hoja de ruta (ingesta) contra POST /hojas-ruta (SDD S3.8-S3.9 §2.6). */
+/**
+ * P-30 · Nueva hoja de ruta (ingesta) contra POST /hojas-ruta (SDD S3.8-S3.9 §2.6). El titular sale de
+ * /hojas-ruta/titulares: SEC_DIR no ve files (DEC-054).
+ */
 export function NuevaHojaRuta() {
   const u = useUsuario();
   const toast = useToast();
   const nav = useNavigate();
   const [texto, setTexto] = useState('');
   const [buscado, setBuscado] = useState('');
-  const [titular, setTitular] = useState<FileDetalle | null>(null);
+  const [titular, setTitular] = useState<TitularIngesta | null>(null);
   const [tipo, setTipo] = useState('');
   const [valorado, setValorado] = useState('');
   const [obs, setObs] = useState('');
@@ -39,13 +39,13 @@ export function NuevaHojaRuta() {
 
   const { data: tipos = [] } = useTiposTramite();
   const tipoElegido = tipos.find((t) => t.codigo === tipo) ?? tipos[0];
-  const { data: sugerencias } = useFiles({ texto: buscado || undefined, condicion: 'EGRESADO', porPagina: 8 });
-  const lista = !titular && buscado.length >= 2 ? (sugerencias?.datos ?? []) : [];
+  const { data: sugerencias } = useTitulares(buscado);
+  const lista = !titular && buscado.length >= 2 ? (sugerencias ?? []) : [];
 
   const crear = useMutacionHojasRuta(async (avisar: boolean) => {
     const h = await hojasRutaService.crear(
       {
-        fileId: titular!.id,
+        fileId: titular!.fileId,
         tipoTramite: tipoElegido!.codigo,
         nroValorado: tipoElegido!.requiereValorado ? valorado.trim() : null,
         observacion: obs.trim() || null,
@@ -120,7 +120,7 @@ export function NuevaHojaRuta() {
                   role="listbox"
                 >
                   {lista.map((f) => (
-                    <li key={f.id}>
+                    <li key={f.fileId}>
                       <button
                         type="button"
                         onClick={() => {
@@ -131,9 +131,8 @@ export function NuevaHojaRuta() {
                       >
                         <span>
                           <span className="font-medium">{f.ci}</span> · {f.nombre}
-                          {f.bloqueado && <span className="ml-2 text-xs text-red-700">bloqueado</span>}
                         </span>
-                        <Semaforo color={f.semaforo} texto="" size="sm" />
+                        {f.bloqueado && <span className="text-xs text-red-700">bloqueado</span>}
                       </button>
                     </li>
                   ))}
@@ -153,11 +152,6 @@ export function NuevaHojaRuta() {
                   <p className="text-sm text-slate-500">
                     CI {titular.ci} · {titular.especialidad}
                   </p>
-                  <Semaforo
-                    color={titular.semaforo}
-                    texto={textoSemaforo(titular.semaforo, titular.bloqueado)}
-                    className="mt-2"
-                  />
                 </div>
                 <button
                   type="button"

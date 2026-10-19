@@ -20,36 +20,40 @@ export interface FilaRuta {
 }
 
 const SOLO_KARDEX = ['KARDEX'] as const;
-/** Leen files: el personal (DEC-015). ESTUDIANTE solo tiene `leer_propio` ("mi file", S2.7). */
+/** Usuarios y bitácora: solo el Administrador (DEC-054). */
+const SOLO_ADMIN = ['ADMIN'] as const;
+/** El personal que hace trámites: lee hojas de ruta (DEC-015). ADMIN no hace trámites (DEC-054). */
 const PERSONAL = ['SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
+/** Leen files: el personal menos SEC_DIR (DEC-054). ESTUDIANTE solo tiene `leer_propio` ("mi file", S2.7). */
+const LEEN_FILES = ['SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
 const LEEN_REQUISITOS = ['SEC_COORD', 'COORDINADOR', 'KARDEX'] as const;
 const ID_INEXISTENTE = 999_999;
 
 export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
-  { metodo: 'get', documentada: '/api/v1/usuarios', ruta: '/usuarios', permitidos: SOLO_KARDEX },
-  { metodo: 'post', documentada: '/api/v1/usuarios', ruta: '/usuarios', cuerpo: {}, permitidos: SOLO_KARDEX },
+  { metodo: 'get', documentada: '/api/v1/usuarios', ruta: '/usuarios', permitidos: SOLO_ADMIN },
+  { metodo: 'post', documentada: '/api/v1/usuarios', ruta: '/usuarios', cuerpo: {}, permitidos: SOLO_ADMIN },
   {
     metodo: 'get',
     documentada: '/api/v1/usuarios/{id}',
     ruta: `/usuarios/${ID_INEXISTENTE}`,
-    permitidos: SOLO_KARDEX,
+    permitidos: SOLO_ADMIN,
   },
   {
     metodo: 'patch',
     documentada: '/api/v1/usuarios/{id}',
     ruta: `/usuarios/${ID_INEXISTENTE}`,
     cuerpo: {},
-    permitidos: SOLO_KARDEX,
+    permitidos: SOLO_ADMIN,
   },
   ...(['baja', 'reactivar', 'restablecer-password', 'desbloquear'] as const).map((accion): FilaRuta => ({
     metodo: 'post',
     documentada: `/api/v1/usuarios/{id}/${accion}`,
     ruta: `/usuarios/${ID_INEXISTENTE}/${accion}`,
-    permitidos: SOLO_KARDEX,
+    permitidos: SOLO_ADMIN,
   })),
-  { metodo: 'get', documentada: '/api/v1/auditoria', ruta: '/auditoria', permitidos: SOLO_KARDEX },
+  { metodo: 'get', documentada: '/api/v1/auditoria', ruta: '/auditoria', permitidos: SOLO_ADMIN },
   // Files (SDD S2.2, DEC-015): KARDEX crea y edita; el personal lee.
-  { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: PERSONAL },
+  { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: LEEN_FILES },
   { metodo: 'post', documentada: '/api/v1/files', ruta: '/files', cuerpo: {}, permitidos: SOLO_KARDEX },
   { metodo: 'get', documentada: '/api/v1/files/mio', ruta: '/files/mio', permitidos: ['ESTUDIANTE'] },
   {
@@ -58,7 +62,7 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     ruta: '/files/mio/requisitos',
     permitidos: ['ESTUDIANTE'],
   },
-  { metodo: 'get', documentada: '/api/v1/files/{id}', ruta: `/files/${ID_INEXISTENTE}`, permitidos: PERSONAL },
+  { metodo: 'get', documentada: '/api/v1/files/{id}', ruta: `/files/${ID_INEXISTENTE}`, permitidos: LEEN_FILES },
   {
     metodo: 'patch',
     documentada: '/api/v1/files/{id}',
@@ -78,13 +82,13 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     metodo: 'get',
     documentada: '/api/v1/files/{id}/bloqueo',
     ruta: `/files/${ID_INEXISTENTE}/bloqueo`,
-    permitidos: PERSONAL,
+    permitidos: LEEN_FILES,
   },
   {
     metodo: 'get',
     documentada: '/api/v1/files/{id}/bloqueo/pdf',
     ruta: `/files/${ID_INEXISTENTE}/bloqueo/pdf`,
-    permitidos: PERSONAL,
+    permitidos: LEEN_FILES,
   },
   // Requisitos (SDD S2.4, DEC-015): leen SEC_COORD, COORDINADOR y KARDEX; SEC_DIR no; registra KARDEX.
   {
@@ -106,10 +110,44 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     ruta: '/catalogos/requisitos',
     permitidos: LEEN_REQUISITOS,
   },
+  // Kardex administra el catálogo de requisitos por modalidad (DEC-055).
+  {
+    metodo: 'post',
+    documentada: '/api/v1/catalogos/requisitos',
+    ruta: '/catalogos/requisitos',
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/catalogos/requisitos/todos',
+    ruta: '/catalogos/requisitos/todos',
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'patch',
+    documentada: '/api/v1/catalogos/requisitos/{id}',
+    ruta: `/catalogos/requisitos/${ID_INEXISTENTE}`,
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  ...(['baja', 'reactivar'] as const).map((accion): FilaRuta => ({
+    metodo: 'post',
+    documentada: `/api/v1/catalogos/requisitos/{id}/${accion}`,
+    ruta: `/catalogos/requisitos/${ID_INEXISTENTE}/${accion}`,
+    permitidos: SOLO_KARDEX,
+  })),
   // Hojas de ruta (SDD S3.1-S3.3): Casbin exige `hojas-ruta`/`leer`; cada paso lo decide la máquina (ADR-0005).
   { metodo: 'get', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', permitidos: PERSONAL },
   // Ingesta: `hojas-ruta`/`crear`, solo SEC_DIR (DEC-015, SDD S3.2-S3.4).
   { metodo: 'post', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', cuerpo: {}, permitidos: ['SEC_DIR'] },
+  // El buscador de titulares de la ingesta: SEC_DIR elige al egresado sin leer files (DEC-054).
+  {
+    metodo: 'get',
+    documentada: '/api/v1/hojas-ruta/titulares',
+    ruta: '/hojas-ruta/titulares?texto=zz',
+    permitidos: ['SEC_DIR'],
+  },
   // Reportes (RF-13): `reportes`/`leer`.
   {
     metodo: 'get',
@@ -130,7 +168,7 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     metodo: 'get',
     documentada: '/api/v1/catalogos/especialidades',
     ruta: '/catalogos/especialidades',
-    permitidos: PERSONAL,
+    permitidos: LEEN_FILES,
   },
   // Sin `autorizar`: la web arma el menú con esto aun con cpw (DEC-015 #6, SDD S1.6 §2.5).
   {

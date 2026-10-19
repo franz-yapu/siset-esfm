@@ -23,7 +23,7 @@ const NOMBRES: Record<string, string> = {
   editar: 'Editar',
 };
 
-const INICIOS = ['estudiante', 'sec-dir', 'sec-coord', 'coordinador', 'kardex'];
+const INICIOS = ['estudiante', 'sec-dir', 'sec-coord', 'coordinador', 'kardex', 'admin'];
 
 export function Breadcrumb({ rol }: { rol: Rol }) {
   const { pathname } = useLocation();

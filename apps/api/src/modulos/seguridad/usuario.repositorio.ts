@@ -110,12 +110,12 @@ export type CambiosUsuario = Partial<
 export const actualizarUsuario = (cliente: Cliente, id: number, cambios: CambiosUsuario) =>
   cliente.usuario.update({ where: { id }, data: cambios, select: { id: true } });
 
-/** KARDEX activos sin contar a `exceptoId`: si da 0, la operación dejaría al sistema sin administrador (D-27). */
-export const contarOtrosKardexActivos = (cliente: Cliente, exceptoId: number) =>
-  cliente.usuario.count({ where: { activo: true, rol: { codigo: 'KARDEX' }, id: { not: exceptoId } } });
+/** ADMIN activos sin contar a `exceptoId`: si da 0, la operación dejaría al sistema sin administrador (DEC-054). */
+export const contarOtrosAdminActivos = (cliente: Cliente, exceptoId: number) =>
+  cliente.usuario.count({ where: { activo: true, rol: { codigo: 'ADMIN' }, id: { not: exceptoId } } });
 
 /**
- * Serializa en la transacción las operaciones que pueden quitar un KARDEX activo: así dos Kardex
+ * Serializa en la transacción las operaciones que pueden quitar un ADMIN activo: así dos administradores
  * no se dan de baja mutuamente a la vez (SDD S1.8 §6). Se libera solo al terminar la transacción.
  */
-export const bloquearCambiosDeKardex = (tx: TransaccionBd) => tx.$executeRaw`SELECT pg_advisory_xact_lock(180001)`;
+export const bloquearCambiosDeAdmin = (tx: TransaccionBd) => tx.$executeRaw`SELECT pg_advisory_xact_lock(180001)`;

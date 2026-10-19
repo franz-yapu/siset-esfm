@@ -12,7 +12,8 @@ import {
 
 // Tabla de casos ESCRITA A MANO desde DEC-033 (no derivada de maquina.ts): estado, acción y flujo válidos, con
 // quién y desde dónde, y si el file bloqueado lo impide (SDD S3.1-S3.3 §2.2, ADR-0005).
-type Fila = [EstadoHojaRuta, AccionHojaRuta, Flujo[], string, CodigoSede, EstadoHojaRuta, boolean];
+// La 8.ª columna, si está, limita el paso a esos tipos de trámite (D-48b).
+type Fila = [EstadoHojaRuta, AccionHojaRuta, Flujo[], string, CodigoSede, EstadoHojaRuta, boolean, string[]?];
 const V: Flujo[] = ['CON_VALORADO'];
 const S: Flujo[] = ['SIN_VALORADO'];
 const VS: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO'];
@@ -26,13 +27,14 @@ const VALIDAS: Fila[] = [
   ['FIRMADO_COORDINADOR', 'REMITIR', S, 'KARDEX', 'ANCOCAGUA', 'REMITIDO_CALAHUMANA', false],
   ['REMITIDO_CALAHUMANA', 'RECIBIR_CALAHUMANA', S, 'SEC_DIR', 'LA_PAZ', 'LISTO', false],
   ['LISTO', 'ENTREGAR', VS, 'SEC_DIR', 'LA_PAZ', 'ENTREGADO', false],
-  // DEC-053 (D-48): el historial con observación no se imprime y se devuelve.
-  ['EN_IMPRESION', 'DEVOLVER', V, 'KARDEX', 'ANCOCAGUA', 'DEVUELTO', false],
+  // DEC-053 (D-48): el historial con observación no se imprime y se devuelve; la legalización no (D-48b, DEC-056).
+  ['EN_IMPRESION', 'DEVOLVER', V, 'KARDEX', 'ANCOCAGUA', 'DEVUELTO', false, ['HISTORIAL_ACADEMICO']],
 ];
 
 const ROLES = ['ESTUDIANTE', 'EGRESADO', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR', 'KARDEX'];
 const SEDES: (CodigoSede | null)[] = ['LA_PAZ', 'ANCOCAGUA', null];
 const FLUJOS: Flujo[] = ['CON_VALORADO', 'SIN_VALORADO'];
+const TIPOS = ['HISTORIAL_ACADEMICO', 'LEGALIZACION_HISTORIAL'];
 
 describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
   it('toda combinación estado × acción × flujo × rol × sede × bloqueo da lo que dice la tabla', () => {
@@ -40,23 +42,30 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
     for (const estado of ESTADOS_HOJA_RUTA)
       for (const accion of ACCIONES_HOJA_RUTA)
         for (const flujo of FLUJOS)
-          for (const rol of ROLES)
-            for (const sede of SEDES)
-              for (const fileBloqueado of [false, true]) {
-                casos++;
-                const fila = VALIDAS.find(([e, a, f]) => e === estado && a === accion && f.includes(flujo));
-                const r = evaluarTransicion({ estado, flujo, fileBloqueado }, { rol, sede }, accion);
-                if (!fila) {
-                  expect(r, `${estado} ${accion} ${flujo}`).toMatchObject({ ok: false, error: 'TRANSICION_INVALIDA' });
-                } else if (fila[3] !== rol || fila[4] !== sede) {
-                  expect(r, `${estado} ${accion} ${rol} ${sede}`).toMatchObject({ ok: false, error: 'PROHIBIDO' });
-                } else if (fila[6] && fileBloqueado) {
-                  expect(r).toMatchObject({ ok: false, error: 'FILE_BLOQUEADO' });
-                } else {
-                  expect(r).toMatchObject({ ok: true, transicion: { hacia: fila[5] } });
+          for (const tipo of TIPOS)
+            for (const rol of ROLES)
+              for (const sede of SEDES)
+                for (const fileBloqueado of [false, true]) {
+                  casos++;
+                  const fila = VALIDAS.find(
+                    ([e, a, f, , , , , t]) =>
+                      e === estado && a === accion && f.includes(flujo) && (!t || t.includes(tipo)),
+                  );
+                  const r = evaluarTransicion({ estado, flujo, tipo, fileBloqueado }, { rol, sede }, accion);
+                  if (!fila) {
+                    expect(r, `${estado} ${accion} ${flujo} ${tipo}`).toMatchObject({
+                      ok: false,
+                      error: 'TRANSICION_INVALIDA',
+                    });
+                  } else if (fila[3] !== rol || fila[4] !== sede) {
+                    expect(r, `${estado} ${accion} ${rol} ${sede}`).toMatchObject({ ok: false, error: 'PROHIBIDO' });
+                  } else if (fila[6] && fileBloqueado) {
+                    expect(r).toMatchObject({ ok: false, error: 'FILE_BLOQUEADO' });
+                  } else {
+                    expect(r).toMatchObject({ ok: true, transicion: { hacia: fila[5] } });
+                  }
                 }
-              }
-    expect(casos).toBe(10 * 10 * 2 * 6 * 3 * 2);
+    expect(casos).toBe(10 * 10 * 2 * 2 * 6 * 3 * 2);
   });
 
   it.each([
@@ -69,7 +78,11 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
     let estado: EstadoHojaRuta = 'RECIBIDO';
     for (const accion of pasos) {
       const fila = VALIDAS.find(([e, a]) => e === estado && a === accion)!;
-      const r = evaluarTransicion({ estado, flujo, fileBloqueado: false }, { rol: fila[3], sede: fila[4] }, accion);
+      const r = evaluarTransicion(
+        { estado, flujo, tipo: 'HISTORIAL_ACADEMICO', fileBloqueado: false },
+        { rol: fila[3], sede: fila[4] },
+        accion,
+      );
       if (!r.ok) throw new Error(`${flujo}: ${accion} falló (${r.error})`);
       estado = r.transicion.hacia;
     }
@@ -77,14 +90,19 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
   });
 
   it('accionesPosibles: solo las del rol y la sede, y deshabilitadas si el file está bloqueado', () => {
-    const h = { estado: 'IMPRESO' as const, flujo: 'SIN_VALORADO' as const, fileBloqueado: false };
+    const h = {
+      estado: 'IMPRESO' as const,
+      flujo: 'SIN_VALORADO' as const,
+      tipo: 'CERT_NOTAS_ANTERIOR',
+      fileBloqueado: false,
+    };
     expect(accionesPosibles(h, { rol: 'COORDINADOR', sede: 'ANCOCAGUA' }).map((a) => a.accion)).toEqual([
       'FIRMA_COORDINADOR',
     ]);
     expect(accionesPosibles(h, { rol: 'SEC_DIR', sede: 'LA_PAZ' })).toEqual([]);
     expect(
       accionesPosibles(
-        { estado: 'RECIBIDO', flujo: 'CON_VALORADO', fileBloqueado: true },
+        { estado: 'RECIBIDO', flujo: 'CON_VALORADO', tipo: 'HISTORIAL_ACADEMICO', fileBloqueado: true },
         { rol: 'SEC_DIR', sede: 'LA_PAZ' },
       ),
     ).toEqual([
@@ -92,19 +110,36 @@ describe('máquina de estados de la hoja de ruta (ADR-0005)', () => {
     ]);
   });
 
-  it('Kardex imprime o devuelve el historial; el certificado no se devuelve (DEC-053)', () => {
+  it('Kardex imprime o devuelve el historial; la legalización y el certificado no se devuelven (DEC-053, D-48b)', () => {
     const kardex = { rol: 'KARDEX', sede: 'ANCOCAGUA' as const };
-    const conValorado = { estado: 'EN_IMPRESION' as const, flujo: 'CON_VALORADO' as const, fileBloqueado: true };
+    const conValorado = {
+      estado: 'EN_IMPRESION' as const,
+      flujo: 'CON_VALORADO' as const,
+      tipo: 'HISTORIAL_ACADEMICO',
+      fileBloqueado: true,
+    };
     expect(accionesPosibles(conValorado, kardex)).toEqual([
       { accion: 'IMPRIMIR', etiqueta: 'Marcar como impreso', deshabilitada: 'El file del titular está bloqueado.' },
       { accion: 'DEVOLVER', etiqueta: 'Devolver con observación', deshabilitada: null },
     ]);
     expect(
-      accionesPosibles({ ...conValorado, flujo: 'SIN_VALORADO', fileBloqueado: false }, kardex).map((a) => a.accion),
+      accionesPosibles({ ...conValorado, tipo: 'LEGALIZACION_HISTORIAL', fileBloqueado: false }, kardex).map(
+        (a) => a.accion,
+      ),
+    ).toEqual(['IMPRIMIR']);
+    expect(
+      accionesPosibles(
+        { ...conValorado, flujo: 'SIN_VALORADO', tipo: 'CERT_NOTAS_ANTERIOR', fileBloqueado: false },
+        kardex,
+      ).map((a) => a.accion),
     ).toEqual(['IMPRIMIR']);
     for (const accion of ACCIONES_HOJA_RUTA)
       expect(
-        evaluarTransicion({ estado: 'DEVUELTO', flujo: 'CON_VALORADO', fileBloqueado: false }, kardex, accion),
+        evaluarTransicion(
+          { estado: 'DEVUELTO', flujo: 'CON_VALORADO', tipo: 'HISTORIAL_ACADEMICO', fileBloqueado: false },
+          kardex,
+          accion,
+        ),
       ).toMatchObject({ ok: false, error: 'TRANSICION_INVALIDA' });
   });
 });

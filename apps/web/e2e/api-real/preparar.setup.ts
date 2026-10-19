@@ -8,7 +8,7 @@ import { API_E2E, ARCHIVO_USUARIOS, type Credencial, type CuentaE2E, type RolPer
  * entre corridas, así que crea las cuentas o, si ya existen, les restablece la contraseña.
  */
 
-// Local: el Kardex inicial sale de apps/api/.env (las variables del entorno mandan).
+// Local: el Kardex y el Administrador iniciales salen de apps/api/.env (las variables del entorno mandan).
 try {
   process.loadEnvFile(new URL('../../../api/.env', import.meta.url));
 } catch {
@@ -21,7 +21,7 @@ const passwordNueva = () => `E2e.${randomBytes(6).toString('hex')}-7`;
 /** Id de LA_PAZ, el mismo de `src/config/catalogos.ts` y del seed. La ingesta es de SEC_DIR en Calahumana. */
 const SEDE_LA_PAZ = 1;
 
-const CUENTAS: { cuenta: Exclude<CuentaE2E, 'KARDEX'>; rol: RolPersonal; ci: string; sede?: number }[] = [
+const CUENTAS: { cuenta: Exclude<CuentaE2E, 'KARDEX' | 'ADMIN'>; rol: RolPersonal; ci: string; sede?: number }[] = [
   { cuenta: 'SEC_DIR', rol: 'SEC_DIR', ci: '8800001', sede: SEDE_LA_PAZ },
   { cuenta: 'SEC_COORD', rol: 'SEC_COORD', ci: '8800002' },
   { cuenta: 'COORDINADOR', rol: 'COORDINADOR', ci: '8800003' },
@@ -49,33 +49,42 @@ const cambiar = async (request: APIRequestContext, sesion: Sesion, passwordActua
 };
 
 /**
- * El Kardex del seed. Su contraseña E2E es la del seed + "-e2e" (o E2E_KARDEX_PASSWORD): se deduce
- * del entorno en cada corrida y nunca va al repo. Si todavía tiene la del seed, se cambia una vez.
+ * Una cuenta del seed (el Kardex o el Administrador, DEC-054). Su contraseña E2E es la del seed + "-e2e" (o
+ * E2E_<CUENTA>_PASSWORD): se deduce del entorno en cada corrida y nunca va al repo. Si todavía tiene la del seed, se
+ * cambia una vez.
  */
-async function sesionKardex(request: APIRequestContext): Promise<{ sesion: Sesion; password: string }> {
-  const ci = process.env.SEED_KARDEX_CI;
-  const seed = process.env.SEED_KARDEX_PASSWORD;
-  if (!ci || !seed) throw new Error('Faltan SEED_KARDEX_CI y SEED_KARDEX_PASSWORD (apps/api/.env o el entorno).');
-  const e2e = process.env.E2E_KARDEX_PASSWORD ?? `${seed}-e2e`;
+async function sesionDelSeed(
+  request: APIRequestContext,
+  cuenta: 'KARDEX' | 'ADMIN',
+): Promise<{ sesion: Sesion; password: string }> {
+  const ci = process.env[`SEED_${cuenta}_CI`];
+  const seed = process.env[`SEED_${cuenta}_PASSWORD`];
+  if (!ci || !seed) {
+    throw new Error(`Faltan SEED_${cuenta}_CI y SEED_${cuenta}_PASSWORD (apps/api/.env o el entorno).`);
+  }
+  const e2e = process.env[`E2E_${cuenta}_PASSWORD`] ?? `${seed}-e2e`;
 
   // Como mucho un intento fallido por corrida, y el login correcto deja el contador en 0 (DEC-013).
   const conE2e = await login(request, ci, e2e);
   if (conE2e && !conE2e.usuario.debeCambiarPassword) return { sesion: conE2e, password: e2e };
   const conSeed = await login(request, ci, seed);
   if (!conSeed)
-    throw new Error(`El Kardex ${ci} no entra con la contraseña del seed ni con la E2E: definí E2E_KARDEX_PASSWORD.`);
+    throw new Error(`${ci} no entra con la contraseña del seed ni con la E2E: definí E2E_${cuenta}_PASSWORD.`);
   if (!conSeed.usuario.debeCambiarPassword) return { sesion: conSeed, password: seed };
   return { sesion: await cambiar(request, conSeed, seed, e2e), password: e2e };
 }
 
 preparar('cuentas E2E por rol (SDD S1.14 §2.4)', async ({ request }) => {
-  const kardex = await sesionKardex(request);
-  const auth = { Authorization: `Bearer ${kardex.sesion.accessToken}` };
+  const kardex = await sesionDelSeed(request, 'KARDEX');
+  // Las cuentas las crea el Administrador: Kardex ya no administra usuarios (DEC-054).
+  const admin = await sesionDelSeed(request, 'ADMIN');
+  const auth = { Authorization: `Bearer ${admin.sesion.accessToken}` };
   const sedeKardex = kardex.sesion.usuario.sedeId;
   expect(sedeKardex, 'el Kardex inicial tiene sede').not.toBeNull();
 
   const resultado: Partial<Record<CuentaE2E, Credencial>> = {
     KARDEX: { id: kardex.sesion.usuario.id, usuario: kardex.sesion.usuario.usuario, password: kardex.password },
+    ADMIN: { id: admin.sesion.usuario.id, usuario: admin.sesion.usuario.usuario, password: admin.password },
   };
 
   for (const { cuenta, rol, ci, sede } of CUENTAS) {

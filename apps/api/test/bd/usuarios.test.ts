@@ -13,11 +13,11 @@ const app = crearApp({ bd, config: configDePrueba({ loginLimitePorMinuto: 1000 }
 let siguienteCi = 8800100;
 const nuevoCi = () => String(siguienteCi++);
 
-let kardexId = 0;
+let adminId = 0;
 let sedeLaPaz = 0;
 let sedeAncocagua = 0;
 
-const tokenDe = async (usuarioId: number, rol = 'KARDEX', cpw = false) =>
+const tokenDe = async (usuarioId: number, rol = 'ADMIN', cpw = false) =>
   (
     await firmarAccessToken(
       { usuarioId, rol, sedeId: null, debeCambiarPassword: cpw },
@@ -26,11 +26,11 @@ const tokenDe = async (usuarioId: number, rol = 'KARDEX', cpw = false) =>
     )
   ).token;
 
-/** Un KARDEX activo, sin contraseña por cambiar. */
-async function crearKardex(): Promise<number> {
-  const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'KARDEX' } });
+/** Un ADMIN activo, sin contraseña por cambiar (DEC-054). */
+async function crearAdmin(): Promise<number> {
+  const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ADMIN' } });
   const ci = nuevoCi();
-  const persona = await bd.persona.create({ data: { ci, nombres: 'Otro', apellidoPaterno: 'Kardex' } });
+  const persona = await bd.persona.create({ data: { ci, nombres: 'Otro', apellidoPaterno: 'Admin' } });
   const u = await bd.usuario.create({
     data: {
       personaId: persona.id,
@@ -44,7 +44,7 @@ async function crearKardex(): Promise<number> {
   return u.id;
 }
 
-const como = async (metodo: 'get' | 'post' | 'patch', ruta: string, cuerpo?: object, usuarioId = kardexId) => {
+const como = async (metodo: 'get' | 'post' | 'patch', ruta: string, cuerpo?: object, usuarioId = adminId) => {
   const r = request(app)
     [metodo](`/api/v1${ruta}`)
     .set('Authorization', `Bearer ${await tokenDe(usuarioId)}`);
@@ -80,7 +80,7 @@ beforeAll(async () => {
   await sembrar(bd, KARDEX_DE_PRUEBA);
   sedeLaPaz = (await bd.sede.findUniqueOrThrow({ where: { codigo: 'LA_PAZ' } })).id;
   sedeAncocagua = (await bd.sede.findUniqueOrThrow({ where: { codigo: 'ANCOCAGUA' } })).id;
-  kardexId = await crearKardex();
+  adminId = await crearAdmin();
 });
 afterAll(() => bd.$disconnect());
 
@@ -111,10 +111,10 @@ describe('POST /api/v1/usuarios (SDD S1.8 §2.2, RF-03 CA1)', () => {
     expect(decodeJwt(sesion.body.accessToken).cpw).toBe(true);
   });
 
-  it('registra CREAR a nombre de Kardex, sin contraseña ni hash', async () => {
+  it('registra CREAR a nombre del Administrador, sin contraseña ni hash', async () => {
     const { usuario, passwordTemporal } = await crear();
     const [evento] = await eventos(usuario.id, 'CREAR');
-    expect(evento).toMatchObject({ usuarioId: kardexId, modulo: 'SEGURIDAD', datosAntes: null });
+    expect(evento).toMatchObject({ usuarioId: adminId, modulo: 'SEGURIDAD', datosAntes: null });
     expect(evento.datosDespues).toMatchObject({ id: usuario.id, rol: 'SEC_COORD' });
     const texto = JSON.stringify(evento);
     expect(texto).not.toContain(passwordTemporal);
@@ -232,7 +232,7 @@ describe('PATCH /api/v1/usuarios/:id', () => {
     expect(r.body).toMatchObject({ rol: 'SEC_DIR', celular: '79999999', nombres: 'Rosa', apellidoPaterno: 'Quispe' });
     const [evento] = await eventos(usuario.id, 'EDITAR');
     expect(evento).toMatchObject({
-      usuarioId: kardexId,
+      usuarioId: adminId,
       datosAntes: { rol: 'SEC_COORD', celular: '71234567' },
       datosDespues: { rol: 'SEC_DIR', celular: '79999999' },
     });
@@ -292,40 +292,40 @@ describe('baja y reactivación (RF-03 CA2)', () => {
     expect(r.status).toBe(422);
     expect(r.body.error.code).toBe('ESTADO_SIN_CAMBIO');
 
-    expect((await eventos(id)).filter((e) => e.usuarioId === kardexId).map((e) => [e.accion, e.datosDespues])).toEqual([
+    expect((await eventos(id)).filter((e) => e.usuarioId === adminId).map((e) => [e.accion, e.datosDespues])).toEqual([
       ['DAR_DE_BAJA', { activo: false }],
       ['REACTIVAR', { activo: true }],
     ]);
   });
 });
 
-describe('reglas sobre Kardex (D-27, DEC-020 #4)', () => {
-  it('Kardex no puede darse de baja ni quitarse el rol', async () => {
-    const baja = await como('post', `/usuarios/${kardexId}/baja`);
+describe('reglas sobre el Administrador (DEC-020 #4, DEC-054)', () => {
+  it('el Administrador no puede darse de baja ni quitarse el rol', async () => {
+    const baja = await como('post', `/usuarios/${adminId}/baja`);
     expect(baja.status).toBe(422);
     expect(baja.body.error.code).toBe('OPERACION_SOBRE_SI_MISMO');
-    const rol = await como('patch', `/usuarios/${kardexId}`, { rol: 'SEC_DIR' });
+    const rol = await como('patch', `/usuarios/${adminId}`, { rol: 'SEC_DIR' });
     expect(rol.status).toBe(422);
     expect(rol.body.error.code).toBe('OPERACION_SOBRE_SI_MISMO');
     // Su sede y sus datos sí.
-    expect((await como('patch', `/usuarios/${kardexId}`, { celular: '70000000' })).status).toBe(200);
+    expect((await como('patch', `/usuarios/${adminId}`, { celular: '70000000' })).status).toBe(200);
   });
 
-  it('no se puede dar de baja ni cambiar el rol del último KARDEX activo', async () => {
-    // El autor es un Kardex ya dado de baja (su token sigue vigente unos minutos): el objetivo queda solo.
-    const autor = await crearKardex();
-    const objetivo = await crearKardex();
+  it('no se puede dar de baja ni cambiar el rol del último ADMIN activo', async () => {
+    // El autor es un Administrador ya dado de baja (su token sigue vigente unos minutos): el objetivo queda solo.
+    const autor = await crearAdmin();
+    const objetivo = await crearAdmin();
     const otros = await bd.usuario.findMany({
-      where: { activo: true, rol: { codigo: 'KARDEX' }, id: { not: objetivo } },
+      where: { activo: true, rol: { codigo: 'ADMIN' }, id: { not: objetivo } },
       select: { id: true },
     });
     await bd.usuario.updateMany({ where: { id: { in: otros.map((o) => o.id) } }, data: { activo: false } });
     try {
       const baja = await como('post', `/usuarios/${objetivo}/baja`, undefined, autor);
       expect(baja.status).toBe(422);
-      expect(baja.body.error.code).toBe('ULTIMO_KARDEX');
+      expect(baja.body.error.code).toBe('ULTIMO_ADMIN');
       const rol = await como('patch', `/usuarios/${objetivo}`, { rol: 'SEC_DIR' }, autor);
-      expect(rol.body.error.code).toBe('ULTIMO_KARDEX');
+      expect(rol.body.error.code).toBe('ULTIMO_ADMIN');
       expect((await bd.usuario.findUniqueOrThrow({ where: { id: objetivo } })).activo).toBe(true);
     } finally {
       await bd.usuario.updateMany({ where: { id: { in: otros.map((o) => o.id) } }, data: { activo: true } });
@@ -353,7 +353,7 @@ describe('restablecer y desbloquear (RF-03 CA4, S1.4)', () => {
     expect(decodeJwt(nueva.body.accessToken).cpw).toBe(true);
 
     const [evento] = await eventos(id, 'RESTABLECER_PASSWORD');
-    expect(evento).toMatchObject({ usuarioId: kardexId, entidadId: String(id), datosDespues: null });
+    expect(evento).toMatchObject({ usuarioId: adminId, entidadId: String(id), datosDespues: null });
     expect(JSON.stringify(evento)).not.toContain(r.body.passwordTemporal);
   });
 
@@ -370,7 +370,7 @@ describe('restablecer y desbloquear (RF-03 CA4, S1.4)', () => {
     expect((await login(ci, PASSWORD_DE_PRUEBA)).status).toBe(200);
     const [evento] = await eventos(id, 'DESBLOQUEAR_CUENTA');
     expect(evento).toMatchObject({
-      usuarioId: kardexId,
+      usuarioId: adminId,
       datosAntes: { bloqueadoHasta: hasta.toISOString(), intentosFallidos: 3 },
       datosDespues: { bloqueadoHasta: null, intentosFallidos: 0 },
     });
@@ -409,15 +409,16 @@ describe('seguridad de /usuarios', () => {
     ['post', '/usuarios/1/desbloquear'],
   ];
 
-  it.each(rutas)('%s %s: SEC_DIR 403, sin token 401, KARDEX con cpw 403', async (metodo, ruta, cuerpo) => {
+  it.each(rutas)('%s %s: SEC_DIR y KARDEX 403, sin token 401, ADMIN con cpw 403', async (metodo, ruta, cuerpo) => {
     const conToken = async (token: string | null) => {
       const r = request(app)[metodo](`/api/v1${ruta}`);
       if (token) r.set('Authorization', `Bearer ${token}`);
       return cuerpo ? r.send(cuerpo) : r;
     };
-    expect((await conToken(await tokenDe(kardexId, 'SEC_DIR'))).status).toBe(403);
+    expect((await conToken(await tokenDe(adminId, 'SEC_DIR'))).status).toBe(403);
+    expect((await conToken(await tokenDe(adminId, 'KARDEX'))).status).toBe(403);
     expect((await conToken(null)).status).toBe(401);
-    const cpw = await conToken(await tokenDe(kardexId, 'KARDEX', true));
+    const cpw = await conToken(await tokenDe(adminId, 'ADMIN', true));
     expect(cpw.status).toBe(403);
     expect(cpw.body.error.code).toBe('CAMBIO_PASSWORD_REQUERIDO');
   });

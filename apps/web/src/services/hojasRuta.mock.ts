@@ -63,7 +63,7 @@ const detalle = (h: HojaRutaMock, u: Usuario): DetalleHojaRuta => {
       fecha: m.fecha,
     })),
     acciones: accionesPosibles(
-      { estado: h.estado, flujo: flujoDe(tipo.requiereValorado), fileBloqueado: f.bloqueado },
+      { estado: h.estado, flujo: flujoDe(tipo.requiereValorado), tipo: tipo.codigo, fileBloqueado: f.bloqueado },
       { rol: u.rol, sede: sedeDe(u) },
     ),
   });
@@ -179,7 +179,12 @@ export const hojasRutaMock: ServicioHojasRuta = {
     const h = buscar(nro);
     const tipo = tipoDe(h.tipo);
     const r = evaluarTransicion(
-      { estado: h.estado, flujo: flujoDe(tipo.requiereValorado), fileBloqueado: fileDe(h.fileId).bloqueado },
+      {
+        estado: h.estado,
+        flujo: flujoDe(tipo.requiereValorado),
+        tipo: tipo.codigo,
+        fileBloqueado: fileDe(h.fileId).bloqueado,
+      },
       { rol: u.rol, sede: sedeDe(u) },
       accion,
     );
@@ -210,6 +215,22 @@ export const hojasRutaMock: ServicioHojasRuta = {
     return detalle(h, u);
   },
 
+  async titulares(texto) {
+    await delay(LATENCIA);
+    const t = texto.trim().toLowerCase();
+    return db.files
+      .map(aDetalle)
+      .filter((f) => f.condicion === 'EGRESADO' && (f.ci.includes(t) || f.nombre.toLowerCase().includes(t)))
+      .slice(0, 8)
+      .map(({ id, nombre, ci, especialidad, bloqueado, motivoBloqueo }) => ({
+        fileId: id,
+        nombre,
+        ci,
+        especialidad,
+        bloqueado,
+        motivoBloqueo,
+      }));
+  },
   async tipos() {
     await delay(LATENCIA);
     return copia([...TIPOS_TRAMITE_MOCK].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')));

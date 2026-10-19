@@ -6,17 +6,20 @@ import { sembrar } from '../../prisma/semilla';
 const bd = clienteDeTest();
 afterAll(() => bd.$disconnect());
 
+// Su propio Kardex: `datos-prueba` repara el 9000001 (cuenta de prueba) y el orden de los archivos no es fijo.
+const KARDEX_SEMILLA = { ...KARDEX_DE_PRUEBA, ci: '9000160' };
+
 const buscarKardex = () =>
   bd.usuario.findUniqueOrThrow({
-    where: { username: KARDEX_DE_PRUEBA.ci },
+    where: { username: KARDEX_SEMILLA.ci },
     include: { rol: true, sede: true, persona: true },
   });
 
 describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
   it('es idempotente: dos corridas dejan los mismos conteos', async () => {
-    const primera = await sembrar(bd, KARDEX_DE_PRUEBA);
-    const segunda = await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect(primera).toMatchObject({ roles: 6, sedes: 2, especialidades: 5, requisitosTipo: 27 });
+    const primera = await sembrar(bd, KARDEX_SEMILLA);
+    const segunda = await sembrar(bd, KARDEX_SEMILLA);
+    expect(primera).toMatchObject({ roles: 7, sedes: 2, especialidades: 5, requisitosTipo: 27 });
     // Los archivos comparten la base y otros tests crean usuarios con eventos en la
     // bitácora, que no se pueden borrar (ADR-0003): se cuenta "al menos uno".
     expect(primera.personas).toBeGreaterThanOrEqual(1);
@@ -30,23 +33,23 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
     expect(kardex.rol.descripcion).toBe('Responsable de Archivo Kardex');
     expect(kardex.sede?.codigo).toBe('ANCOCAGUA');
     expect(kardex.debeCambiarPassword).toBe(true);
-    expect(kardex.persona).toMatchObject({ ci: KARDEX_DE_PRUEBA.ci, complemento: '', apellidoPaterno: 'Prueba' });
+    expect(kardex.persona).toMatchObject({ ci: KARDEX_SEMILLA.ci, complemento: '', apellidoPaterno: 'Prueba' });
   });
 
   it('no pisa la contraseña de un Kardex que ya existe', async () => {
     const antes = await buscarKardex();
-    await sembrar(bd, { ...KARDEX_DE_PRUEBA, password: 'otraClave999' });
+    await sembrar(bd, { ...KARDEX_SEMILLA, password: 'otraClave999' });
     expect((await buscarKardex()).passwordHash).toBe(antes.passwordHash);
   });
 
   it('guarda la contraseña con bcrypt costo 12 (RNF-01)', async () => {
     const kardex = await buscarKardex();
     expect(kardex.passwordHash).toMatch(/^\$2[ab]\$12\$/);
-    expect(await bcrypt.compare(KARDEX_DE_PRUEBA.password, kardex.passwordHash)).toBe(true);
+    expect(await bcrypt.compare(KARDEX_SEMILLA.password, kardex.passwordHash)).toBe(true);
   });
 
   it('con complemento, el username es CI-COMPLEMENTO', async () => {
-    await sembrar(bd, { ...KARDEX_DE_PRUEBA, ci: '9000002', complemento: '1A' });
+    await sembrar(bd, { ...KARDEX_SEMILLA, ci: '9000002', complemento: '1A' });
     expect(await bd.usuario.count({ where: { username: '9000002-1A' } })).toBe(1);
   });
 
@@ -76,16 +79,31 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
       soloAniosTerminados: true,
     });
     expect(await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'CALIF_SECUNDARIA' } })).toMatchObject({
-      soloModalidad: 'B1,B2,B3',
-      obligatorio: false,
+      soloModalidad: 'B1',
+      obligatorio: true,
     });
   });
 
-  it('el seed manda sobre el catálogo mientras Kardex no pueda editarlo (DEC-051)', async () => {
+  it('el seed no pisa lo que Kardex editó ni reactiva lo que dio de baja (DEC-055)', async () => {
+    const original = 'Certificado legalizado de TACFI – Artístico I';
     await bd.requisitoTipo.update({ where: { codigo: 'TACFI_1' }, data: { nombre: 'Nombre editado' } });
-    await sembrar(bd, KARDEX_DE_PRUEBA);
-    expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_1' } })).nombre).toBe(
-      'Certificado legalizado de TACFI – Artístico I',
-    );
+    await bd.requisitoTipo.update({ where: { codigo: 'REJAP' }, data: { activo: false } });
+    try {
+      await sembrar(bd, KARDEX_SEMILLA);
+      expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'TACFI_1' } })).nombre).toBe(
+        'Nombre editado',
+      );
+      expect((await bd.requisitoTipo.findUniqueOrThrow({ where: { codigo: 'REJAP' } })).activo).toBe(false);
+    } finally {
+      await bd.requisitoTipo.update({ where: { codigo: 'TACFI_1' }, data: { nombre: original } });
+      await bd.requisitoTipo.update({ where: { codigo: 'REJAP' }, data: { activo: true } });
+    }
+  });
+
+  it('crea el Administrador inicial si viene, con su rol y cambio de contraseña obligatorio (DEC-054)', async () => {
+    await sembrar(bd, KARDEX_SEMILLA, { ...KARDEX_SEMILLA, ci: '9000150', nombres: 'Administrador' });
+    const admin = await bd.usuario.findUniqueOrThrow({ where: { username: '9000150' }, include: { rol: true } });
+    expect(admin.rol.codigo).toBe('ADMIN');
+    expect(admin.debeCambiarPassword).toBe(true);
   });
 });

@@ -52,9 +52,10 @@ export function PreguntasDefensa() {
         </Pregunta>
         <Pregunta p="¿Quiénes usan el sistema?">
           <p>
-            Seis roles: Kardex (administra y es dueño del file), Secretaría de Dirección General (recibe y entrega en
-            Calahumana), Secretaría de Coordinación, Coordinador (firma los certificados), estudiante (consulta su file)
-            y egresado (seguimiento público, sin cuenta).
+            Siete roles: Kardex (dueño del file y de los requisitos por modalidad), Administrador (usuarios, roles y
+            bitácora; DEC-054), Secretaría de Dirección General (recibe y entrega en Calahumana, sin ver los files),
+            Secretaría de Coordinación, Coordinador (firma los certificados), estudiante (consulta su file) y egresado
+            (seguimiento público, sin cuenta).
           </p>
         </Pregunta>
         <Pregunta p="¿Qué quedó fuera del alcance y por qué?">
@@ -285,10 +286,10 @@ export function PreguntasDefensa() {
         </Pregunta>
         <Pregunta p="¿Quién mantiene el sistema cuando usted no esté?">
           <p>
-            Kardex lo administra desde el propio sistema (D-27): crea usuarios, restablece contraseñas, registra los
-            files y revisa la bitácora. El catálogo de requisitos y los parámetros (intentos, bloqueo, tiempos) están en
-            tablas, no en el código: se amplían sin programar (la pantalla para editar el catálogo es trabajo futuro).
-            El código está documentado con decisiones, ADR, SDD y pruebas.
+            Un Administrador lo gestiona desde el propio sistema (DEC-054): crea usuarios, asigna roles, restablece
+            contraseñas y revisa la bitácora. Kardex ajusta el catálogo de requisitos por modalidad desde su pantalla
+            (DEC-055), y los parámetros (intentos, bloqueo, tiempos) están en tablas, no en el código. El código está
+            documentado con decisiones, ADR, SDD y pruebas.
           </p>
         </Pregunta>
       </Seccion>

@@ -4,6 +4,7 @@ const APARTADOS = [
   { id: 'ingreso', titulo: 'Ingreso y seguridad' },
   { id: 'tramite', titulo: 'Cómo avanza un trámite' },
   { id: 'kardex', titulo: 'Kardex' },
+  { id: 'admin', titulo: 'Administrador' },
   { id: 'sec-dir', titulo: 'Secretaría de Dirección General' },
   { id: 'sec-coord', titulo: 'Secretaría de Coordinación' },
   { id: 'coordinador', titulo: 'Coordinador Académico' },
@@ -28,12 +29,12 @@ export function ManualPersonal() {
             complemento, se escribe con guion (por ejemplo, 1234567-1A).
           </li>
           <li>
-            La primera vez, Kardex le da una <strong>contraseña temporal</strong>: el sistema le pide cambiarla al
-            entrar. La nueva debe tener al menos 8 caracteres, con letras, números y símbolos.
+            La primera vez, el Administrador le da una <strong>contraseña temporal</strong>: el sistema le pide
+            cambiarla al entrar. La nueva debe tener al menos 8 caracteres, con letras, números y símbolos.
           </li>
           <li>
-            Después de <strong>5 intentos fallidos</strong> la cuenta se bloquea 15 minutos. Si olvidó la contraseña,
-            Kardex se la restablece (no hay recuperación por correo).
+            Después de <strong>5 intentos fallidos</strong> la cuenta se bloquea 15 minutos. Si olvidó la contraseña, el
+            Administrador se la restablece (no hay recuperación por correo).
           </li>
           <li>
             Con <strong>15 minutos sin actividad</strong> la sesión se cierra sola; al minuto 14 aparece un aviso para
@@ -45,7 +46,8 @@ export function ManualPersonal() {
             recoger”) y lo lleva directo a esa bandeja.
           </li>
           <li>
-            En <strong>Mi perfil</strong> ve sus datos y puede cambiar su contraseña. Los datos los corrige Kardex.
+            En <strong>Mi perfil</strong> ve sus datos y puede cambiar su contraseña. Los datos de su cuenta los corrige
+            el Administrador.
           </li>
         </ul>
         <Nota>
@@ -137,24 +139,29 @@ export function ManualPersonal() {
             <em>Marcar como impreso</em>. La pestaña <em>Impresos</em> muestra los que esperan firma.
           </li>
           <li>
-            <strong>Historial y legalización:</strong> antes de imprimir, contraste las notas del sistema con los
-            empastes. Si están bien, <em>Marcar como impreso</em> deja anotado el N.º de valorado en que se imprimió. Si
-            algo no coincide, no imprima: pulse <em>Devolver con observación</em> y escriba qué no coincide. El trámite
-            termina en SISET; el egresado debe hacer otro trámite.
+            <strong>Historial académico:</strong> antes de imprimir, contraste las notas del sistema con los empastes.
+            Si están bien, <em>Marcar como impreso</em> deja anotado el N.º de valorado en que se imprimió. Si algo no
+            coincide, no imprima: pulse <em>Devolver con observación</em> y escriba el informe técnico. El historial
+            vuelve a la secretaría que lo remitió y el trámite termina en SISET. La legalización no se contrasta: se
+            imprime directamente (D-48b).
           </li>
           <li>Use el buscador de cada bandeja para encontrar un trámite por N.º, nombre o CI.</li>
         </ol>
-        <Subtitulo>Administración</Subtitulo>
+        <Subtitulo>Requisitos por modalidad</Subtitulo>
         <ul>
           <li>
-            <strong>Usuarios:</strong> <em>Nuevo usuario</em> crea la cuenta del personal y muestra una sola vez la
-            contraseña temporal (entréguela en persona). Desde la lista: editar, restablecer contraseña, desbloquear y
-            dar de baja.
+            Menú <em>Requisitos por modalidad</em>: una fila por requisito y una columna por modalidad (A, B1, B2, B3).
+            Marque o desmarque para cambiar a quién se le pide; el cambio cuenta enseguida para el semáforo de los
+            files. Las pestañas muestran qué se pide a cada modalidad.
           </li>
           <li>
-            <strong>Bitácora:</strong> quién hizo qué y cuándo. Filtre por fechas, usuario, módulo o acción; clic en el
-            registro afectado muestra su historial completo.
+            <em>Agregar requisito</em> pide el nombre, las modalidades, si es de un año, si es obligatorio y si se
+            entrega por gestión. El ícono de papelera lo <strong>da de baja</strong>: deja de pedirse, pero lo ya
+            registrado en los files se conserva y vuelve si lo reactiva (pestaña <em>Dados de baja</em>).
           </li>
+        </ul>
+        <Subtitulo>Reportes</Subtitulo>
+        <ul>
           <li>
             <strong>Reportes:</strong> trámites por estado, por tipo y por mes, tiempo promedio y trámites atrasados
             (más de 72 horas sin moverse: el trámite debe responderse en 48 a 72 horas).
@@ -162,11 +169,27 @@ export function ManualPersonal() {
         </ul>
       </Seccion>
 
-      <Seccion id="sec-dir" titulo="4. Secretaría de Dirección General (Calahumana)">
+      <Seccion id="admin" titulo="4. Administrador del sistema">
+        <p>Crea las cuentas, asigna los roles y revisa la trazabilidad. No registra files ni trámites (DEC-054).</p>
+        <ul>
+          <li>
+            <strong>Usuarios:</strong> <em>Nuevo usuario</em> crea la cuenta del personal y muestra una sola vez la
+            contraseña temporal (entréguela en persona). Desde la lista: editar, cambiar el rol, restablecer contraseña,
+            desbloquear y dar de baja. El sistema no deja dar de baja al último Administrador.
+          </li>
+          <li>
+            <strong>Bitácora:</strong> quién hizo qué y cuándo. Filtre por fechas, usuario, módulo o acción; clic en el
+            registro afectado muestra su historial completo (por ejemplo, todas las ediciones de un file).
+          </li>
+        </ul>
+      </Seccion>
+
+      <Seccion id="sec-dir" titulo="5. Secretaría de Dirección General (Calahumana)">
         <ol>
           <li>
             <strong>Recibir un trámite:</strong> menú <em>Nueva hoja de ruta</em>. Busque al egresado por CI o nombre y
-            elíjalo. Si no aparece, pida a Kardex que registre o actualice su file.
+            elíjalo. Si no aparece, pida a Kardex que registre o actualice su file. Secretaría de Dirección no ve los
+            files: solo el nombre, el CI, la especialidad y si está bloqueado.
           </li>
           <li>
             Elija el <strong>tipo de trámite</strong>. El historial y la legalización piden el{' '}
@@ -206,7 +229,7 @@ export function ManualPersonal() {
         </ol>
       </Seccion>
 
-      <Seccion id="sec-coord" titulo="5. Secretaría de Coordinación (Ancocagua)">
+      <Seccion id="sec-coord" titulo="6. Secretaría de Coordinación (Ancocagua)">
         <ul>
           <li>
             Su inicio muestra lo que está en Ancocagua: en impresión, impresos por firmar y por remitir, y los últimos
@@ -219,7 +242,7 @@ export function ManualPersonal() {
         </ul>
       </Seccion>
 
-      <Seccion id="coordinador" titulo="6. Coordinador Académico">
+      <Seccion id="coordinador" titulo="7. Coordinador Académico">
         <ol>
           <li>
             Menú <strong>Firmas</strong>, pestaña <em>Esperan tu firma</em>: los certificados que Kardex imprimió. Botón{' '}
@@ -236,7 +259,7 @@ export function ManualPersonal() {
         </ol>
       </Seccion>
 
-      <Seccion id="estudiante" titulo="7. Estudiante">
+      <Seccion id="estudiante" titulo="8. Estudiante">
         <ul>
           <li>
             Su inicio muestra el color de su file, sus requisitos obligatorios y las alertas (bloqueo, requisitos
@@ -250,7 +273,7 @@ export function ManualPersonal() {
         </ul>
       </Seccion>
 
-      <Seccion id="egresado" titulo="8. Egresado: seguimiento sin cuenta">
+      <Seccion id="egresado" titulo="9. Egresado: seguimiento sin cuenta">
         <ul>
           <li>
             Los egresados no tienen cuenta. Consultan en <em>siset.vertexall.com/seguimiento</em> (o escaneando el QR de
@@ -263,7 +286,7 @@ export function ManualPersonal() {
         </ul>
       </Seccion>
 
-      <Seccion id="frecuentes" titulo="9. Preguntas frecuentes">
+      <Seccion id="frecuentes" titulo="10. Preguntas frecuentes">
         <Pregunta p="Registré un paso por error, ¿cómo lo deshago?">
           <p>
             No se deshace: queda en el historial. Aclárelo en la observación del paso siguiente. (Se consultó a la
@@ -295,11 +318,12 @@ export function ManualPersonal() {
         </Pregunta>
       </Seccion>
 
-      <Seccion id="capacitacion" titulo="10. Plan de capacitación">
+      <Seccion id="capacitacion" titulo="11. Plan de capacitación">
         <p>
-          Antes del piloto de la primera semana de noviembre (D-06). Las fechas se coordinan con Coordinación y Kardex
-          (D-16). Se practica en el entorno de prueba (<em>siset.vertexall.com</em>), con datos ficticios y las cuentas
-          de prueba del login: los errores no afectan a nadie.
+          Antes del piloto de la primera semana de noviembre (D-06): dos días, el <strong>28 y 29 de octubre</strong>{' '}
+          (D-41c); el horario y el lugar se confirman con la escuela (D-41d). Se practica en el entorno de prueba (
+          <em>siset.vertexall.com</em>), con datos ficticios y las cuentas de prueba del login: los errores no afectan a
+          nadie.
         </p>
         <Tabla
           cabecera={['Sesión', 'Para quién', 'Duración', 'Contenido y práctica']}
@@ -311,10 +335,10 @@ export function ManualPersonal() {
               'Entrar con el CI, cambiar la contraseña temporal, la campana, Mi perfil, cerrar sesión, qué queda en la bitácora.',
             ],
             [
-              '2. Files y administración',
-              'Kardex',
+              '2. Files, requisitos y administración',
+              'Kardex y Administrador',
               '90 min',
-              'Registrar 3 files (uno egresado), registrar requisitos, bloquear y desbloquear, crear un usuario y restablecer su contraseña, leer la bitácora.',
+              'Kardex: registrar 3 files (uno egresado), registrar requisitos, ajustar los requisitos por modalidad, bloquear y desbloquear. Administrador: crear un usuario, restablecer su contraseña y leer la bitácora.',
             ],
             [
               '3. Trámites en Calahumana',
@@ -341,7 +365,7 @@ export function ManualPersonal() {
           <li>Entrar con su CI, cambiar su contraseña y cerrar sesión.</li>
           <li>Hacer sin ayuda los pasos de su puesto en un trámite de cada tipo.</li>
           <li>Encontrar un trámite por N.º o CI y explicar en qué estado está.</li>
-          <li>Kardex: crear una cuenta, restablecer una contraseña y revisar la bitácora.</li>
+          <li>Administrador: crear una cuenta, restablecer una contraseña y revisar la bitácora.</li>
         </ul>
         <Nota>
           Material: este manual (se puede imprimir desde el navegador), el entorno de prueba y una hoja de ejercicios

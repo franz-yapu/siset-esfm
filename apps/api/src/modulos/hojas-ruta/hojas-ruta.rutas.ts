@@ -21,6 +21,9 @@ import {
   esquemaFiltrosReporte,
   esquemaReporteHojasRuta,
   esquemasReporte,
+  esquemaConsultaTitulares,
+  esquemasTitulares,
+  esquemaTitularIngesta,
 } from './hojas-ruta.esquemas';
 import type { ServicioHojasRuta, SesionHojaRuta } from './hojas-ruta.servicio';
 
@@ -55,6 +58,9 @@ export function crearRutasHojasRuta(
   const crear: RequestHandler = async (_req, res) => {
     res.status(201).json(await servicio.crear(datosValidos(res, esquemasCrearHojaRuta).body, sesionDe(res)));
   };
+  const titulares: RequestHandler = async (_req, res) => {
+    res.json(await servicio.titulares(datosValidos(res, esquemasTitulares).query.texto));
+  };
   const tipos: RequestHandler = async (_req, res) => {
     res.json(await servicio.tipos());
   };
@@ -73,6 +79,7 @@ export function crearRutasHojasRuta(
       .post('/hojas-ruta', autenticar, autorizarIngesta, validar(esquemasCrearHojaRuta), crear)
       // Antes de `/:nro`, para que `tipos` no se lea como número de trámite.
       .get('/hojas-ruta/tipos', autenticar, autorizarLectura, tipos)
+      .get('/hojas-ruta/titulares', autenticar, autorizarIngesta, validar(esquemasTitulares), titulares)
       .get('/hojas-ruta/:nro', autenticar, autorizarLectura, validar(esquemasUnaHojaRuta), obtener)
       .post('/hojas-ruta/:nro/transiciones', autenticar, autorizarLectura, validar(esquemasTransicion), transicion)
   );
@@ -165,6 +172,25 @@ export const openapiHojasRuta: ZodOpenApiPathsObject = {
         },
         '401': comunes['401'],
         '403': error('Sin permiso o con cambio de contraseña pendiente.'),
+      },
+    },
+  },
+  '/api/v1/hojas-ruta/titulares': {
+    get: {
+      tags: ['Hojas de ruta'],
+      summary: 'Buscar el titular de un trámite',
+      description:
+        'Hasta 8 egresados por CI o nombre, con lo justo para elegirlo: Secretaría de Dirección no lee files (DEC-054).',
+      security: [{ bearerAuth: [] }],
+      requestParams: { query: esquemaConsultaTitulares },
+      responses: {
+        '200': {
+          description: 'Los egresados que coinciden.',
+          content: { 'application/json': { schema: z.array(esquemaTitularIngesta) } },
+        },
+        '400': error('Texto de menos de 2 caracteres (VALIDACION).'),
+        '401': comunes['401'],
+        '403': error('Sin permiso `hojas-ruta`/`crear` (solo SEC_DIR).'),
       },
     },
   },

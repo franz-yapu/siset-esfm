@@ -8,10 +8,10 @@ import { generarPasswordTemporal } from './password-temporal';
 import { revocarRefreshTokensDeUsuario } from './refresh-token.repositorio';
 import {
   actualizarUsuario,
-  bloquearCambiosDeKardex,
+  bloquearCambiosDeAdmin,
   buscarRolId,
   buscarUsuarioDetalle,
-  contarOtrosKardexActivos,
+  contarOtrosAdminActivos,
   crearUsuario,
   listarUsuarios,
   tieneUsuario,
@@ -130,7 +130,7 @@ const sobreSiMismo = (mensaje: string) => new ErrorNegocio(mensaje, 'OPERACION_S
 const sinCambio = (mensaje: string) => new ErrorNegocio(mensaje, 'ESTADO_SIN_CAMBIO');
 
 /**
- * API de usuarios del personal (SDD S1.8). Solo la usa KARDEX (la ruta ya pasó por
+ * API de usuarios del personal (SDD S1.8). Solo la usa ADMIN (DEC-054) (la ruta ya pasó por
  * `autorizar`). Cada escritura deja su evento en la misma transacción (DEC-007).
  */
 export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
@@ -142,11 +142,11 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
     return { u, p };
   }
 
-  /** Sin un KARDEX activo nadie podría administrar el sistema (D-27, DEC-020 #4). */
-  async function exigirOtroKardex(tx: TransaccionBd, u: UsuarioDetalleBd) {
-    if (!u.activo || u.rol.codigo !== 'KARDEX') return;
-    if ((await contarOtrosKardexActivos(tx, u.id)) === 0) {
-      throw new ErrorNegocio('El sistema no puede quedarse sin un Kardex activo.', 'ULTIMO_KARDEX');
+  /** Sin un ADMIN activo nadie podría administrar el sistema (DEC-020 #4, DEC-054). */
+  async function exigirOtroAdmin(tx: TransaccionBd, u: UsuarioDetalleBd) {
+    if (!u.activo || u.rol.codigo !== 'ADMIN') return;
+    if ((await contarOtrosAdminActivos(tx, u.id)) === 0) {
+      throw new ErrorNegocio('El sistema no puede quedarse sin un Administrador activo.', 'ULTIMO_ADMIN');
     }
   }
 
@@ -220,7 +220,7 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
 
     async editar(autorId: number, id: number, cambios: CambiosUsuarioApi): Promise<UsuarioDetalle> {
       return bd.$transaction(async (tx) => {
-        await bloquearCambiosDeKardex(tx);
+        await bloquearCambiosDeAdmin(tx);
         const { u, p } = await cargar(tx, id);
         const antes: Record<string, unknown> = {};
         const despues: Record<string, unknown> = {};
@@ -244,7 +244,7 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
         const cambiosCuenta: CambiosUsuario = {};
         if (cambios.rol !== undefined && cambios.rol !== u.rol.codigo) {
           if (id === autorId) throw sobreSiMismo('No puede cambiar su propio rol.');
-          if (u.rol.codigo === 'KARDEX') await exigirOtroKardex(tx, u);
+          if (u.rol.codigo === 'ADMIN') await exigirOtroAdmin(tx, u);
           cambiosCuenta.rolId = await buscarRolId(tx, cambios.rol);
           antes.rol = u.rol.codigo;
           despues.rol = cambios.rol;
@@ -277,10 +277,10 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
     async darDeBaja(autorId: number, id: number): Promise<UsuarioDetalle> {
       if (id === autorId) throw sobreSiMismo('No puede darse de baja a sí mismo.');
       return bd.$transaction(async (tx) => {
-        await bloquearCambiosDeKardex(tx);
+        await bloquearCambiosDeAdmin(tx);
         const { u } = await cargar(tx, id);
         if (!u.activo) throw sinCambio('El usuario ya está dado de baja.');
-        await exigirOtroKardex(tx, u);
+        await exigirOtroAdmin(tx, u);
         await actualizarUsuario(tx, id, { activo: false });
         // Pierde el acceso ya: el access token que tenga vence en 15 min y no puede renovarse (DEC-014).
         await revocarRefreshTokensDeUsuario(tx, id, new Date());

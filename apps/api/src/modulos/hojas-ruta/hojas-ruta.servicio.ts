@@ -29,6 +29,7 @@ import type {
   ReporteHojasRuta,
   Seguimiento,
   TipoTramite,
+  TitularIngesta,
 } from './hojas-ruta.esquemas';
 import {
   ESTADOS_HOJA_RUTA,
@@ -72,6 +73,8 @@ export interface DependenciasHojasRuta {
   titularesDeFiles(cliente: Cliente, fileIds: number[]): Promise<Map<number, { nombre: string; ci: string }>>;
   /** Files cuyos titulares coinciden por CI o nombre (búsqueda de la lista). */
   buscarFileIdsPorTitular(cliente: Cliente, texto: string): Promise<number[]>;
+  /** Egresados que coinciden por CI o nombre, para elegir el titular de la ingesta (DEC-054). */
+  buscarTitularesEgresados(cliente: Cliente, texto: string): Promise<TitularIngesta[]>;
   describirUsuarios(ids: number[]): Promise<Map<number, { usuario: string; nombre: string }>>;
 }
 
@@ -110,6 +113,7 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
     const estado: EstadoParaTransicion = {
       estado: h.estadoActual,
       flujo: flujoDe(tipo.requiereValorado),
+      tipo: tipo.codigo,
       fileBloqueado: titular.bloqueado,
     };
     const sedeActual = sedes.find((s) => s.id === h.sedeActualId);
@@ -256,6 +260,11 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
     },
 
     /** Catálogo de tipos activos para la ingesta (SDD S3.8-S3.9 §2.2). */
+    /** Hasta 8 egresados por CI o nombre (DEC-054). */
+    async titulares(texto: string): Promise<TitularIngesta[]> {
+      return (await deps.buscarTitularesEgresados(bd, texto)).slice(0, 8);
+    },
+
     async tipos(): Promise<TipoTramite[]> {
       return (await deps.obtenerTiposTramite(bd))
         .filter((t) => t.activo)
@@ -373,7 +382,12 @@ export function crearServicioHojasRuta(deps: DependenciasHojasRuta) {
         const h = (await buscarHojaRuta(tx, nro))!;
         const { tipo, sedes, titular } = await contexto(tx, h);
         const r = evaluarTransicion(
-          { estado: h.estadoActual, flujo: flujoDe(tipo.requiereValorado), fileBloqueado: titular.bloqueado },
+          {
+            estado: h.estadoActual,
+            flujo: flujoDe(tipo.requiereValorado),
+            tipo: tipo.codigo,
+            fileBloqueado: titular.bloqueado,
+          },
           { rol: sesion.rol, sede: sedeCodigo(sedes, sesion.sedeId) },
           accion,
         );

@@ -14,6 +14,7 @@ vi.mock('@/lib/formato', async (original) => ({
 
 const kardex = (): Usuario => db.usuarios.find((u) => u.id === 1)!;
 const secdir = (): Usuario => db.usuarios.find((u) => u.id === 2)!;
+const admin = (): Usuario => db.usuarios.find((u) => u.id === 19)!;
 const pagina = (f: Partial<FiltrosUsuarios> = {}): FiltrosUsuarios => ({ pagina: 1, porPagina: 50, ...f });
 
 const nuevo: DatosCrearUsuario = {
@@ -145,11 +146,11 @@ describe('usuariosMock.editar', () => {
     expect((await errorDe(usuariosMock.editar(3, {}, kardex()))).codigo).toBe('VALIDACION');
   });
 
-  it('nadie cambia su propio rol, ni deja al sistema sin Kardex', async () => {
-    expect((await errorDe(usuariosMock.editar(1, { rol: 'SEC_DIR' }, kardex()))).codigo).toBe(
+  it('nadie cambia su propio rol, ni deja al sistema sin Administrador (DEC-054)', async () => {
+    expect((await errorDe(usuariosMock.editar(19, { rol: 'SEC_DIR' }, admin()))).codigo).toBe(
       'OPERACION_SOBRE_SI_MISMO',
     );
-    expect((await errorDe(usuariosMock.editar(1, { rol: 'SEC_DIR' }, secdir()))).codigo).toBe('ULTIMO_KARDEX');
+    expect((await errorDe(usuariosMock.editar(19, { rol: 'SEC_DIR' }, secdir()))).codigo).toBe('ULTIMO_ADMIN');
   });
 });
 
@@ -163,9 +164,9 @@ describe('usuariosMock: baja, reactivar, restablecer, desbloquear', () => {
     expect((await errorDe(usuariosMock.reactivar(3, kardex()))).codigo).toBe('ESTADO_SIN_CAMBIO');
   });
 
-  it('no se da de baja a sí mismo ni al último Kardex activo', async () => {
-    expect((await errorDe(usuariosMock.darDeBaja(1, kardex()))).codigo).toBe('OPERACION_SOBRE_SI_MISMO');
-    expect((await errorDe(usuariosMock.darDeBaja(1, secdir()))).codigo).toBe('ULTIMO_KARDEX');
+  it('no se da de baja a sí mismo ni al último Administrador activo', async () => {
+    expect((await errorDe(usuariosMock.darDeBaja(19, admin()))).codigo).toBe('OPERACION_SOBRE_SI_MISMO');
+    expect((await errorDe(usuariosMock.darDeBaja(19, secdir()))).codigo).toBe('ULTIMO_ADMIN');
   });
 
   it('restablecer: obliga a cambiar, quita el bloqueo y devuelve la temporal (RF-03 CA4)', async () => {

@@ -1,4 +1,4 @@
-import type { ClienteBd } from '../src/compartido/bd';
+import type { ClienteBd, TransaccionBd } from '../src/compartido/bd';
 import { esquemaPassword, hashPassword, usernameDe } from '../src/modulos/seguridad';
 
 // Valores copiados de apps/web/src/config/{permisos,catalogos}.ts (mismos códigos
@@ -11,6 +11,7 @@ export const ROLES = [
   { codigo: 'SEC_COORD', nombre: 'Secretaría de Coordinación' },
   { codigo: 'COORDINADOR', nombre: 'Coordinador Académico' },
   { codigo: 'KARDEX', nombre: 'Kardex' },
+  { codigo: 'ADMIN', nombre: 'Administrador' },
 ] as const;
 
 /** Nombre institucional largo de cada rol (modelo v1, `rol.descripcion`). */
@@ -21,6 +22,7 @@ export const DESCRIPCION_ROL: Record<(typeof ROLES)[number]['codigo'], string> =
   SEC_COORD: 'Secretaría de Coordinación',
   COORDINADOR: 'Coordinador Académico',
   KARDEX: 'Responsable de Archivo Kardex',
+  ADMIN: 'Administrador del sistema: usuarios, roles y bitácora (DEC-054)',
 };
 
 export const SEDES = [
@@ -141,9 +143,8 @@ const LISTA: readonly Req[] = [
   {
     codigo: 'CALIF_SECUNDARIA',
     nombre: 'Certificado de calificaciones original de 1.º a 4.º de secundaria',
-    soloModalidad: 'B1,B2,B3',
-    obligatorio: false,
-    descripcion: 'Solo modalidad B del folder: provisional, B1, B2 y B3 como "si corresponde" (D-45b).',
+    soloModalidad: 'B1',
+    descripcion: 'Solo modalidad B1 (D-45b).',
   },
   {
     codigo: 'CARNET_DISCAPACIDAD',
@@ -180,9 +181,6 @@ const LISTA: readonly Req[] = [
 /** El orden en pantalla es el de la lista: la hoja del folder personal con las defensas del TCLOA (DEC-052). */
 export const REQUISITOS = LISTA.map((r, i) => ({ ...r, orden: i + 1 }));
 
-/** Requisitos que ya no se piden: se dan de baja y lo registrado se conserva (hoy ninguno; DEC-052). */
-export const REQUISITOS_RETIRADOS: readonly string[] = [];
-
 const datosRequisito = (r: Req & { orden: number }) => ({
   nombre: r.nombre,
   orden: r.orden,
@@ -217,36 +215,48 @@ const texto = (v: string | undefined): string | null => v?.trim() || null;
 
 /** Lee y valida los datos del Kardex inicial (SDD S0.11 §2.3). Nunca incluye la contraseña en los mensajes de error. */
 export function leerKardexInicial(entorno: Entorno = process.env): KardexInicial {
-  const ci = texto(entorno.SEED_KARDEX_CI);
-  const password = entorno.SEED_KARDEX_PASSWORD;
-  if (!ci) throw new Error('Falta SEED_KARDEX_CI: el CI del Kardex inicial.');
-  if (!password) throw new Error('Falta SEED_KARDEX_PASSWORD: la contraseña del Kardex inicial.');
+  return leerCuentaInicial('SEED_KARDEX', 'Kardex', entorno);
+}
+
+/**
+ * El Administrador inicial (DEC-054): opcional, con las mismas reglas que el Kardex y prefijo `SEED_ADMIN_`. Sin
+ * `SEED_ADMIN_CI` devuelve null (una base que ya tiene su Administrador no lo necesita).
+ */
+export function leerAdminInicial(entorno: Entorno = process.env): KardexInicial | null {
+  return texto(entorno.SEED_ADMIN_CI) ? leerCuentaInicial('SEED_ADMIN', 'Administrador', entorno) : null;
+}
+
+function leerCuentaInicial(prefijo: string, nombres: string, entorno: Entorno): KardexInicial {
+  const v = (sufijo: string) => entorno[`${prefijo}_${sufijo}`];
+  const ci = texto(v('CI'));
+  const password = v('PASSWORD');
+  if (!ci) throw new Error(`Falta ${prefijo}_CI: el CI del ${nombres} inicial.`);
+  if (!password) throw new Error(`Falta ${prefijo}_PASSWORD: la contraseña del ${nombres} inicial.`);
   const politica = esquemaPassword.safeParse(password);
   if (!politica.success) {
     // Los mensajes del esquema nunca incluyen la contraseña.
-    throw new Error(`SEED_KARDEX_PASSWORD no cumple la regla (DEC-011): ${politica.error.issues[0].message}.`);
+    throw new Error(`${prefijo}_PASSWORD no cumple la regla (DEC-011): ${politica.error.issues[0].message}.`);
   }
 
-  const complemento = texto(entorno.SEED_KARDEX_COMPLEMENTO) ?? '';
-  if (complemento.length > 5) throw new Error('SEED_KARDEX_COMPLEMENTO admite como máximo 5 caracteres.');
+  const complemento = texto(v('COMPLEMENTO')) ?? '';
+  if (complemento.length > 5) throw new Error(`${prefijo}_COMPLEMENTO admite como máximo 5 caracteres.`);
 
-  const sede = texto(entorno.SEED_KARDEX_SEDE) ?? 'ANCOCAGUA';
+  const sede = texto(v('SEDE')) ?? 'ANCOCAGUA';
   if (!SEDES.some((s) => s.codigo === sede)) {
-    throw new Error(`SEED_KARDEX_SEDE debe ser uno de: ${SEDES.map((s) => s.codigo).join(', ')}.`);
+    throw new Error(`${prefijo}_SEDE debe ser uno de: ${SEDES.map((s) => s.codigo).join(', ')}.`);
   }
 
-  const apellidoPaterno =
-    entorno.SEED_KARDEX_APELLIDO_PATERNO === undefined ? 'Inicial' : texto(entorno.SEED_KARDEX_APELLIDO_PATERNO);
-  const apellidoMaterno = texto(entorno.SEED_KARDEX_APELLIDO_MATERNO);
+  const apellidoPaterno = v('APELLIDO_PATERNO') === undefined ? 'Inicial' : texto(v('APELLIDO_PATERNO'));
+  const apellidoMaterno = texto(v('APELLIDO_MATERNO'));
   if (!apellidoPaterno && !apellidoMaterno) {
-    throw new Error('El Kardex inicial necesita al menos un apellido (SEED_KARDEX_APELLIDO_PATERNO o _MATERNO).');
+    throw new Error(`El ${nombres} inicial necesita al menos un apellido (${prefijo}_APELLIDO_PATERNO o _MATERNO).`);
   }
 
   return {
     ci,
     complemento,
     password,
-    nombres: texto(entorno.SEED_KARDEX_NOMBRES) ?? 'Kardex',
+    nombres: texto(v('NOMBRES')) ?? nombres,
     apellidoPaterno,
     apellidoMaterno,
     sede: sede as CodigoSede,
@@ -263,12 +273,42 @@ export interface ResultadoSemilla {
 }
 
 /**
- * Siembra los catálogos y el Kardex inicial. Idempotente: todo es upsert por
- * clave natural, en una sola transacción. Si el Kardex ya existe, no se toca
- * su contraseña (puede haberla cambiado).
+ * Crea la cuenta inicial si no existe. Si ya existe, no se toca (puede haber cambiado su contraseña o su rol).
+ * La contraseña viene de una variable de entorno: se cambia al primer ingreso (S1.x).
  */
-export async function sembrar(bd: ClienteBd, kardex: KardexInicial): Promise<ResultadoSemilla> {
+async function sembrarCuenta(tx: TransaccionBd, cuenta: KardexInicial, rol: 'KARDEX' | 'ADMIN', passwordHash: string) {
+  const persona = await tx.persona.upsert({
+    where: { ci_complemento: { ci: cuenta.ci, complemento: cuenta.complemento } },
+    create: {
+      ci: cuenta.ci,
+      complemento: cuenta.complemento,
+      nombres: cuenta.nombres,
+      apellidoPaterno: cuenta.apellidoPaterno,
+      apellidoMaterno: cuenta.apellidoMaterno,
+    },
+    update: {},
+  });
+  const { id: rolId } = await tx.rol.findUniqueOrThrow({ where: { codigo: rol } });
+  const sede = await tx.sede.findUniqueOrThrow({ where: { codigo: cuenta.sede } });
+  const username = usernameDe(cuenta.ci, cuenta.complemento);
+  await tx.usuario.upsert({
+    where: { username },
+    create: { username, personaId: persona.id, rolId, sedeId: sede.id, passwordHash, debeCambiarPassword: true },
+    update: {},
+  });
+}
+
+/**
+ * Siembra los catálogos, el Kardex inicial y, si viene, el Administrador inicial (DEC-054). Idempotente: todo es
+ * upsert por clave natural, en una sola transacción.
+ */
+export async function sembrar(
+  bd: ClienteBd,
+  kardex: KardexInicial,
+  admin: KardexInicial | null = null,
+): Promise<ResultadoSemilla> {
   const passwordHash = await hashPassword(kardex.password);
+  const hashAdmin = admin ? await hashPassword(admin.password) : '';
 
   return bd.$transaction(async (tx) => {
     for (const rol of ROLES) {
@@ -281,46 +321,18 @@ export async function sembrar(bd: ClienteBd, kardex: KardexInicial): Promise<Res
     for (const nombre of ESPECIALIDADES) {
       await tx.especialidad.upsert({ where: { nombre }, create: { nombre }, update: {} });
     }
-    // El seed manda sobre el catálogo mientras Kardex no tenga cómo editarlo (DEC-051).
+    // Kardex ya edita el catálogo (DEC-055): el seed solo crea los que faltan y nunca pisa sus cambios. Un cambio
+    // del catálogo que venga de la escuela va en una migración de datos.
     for (const r of REQUISITOS) {
-      const datos = datosRequisito(r);
       await tx.requisitoTipo.upsert({
         where: { codigo: r.codigo },
-        create: { codigo: r.codigo, ...datos },
-        update: datos,
+        create: { codigo: r.codigo, ...datosRequisito(r) },
+        update: {},
       });
     }
-    await tx.requisitoTipo.updateMany({
-      where: { codigo: { in: [...REQUISITOS_RETIRADOS] } },
-      data: { activo: false },
-    });
 
-    const persona = await tx.persona.upsert({
-      where: { ci_complemento: { ci: kardex.ci, complemento: kardex.complemento } },
-      create: {
-        ci: kardex.ci,
-        complemento: kardex.complemento,
-        nombres: kardex.nombres,
-        apellidoPaterno: kardex.apellidoPaterno,
-        apellidoMaterno: kardex.apellidoMaterno,
-      },
-      update: {},
-    });
-    const rolKardex = await tx.rol.findUniqueOrThrow({ where: { codigo: 'KARDEX' } });
-    const sede = await tx.sede.findUniqueOrThrow({ where: { codigo: kardex.sede } });
-    await tx.usuario.upsert({
-      where: { username: usernameDe(kardex.ci, kardex.complemento) },
-      create: {
-        username: usernameDe(kardex.ci, kardex.complemento),
-        personaId: persona.id,
-        rolId: rolKardex.id,
-        sedeId: sede.id,
-        passwordHash,
-        // La contraseña viene de una variable de entorno: Kardex la cambia al primer ingreso (S1.x).
-        debeCambiarPassword: true,
-      },
-      update: {},
-    });
+    await sembrarCuenta(tx, kardex, 'KARDEX', passwordHash);
+    if (admin) await sembrarCuenta(tx, admin, 'ADMIN', hashAdmin);
 
     return {
       roles: await tx.rol.count(),

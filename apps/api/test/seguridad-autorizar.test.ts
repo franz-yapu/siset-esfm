@@ -84,13 +84,12 @@ describe('exigirPropio y exigirSede (SDD S1.6 §2.4)', () => {
 });
 
 describe('GET /auth/mis-permisos (SDD S1.6 §2.5)', () => {
-  it('SEC_DIR recibe sus 6 permisos', async () => {
+  it('SEC_DIR recibe sus 5 permisos (sin files, DEC-054)', async () => {
     const r = await pedir('/auth/mis-permisos', 'SEC_DIR');
     expect(r.status).toBe(200);
     expect(r.body).toEqual({
       rol: 'SEC_DIR',
       permisos: [
-        { recurso: 'files', accion: 'leer' },
         { recurso: 'hojas-ruta', accion: 'crear' },
         { recurso: 'hojas-ruta', accion: 'leer' },
         { recurso: 'pases', accion: 'crear' },

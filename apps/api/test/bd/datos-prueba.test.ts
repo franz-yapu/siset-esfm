@@ -5,7 +5,12 @@ import { firmarAccessToken } from '@/modulos/seguridad/jwt';
 import { configDePrueba, SECRETO_JWT_DE_PRUEBA } from '../http/utilidades';
 import { clienteDeTest, KARDEX_DE_PRUEBA } from './utilidades';
 import { sembrar } from '../../prisma/semilla';
-import { cargarDatosPrueba, repararCuentasPrueba } from '../../prisma/datos-prueba';
+import {
+  asegurarEstudiantesPrueba,
+  asegurarPersonalPrueba,
+  cargarDatosPrueba,
+  repararCuentasPrueba,
+} from '../../prisma/datos-prueba';
 
 const bd = clienteDeTest();
 const app = crearApp({ bd, config: configDePrueba() });
@@ -16,10 +21,12 @@ afterAll(() => bd.$disconnect());
 describe('datos de prueba del despliegue (SDD S0.12 §2.3)', () => {
   it('carga personal, files y hojas de ruta; una segunda corrida no duplica nada', async () => {
     const r = await cargarDatosPrueba(bd, 'P-1ClaveDePrueba');
-    expect(r).toEqual({ cargados: true, personal: 3, files: 30, hojas: 8 });
+    expect(r).toEqual({ cargados: true, personal: 4, files: 30, hojas: 8 });
     expect(await cargarDatosPrueba(bd, 'P-1ClaveDePrueba')).toMatchObject({ cargados: false });
     expect(await bd.fileAcademico.count({ where: { codigoEstudiante: { startsWith: 'PRB-' } } })).toBe(30);
-    expect(await bd.usuario.count({ where: { username: { in: ['9000002', '9000003', '9000004'] } } })).toBe(3);
+    expect(await bd.usuario.count({ where: { username: { in: ['9000002', '9000003', '9000004', '9000005'] } } })).toBe(
+      4,
+    );
   });
 
   it('el semáforo resultante tiene verde, amarillo y rojo, y hay dos files bloqueados', async () => {
@@ -91,6 +98,30 @@ describe('datos de prueba del despliegue (SDD S0.12 §2.3)', () => {
     const reparado = await bd.usuario.findUniqueOrThrow({ where: { id: u.id } });
     expect(reparado).toMatchObject({ debeCambiarPassword: false, activo: true, bloqueadoHasta: null });
     expect((await bd.refreshToken.findUniqueOrThrow({ where: { id: sesion.id } })).revocadoEn).not.toBeNull();
+  });
+
+  it('cada file de prueba tiene su cuenta de estudiante con el CI como usuario; una segunda corrida no duplica', async () => {
+    expect(await asegurarEstudiantesPrueba(bd)).toBe(30);
+    expect(await asegurarEstudiantesPrueba(bd)).toBe(0);
+    await repararCuentasPrueba(bd, 'Prueba.2026');
+    for (const usuario of ['8100001', '8100007', '8100030']) {
+      const login = await request(app).post('/api/v1/auth/login').send({ usuario, password: 'Prueba.2026' });
+      expect(login.status).toBe(200);
+      expect(login.body.usuario.rol).toBe('ESTUDIANTE');
+    }
+  });
+
+  it('crea el Administrador de prueba en una base que ya tenía los datos (DEC-054)', async () => {
+    const admin = await bd.usuario.findUniqueOrThrow({ where: { username: '9000005' } });
+    await bd.usuario.delete({ where: { id: admin.id } }).catch(() => undefined);
+    // Si tiene eventos en la bitácora no se puede borrar (ADR-0003): basta con que no duplique.
+    const creadas = await asegurarPersonalPrueba(bd);
+    expect(creadas).toBeLessThanOrEqual(1);
+    expect(await asegurarPersonalPrueba(bd)).toBe(0);
+    await repararCuentasPrueba(bd, 'Prueba.2026');
+    const login = await request(app).post('/api/v1/auth/login').send({ usuario: '9000005', password: 'Prueba.2026' });
+    expect(login.status).toBe(200);
+    expect(login.body.usuario.rol).toBe('ADMIN');
   });
 
   it('rechaza una contraseña común que no cumple DEC-011', async () => {

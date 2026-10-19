@@ -13,6 +13,7 @@ export const USUARIOS_POR_ROL = {
   SEC_COORD: 'seccoord',
   COORDINADOR: 'coordinador',
   KARDEX: 'kardex',
+  ADMIN: 'admin',
 } as const;
 
 /** Junta errores y advertencias de consola y de página; el test exige que queden vacíos. */

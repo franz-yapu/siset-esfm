@@ -79,9 +79,9 @@ describe('erroresDelFormulario', () => {
   });
 
   it('cualquier otro error → aviso general con su mensaje', () => {
-    expect(erroresDelFormulario(new ErrorApi('Sin Kardex', 'ULTIMO_KARDEX', 422))).toEqual({
+    expect(erroresDelFormulario(new ErrorApi('Sin Administrador', 'ULTIMO_ADMIN', 422))).toEqual({
       campos: {},
-      general: 'Sin Kardex',
+      general: 'Sin Administrador',
     });
     expect(erroresDelFormulario(new ErrorNegocio('Algo'))).toEqual({ campos: {}, general: 'Algo' });
   });

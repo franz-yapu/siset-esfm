@@ -5,21 +5,21 @@ import { ROLES } from '@/modulos/seguridad/autorizacion.politica';
 
 // Matriz esperada ESCRITA A MANO desde el PRD §2 (SDD S1.6 §2.2), no derivada de POLITICA:
 // si alguien cambia un permiso en politica.ts, este test lo obliga a cambiarlo también aquí.
-// EGRESADO no tiene cuenta (D-08): ningún permiso.
+// EGRESADO no tiene cuenta (D-08): ningún permiso. ADMIN administra usuarios y bitácora y SEC_DIR no ve files (DEC-054).
 const C = 'crear';
 const L = 'leer';
 const P = 'leer_propio';
 const E = 'editar';
 const ESPERADA: Record<string, Record<string, string[]>> = {
-  usuarios: { KARDEX: [C, L, E] },
-  files: { ESTUDIANTE: [P], SEC_DIR: [L], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
+  usuarios: { ADMIN: [C, L, E] },
+  files: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
   requisitos: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
   'hojas-ruta': { SEC_DIR: [C, L], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [L, E] },
   pases: { SEC_DIR: [C, L], SEC_COORD: [C, L], COORDINADOR: [L], KARDEX: [C, L] },
   dictamenes: { COORDINADOR: [C, L], KARDEX: [L] },
   documentos: { KARDEX: [C, L] },
   reportes: { SEC_DIR: [L], COORDINADOR: [L], KARDEX: [L] },
-  auditoria: { KARDEX: [L] },
+  auditoria: { ADMIN: [L] },
 };
 
 const combinaciones = ROLES.flatMap((rol) =>
@@ -34,8 +34,8 @@ const combinaciones = ROLES.flatMap((rol) =>
 );
 
 describe('matriz completa de autorización (ADR-0002, SDD S1.6 §4)', () => {
-  it('cubre las 216 combinaciones rol × recurso × acción', () => {
-    expect(combinaciones).toHaveLength(216);
+  it('cubre las 252 combinaciones rol × recurso × acción', () => {
+    expect(combinaciones).toHaveLength(252);
   });
 
   it.each(combinaciones)('$rol · $recurso · $accion → $permitido', async ({ rol, recurso, accion, permitido }) => {
@@ -45,7 +45,7 @@ describe('matriz completa de autorización (ADR-0002, SDD S1.6 §4)', () => {
 
   it('un rol inexistente no tiene ningún permiso', async () => {
     const e = await crearEnforcer();
-    expect(await e.enforce('ADMIN', 'usuarios', 'leer')).toBe(false);
+    expect(await e.enforce('SUPERUSUARIO', 'usuarios', 'leer')).toBe(false);
   });
 });
 

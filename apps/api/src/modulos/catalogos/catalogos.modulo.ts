@@ -1,9 +1,19 @@
 import { Router, type RequestHandler } from 'express';
 import { z } from 'zod';
 import type { ClienteBd } from '@/compartido/bd';
-import { esquemaError, type ModuloHttp, type ZodOpenApiPathsObject } from '@/compartido/http';
+import { datosValidos, esquemaError, validar, type ModuloHttp, type ZodOpenApiPathsObject } from '@/compartido/http';
 import { obtenerEspecialidades } from './especialidad.repositorio';
 import { obtenerRequisitosActivos } from './requisito.repositorio';
+import {
+  esquemaCrearRequisito,
+  esquemaEditarRequisito,
+  esquemaIdRequisito,
+  esquemaRequisitoAdmin,
+  esquemasCrearRequisito,
+  esquemasEditarRequisito,
+  esquemasUnRequisito,
+} from './requisitos-admin.esquemas';
+import { crearServicioRequisitosAdmin } from './requisitos-admin.servicio';
 
 /** Para no importar seguridad: la raíz le pasa los middlewares ya armados (ADR-0001). */
 export interface DependenciasCatalogos {
@@ -13,6 +23,8 @@ export interface DependenciasCatalogos {
   autorizarLectura: RequestHandler;
   /** `autorizar('requisitos', 'leer')`: el catálogo de requisitos (SDD S2.4 §2.2). */
   autorizarRequisitos: RequestHandler;
+  /** `autorizar('requisitos', 'crear')` y `('requisitos', 'editar')`: Kardex administra el catálogo (DEC-055). */
+  autorizarAdminRequisitos: { crear: RequestHandler; editar: RequestHandler };
 }
 
 const esquemaEspecialidad = z
@@ -38,6 +50,28 @@ const esquemaRequisitoCatalogo = z
   .meta({ id: 'RequisitoCatalogo' });
 
 const error = (description: string) => ({ description, content: { 'application/json': { schema: esquemaError } } });
+const sinSesion = error('Falta el access token o no es válido (NO_AUTENTICADO).');
+const soloKardex = error('Sin permiso (solo Kardex) o con cambio de contraseña pendiente.');
+const unRequisito = (description: string) => ({
+  description,
+  content: { 'application/json': { schema: esquemaRequisitoAdmin } },
+});
+const accionRequisito = (summary: string, description: string, ok: string, sinCambio: string) => ({
+  post: {
+    tags: ['Catálogos'],
+    summary,
+    description,
+    security: [{ bearerAuth: [] }],
+    requestParams: { path: esquemaIdRequisito },
+    responses: {
+      '200': unRequisito(ok),
+      '401': sinSesion,
+      '403': soloKardex,
+      '404': error('El requisito no existe (NO_ENCONTRADO).'),
+      '422': error(sinCambio),
+    },
+  },
+});
 
 const openapiCatalogos: ZodOpenApiPathsObject = {
   '/api/v1/catalogos/especialidades': {
@@ -70,16 +104,96 @@ const openapiCatalogos: ZodOpenApiPathsObject = {
         '403': error('Sin permiso o con cambio de contraseña pendiente.'),
       },
     },
+    post: {
+      tags: ['Catálogos'],
+      summary: 'Agregar un requisito al catálogo',
+      description:
+        'Kardex agrega un requisito, a todas las modalidades o solo a algunas (DEC-055). El código sale del nombre y va al final del orden.',
+      security: [{ bearerAuth: [] }],
+      requestBody: { content: { 'application/json': { schema: esquemaCrearRequisito } } },
+      responses: {
+        '201': unRequisito('Requisito agregado.'),
+        '400': error('Datos inválidos (VALIDACION).'),
+        '401': sinSesion,
+        '403': soloKardex,
+      },
+    },
   },
+  '/api/v1/catalogos/requisitos/todos': {
+    get: {
+      tags: ['Catálogos'],
+      summary: 'Todo el catálogo de requisitos, con los dados de baja',
+      description: 'Para la pantalla de Kardex "Requisitos por modalidad" (DEC-055).',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': {
+          description: 'El catálogo completo, en el orden de la hoja del folder.',
+          content: { 'application/json': { schema: z.array(esquemaRequisitoAdmin) } },
+        },
+        '401': sinSesion,
+        '403': soloKardex,
+      },
+    },
+  },
+  '/api/v1/catalogos/requisitos/{id}': {
+    patch: {
+      tags: ['Catálogos'],
+      summary: 'Editar un requisito del catálogo',
+      description:
+        'Nombre, descripción, año, si es obligatorio, modalidades, género, curso y orden. "Por gestión" no se edita (DEC-055).',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdRequisito },
+      requestBody: { content: { 'application/json': { schema: esquemaEditarRequisito } } },
+      responses: {
+        '200': unRequisito('Requisito editado.'),
+        '400': error('Datos inválidos o sin campos (VALIDACION).'),
+        '401': sinSesion,
+        '403': soloKardex,
+        '404': error('El requisito no existe (NO_ENCONTRADO).'),
+      },
+    },
+  },
+  '/api/v1/catalogos/requisitos/{id}/baja': accionRequisito(
+    'Dar de baja un requisito',
+    'Deja de pedirse y de contar para el semáforo; lo registrado en los files se conserva.',
+    'Requisito dado de baja.',
+    'Ya estaba de baja (ESTADO_SIN_CAMBIO).',
+  ),
+  '/api/v1/catalogos/requisitos/{id}/reactivar': accionRequisito(
+    'Reactivar un requisito',
+    'Vuelve a pedirse; lo que se había registrado antes de la baja reaparece.',
+    'Requisito reactivado.',
+    'Ya estaba activo (ESTADO_SIN_CAMBIO).',
+  ),
 };
 
-/** Módulo HTTP de catálogos: por ahora, las especialidades (SDD S2.2). */
+/** Módulo HTTP de catálogos: especialidades (SDD S2.2) y requisitos, que Kardex administra (DEC-055). */
 export function crearModuloCatalogos({
   bd,
   autenticar,
   autorizarLectura,
   autorizarRequisitos,
+  autorizarAdminRequisitos,
 }: DependenciasCatalogos): ModuloHttp {
+  const admin = crearServicioRequisitosAdmin(bd);
+  const crear = [autenticar, autorizarAdminRequisitos.crear];
+  const editar = [autenticar, autorizarAdminRequisitos.editar];
+  const todos: RequestHandler = async (_req, res) => {
+    res.json(await admin.listar());
+  };
+  const agregar: RequestHandler = async (_req, res) => {
+    res.status(201).json(await admin.crear(datosValidos(res, esquemasCrearRequisito).body));
+  };
+  const modificar: RequestHandler = async (_req, res) => {
+    const { params, body } = datosValidos(res, esquemasEditarRequisito);
+    res.json(await admin.editar(params.id, body));
+  };
+  const baja: RequestHandler = async (_req, res) => {
+    res.json(await admin.darDeBaja(datosValidos(res, esquemasUnRequisito).params.id));
+  };
+  const reactivar: RequestHandler = async (_req, res) => {
+    res.json(await admin.reactivar(datosValidos(res, esquemasUnRequisito).params.id));
+  };
   const especialidades: RequestHandler = async (_req, res) => {
     res.json(await obtenerEspecialidades(bd));
   };
@@ -89,7 +203,12 @@ export function crearModuloCatalogos({
   return {
     router: Router()
       .get('/catalogos/especialidades', autenticar, autorizarLectura, especialidades)
-      .get('/catalogos/requisitos', autenticar, autorizarRequisitos, requisitos),
+      .get('/catalogos/requisitos', autenticar, autorizarRequisitos, requisitos)
+      .post('/catalogos/requisitos', ...crear, validar(esquemasCrearRequisito), agregar)
+      .get('/catalogos/requisitos/todos', ...crear, todos)
+      .patch('/catalogos/requisitos/:id', ...editar, validar(esquemasEditarRequisito), modificar)
+      .post('/catalogos/requisitos/:id/baja', ...editar, validar(esquemasUnRequisito), baja)
+      .post('/catalogos/requisitos/:id/reactivar', ...editar, validar(esquemasUnRequisito), reactivar),
     openapi: openapiCatalogos,
   };
 }

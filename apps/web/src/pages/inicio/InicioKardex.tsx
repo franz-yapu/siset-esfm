@@ -1,16 +1,5 @@
 import { Link, useNavigate } from 'react-router';
-import {
-  BellRing,
-  FolderOpen,
-  Lock,
-  Printer,
-  Route,
-  ScrollText,
-  Truck,
-  Search,
-  TriangleAlert,
-  UserCog,
-} from 'lucide-react';
+import { BellRing, FolderOpen, Lock, Printer, Route, Truck, Search, TriangleAlert, ListChecks } from 'lucide-react';
 import { useUsuario } from '@/hooks';
 import { useResumenFiles } from '@/hooks/useFiles';
 import { useResumenKardexHojas } from '@/hooks/useHojasRuta';
@@ -29,8 +18,8 @@ interface Atencion {
 const ACCESOS = [
   { to: '/files', texto: 'Buscar file', icono: Search },
   { to: '/hojas-ruta', texto: 'Hojas de ruta', icono: Route },
-  { to: '/usuarios', texto: 'Usuarios', icono: UserCog },
-  { to: '/bitacora', texto: 'Bitácora', icono: ScrollText },
+  // Usuarios y Bitácora son del Administrador (DEC-054).
+  { to: '/requisitos', texto: 'Requisitos por modalidad', icono: ListChecks },
 ];
 
 /**
