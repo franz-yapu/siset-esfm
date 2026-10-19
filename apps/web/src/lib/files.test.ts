@@ -24,7 +24,7 @@ const base: DatosCrearFile = {
 describe('reglas del formulario del file (SDD S2.9-S2.10 §2.5)', () => {
   it('D-45: la modalidad es obligatoria al registrar un estudiante, no al editar ni para un egresado', () => {
     const sin = { ...base, modalidad: null };
-    expect(validarDatosFile(sin, true, 2026)).toEqual({ modalidad: 'Elija la modalidad de ingreso (A, B1, B2 o B3)' });
+    expect(validarDatosFile(sin, true, 2026)).toEqual({ modalidad: 'Elija la modalidad de ingreso' });
     expect(validarDatosFile(sin, false, 2026)).toEqual({});
     expect(validarDatosFile({ ...sin, condicion: 'EGRESADO' }, true, 2026)).toEqual({});
   });

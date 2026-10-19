@@ -20,6 +20,8 @@ export function useMutacionCatalogo<A, R>(fn: (a: A) => Promise<R>) {
       await Promise.all([
         cliente.invalidateQueries({ queryKey: claveCatalogoRequisitos }),
         cliente.invalidateQueries({ queryKey: claveFiles }),
+        // Los conteos de requisitos por modalidad (pestaña "Modalidades").
+        cliente.invalidateQueries({ queryKey: ['modalidades'] }),
       ]);
     },
   });

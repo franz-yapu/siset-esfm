@@ -171,6 +171,11 @@ export function ManualPersonal() {
             entrega por gestión. El ícono de papelera lo <strong>da de baja</strong>: deja de pedirse, pero lo ya
             registrado en los files se conserva y vuelve si lo reactiva (pestaña <em>Dados de baja</em>).
           </li>
+          <li>
+            Botón <em>Modalidades</em>: las modalidades de ingreso. <em>Agregar modalidad</em> pide el código (por
+            ejemplo, B4; no se cambia después) y el nombre; enseguida aparece como columna y en la lista del file. Darla
+            de baja la quita de esas listas, pero los files que ya la tienen la conservan.
+          </li>
         </ul>
         <Subtitulo>Reportes</Subtitulo>
         <ul>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MODALIDADES } from '@/types/files';
+import { MODALIDADES_INICIALES as MODALIDADES } from '@/types/files';
 import {
   alternarModalidad,
   aplicaAModalidad,

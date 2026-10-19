@@ -41,3 +41,13 @@ export function alternarModalidad(
   if (nuevas.length === 0) return null;
   return todas.filter((x) => nuevas.includes(x));
 }
+
+export function validarModalidad(d: { codigo: string; nombre: string }): Partial<Record<'codigo' | 'nombre', string>> {
+  const e: Partial<Record<'codigo' | 'nombre', string>> = {};
+  if (!/^[A-Z0-9]{1,10}$/.test(d.codigo.trim().toUpperCase()))
+    e.codigo = 'El código lleva solo letras y números, hasta 10 (por ejemplo, B4)';
+  const n = d.nombre.trim();
+  if (n.length < 2) e.nombre = 'El nombre necesita al menos 2 caracteres';
+  else if (n.length > 80) e.nombre = 'Máximo 80 caracteres';
+  return e;
+}

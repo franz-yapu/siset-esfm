@@ -61,8 +61,9 @@ model RequisitoTipo {
   pideCurso           Boolean         @default(false) @map("pide_curso")
   /// Solo para un género (libreta militar: MASCULINO).
   soloGenero          Genero?         @map("solo_genero")
-  /// Solo para algunas modalidades de ingreso, separadas por coma ("B1,B2,B3"); exactas (D-45, ADR-0007).
-  soloModalidad       String?         @map("solo_modalidad") @db.VarChar(20)
+  /// Solo para algunas modalidades de ingreso: códigos de `modalidad_ingreso` separados por coma ("B1,B3"); exactas
+  /// (D-45, ADR-0007). Los valida el servicio contra el catálogo (DEC-058).
+  soloModalidad       String?         @map("solo_modalidad") @db.VarChar(255)
   /// En un por gestión, solo cuentan los años ya terminados (certificado de notas); si no, también el actual (D-47).
   soloAniosTerminados Boolean         @default(false) @map("solo_anios_terminados")
   activo              Boolean         @default(true)
@@ -70,6 +71,22 @@ model RequisitoTipo {
   requisitosFile      RequisitoFile[]
 
   @@map("requisito_tipo")
+}
+
+/// Modalidades de ingreso (D-45): las administra Kardex (DEC-058). El código no cambia: lo guardan los files y la
+/// lista de modalidades de cada requisito. Dar de baja no borra: deja de ofrecerse al registrar un file.
+model ModalidadIngreso {
+  id          Int             @id @default(autoincrement())
+  /// A, B1, B2, B3… (CHECK `ck_modalidad_codigo`: mayúsculas y números, hasta 10).
+  codigo      String          @unique @db.VarChar(10)
+  nombre      String          @db.VarChar(80)
+  descripcion String?         @db.VarChar(255)
+  orden       Int             @default(0) @db.SmallInt
+  activo      Boolean         @default(true)
+  /// back-relation (ADR-0001: no usar desde otro módulo)
+  files       FileAcademico[]
+
+  @@map("modalidad_ingreso")
 }
 
 /// Tipos de trámite (D-21, DEC-033): los 4 que llegan a Ancocagua. Se siembran en la migración de S3.1.

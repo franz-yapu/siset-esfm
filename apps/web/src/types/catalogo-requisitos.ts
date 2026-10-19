@@ -33,3 +33,26 @@ export interface DatosCrearRequisitoCatalogo {
 export type CambiosRequisitoCatalogo = Partial<
   Omit<DatosCrearRequisitoCatalogo, 'porGestion' | 'soloAniosTerminados'> & { orden: number }
 >;
+
+/** Una modalidad de ingreso del catálogo (DEC-058). El código no cambia. */
+export interface ModalidadIngreso {
+  id: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string | null;
+  orden: number;
+  activo: boolean;
+}
+
+/** Para la pestaña "Modalidades" de Kardex: cuántos requisitos activos la nombran en su lista. */
+export interface ModalidadAdmin extends ModalidadIngreso {
+  requisitos: number;
+}
+
+export interface DatosCrearModalidad {
+  codigo: string;
+  nombre: string;
+  descripcion: string | null;
+}
+
+export type CambiosModalidad = Partial<Omit<DatosCrearModalidad, 'codigo'> & { orden: number }>;

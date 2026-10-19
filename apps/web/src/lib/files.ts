@@ -1,4 +1,4 @@
-import { MODALIDADES, type CambiosFile, type DatosCrearFile } from '@/types/files';
+import type { CambiosFile, DatosCrearFile } from '@/types/files';
 import { erroresDeFormulario, type ErroresDeFormulario } from './formularios';
 
 // Reglas del formulario del file (SDD S2.9-S2.10 §2.5). Repiten las de
@@ -60,11 +60,10 @@ export function validarDatosFile(
   if (!Number.isInteger(d.anioIngreso) || d.anioIngreso < ANIO_MIN)
     e.anioIngreso = `El año de ingreso va de ${ANIO_MIN} en adelante`;
   else if (d.anioIngreso > anioActual + 1) e.anioIngreso = 'El año de ingreso no puede ser posterior al año siguiente';
-  if (d.modalidad && !(MODALIDADES as readonly string[]).includes(d.modalidad))
-    e.modalidad = 'Elija la modalidad de ingreso (A, B1, B2 o B3)';
+  // El código se valida contra el catálogo en la API (DEC-058); aquí solo el formato.
+  if (d.modalidad && !/^[A-Z0-9]{1,10}$/.test(d.modalidad)) e.modalidad = 'Elija la modalidad de ingreso';
   // D-45: el estudiante se registra con su modalidad de ingreso.
-  if (creando && !d.modalidad && d.condicion === 'ESTUDIANTE')
-    e.modalidad = 'Elija la modalidad de ingreso (A, B1, B2 o B3)';
+  if (creando && !d.modalidad && d.condicion === 'ESTUDIANTE') e.modalidad = 'Elija la modalidad de ingreso';
   if (d.anioFormacion !== null && (!Number.isInteger(d.anioFormacion) || d.anioFormacion < 1 || d.anioFormacion > 5))
     e.anioFormacion = 'El año de formación va de 1 a 5';
   return e;

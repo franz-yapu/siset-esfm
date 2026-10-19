@@ -62,6 +62,8 @@ export interface PersonasParaFiles {
 export interface EspecialidadesParaFiles {
   nombreEspecialidadActiva(cliente: Cliente, id: number): Promise<string | null>;
   nombresEspecialidades(cliente: Cliente, ids: number[]): Promise<Map<number, string>>;
+  /** Si el código es de una modalidad de ingreso activa (DEC-058). */
+  modalidadActiva(cliente: Cliente, codigo: string): Promise<boolean>;
 }
 
 /** Lo que el semáforo necesita del catálogo de requisitos (catalogos, vía la raíz; ADR-0007). */
@@ -128,8 +130,8 @@ function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: Colo
     anioIngreso: f.anioIngreso,
     condicion: f.condicion,
     genero: f.genero,
-    // El CHECK `ck_file_modalidad` asegura que es una de MODALIDADES.
-    modalidad: f.modalidad as FileDetalle['modalidad'],
+    // Un código del catálogo `modalidad_ingreso` (FK, DEC-058).
+    modalidad: f.modalidad,
     anioFormacion: f.anioFormacion,
     bloqueado: f.bloqueado,
     motivoBloqueo: f.motivoBloqueo,
@@ -146,6 +148,8 @@ const compararPorApellido = (a: PersonaFile, b: PersonaFile) =>
 const codigoExistente = () =>
   new ErrorConflicto('Ya existe un file con ese código de estudiante.', undefined, 'CODIGO_EXISTENTE');
 const especialidadInexistente = () => new ErrorNegocio('La especialidad no existe.', 'ESPECIALIDAD_INEXISTENTE');
+const modalidadInexistente = (codigo: string) =>
+  new ErrorNegocio(`La modalidad ${codigo} no existe o está dada de baja.`, 'MODALIDAD_INEXISTENTE');
 
 /**
  * API de files (SDD S2.2). Las rutas ya pasaron por `autorizar('files', …)`. Cada escritura deja su
@@ -208,6 +212,11 @@ export function crearServicioFiles({
 
   async function exigirEspecialidad(tx: TransaccionBd, id: number) {
     if ((await especialidades.nombreEspecialidadActiva(tx, id)) === null) throw especialidadInexistente();
+  }
+
+  /** Al registrar o cambiar la modalidad, tiene que ser una activa del catálogo; la que ya tenía se conserva. */
+  async function exigirModalidad(tx: TransaccionBd, codigo: string | null) {
+    if (codigo !== null && !(await especialidades.modalidadActiva(tx, codigo))) throw modalidadInexistente(codigo);
   }
 
   return {
@@ -284,6 +293,7 @@ export function crearServicioFiles({
         }
         await exigirCodigoLibre(tx, codigo);
         await exigirEspecialidad(tx, especialidadId);
+        await exigirModalidad(tx, modalidad);
         // Si la persona ya existe sin file (p. ej., del personal), se reutiliza sin tocar sus datos (DEC-020 #6).
         const p =
           existente ?? (await personas.crearPersona(tx, { ...persona, fechaNacimiento: aFecha(fechaNacimiento) }));
@@ -432,6 +442,9 @@ export function crearServicioFiles({
           cambiosFile.especialidadId = cambios.especialidadId;
           antes.especialidadId = f.especialidadId;
           despues.especialidadId = cambios.especialidadId;
+        }
+        if (cambios.modalidad !== undefined && cambios.modalidad !== f.modalidad) {
+          await exigirModalidad(tx, cambios.modalidad);
         }
         for (const campo of ['anioIngreso', 'condicion', 'genero', 'modalidad', 'anioFormacion'] as const) {
           const valor = cambios[campo];

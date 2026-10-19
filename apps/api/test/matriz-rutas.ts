@@ -137,6 +137,39 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     ruta: `/catalogos/requisitos/${ID_INEXISTENTE}/${accion}`,
     permitidos: SOLO_KARDEX,
   })),
+  // Modalidades de ingreso (DEC-058): las leen quienes leen files; las administra Kardex.
+  {
+    metodo: 'get',
+    documentada: '/api/v1/catalogos/modalidades',
+    ruta: '/catalogos/modalidades',
+    permitidos: LEEN_FILES,
+  },
+  {
+    metodo: 'post',
+    documentada: '/api/v1/catalogos/modalidades',
+    ruta: '/catalogos/modalidades',
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/catalogos/modalidades/todas',
+    ruta: '/catalogos/modalidades/todas',
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'patch',
+    documentada: '/api/v1/catalogos/modalidades/{id}',
+    ruta: `/catalogos/modalidades/${ID_INEXISTENTE}`,
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
+  ...(['baja', 'reactivar'] as const).map((accion): FilaRuta => ({
+    metodo: 'post',
+    documentada: `/api/v1/catalogos/modalidades/{id}/${accion}`,
+    ruta: `/catalogos/modalidades/${ID_INEXISTENTE}/${accion}`,
+    permitidos: SOLO_KARDEX,
+  })),
   // Hojas de ruta (SDD S3.1-S3.3): Casbin exige `hojas-ruta`/`leer`; cada paso lo decide la máquina (ADR-0005).
   { metodo: 'get', documentada: '/api/v1/hojas-ruta', ruta: '/hojas-ruta', permitidos: PERSONAL },
   // Ingesta: `hojas-ruta`/`crear`: SEC_DIR, y SEC_COORD para los certificados de Ancocagua (ADR-0011).

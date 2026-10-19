@@ -99,7 +99,11 @@ describe('catálogo de requisitos por modalidad (DEC-055)', () => {
   });
 
   it('validaciones: modalidad desconocida, "por gestión" no se edita, nombre corto; 404 si no existe', async () => {
-    expect((await como('post', '/catalogos/requisitos', { nombre: 'Algo', modalidades: ['C'] })).status).toBe(400);
+    // Un código bien escrito que no está en el catálogo (DEC-058): 422.
+    const desconocida = await como('post', '/catalogos/requisitos', { nombre: 'Algo', modalidades: ['ZZ9'] });
+    expect(desconocida.status).toBe(422);
+    expect(desconocida.body.error.code).toBe('MODALIDAD_INEXISTENTE');
+    expect((await como('post', '/catalogos/requisitos', { nombre: 'Algo', modalidades: ['b-1'] })).status).toBe(400);
     expect((await como('post', '/catalogos/requisitos', { nombre: 'X' })).status).toBe(400);
     expect(
       (await como('post', '/catalogos/requisitos', { nombre: 'Algo más', soloAniosTerminados: true })).status,

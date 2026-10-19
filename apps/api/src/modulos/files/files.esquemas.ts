@@ -7,7 +7,6 @@ import { COLORES_SEMAFORO } from './semaforo';
 export const CONDICIONES = ['ESTUDIANTE', 'EGRESADO'] as const;
 export const GENEROS = ['FEMENINO', 'MASCULINO'] as const;
 /** Modalidades de ingreso (D-45): no es lo mismo A, B1, B2 y B3. */
-export const MODALIDADES = ['A', 'B1', 'B2', 'B3'] as const;
 
 /** El CHECK de la tabla (ck_file_anio): 1990–2100; la API no acepta más allá del año siguiente. */
 const ANIO_MIN = 1990;
@@ -58,12 +57,12 @@ const camposEditables = {
   condicion: z.enum(CONDICIONES),
   /** Cabecera del folder personal (DEC-051): deciden qué requisitos se piden y cuáles están atrasados. */
   genero: z.enum(GENEROS).nullable(),
-  /** En mayúsculas: "b1" vale como B1. */
+  /** Código del catálogo de modalidades (DEC-058; lo valida el servicio). En mayúsculas: "b1" vale como B1. */
   modalidad: z
     .string()
     .trim()
     .toUpperCase()
-    .pipe(z.enum(MODALIDADES, 'Elija la modalidad de ingreso (A, B1, B2 o B3)'))
+    .regex(/^[A-Z0-9]{1,10}$/, 'Elija la modalidad de ingreso')
     .nullable(),
   anioFormacion: z
     .number()
@@ -206,7 +205,7 @@ export const esquemaFileDetalle = z
     anioIngreso: z.number().int(),
     condicion: z.enum(CONDICIONES),
     genero: z.enum(GENEROS).nullable(),
-    modalidad: z.enum(MODALIDADES).nullable(),
+    modalidad: z.string().nullable().meta({ example: 'B1' }),
     anioFormacion: z.number().int().nullable(),
     bloqueado: z.boolean(),
     motivoBloqueo: z.string().nullable(),

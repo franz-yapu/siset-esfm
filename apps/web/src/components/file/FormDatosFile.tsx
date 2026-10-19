@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
 import {
-  MODALIDADES,
   type CondicionFile,
   type DatosCrearFile,
   type Especialidad,
@@ -10,6 +9,7 @@ import {
   type Modalidad,
 } from '@/types/files';
 import { erroresDelFormularioFile, normalizarDatosFile, validarDatosFile, type CampoFile } from '@/lib/files';
+import { useModalidades } from '@/hooks/useModalidades';
 import { Alerta, Button, Input, Select } from '@/components/ui';
 
 const vacio = (): DatosCrearFile => ({
@@ -64,6 +64,12 @@ interface Props {
 export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar }: Props) {
   const editando = Boolean(inicial);
   const [d, setD] = useState<DatosCrearFile>(() => (inicial ? datosDeFile(inicial) : vacio()));
+  // Las activas del catálogo (DEC-058); si el file tiene una dada de baja, se sigue mostrando para no perderla.
+  const { data: activas = [] } = useModalidades();
+  const opcionesModalidad =
+    d.modalidad && !activas.some((m) => m.codigo === d.modalidad)
+      ? [...activas, { codigo: d.modalidad, nombre: `${d.modalidad} (dada de baja)` }]
+      : activas;
   const [enviado, setEnviado] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [deApi, setDeApi] = useState<{ campos: Partial<Record<CampoFile, string>>; general: string | null }>({
@@ -214,9 +220,9 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
           hint="Como en el folder personal. Obligatoria para un estudiante."
         >
           <option value="">Sin indicar</option>
-          {MODALIDADES.map((m) => (
-            <option key={m} value={m}>
-              {m}
+          {opcionesModalidad.map((m) => (
+            <option key={m.codigo} value={m.codigo}>
+              {m.nombre === `Modalidad ${m.codigo}` ? m.codigo : `${m.codigo} · ${m.nombre}`}
             </option>
           ))}
         </Select>

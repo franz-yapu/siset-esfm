@@ -1,16 +1,15 @@
 import { z } from 'zod';
+import { esquemaCodigoModalidad } from './modalidades-admin.esquemas';
 
-// Administración del catálogo de requisitos por Kardex (DEC-055). Las modalidades son las del file (D-45): una
-// lista vacía o nula quiere decir "todas".
-
-export const MODALIDADES_REQUISITO = ['A', 'B1', 'B2', 'B3'] as const;
+// Administración del catálogo de requisitos por Kardex (DEC-055). Las modalidades son códigos del catálogo
+// `modalidad_ingreso` (DEC-058): una lista vacía o nula quiere decir "todas".
 
 const nombre = z.string().trim().min(3, 'El nombre necesita al menos 3 caracteres').max(120);
 const descripcion = z.string().trim().max(255).nullable();
 const anioFormacion = z.number().int().min(1).max(5).nullable();
 const modalidades = z
-  .array(z.enum(MODALIDADES_REQUISITO))
-  .max(4)
+  .array(esquemaCodigoModalidad)
+  .max(20)
   .nullable()
   .meta({ description: 'Modalidades a las que se pide; vacío o nulo = todas.', example: ['B1'] });
 const soloGenero = z.enum(['FEMENINO', 'MASCULINO']).nullable();
@@ -63,7 +62,7 @@ export const esquemaRequisitoAdmin = z
     soloAniosTerminados: z.boolean(),
     pideCurso: z.boolean(),
     soloGenero: z.enum(['FEMENINO', 'MASCULINO']).nullable(),
-    modalidades: z.array(z.enum(MODALIDADES_REQUISITO)).meta({ description: 'Vacío = todas.' }),
+    modalidades: z.array(z.string()).meta({ description: 'Códigos de modalidad; vacío = todas.' }),
     activo: z.boolean(),
   })
   .meta({ id: 'RequisitoAdmin' });

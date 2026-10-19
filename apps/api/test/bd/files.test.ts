@@ -296,8 +296,14 @@ describe('PATCH /api/v1/files/:id', () => {
       datosAntes: { genero: null, modalidad: 'A', anioFormacion: null },
       datosDespues: { genero: 'FEMENINO', modalidad: 'B1', anioFormacion: 4 },
     });
-    for (const malo of [{ anioFormacion: 6 }, { modalidad: 'B' }, { genero: 'OTRO' }]) {
+    for (const malo of [{ anioFormacion: 6 }, { modalidad: 'B-1' }, { genero: 'OTRO' }]) {
       expect((await como('patch', `/files/${creado.body.id}`, malo)).status).toBe(400);
+    }
+    // Bien escrita pero no está en el catálogo (DEC-058).
+    {
+      const r = await como('patch', `/files/${creado.body.id}`, { modalidad: 'B' });
+      expect(r.status).toBe(422);
+      expect(r.body.error.code).toBe('MODALIDAD_INEXISTENTE');
     }
   });
 
@@ -305,7 +311,7 @@ describe('PATCH /api/v1/files/:id', () => {
     const sin = await como('post', '/files', datosNuevo({ modalidad: null }));
     expect(sin.status).toBe(400);
     expect(sin.body.error.details[0]).toMatchObject({ ruta: 'body.modalidad' });
-    expect((await como('post', '/files', datosNuevo({ modalidad: 'B' }))).status).toBe(400);
+    expect((await como('post', '/files', datosNuevo({ modalidad: 'B' }))).status).toBe(422);
     expect((await como('post', '/files', datosNuevo({ modalidad: null, condicion: 'EGRESADO' }))).status).toBe(201);
   });
 

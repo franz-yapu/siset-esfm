@@ -961,3 +961,28 @@ implementada el 2026-10-19 · ADR-0011
 4. Pantallas de SEC_COORD: inicio con "Por derivar a Kardex" y "Firmados, por entregar", menú "Nueva hoja de ruta" y
    "Firma y entrega" (por derivar, por firmar y por entregar), y avisos en la campana.
 5. La demo trae un certificado de Ancocagua ya firmado y por entregar.
+
+## DEC-058 — Kardex administra también las modalidades de ingreso
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario al revisar "Requisitos por modalidad" ("también se pueden crear
+más modalidades") · **Estado:** activa, implementada el 2026-10-19
+
+1. Las modalidades dejan de ser una lista fija (A, B1, B2, B3). Ahora son el catálogo **`modalidad_ingreso`**: código,
+   nombre, descripción, orden y activo. Arranca con las cuatro de D-45, con nombre "Modalidad A"…; el nombre largo lo
+   pone Kardex, porque la escuela no lo dio.
+2. En "Requisitos por modalidad", la vista **Modalidades** sirve para agregar (código y nombre), editar (nombre,
+   descripción y orden) y dar de baja o reactivar. El **código no se cambia**: lo guardan los files y los requisitos.
+   Cada cambio queda en la bitácora (CATALOGOS, `modalidad_ingreso`).
+3. Las columnas y las pestañas de la vista Requisitos, y la lista "Modalidad de ingreso" del file, salen de las
+   modalidades **activas**.
+4. **Dar de baja** no borra nada:
+   - la modalidad deja de ofrecerse al registrar un file;
+   - los files que la tienen la conservan, también al editarlos;
+   - los requisitos que la nombran la guardan.
+5. Integridad:
+   - `file_academico.modalidad` pasa a tener una FK al código del catálogo (antes, un CHECK con la lista).
+   - La lista de modalidades de cada requisito sigue siendo texto (`solo_modalidad`, "B1,B3"). La API la valida
+     contra las activas (422 `MODALIDAD_INEXISTENTE`); un CHECK revisa el formato.
+   - "Todas las activas" se guarda como "todas" (`NULL`), así que esos requisitos también se piden a las modalidades
+     que se agreguen después.
+6. El motor del semáforo (ADR-0007) no cambia: sigue comparando el código del file con la lista del requisito.

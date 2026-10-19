@@ -121,7 +121,13 @@ const aplicar = (f: FileMock, d: Partial<DatosCrearFile>) => {
   if (d.anioIngreso !== undefined) f.anioIngreso = d.anioIngreso;
   if (d.condicion !== undefined) f.condicion = d.condicion;
   if (d.genero !== undefined) f.genero = d.genero;
-  if (d.modalidad !== undefined) f.modalidad = d.modalidad;
+  if (d.modalidad !== undefined && d.modalidad !== f.modalidad) {
+    // Como la API: una modalidad nueva tiene que estar activa en el catálogo (DEC-058); la que ya tenía se conserva.
+    if (d.modalidad !== null && !db.modalidades.some((m) => m.codigo === d.modalidad && m.activo)) {
+      throw new ErrorApi(`La modalidad ${d.modalidad} no existe o está dada de baja.`, 'MODALIDAD_INEXISTENTE', 422);
+    }
+    f.modalidad = d.modalidad;
+  }
   if (d.anioFormacion !== undefined) f.anioFormacion = d.anioFormacion;
 };
 

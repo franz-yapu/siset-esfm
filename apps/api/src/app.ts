@@ -19,6 +19,7 @@ import { crearLogger } from '@/compartido/logger';
 import {
   crearModuloCatalogos,
   leerParametrosEnteros,
+  modalidadActiva,
   nombreEspecialidadActiva,
   nombresEspecialidades,
   obtenerRequisitosActivos,
@@ -131,7 +132,7 @@ export function crearApp({
         buscarIdsPorCi,
         obtenerPersonas,
       },
-      especialidades: { nombreEspecialidadActiva, nombresEspecialidades },
+      especialidades: { nombreEspecialidadActiva, nombresEspecialidades, modalidadActiva },
       // Requisitos del file (SDD S2.4): el catálogo es de catalogos; quién registró, de seguridad + personas.
       autorizarRequisitos: {
         leer: autorizar('requisitos', 'leer'),

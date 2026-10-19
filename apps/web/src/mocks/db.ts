@@ -6,16 +6,27 @@ import { seedFiles } from './files';
 import { seedDictamenes, seedDocumentos, seedHojasRuta } from './hojasRuta';
 import { ipDe, seedBitacora } from './bitacora';
 import { seedHojasRutaV2, type HojaRutaMock } from './hojas-ruta-v2';
-import type { RequisitoAdmin } from '@/types/catalogo-requisitos';
-import type { Modalidad } from '@/types/files';
+import type { ModalidadIngreso, RequisitoAdmin } from '@/types/catalogo-requisitos';
+import { MODALIDADES_INICIALES } from '@/types/files';
 import { CATALOGO_REQUISITOS } from '@/config/requisitos';
+
+/** Las modalidades con las que arranca el catálogo (DEC-058); el nombre largo lo pone Kardex. */
+const seedModalidades = (): ModalidadIngreso[] =>
+  MODALIDADES_INICIALES.map((codigo, i) => ({
+    id: i + 1,
+    codigo,
+    nombre: `Modalidad ${codigo}`,
+    descripcion: null,
+    orden: i + 1,
+    activo: true,
+  }));
 
 /** El catálogo editable de la demo (DEC-055), a partir de la copia del seed. */
 const seedRequisitos = (): RequisitoAdmin[] =>
   CATALOGO_REQUISITOS.map(({ soloModalidad, ...r }, i) => ({
     ...r,
     id: i + 1,
-    modalidades: soloModalidad ? (soloModalidad.split(',') as Modalidad[]) : [],
+    modalidades: soloModalidad ? soloModalidad.split(',') : [],
     activo: true,
   }));
 
@@ -30,6 +41,8 @@ interface Store {
   bitacora: RegistroBitacora[];
   /** Catálogo de requisitos que Kardex administra (DEC-055). */
   requisitos: RequisitoAdmin[];
+  /** Modalidades de ingreso que Kardex administra (DEC-058). */
+  modalidades: ModalidadIngreso[];
   /** Intentos fallidos de login por usuario (se pierde al recargar). */
   intentos: Record<string, number>;
 }
@@ -46,6 +59,7 @@ const crear = (): Store => {
     documentos: seedDocumentos(hojasRuta),
     bitacora: seedBitacora(hojasRuta, usuarios),
     requisitos: seedRequisitos(),
+    modalidades: seedModalidades(),
     intentos: {},
   };
 };

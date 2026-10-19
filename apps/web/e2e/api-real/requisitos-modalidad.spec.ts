@@ -4,6 +4,8 @@ import { API_E2E, credenciales, entrarComo, irA, tokenDe } from './utilidades';
 /** Kardex administra los requisitos por modalidad contra la API real (DEC-055). */
 const sufijo = Date.now().toString(36).slice(-5).toUpperCase();
 const NOMBRE = `Requisito E2E ${sufijo}`;
+/** Código de modalidad único por corrida (letras y números, hasta 10). */
+const MODALIDAD = `E${sufijo}`;
 
 test.describe.serial('requisitos por modalidad (DEC-055)', () => {
   test.afterAll(async ({ request }) => {
@@ -17,6 +19,13 @@ test.describe.serial('requisitos por modalidad (DEC-055)', () => {
     }[];
     for (const r of todos.filter((x) => x.nombre === NOMBRE && x.activo))
       await request.post(`${API_E2E}/catalogos/requisitos/${r.id}/baja`, { headers });
+    const modalidades = (await (await request.get(`${API_E2E}/catalogos/modalidades/todas`, { headers })).json()) as {
+      id: number;
+      codigo: string;
+      activo: boolean;
+    }[];
+    for (const m of modalidades.filter((x) => x.codigo === MODALIDAD && x.activo))
+      await request.post(`${API_E2E}/catalogos/modalidades/${m.id}/baja`, { headers });
   });
 
   test('Kardex agrega un requisito solo para B2, lo amplía a B3 y lo da de baja', async ({ page }) => {
@@ -48,6 +57,31 @@ test.describe.serial('requisitos por modalidad (DEC-055)', () => {
     await expect(page.getByText(`"${NOMBRE}" dado de baja`)).toBeVisible();
     await page.getByRole('tab', { name: /Dados de baja/ }).click();
     await expect(page.getByRole('row', { name: new RegExp(NOMBRE) })).toBeVisible();
+  });
+
+  test('Kardex agrega una modalidad, aparece como columna y la da de baja (DEC-058)', async ({ page }) => {
+    await entrarComo(page, 'KARDEX');
+    await irA(page, '/requisitos');
+    await page.getByRole('button', { name: 'Modalidades', exact: true }).click();
+    await page.getByRole('button', { name: 'Agregar modalidad' }).click();
+    const modal = page.getByRole('dialog', { name: 'Agregar modalidad' });
+    await modal.getByLabel('Código').fill(MODALIDAD.toLowerCase());
+    await modal.getByLabel('Nombre', { exact: true }).fill(`Modalidad de prueba ${sufijo}`);
+    await modal.getByRole('button', { name: 'Agregar' }).click();
+    await expect(page.getByText(`Modalidad ${MODALIDAD} agregada`)).toBeVisible();
+
+    // En la vista de requisitos ya es una columna y una pestaña.
+    await page.getByRole('button', { name: 'Requisitos', exact: true }).click();
+    await expect(page.getByRole('tab', { name: new RegExp(`Modalidad ${MODALIDAD}`) })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: MODALIDAD, exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Modalidades', exact: true }).click();
+    const fila = page.getByRole('row').filter({ hasText: `Modalidad de prueba ${sufijo}` });
+    await fila.getByRole('button', { name: `Dar de baja la modalidad ${MODALIDAD}` }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Dar de baja' }).click();
+    await expect(page.getByText(`Modalidad ${MODALIDAD} dada de baja`)).toBeVisible();
+    await page.getByRole('button', { name: 'Requisitos', exact: true }).click();
+    await expect(page.getByRole('columnheader', { name: MODALIDAD, exact: true })).toHaveCount(0);
   });
 
   test('SEC_COORD no la abre', async ({ page }) => {

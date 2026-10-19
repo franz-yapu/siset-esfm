@@ -1,4 +1,4 @@
-import type { ClienteBd } from '@/compartido/bd';
+import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
 import { ErrorNegocio, ErrorNoEncontrado } from '@/compartido/errores';
 import { registrarEvento } from '@/modulos/auditoria';
 import {
@@ -10,21 +10,29 @@ import {
   ultimoOrden,
   type RequisitoAdminBd,
 } from './requisito.repositorio';
-import {
-  MODALIDADES_REQUISITO,
-  type CambiosRequisito,
-  type DatosCrearRequisito,
-  type RequisitoAdmin,
-} from './requisitos-admin.esquemas';
+import { obtenerModalidadesActivas } from './modalidad.repositorio';
+import type { CambiosRequisito, DatosCrearRequisito, RequisitoAdmin } from './requisitos-admin.esquemas';
 
-type Modalidad = (typeof MODALIDADES_REQUISITO)[number];
+const aLista = (s: string | null): string[] => (s ? s.split(',') : []);
 
-/** "B1,B3" ↔ ['B1', 'B3']. Todas o ninguna se guardan como null: el requisito se pide a todos (ADR-0007). */
-const aTexto = (m: readonly Modalidad[] | null): string | null => {
-  const unicas = MODALIDADES_REQUISITO.filter((x) => m?.includes(x));
-  return unicas.length === 0 || unicas.length === MODALIDADES_REQUISITO.length ? null : unicas.join(',');
-};
-const aLista = (s: string | null): Modalidad[] => (s ? (s.split(',') as Modalidad[]) : []);
+/**
+ * ['B3', 'B1'] → "B1,B3", en el orden del catálogo. Cada código tiene que ser de una modalidad activa (DEC-058).
+ * Ninguna, o todas las activas, se guarda como null: el requisito se pide a todas, también a las que se creen después
+ * (ADR-0007).
+ */
+async function aTexto(tx: TransaccionBd, m: readonly string[] | null): Promise<string | null> {
+  if (!m || m.length === 0) return null;
+  const activas = (await obtenerModalidadesActivas(tx)).map((x) => x.codigo);
+  const desconocidas = m.filter((c) => !activas.includes(c));
+  if (desconocidas.length > 0) {
+    throw new ErrorNegocio(
+      `La modalidad ${desconocidas.join(', ')} no existe o está dada de baja.`,
+      'MODALIDAD_INEXISTENTE',
+    );
+  }
+  const unicas = activas.filter((c) => m.includes(c));
+  return unicas.length === activas.length ? null : unicas.join(',');
+}
 
 const aApi = ({ soloModalidad, ...r }: RequisitoAdminBd): RequisitoAdmin => ({
   ...r,
@@ -93,7 +101,7 @@ export function crearServicioRequisitosAdmin(bd: ClienteBd) {
         const codigo = codigoDesdeNombre(datos.nombre, await codigosQueEmpiezanCon(tx, base));
         const { id } = await insertarRequisito(tx, codigo, {
           ...datos,
-          soloModalidad: aTexto(modalidades),
+          soloModalidad: await aTexto(tx, modalidades),
           orden: (await ultimoOrden(tx)) + 1,
         });
         const creado = await cargar(tx, id);
@@ -113,7 +121,7 @@ export function crearServicioRequisitosAdmin(bd: ClienteBd) {
         const antes = await cargar(tx, id);
         await actualizarRequisito(tx, id, {
           ...cambios,
-          ...(modalidades !== undefined && { soloModalidad: aTexto(modalidades) }),
+          ...(modalidades !== undefined && { soloModalidad: await aTexto(tx, modalidades) }),
         });
         const despues = await cargar(tx, id);
         const a = paraBitacora(antes) as Record<string, unknown>;

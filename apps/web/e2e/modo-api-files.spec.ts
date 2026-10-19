@@ -28,6 +28,15 @@ const ESPECIALIDADES = [
   { id: 1, nombre: 'Educación Primaria Comunitaria Vocacional' },
   { id: 2, nombre: 'Matemática' },
 ];
+/** El catálogo de modalidades (DEC-058). */
+const MODALIDADES = ['A', 'B1', 'B2', 'B3'].map((codigo, i) => ({
+  id: i + 1,
+  codigo,
+  nombre: `Modalidad ${codigo}`,
+  descripcion: null,
+  orden: i + 1,
+  activo: true,
+}));
 const file = (id: number, nombre: string) => ({
   id,
   codigo: `EST-${id}`,
@@ -56,6 +65,7 @@ async function entrar(page: Page) {
   await page.route('**/api/v1/auth/login', (r) => responder(r, 200, KARDEX));
   await page.route('**/api/v1/auth/mis-permisos', (r) => responder(r, 200, PERMISOS));
   await page.route('**/api/v1/catalogos/especialidades', (r) => responder(r, 200, ESPECIALIDADES));
+  await page.route('**/api/v1/catalogos/modalidades', (r) => responder(r, 200, MODALIDADES));
   await page.goto('/login');
   await page.getByLabel('CI o usuario').fill('1234567');
   await page.getByLabel('Contraseña', { exact: true }).fill('clave-1234');

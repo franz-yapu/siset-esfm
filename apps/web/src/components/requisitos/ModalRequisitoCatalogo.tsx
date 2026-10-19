@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MODALIDADES, type Genero, type Modalidad } from '@/types/files';
+import type { Genero, Modalidad } from '@/types/files';
+import { useModalidades } from '@/hooks/useModalidades';
 import type { DatosCrearRequisitoCatalogo, RequisitoAdmin } from '@/types/catalogo-requisitos';
 import { useUsuario } from '@/hooks';
 import { useMutacionCatalogo } from '@/hooks/useCatalogoRequisitos';
@@ -15,13 +16,16 @@ interface Props {
   onGuardado: (r: RequisitoAdmin) => void;
 }
 
-const inicial = (r: RequisitoAdmin | null): DatosCrearRequisitoCatalogo & { orden: number } => ({
+const inicial = (
+  r: RequisitoAdmin | null,
+  modalidades: readonly Modalidad[],
+): DatosCrearRequisitoCatalogo & { orden: number } => ({
   nombre: r?.nombre ?? '',
   descripcion: r?.descripcion ?? '',
   anioFormacion: r?.anioFormacion ?? null,
   obligatorio: r?.obligatorio ?? true,
   // Sin modalidades = todas: en el formulario se ven todas marcadas.
-  modalidades: r && r.modalidades.length ? r.modalidades : [...MODALIDADES],
+  modalidades: r && r.modalidades.length ? r.modalidades : [...modalidades],
   soloGenero: r?.soloGenero ?? null,
   porGestion: r?.porGestion ?? false,
   soloAniosTerminados: r?.soloAniosTerminados ?? false,
@@ -62,7 +66,10 @@ function Casilla({
 /** Agregar o editar un requisito del catálogo (DEC-055). "Por gestión" solo se elige al agregar. */
 export function ModalRequisitoCatalogo({ requisito, onCerrar, onGuardado }: Props) {
   const u = useUsuario();
-  const [f, setF] = useState(() => inicial(requisito));
+  // Las columnas son las modalidades activas del catálogo (DEC-058); la página ya las cargó.
+  const { data: catalogo = [] } = useModalidades();
+  const codigos = catalogo.map((m) => m.codigo);
+  const [f, setF] = useState(() => inicial(requisito, codigos));
   const [intento, setIntento] = useState(false);
   const [errorApi, setErrorApi] = useState<string | null>(null);
   const cambiar = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
@@ -96,7 +103,7 @@ export function ModalRequisitoCatalogo({ requisito, onCerrar, onGuardado }: Prop
       'modalidades',
       f.modalidades.includes(m)
         ? f.modalidades.filter((x) => x !== m)
-        : MODALIDADES.filter((x) => x === m || f.modalidades.includes(x)),
+        : codigos.filter((x) => x === m || f.modalidades.includes(x)),
     );
 
   return (
@@ -135,7 +142,7 @@ export function ModalRequisitoCatalogo({ requisito, onCerrar, onGuardado }: Prop
         <fieldset>
           <legend className="mb-1 text-sm font-medium text-slate-700">Se pide a las modalidades</legend>
           <div className="flex flex-wrap gap-4">
-            {MODALIDADES.map((m) => (
+            {codigos.map((m) => (
               <Casilla key={m} etiqueta={m} checked={f.modalidades.includes(m)} onChange={() => alternar(m)} />
             ))}
           </div>

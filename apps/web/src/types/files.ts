@@ -13,9 +13,11 @@ export interface Especialidad {
 /** Decide si se pide la libreta militar (DEC-051). */
 export type Genero = 'FEMENINO' | 'MASCULINO';
 
-/** Modalidades de ingreso (D-45): no es lo mismo A, B1, B2 y B3. */
-export const MODALIDADES = ['A', 'B1', 'B2', 'B3'] as const;
-export type Modalidad = (typeof MODALIDADES)[number];
+/** Código de una modalidad de ingreso (D-45): del catálogo que administra Kardex (DEC-058). A, B1, B2, B3… */
+export type Modalidad = string;
+
+/** Las cuatro con las que arranca el catálogo (migración de DEC-058); el resto las agrega Kardex. */
+export const MODALIDADES_INICIALES = ['A', 'B1', 'B2', 'B3'] as const;
 
 export interface FileDetalle {
   id: number;

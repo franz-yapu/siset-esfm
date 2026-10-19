@@ -101,8 +101,9 @@ describe('tablas del file académico (SDD S2.1 v1.1 §4)', () => {
     await expect(bd.fileAcademico.update({ where: { id: f.id }, data: { anioFormacion: 6 } })).rejects.toThrow(
       /ck_file_anio_formacion/,
     );
+    // La modalidad es un código del catálogo (FK, DEC-058).
     await expect(bd.fileAcademico.update({ where: { id: f.id }, data: { modalidad: 'b1' } })).rejects.toThrow(
-      /ck_file_modalidad/,
+      /file_academico_modalidad_fkey/,
     );
   });
 

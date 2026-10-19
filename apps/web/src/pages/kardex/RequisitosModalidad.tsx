@@ -1,28 +1,85 @@
 import { useState } from 'react';
+import clsx from 'clsx';
 import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { MODALIDADES, type Modalidad } from '@/types/files';
+import type { Modalidad } from '@/types/files';
 import type { RequisitoAdmin } from '@/types/catalogo-requisitos';
 import { useToast, useUsuario } from '@/hooks';
 import { useCatalogoRequisitos, useMutacionCatalogo } from '@/hooks/useCatalogoRequisitos';
+import { useModalidades } from '@/hooks/useModalidades';
 import { catalogoRequisitosService } from '@/services/catalogoRequisitos.service';
 import { alternarModalidad, aplicaAModalidad } from '@/lib/catalogo-requisitos';
 import { Alerta, Badge, Button, Cargando, DataTable, PageHeader, Tabs, type Columna } from '@/components/ui';
 import { Confirmar } from '@/components/hojas/Confirmar';
 import { ModalRequisitoCatalogo } from '@/components/requisitos/ModalRequisitoCatalogo';
+import { TablaModalidades } from '@/components/requisitos/TablaModalidades';
 
-type Filtro = 'TODAS' | Modalidad | 'BAJA';
+/** Pestaña: todas, una modalidad (`m:B1`, con prefijo para que ningún código choque) o los dados de baja. */
+type Filtro = 'TODAS' | `m:${Modalidad}` | 'BAJA';
+
+type Vista = 'requisitos' | 'modalidades';
 
 /**
- * Kardex · Requisitos por modalidad (DEC-055). Cada fila es un requisito del folder personal y cada columna una
- * modalidad de ingreso: marcar o desmarcar cambia a quién se le pide. Agregar y dar de baja también se hacen aquí; la
- * baja no borra lo registrado en los files.
+ * Kardex · Requisitos por modalidad (DEC-055, DEC-058). Dos vistas: los requisitos, una fila por requisito y una
+ * columna por modalidad activa, y el catálogo de modalidades de ingreso, que Kardex también administra.
  */
 export function RequisitosModalidad() {
+  const [vista, setVista] = useState<Vista>('requisitos');
+  const [nuevo, setNuevo] = useState(0);
+  return (
+    <>
+      <PageHeader
+        titulo="Requisitos por modalidad"
+        subtitulo="Qué se le pide a cada estudiante según su modalidad de ingreso, y qué modalidades hay. Los cambios cuentan enseguida para el semáforo de los files."
+        acciones={
+          <Button icon={Plus} onClick={() => setNuevo((n) => n + 1)}>
+            {vista === 'requisitos' ? 'Agregar requisito' : 'Agregar modalidad'}
+          </Button>
+        }
+      />
+      <div role="group" aria-label="Vista" className="mb-4 inline-flex rounded-lg border border-slate-200 bg-white p-1">
+        {(
+          [
+            ['requisitos', 'Requisitos'],
+            ['modalidades', 'Modalidades'],
+          ] as const
+        ).map(([id, texto]) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={vista === id}
+            onClick={() => {
+              setVista(id);
+              setNuevo(0);
+            }}
+            className={clsx(
+              'rounded-md px-3 py-1.5 text-sm font-medium',
+              vista === id ? 'bg-acento text-white' : 'text-slate-600 hover:bg-slate-100',
+            )}
+          >
+            {texto}
+          </button>
+        ))}
+      </div>
+      {vista === 'requisitos' ? <TablaRequisitos nuevo={nuevo} /> : <TablaModalidades nuevo={nuevo} />}
+    </>
+  );
+}
+
+/** Los requisitos por modalidad. `nuevo` cambia cuando se pulsa "Agregar requisito" en la cabecera. */
+function TablaRequisitos({ nuevo }: { nuevo: number }) {
   const u = useUsuario();
   const toast = useToast();
   const { data, isLoading, error } = useCatalogoRequisitos();
+  const { data: catalogoModalidades, isLoading: cargandoModalidades } = useModalidades();
+  const codigos = (catalogoModalidades ?? []).map((m) => m.codigo);
+  const [abierto, setAbierto] = useState(0);
   const [filtro, setFiltro] = useState<Filtro>('TODAS');
   const [form, setForm] = useState<RequisitoAdmin | 'nuevo' | null>(null);
+  // "Agregar requisito" de la cabecera.
+  if (nuevo !== abierto) {
+    setAbierto(nuevo);
+    if (nuevo > 0) setForm('nuevo');
+  }
   const [baja, setBaja] = useState<RequisitoAdmin | null>(null);
   // La casilla cambia al clic, sin esperar a la API; si falla, vuelve a lo que diga el catálogo.
   const [enCurso, setEnCurso] = useState<Record<number, Modalidad[]>>({});
@@ -34,7 +91,7 @@ export function RequisitosModalidad() {
     r.activo ? catalogoRequisitosService.darDeBaja(r.id, u) : catalogoRequisitosService.reactivar(r.id, u),
   );
 
-  if (isLoading) return <Cargando />;
+  if (isLoading || cargandoModalidades) return <Cargando />;
   if (error || !data) return <Alerta tipo="error">{error?.message ?? 'No se pudo cargar el catálogo'}</Alerta>;
 
   const catalogo = data.map((r) => (enCurso[r.id] ? { ...r, modalidades: enCurso[r.id]! } : r));
@@ -44,10 +101,10 @@ export function RequisitosModalidad() {
       ? catalogo.filter((r) => !r.activo)
       : filtro === 'TODAS'
         ? activos
-        : activos.filter((r) => aplicaAModalidad(r, filtro));
+        : activos.filter((r) => aplicaAModalidad(r, filtro.slice(2)));
 
   const alternar = async (r: RequisitoAdmin, m: Modalidad) => {
-    const modalidades = alternarModalidad(r.modalidades, m, MODALIDADES);
+    const modalidades = alternarModalidad(r.modalidades, m, codigos);
     if (!modalidades) {
       toast.error('Debe pedirse al menos a una modalidad. Si ya no se pide a nadie, dalo de baja.');
       return;
@@ -56,7 +113,7 @@ export function RequisitosModalidad() {
     try {
       await editar.mutateAsync({ id: r.id, modalidades });
       toast.success(
-        `${r.nombre}: ${modalidades.length === MODALIDADES.length ? 'todas las modalidades' : modalidades.join(', ')}`,
+        `${r.nombre}: ${modalidades.length === codigos.length ? 'todas las modalidades' : modalidades.join(', ')}`,
       );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error');
@@ -96,7 +153,7 @@ export function RequisitosModalidad() {
         </div>
       ),
     },
-    ...MODALIDADES.map((m): Columna<RequisitoAdmin> => ({
+    ...codigos.map((m): Columna<RequisitoAdmin> => ({
       key: m,
       header: m,
       className: 'w-14 text-center',
@@ -143,8 +200,8 @@ export function RequisitosModalidad() {
 
   const pestañas = [
     { id: 'TODAS', label: 'Todas', count: activos.length },
-    ...MODALIDADES.map((m) => ({
-      id: m,
+    ...codigos.map((m) => ({
+      id: `m:${m}`,
       label: `Modalidad ${m}`,
       count: activos.filter((r) => aplicaAModalidad(r, m)).length,
     })),
@@ -153,15 +210,6 @@ export function RequisitosModalidad() {
 
   return (
     <>
-      <PageHeader
-        titulo="Requisitos por modalidad"
-        subtitulo="Qué se le pide a cada estudiante según su modalidad de ingreso. Los cambios cuentan enseguida para el semáforo de los files."
-        acciones={
-          <Button icon={Plus} onClick={() => setForm('nuevo')}>
-            Agregar requisito
-          </Button>
-        }
-      />
       <Tabs tabs={pestañas} activa={filtro} onChange={(id) => setFiltro(id as Filtro)} className="mb-4" />
       <DataTable
         columns={columnas}

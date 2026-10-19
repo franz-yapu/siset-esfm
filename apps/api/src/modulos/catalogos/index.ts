@@ -5,3 +5,4 @@ export { nombreEspecialidadActiva, nombresEspecialidades } from './especialidad.
 export { crearModuloCatalogos } from './catalogos.modulo';
 export { obtenerRequisitosActivos, type RequisitoCatalogo } from './requisito.repositorio';
 export { obtenerSedes, obtenerTiposTramite } from './tramite.repositorio';
+export { modalidadActiva } from './modalidad.repositorio';

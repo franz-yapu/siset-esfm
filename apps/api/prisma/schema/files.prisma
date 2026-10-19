@@ -52,8 +52,8 @@ model FileAcademico {
   condicion        CondicionEstudiante @default(ESTUDIANTE)
   /// Datos de la cabecera del folder personal (DEC-051); opcionales hasta que Kardex los cargue.
   genero           Genero?
-  /// Modalidad de ingreso: A, B1, B2 o B3 (D-45; CHECK `ck_file_modalidad`).
-  modalidad        String?             @db.VarChar(5)
+  /// Código de la modalidad de ingreso (D-45): del catálogo `modalidad_ingreso`, que administra Kardex (DEC-058).
+  modalidad        String?             @db.VarChar(10)
   /// Año que cursa (1–5, CHECK `ck_file_anio_formacion`): decide si un TACFI está atrasado (D-31, ADR-0007).
   anioFormacion    Int?                @map("anio_formacion") @db.SmallInt
   bloqueado        Boolean             @default(false)
@@ -63,6 +63,7 @@ model FileAcademico {
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
   persona          Persona             @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   especialidad     Especialidad        @relation(fields: [especialidadId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  modalidadIngreso ModalidadIngreso?   @relation(fields: [modalidad], references: [codigo], onDelete: Restrict, onUpdate: Restrict)
   requisitos       RequisitoFile[]
   bloqueos         BloqueoFile[]
   /// back-relation (ADR-0001: no usar desde otro módulo)

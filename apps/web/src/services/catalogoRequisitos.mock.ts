@@ -1,6 +1,6 @@
 import type { Usuario } from '@/types';
 import type { RequisitoAdmin } from '@/types/catalogo-requisitos';
-import { MODALIDADES, type Modalidad } from '@/types/files';
+import type { Modalidad } from '@/types/files';
 import { auditar, copia, db } from '@/mocks/db';
 import { delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
@@ -16,10 +16,25 @@ const buscar = (id: number): RequisitoAdmin => {
   return r;
 };
 
-/** Como la API: todas o ninguna = todas (lista vacía), en el orden A, B1, B2, B3. */
+/**
+ * Como la API (DEC-058): cada código tiene que ser de una modalidad activa; todas o ninguna = todas (lista vacía), en
+ * el orden del catálogo.
+ */
 const normalizar = (m: readonly Modalidad[]): Modalidad[] => {
-  const unicas = MODALIDADES.filter((x) => m.includes(x));
-  return unicas.length === MODALIDADES.length ? [] : unicas;
+  const activas = db.modalidades
+    .filter((x) => x.activo)
+    .sort((a, b) => a.orden - b.orden)
+    .map((x) => x.codigo);
+  const desconocidas = m.filter((c) => !activas.includes(c));
+  if (desconocidas.length) {
+    throw new ErrorApi(
+      `La modalidad ${desconocidas.join(', ')} no existe o está dada de baja.`,
+      'MODALIDAD_INEXISTENTE',
+      422,
+    );
+  }
+  const unicas = activas.filter((x) => m.includes(x));
+  return unicas.length === activas.length ? [] : unicas;
 };
 
 const exigirValido = (nombre: string): void => {

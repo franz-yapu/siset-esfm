@@ -62,8 +62,9 @@ Tres flujos según el tipo de trámite (D-05) y dónde se recibió (D-32b, ADR-0
 - **Requisitos (DEC-051):** los 24 de la hoja "Documentación existente en folder personal" de Kardex, en su orden,
   en el catálogo `requisito_tipo`. Algunos dependen del file: la libreta militar solo a varones; el certificado de
   pueblo indígena (modalidad B1), las calificaciones de secundaria (solo B1, obligatorio; D-45b) y el carnet de
-  discapacidad (modalidad B3). Las modalidades son **A, B1, B2 y B3** y se comparan exactas (D-45). Kardex edita a
-  qué modalidades se pide cada requisito, agrega y da de baja requisitos (DEC-055). Los "si corresponde" (licencia temporal,
+  discapacidad (modalidad B3). Las modalidades son un catálogo que administra Kardex (DEC-058): arranca con **A, B1, B2 y B3**, se comparan
+  exactas (D-45) y dar de baja una no la quita de los files que la tienen. Kardex edita a qué modalidades se pide
+  cada requisito, agrega y da de baja requisitos (DEC-055). Los "si corresponde" (licencia temporal,
   reincorporación, historial provisional, resolución académica) no son obligatorios. Solo **Kardex** carga los files
   y marca los requisitos (D-13b); un estudiante se registra con su modalidad.
 - **TCLOA (D-46):** el boletín y el certificado, más las **3 defensas** (básico en 1.º, intermedio en 2.º, avanzado
