@@ -27,6 +27,8 @@ export function InicioEstudiante() {
   const lista = requisitos.data ?? [];
   const obligatorios = lista.filter((r) => r.obligatorio);
   const avisos = alertasDelEstudiante(f.bloqueado, lista);
+  // Un egresado no tiene semáforo (DEC-060); con cuenta de estudiante no debería llegar aquí (D-08).
+  const color = f.semaforo;
 
   return (
     <>
@@ -34,9 +36,18 @@ export function InicioEstudiante() {
         {f.especialidad} · ingreso {f.anioIngreso}
       </Saludo>
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className={clsx('rounded-xl border p-6', SEMAFORO[f.semaforo].fondo, SEMAFORO[f.semaforo].borde)}>
+        <div
+          className={clsx(
+            'rounded-xl border p-6',
+            color ? [SEMAFORO[color].fondo, SEMAFORO[color].borde] : 'border-slate-200 bg-white',
+          )}
+        >
           <p className="text-sm text-slate-600">Estado de tu file</p>
-          <Semaforo color={f.semaforo} texto={MENSAJE[f.semaforo]} size="lg" className="mt-3" />
+          {color ? (
+            <Semaforo color={color} texto={MENSAJE[color]} size="lg" className="mt-3" />
+          ) : (
+            <p className="mt-3 text-sm text-slate-600">Egresado: no se piden requisitos.</p>
+          )}
           {f.bloqueado && f.motivoBloqueo && <p className="mt-3 text-sm text-red-700">{f.motivoBloqueo}</p>}
           <Link
             to="/mi-file"

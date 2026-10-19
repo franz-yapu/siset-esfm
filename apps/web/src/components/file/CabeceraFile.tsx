@@ -15,8 +15,8 @@ export interface DatosCabeceraFile {
   condicion: 'ESTUDIANTE' | 'EGRESADO';
   bloqueado: boolean;
   motivoBloqueo?: string | null;
-  /** Solo con el modelo del prototipo: el semáforo de la API llega con S2.5. */
-  semaforo?: ColorSemaforo;
+  /** El semáforo global; `null` en el egresado, que no tiene requisitos (DEC-060). */
+  semaforo?: ColorSemaforo | null;
 }
 
 /** La cabecera de un file del prototipo, con su semáforo. */
