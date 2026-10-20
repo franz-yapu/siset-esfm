@@ -17,6 +17,8 @@ import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
 import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemoFile';
 import { BloqueoFile, ResolucionBloqueo } from '@/components/file/BloqueoFile';
 import { RequisitosFile } from '@/components/file/RequisitosFile';
+import { ImprimirFolder } from '@/components/file/HojaFolderPersonal';
+import { useRequisitos } from '@/hooks/useRequisitos';
 
 type Tab = 'datos' | 'requisitos' | 'tramites-api' | 'historial-api' | TabDemo;
 
@@ -97,6 +99,8 @@ export function DetalleFile() {
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
   const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' }) && f?.condicion !== 'EGRESADO';
+  // Los mismos que muestra la pestaña (caché compartida): la hoja del folder para imprimir (DEC-062).
+  const requisitos = useRequisitos(fileId, leeRequisitos && tab === 'requisitos');
   const { data: especialidades = [] } = useEspecialidades();
   const editar = useMutacionFiles((d: DatosCrearFile) =>
     filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
@@ -151,7 +155,14 @@ export function DetalleFile() {
             onGuardar={guardar}
           />
         )}
-        {tab === 'requisitos' && leeRequisitos && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
+        {tab === 'requisitos' && leeRequisitos && (
+          <>
+            <div className="mb-3 flex justify-end">
+              <ImprimirFolder file={f} requisitos={requisitos.data} />
+            </div>
+            <RequisitosFile fileId={f.id} editable={registraRequisitos} />
+          </>
+        )}
         {tab === 'tramites-api' && <TramitesFile fileId={f.id} ci={f.ci} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
         {tab !== 'datos' && tab !== 'requisitos' && tab !== 'tramites-api' && tab !== 'historial-api' && (

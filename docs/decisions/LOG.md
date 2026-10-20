@@ -1038,3 +1038,20 @@ presentaron todo antes") · **Estado:** activa, implementada el 2026-10-19
    camino del trámite y las tablas.
 9. Revisadas también: bitácora (texto a 13–14px, aviso con un solo ícono), carga masiva (los pasos sin números y la
    tarjeta "Columnas de la plantilla" junto al área para soltar el archivo) y guías.
+
+## DEC-062 — Hoja del folder personal con Sí/No, imprimible
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario con la foto de la hoja «Documentación existente en folder
+personal» (formato de Archivo Kardex) · **Estado:** activa, implementada el 2026-10-19
+
+1. En _Mi file académico_, el estudiante ve primero la **hoja del folder**: una fila por requisito del catálogo, en su
+   orden, con la marca en **Sí** (completo) o **No** (obligatorio para su file y le falta). Sin marca: lo que no le
+   corresponde (género o modalidad) y los «si corresponde» que no presentó. Los por gestión listan sus gestiones
+   completas («Matrícula I/2024, II/2024»). Como en papel, el nombre lleva «(varones)», «(solo mod. B1)» o «(si
+   corresponde)».
+2. La marca la da lo que **Kardex registró**: el estudiante no la cambia (solo Kardex registra requisitos, DEC-015).
+3. **Imprimir hoja del folder** la imprime en el formato de papel, tamaño carta, en una página: encabezado de la ESFM,
+   título con la gestión actual, apellidos y nombres, CI, código, género, especialidad, año de formación en palabras y
+   modalidad; la tabla NRO / REQUISITOS / SI / NO y las firmas «Estudiante» y «Unidad de Sistemas y Archivo Kardex».
+   El mismo botón está en la pestaña _Requisitos_ del file, para Kardex.
+4. Los escudos de la hoja de papel no van todavía: hacen falta los archivos de imagen oficiales (no se toman de la foto).

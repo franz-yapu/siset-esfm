@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useUsuario } from '@/hooks';
 import { useMiFile } from '@/hooks/useFiles';
+import { useMisRequisitos } from '@/hooks/useRequisitos';
 import { fecha } from '@/lib/formato';
 import { Alerta, Card, Cargando, Tabs } from '@/components/ui';
 import { CabeceraFile } from '@/components/file/CabeceraFile';
 import { RequisitosFile } from '@/components/file/RequisitosFile';
+import { ImprimirFolder, TablaFolder } from '@/components/file/HojaFolderPersonal';
 
 const Dato = ({ titulo, valor }: { titulo: string; valor: string | null }) => (
   <div>
@@ -15,12 +17,14 @@ const Dato = ({ titulo, valor }: { titulo: string; valor: string | null }) => (
 
 /**
  * P-20 · Mi file académico contra la API (S2.7, DEC-043): solo lectura y solo el propio (la API lo toma de la
- * sesión). Sin matrículas ni notas: no se registran en SISET (D-30 propuesta, D-07).
+ * sesión). Sin matrículas ni notas: no se registran en SISET (D-30 propuesta, D-07). La primera pestaña es la hoja
+ * "Documentación existente en folder personal", con Sí o No en cada requisito, y se imprime en su formato (DEC-062).
  */
 export function MiFile() {
   const u = useUsuario();
   const [tab, setTab] = useState('requisitos');
   const { data: f, isLoading, error } = useMiFile(u);
+  const requisitos = useMisRequisitos(u, Boolean(f));
   if (isLoading) return <Cargando />;
   if (error || !f) return <Alerta tipo="error">{error?.message ?? 'No se pudo leer tu file.'}</Alerta>;
 
@@ -33,11 +37,25 @@ export function MiFile() {
           onChange={setTab}
           className="mb-4"
           tabs={[
-            { id: 'requisitos', label: 'Requisitos' },
+            { id: 'requisitos', label: 'Hoja del folder' },
+            { id: 'detalle', label: 'Detalle de requisitos' },
             { id: 'datos', label: 'Mis datos' },
           ]}
         />
-        {tab === 'requisitos' && <RequisitosFile fileId={f.id} editable={false} propio />}
+        {tab === 'requisitos' &&
+          (requisitos.isLoading ? (
+            <Cargando />
+          ) : requisitos.error || !requisitos.data ? (
+            <Alerta tipo="error">{requisitos.error?.message ?? 'No se pudieron leer tus requisitos.'}</Alerta>
+          ) : (
+            <>
+              <div className="mb-3 flex justify-end">
+                <ImprimirFolder file={f} requisitos={requisitos.data} />
+              </div>
+              <TablaFolder requisitos={requisitos.data} />
+            </>
+          ))}
+        {tab === 'detalle' && <RequisitosFile fileId={f.id} editable={false} propio />}
         {tab === 'datos' && (
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Dato titulo="Nombre completo" valor={f.nombre} />
