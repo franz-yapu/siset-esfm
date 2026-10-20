@@ -94,20 +94,20 @@ export function ResolucionBloqueo({
     return file.motivoBloqueo && !sinMotivo ? <Alerta tipo="aviso">Bloqueado por: {file.motivoBloqueo}</Alerta> : null;
   }
   return (
-    <div className={clsx('space-y-2 rounded-lg border border-slate-200 bg-white p-3 text-sm', className)}>
-      <p className="font-medium text-slate-700">Resolución del bloqueo</p>
+    <div className={clsx('space-y-2 rounded-[10px] border border-borde bg-white p-3 text-sm', className)}>
+      <p className="font-medium text-tinta">Resolución del bloqueo</p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-        <dt className="text-slate-500">Causa</dt>
+        <dt className="text-suave">Causa</dt>
         <dd>{textoCausa(b.causa)}</dd>
-        <dt className="text-slate-500">Resolución</dt>
+        <dt className="text-suave">Resolución</dt>
         <dd>
           {b.nroResolucion}, del {fecha(b.fechaResolucion)}
         </dd>
-        <dt className="text-slate-500">Glosa</dt>
+        <dt className="text-suave">Glosa</dt>
         <dd>{b.glosa}</dd>
         {b.bloqueadoPor && (
           <>
-            <dt className="text-slate-500">Bloqueó</dt>
+            <dt className="text-suave">Bloqueó</dt>
             <dd>
               {b.bloqueadoPor.nombre}, {fechaHora(b.bloqueadoEn)}
             </dd>
@@ -176,7 +176,7 @@ export function BloqueoFile({ file }: { file: FileDetalle }) {
     <>
       <Button
         size="sm"
-        variant={bloquear ? 'danger' : 'success'}
+        variant={bloquear ? 'danger-outline' : 'secondary'}
         icon={bloquear ? Lock : LockOpen}
         onClick={() => setAbierto(true)}
       >
@@ -253,7 +253,7 @@ export function BloqueoFile({ file }: { file: FileDetalle }) {
             ) : (
               <>
                 <ResolucionBloqueo file={file} />
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-suave">
                   Al desbloquear queda registrado quién lo hizo y cuándo. La resolución queda en el historial.
                 </p>
               </>

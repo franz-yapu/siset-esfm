@@ -34,8 +34,8 @@ const POR_PAGINA = 50;
 
 const TONO: Record<TonoAccion, string | undefined> = {
   normal: undefined,
-  aviso: 'bg-amber-50 text-amber-800 ring-amber-300',
-  peligro: 'bg-red-50 text-red-700 ring-red-300',
+  aviso: 'bg-[#fffbeb] text-[#92400e]',
+  peligro: 'bg-[#ffedea] text-[#831c1e]',
 };
 
 const numero = new Intl.NumberFormat('es-BO');
@@ -91,7 +91,7 @@ export function Bitacora() {
         </span>
       </Alerta>
 
-      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-2 lg:grid-cols-5">
         <Input
           label="Desde"
           type="date"
@@ -197,10 +197,10 @@ export function Bitacora() {
                       onClick={() => r.usuario && porUsuario(r.usuario)}
                     >
                       <span className="block">{r.usuario.nombre}</span>
-                      <span className="block text-xs text-slate-500">{r.usuario.usuario}</span>
+                      <span className="block text-xs text-suave">{r.usuario.usuario}</span>
                     </button>
                   ) : (
-                    <span className="text-slate-500 italic">Sin usuario</span>
+                    <span className="text-suave italic">Sin usuario</span>
                   ),
               },
               {

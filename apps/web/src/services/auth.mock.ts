@@ -12,6 +12,12 @@ const MAX_INTENTOS = 5;
 const CLAVE_SESION = 'siset.sesion';
 
 const leerSesion = (): number | null => {
+  // Solo en desarrollo: `?como=<id>` abre la pantalla con esa cuenta de la demo, para revisarla con herramientas
+  // que no pasan por el login (capturas, inspector de diseño). No llega al build de producción.
+  if (import.meta.env.DEV && typeof location !== 'undefined') {
+    const como = new URLSearchParams(location.search).get('como');
+    if (como) return Number(como);
+  }
   try {
     const v = sessionStorage.getItem(CLAVE_SESION);
     return v ? Number(v) : null;

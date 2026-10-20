@@ -1007,3 +1007,26 @@ presentaron todo antes") · **Estado:** activa, implementada el 2026-10-19
 3. En la web, su file no muestra la pestaña Requisitos y la lista de files dice "Sin requisitos (egresado)".
 4. Lo que se registró mientras era estudiante no se borra; vuelve a verse si el file vuelve a ESTUDIANTE.
 5. El motor del semáforo (ADR-0007) no cambia: la regla se aplica antes, en el servicio.
+
+## DEC-061 — Estilo visual: hoja blanca en un marco, IBM Plex y color solo en los datos
+
+**Fecha:** 2026-10-19 · **Fuente:** pedido del usuario ("mejora la interfaz gráfica") con el skill de diseño
+(tasteskill, estilo de app _framed-sheet_) · **Estado:** activa, implementada el 2026-10-19
+
+1. **Marco y hoja.** El menú y la barra superior forman un marco en L sobre un gris azulado tomado del azul de la ESFM
+   (`--color-marco`); cada pantalla va en una hoja blanca con borde fino y sin sombra. Se va el menú azul oscuro.
+2. **Color.** El azul institucional (`--color-primario`) queda para la marca, la acción principal, la pestaña activa y
+   el dato principal (menos del 3 % de la pantalla). Los estados de la hoja de ruta usan un solo tono: gris pálido
+   mientras avanza, azul pálido en "Listo para entregar", verde al entregar y rojo al devolver. El rojo de un
+   indicador sale solo cuando pide atención y no es cero.
+3. **Tipografía.** IBM Plex Sans para todo e IBM Plex Mono solo para identificadores (N.º de hoja de ruta, CI,
+   códigos), servidas desde la propia web (OFL-1.1, sin CDN). Reemplaza a Inter.
+4. **Indicadores sin íconos.** Etiqueta y cifra en un solo panel dividido por líneas (`GrillaKpi`), sin ícono en un
+   cuadro de color.
+5. **El camino del trámite** (`CaminoTramites`): en el inicio de cada secretaría y de Kardex, los pasos del flujo con
+   su cantidad, unidos por una línea, como la marca de SISET (dos puntos unidos: Calahumana y Ancocagua). Debajo del
+   saludo, una frase dice lo pendiente, calculada de los datos.
+6. **Tablas.** Encabezados en minúscula y gris, sin banda; fechas y cifras a la derecha con dígitos tabulares; dentro
+   de una tarjeta, la tabla no dibuja un segundo marco.
+7. Solo en desarrollo, `?como=<id>` abre la demo con esa cuenta para revisar pantallas sin pasar por el login (no
+   llega al build de producción).

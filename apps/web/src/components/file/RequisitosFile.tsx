@@ -29,7 +29,7 @@ function Detalle({ r }: { r: RequisitoDelFile }) {
       {r.nroDocumento && <div>N.º: {r.nroDocumento}</div>}
       {r.observacion && <div className="text-amber-800">{r.observacion}</div>}
       {r.registradoPor && (
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-suave">
           Registró: {r.registradoPor.nombre}
           {r.actualizado ? ` · ${fechaHora(r.actualizado)}` : ''}
         </div>
@@ -75,19 +75,19 @@ export function RequisitosFile({
           {atrasados.map((r) => r.nombre).join(', ')}: son de un año que el estudiante ya pasó (D-31).
         </Alerta>
       )}
-      <ol className="divide-y divide-slate-200 rounded-lg border border-slate-200">
+      <ol className="divide-y divide-regla rounded-[10px] border border-borde">
         {data.map((r) => (
           <li
             key={r.codigo}
             aria-label={r.nombre}
-            className={`flex flex-col gap-2 p-3 sm:flex-row sm:items-start ${r.aplica ? '' : 'bg-slate-50 text-slate-400'}`}
+            className={`flex flex-col gap-2 p-3 sm:flex-row sm:items-start ${r.aplica ? '' : 'bg-[#f5f7fa] text-suave'}`}
           >
-            <span className="w-7 shrink-0 text-sm font-semibold text-slate-500">{r.orden}</span>
+            <span className="w-7 shrink-0 text-sm font-semibold text-suave">{r.orden}</span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h4 className={`font-medium ${r.aplica ? 'text-slate-900' : 'text-slate-500'}`}>{r.nombre}</h4>
-                {r.anioFormacion && <span className="text-xs text-slate-500">{ordinal(r.anioFormacion)} año</span>}
-                {!r.obligatorio && <span className="text-xs text-slate-500">(si corresponde)</span>}
+                <h4 className={`font-medium ${r.aplica ? 'text-tinta' : 'text-suave'}`}>{r.nombre}</h4>
+                {r.anioFormacion && <span className="text-xs text-suave">{ordinal(r.anioFormacion)} año</span>}
+                {!r.obligatorio && <span className="text-xs text-suave">(si corresponde)</span>}
                 {r.atrasado && (
                   <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700">Atrasado</span>
                 )}
@@ -97,7 +97,7 @@ export function RequisitosFile({
               ) : r.porGestion ? (
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   {r.gestionesEsperadas !== null && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-suave">
                       {new Set(r.gestiones.map((g) => g.gestion.slice(-4))).size} de {r.gestionesEsperadas}{' '}
                       {r.gestionesEsperadas === 1 ? 'año' : 'años'}
                     </span>
@@ -111,7 +111,7 @@ export function RequisitosFile({
                       type="button"
                       disabled={!editable}
                       onClick={() => setAbierto({ requisito: r, gestion: g })}
-                      className="rounded-lg border border-slate-200 px-2 py-1 text-left text-sm enabled:hover:bg-slate-50"
+                      className="rounded-[10px] border border-borde px-2 py-1 text-left text-sm enabled:hover:bg-[#f5f7fa]"
                       title={g.observacion ?? undefined}
                     >
                       <span className="font-medium">{g.gestion}</span> · {ETIQUETA_ESTADO[g.estado]}
@@ -119,7 +119,7 @@ export function RequisitosFile({
                   ))}
                 </div>
               ) : (
-                <dl className="mt-1 space-y-0.5 text-sm text-slate-600">
+                <dl className="mt-1 space-y-0.5 text-sm text-suave">
                   <Detalle r={r} />
                   {r.estado === 'PENDIENTE' && !r.registradoPor && (
                     <div className="text-amber-700">Aún no registrado</div>

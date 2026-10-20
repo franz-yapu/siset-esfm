@@ -48,7 +48,7 @@ export function TablaModalidades({ nuevo }: { nuevo: number }) {
       header: 'Código',
       sortValue: (m) => m.codigo,
       className: 'w-24',
-      render: (m) => <span className="font-semibold text-slate-900">{m.codigo}</span>,
+      render: (m) => <span className="font-semibold text-tinta">{m.codigo}</span>,
     },
     {
       key: 'nombre',
@@ -57,9 +57,9 @@ export function TablaModalidades({ nuevo }: { nuevo: number }) {
       sortValue: (m) => m.nombre,
       render: (m) => (
         <div className="min-w-0">
-          <p className="font-medium text-slate-900">{m.nombre}</p>
-          {m.descripcion && <p className="text-xs text-slate-500">{m.descripcion}</p>}
-          {!m.activo && <Badge className="mt-1 bg-red-50 text-red-700 ring-red-300">De baja</Badge>}
+          <p className="font-medium text-tinta">{m.nombre}</p>
+          {m.descripcion && <p className="text-xs text-suave">{m.descripcion}</p>}
+          {!m.activo && <Badge className="mt-1">De baja</Badge>}
         </div>
       ),
     },
@@ -99,7 +99,7 @@ export function TablaModalidades({ nuevo }: { nuevo: number }) {
 
   return (
     <>
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-sm text-suave">
         Los requisitos marcados para todas las modalidades también se piden a las que se agreguen después.
       </p>
       <DataTable columns={columnas} data={data} rowKey={(m) => m.id} pageSize={30} vacio="No hay modalidades." />

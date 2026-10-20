@@ -19,7 +19,7 @@ export function Paginacion({ pagina, porPagina, total, onCambiar, cargando }: Pr
   const desde = total === 0 ? 0 : (pagina - 1) * porPagina + 1;
   const hasta = Math.min(pagina * porPagina, total);
   return (
-    <nav aria-label="Paginación" className="flex items-center justify-between gap-3 text-sm text-slate-600">
+    <nav aria-label="Paginación" className="flex items-center justify-between gap-3 text-sm text-suave">
       <p aria-live="polite">{total === 0 ? 'Sin resultados' : `${desde}–${hasta} de ${total}`}</p>
       <div className="flex items-center gap-2">
         <Button

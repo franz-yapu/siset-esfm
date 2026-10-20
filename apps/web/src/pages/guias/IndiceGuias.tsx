@@ -45,12 +45,12 @@ export function IndiceGuias() {
           <Link
             key={g.ruta}
             to={g.ruta}
-            className="flex gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-acento"
+            className="flex gap-4 rounded-[10px] border border-borde bg-white p-5 transition-colors hover:border-acento"
           >
             <g.icono className="size-8 shrink-0 text-acento" aria-hidden />
             <span>
-              <span className="block font-semibold text-slate-900">{g.titulo}</span>
-              <span className="mt-1 block text-sm text-slate-600">{g.texto}</span>
+              <span className="block font-semibold text-tinta">{g.titulo}</span>
+              <span className="mt-1 block text-sm text-suave">{g.texto}</span>
             </span>
           </Link>
         ))}

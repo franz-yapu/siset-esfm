@@ -47,7 +47,7 @@ function Casilla({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-start gap-2 text-sm text-slate-700">
+    <label className="flex items-start gap-2 text-sm text-tinta">
       <input
         type="checkbox"
         className="mt-0.5 size-4 accent-acento"
@@ -57,7 +57,7 @@ function Casilla({
       />
       <span>
         {etiqueta}
-        {ayuda && <span className="block text-xs text-slate-500">{ayuda}</span>}
+        {ayuda && <span className="block text-xs text-suave">{ayuda}</span>}
       </span>
     </label>
   );
@@ -140,7 +140,7 @@ export function ModalRequisitoCatalogo({ requisito, onCerrar, onGuardado }: Prop
           rows={2}
         />
         <fieldset>
-          <legend className="mb-1 text-sm font-medium text-slate-700">Se pide a las modalidades</legend>
+          <legend className="mb-1 text-sm font-medium text-tinta">Se pide a las modalidades</legend>
           <div className="flex flex-wrap gap-4">
             {codigos.map((m) => (
               <Casilla key={m} etiqueta={m} checked={f.modalidades.includes(m)} onChange={() => alternar(m)} />

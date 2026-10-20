@@ -8,11 +8,13 @@ test('el inicio de Kardex muestra los files, los bloqueados y los en rojo, y lle
 }) => {
   const problemas = vigilarConsola(page);
   await iniciarSesion(page, 'kardex');
-  await expect(page.getByText('Files en rojo')).toBeVisible();
-  await expect(page.getByText('Trámites por recoger')).toBeVisible();
-  await expect(page.getByRole('main').getByRole('link', { name: 'Hojas de ruta' })).toBeVisible();
+  const main = page.getByRole('main');
+  await expect(main.getByRole('link', { name: /^En rojo/ })).toBeVisible();
+  // El camino de los trámites en Kardex (por recoger, en impresión, por remitir).
+  await expect(main.getByRole('region', { name: 'Trámites en Kardex' }).getByText('Por recoger')).toBeVisible();
+  await expect(main.getByRole('button', { name: 'Buscar file' })).toBeVisible();
 
-  await page.getByText('Files en rojo').click();
+  await main.getByRole('link', { name: /^En rojo/ }).click();
   await expect(page).toHaveURL(/\/files\?semaforo=ROJO/);
   await expect(page.getByLabel('Semáforo')).toHaveValue('ROJO');
   expect(problemas).toEqual([]);

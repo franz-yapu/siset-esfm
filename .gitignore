@@ -19,3 +19,4 @@ apps/web/e2e/.auth/
 
 # Copias de trabajo de los agentes de Claude Code
 .claude/worktrees/
+.taste-skill/

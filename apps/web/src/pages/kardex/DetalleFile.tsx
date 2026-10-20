@@ -43,7 +43,7 @@ function HistorialFile({ fileId }: { fileId: number }) {
         {
           key: 'cambio',
           header: 'Cambio',
-          render: (r) => <code className="text-xs break-all text-slate-500">{JSON.stringify(r.despues)}</code>,
+          render: (r) => <code className="text-xs break-all text-suave">{JSON.stringify(r.despues)}</code>,
         },
       ]}
     />
@@ -63,7 +63,12 @@ function TramitesFile({ fileId, ci }: { fileId: number; ci: string }) {
       onRowClick={(h) => nav(`/hojas-ruta/${h.nro}`)}
       vacio="Sin trámites registrados"
       columns={[
-        { key: 'nro', header: 'N.º HR', principal: true, render: (h) => <span className="font-medium">{h.nro}</span> },
+        {
+          key: 'nro',
+          header: 'N.º HR',
+          principal: true,
+          render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
+        },
         { key: 'tipo', header: 'Tipo', render: (h) => h.tipo.nombre },
         { key: 'estado', header: 'Estado', render: (h) => <EstadoHojaRutaBadge estado={h.estado} /> },
         { key: 'ingreso', header: 'Ingreso', ocultarEnMovil: true, render: (h) => fecha(h.fechaIngreso) },

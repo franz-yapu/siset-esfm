@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router';
-import { BellRing, FilePlus2, PackageCheck, Printer } from 'lucide-react';
+import { FilePlus2 } from 'lucide-react';
 import { useUsuario } from '@/hooks';
 import { useConteosHojasRuta } from '@/hooks/useHojasRuta';
 import { fecha } from '@/lib/formato';
-import { Alerta, Button, Card, Cargando, DataTable, EstadoHojaRutaBadge, KpiCard } from '@/components/ui';
-import { GrillaKpi, Saludo } from './comun';
+import { Alerta, Button, Card, Cargando, DataTable, EstadoHojaRutaBadge } from '@/components/ui';
+import { CaminoTramites } from '@/components/hojas/CaminoTramites';
+import { pendientes, Saludo } from './comun';
 
 /**
  * Lo que pasa en Ancocagua: los certificados que recibe Secretaría de Coordinación (D-32b, ADR-0011) por derivar y por
@@ -28,30 +29,31 @@ export function InicioSecCoord() {
   if (error || !data) return <Alerta tipo="error">{error?.message ?? 'No se pudo cargar el inicio'}</Alerta>;
   const [porDerivar, porEntregar, enImpresion] = data.totales;
 
+  // El certificado recibido en Ancocagua, en orden: se deriva a Kardex, se imprime y vuelve firmado para entregarlo.
+  const camino = [
+    { etiqueta: 'Por derivar a Kardex', texto: 'por derivar a Kardex', total: porDerivar, to: '/entregas' },
+    {
+      etiqueta: 'En impresión (Kardex)',
+      texto: 'en impresión',
+      total: enImpresion,
+      to: '/hojas-ruta?estado=EN_IMPRESION',
+    },
+    { etiqueta: 'Firmados, por entregar', texto: 'por entregar', total: porEntregar, to: '/entregas' },
+  ];
+
   return (
     <>
-      <Saludo nombre={u.nombre}>Secretaría de Coordinación · UA Ancocagua</Saludo>
-      <div className="mb-4">
-        <Button icon={FilePlus2} onClick={() => nav('/hojas-ruta/nueva')}>
-          Recibir un certificado
-        </Button>
-      </div>
-      <GrillaKpi>
-        <KpiCard titulo="Por derivar a Kardex" valor={porDerivar} icono={BellRing} color="ambar" to="/entregas" />
-        <KpiCard
-          titulo="Firmados, por entregar"
-          valor={porEntregar}
-          icono={PackageCheck}
-          color="violeta"
-          to="/entregas"
-        />
-        <KpiCard
-          titulo="En impresión (Kardex)"
-          valor={enImpresion}
-          icono={Printer}
-          to="/hojas-ruta?estado=EN_IMPRESION"
-        />
-      </GrillaKpi>
+      <Saludo
+        nombre={u.nombre}
+        acciones={
+          <Button icon={FilePlus2} onClick={() => nav('/hojas-ruta/nueva')}>
+            Recibir un certificado
+          </Button>
+        }
+      >
+        {pendientes(camino, 'No tienes certificados pendientes.', ['certificado', 'certificados'])}
+      </Saludo>
+      <CaminoTramites titulo="Certificados en Ancocagua" pasos={camino} />
       <Card
         title="Últimos trámites"
         actions={
@@ -69,7 +71,7 @@ export function InicioSecCoord() {
               key: 'nro',
               header: 'N.º HR',
               principal: true,
-              render: (h) => <span className="font-medium">{h.nro}</span>,
+              render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
             },
             { key: 'titular', header: 'Titular', render: (h) => h.titular.nombre },
             { key: 'tipo', header: 'Tipo', ocultarEnMovil: true, render: (h) => h.tipo.nombre },

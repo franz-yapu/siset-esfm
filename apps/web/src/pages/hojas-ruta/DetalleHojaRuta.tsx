@@ -87,7 +87,7 @@ export function DetalleHojaRuta() {
         acciones={
           <Link
             to={`/hojas-ruta/${h.nro}/caratula`}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-suave ring-1 ring-control hover:bg-[#f5f7fa]"
           >
             <Printer className="size-4" />
             Carátula
@@ -119,24 +119,24 @@ export function DetalleHojaRuta() {
           <Card title="Datos del trámite">
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <dt className="text-xs text-slate-500">Tipo</dt>
+                <dt className="text-xs text-suave">Tipo</dt>
                 <dd>{h.tipo.nombre}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-500">N.º de valorado</dt>
+                <dt className="text-xs text-suave">N.º de valorado</dt>
                 <dd>{h.nroValorado ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-500">Sede actual</dt>
+                <dt className="text-xs text-suave">Sede actual</dt>
                 <dd>{sedeHr(h.sedeActual.codigo)}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-500">Estado</dt>
+                <dt className="text-xs text-suave">Estado</dt>
                 <dd>{ESTADOS_HR[h.estado].etiqueta}</dd>
               </div>
               {h.fechaCierre && (
                 <div className="col-span-2">
-                  <dt className="text-xs text-slate-500">{h.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'}</dt>
+                  <dt className="text-xs text-suave">{h.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'}</dt>
                   <dd>{fecha(h.fechaCierre)}</dd>
                 </div>
               )}
@@ -154,8 +154,8 @@ export function DetalleHojaRuta() {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 text-sm">
-                <p className="font-medium text-slate-900">{h.titular.nombre}</p>
-                <p className="text-slate-500">CI {h.titular.ci}</p>
+                <p className="font-medium text-tinta">{h.titular.nombre}</p>
+                <p className="text-suave">CI {h.titular.ci}</p>
                 {h.titular.bloqueado && (
                   <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-700">
                     <Lock className="size-3.5" aria-hidden />
@@ -163,7 +163,7 @@ export function DetalleHojaRuta() {
                   </p>
                 )}
               </div>
-              <div className="shrink-0 rounded border border-slate-200 p-1.5" title="QR de seguimiento">
+              <div className="shrink-0 rounded border border-borde p-1.5" title="QR de seguimiento">
                 <QRCodeSVG value={urlSeguimiento(h.nro)} size={84} />
               </div>
             </div>

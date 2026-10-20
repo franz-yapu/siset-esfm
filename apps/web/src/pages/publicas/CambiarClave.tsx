@@ -93,7 +93,7 @@ export function FormClave({ onListo }: { onListo: (usuario: Usuario) => void }) 
                 />
               ))}
             </div>
-            <p className="mt-1 text-xs text-slate-500">Fuerza: {NIVELES[fuerza]}</p>
+            <p className="mt-1 text-xs text-suave">Fuerza: {NIVELES[fuerza]}</p>
           </div>
         )}
       </div>
@@ -105,7 +105,7 @@ export function FormClave({ onListo }: { onListo: (usuario: Usuario) => void }) 
         error={errores.passwordRepetida}
         autoComplete="new-password"
       />
-      <ul className="space-y-1 text-xs text-slate-500">
+      <ul className="space-y-1 text-xs text-suave">
         <li className={nueva.length >= 8 ? 'text-green-700' : ''}>• Mínimo 8 caracteres</li>
         <li className={combinaLetrasNumerosSimbolos(nueva) ? 'text-green-700' : ''}>• Letras, números y símbolos</li>
       </ul>
@@ -122,8 +122,8 @@ export function CambiarClave() {
   const nav = useNavigate();
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-lg font-semibold text-slate-900">Cambia tu contraseña</h1>
+      <div className="w-full max-w-sm rounded-[10px] border border-borde bg-white p-6">
+        <h1 className="text-lg font-semibold text-tinta">Cambia tu contraseña</h1>
         <Alerta tipo="aviso" className="my-4">
           Tu contraseña es temporal (la asignó Kardex). Antes de continuar, elige una nueva.
         </Alerta>

@@ -36,7 +36,7 @@ export function RequisitosModalidad() {
           </Button>
         }
       />
-      <div role="group" aria-label="Vista" className="mb-4 inline-flex rounded-lg border border-slate-200 bg-white p-1">
+      <div role="group" aria-label="Vista" className="mb-5 inline-flex rounded-lg bg-[#eef1f4] p-1">
         {(
           [
             ['requisitos', 'Requisitos'],
@@ -52,8 +52,8 @@ export function RequisitosModalidad() {
               setNuevo(0);
             }}
             className={clsx(
-              'rounded-md px-3 py-1.5 text-sm font-medium',
-              vista === id ? 'bg-acento text-white' : 'text-slate-600 hover:bg-slate-100',
+              'h-8 rounded-md px-3 text-sm transition-colors',
+              vista === id ? 'bg-white font-medium text-tinta ring-1 ring-borde' : 'text-suave hover:text-tinta',
             )}
           >
             {texto}
@@ -133,7 +133,7 @@ function TablaRequisitos({ nuevo }: { nuevo: number }) {
   };
 
   const columnas: Columna<RequisitoAdmin>[] = [
-    { key: 'orden', header: 'N.º', sortValue: (r) => r.orden, className: 'w-12 tabular-nums', ocultarEnMovil: true },
+    { key: 'orden', header: 'N.º', numerica: true, sortValue: (r) => r.orden, className: 'w-12', ocultarEnMovil: true },
     {
       key: 'nombre',
       header: 'Requisito',
@@ -141,14 +141,14 @@ function TablaRequisitos({ nuevo }: { nuevo: number }) {
       sortValue: (r) => r.nombre,
       render: (r) => (
         <div className="min-w-0">
-          <p className="font-medium text-slate-900">{r.nombre}</p>
+          <p className="font-medium text-tinta">{r.nombre}</p>
           <div className="mt-1 flex flex-wrap gap-1">
             {!r.obligatorio && <Badge>Si corresponde</Badge>}
             {r.anioFormacion && <Badge>{r.anioFormacion}.º año</Badge>}
             {r.porGestion && <Badge>Por gestión</Badge>}
             {r.soloGenero === 'MASCULINO' && <Badge>Solo varones</Badge>}
             {r.soloGenero === 'FEMENINO' && <Badge>Solo mujeres</Badge>}
-            {!r.activo && <Badge className="bg-red-50 text-red-700 ring-red-300">De baja</Badge>}
+            {!r.activo && <Badge>De baja</Badge>}
           </div>
         </div>
       ),
@@ -167,7 +167,7 @@ function TablaRequisitos({ nuevo }: { nuevo: number }) {
             onChange={() => void alternar(r, m)}
             aria-label={`Pedir "${r.nombre}" a la modalidad ${m}`}
           />
-          <span className="text-xs text-slate-500 sm:hidden">{m}</span>
+          <span className="text-xs text-suave sm:hidden">{m}</span>
         </label>
       ),
     })),

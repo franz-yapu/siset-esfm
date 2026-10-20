@@ -17,12 +17,12 @@ function Pantalla({
   const { usuario } = useAuth();
   return (
     <div className="flex flex-col items-center px-4 py-16 text-center">
-      <span className="flex size-20 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <span className="flex size-20 items-center justify-center rounded-full bg-[#eef1f4] text-suave">
         <Icono className="size-10" />
       </span>
-      <p className="mt-4 text-sm font-semibold text-slate-400">{codigo}</p>
-      <h1 className="mt-1 text-xl font-semibold text-slate-900">{titulo}</h1>
-      <p className="mt-2 max-w-sm text-sm text-slate-500">{texto}</p>
+      <p className="mt-4 text-sm font-semibold text-suave">{codigo}</p>
+      <h1 className="mt-1 text-xl font-semibold text-tinta">{titulo}</h1>
+      <p className="mt-2 max-w-sm text-sm text-suave">{texto}</p>
       <Link
         to={usuario ? rutaInicio(usuario.rol) : '/login'}
         className="mt-6 rounded-lg bg-primario px-4 py-2 text-sm font-medium text-white hover:bg-primario-oscuro"

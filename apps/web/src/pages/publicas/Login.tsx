@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
-import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
+import clsx from 'clsx';
+import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
@@ -11,6 +12,8 @@ import { authService } from '@/services/auth.service';
 import { todoMock } from '@/services/_modo';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
 import { guiasDeTesis } from '@/pages/guias/visibilidad';
+import { Marca } from '@/components/layout/Marca';
+import { CAMINO } from '@/config/camino-tramite';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -73,30 +76,45 @@ export function Login() {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="hidden flex-col justify-between bg-primario p-12 text-white lg:flex">
-        <div className="flex items-center gap-2 text-sm text-sky-100">
-          <Route className="size-5" />
-          ESFM “Mcal. Andrés de Santa Cruz y Calahumana”
+    <div className="grid min-h-screen bg-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* El marco de SISET: quién es la escuela y el camino que sigue cada hoja de ruta entre las dos sedes. */}
+      <div className="flex flex-col gap-8 bg-marco px-6 py-6 sm:px-10 lg:justify-between lg:p-12">
+        <div className="flex items-center gap-3">
+          <Marca conNombre={false} />
+          <p className="text-sm text-suave">ESFM “Mcal. Andrés de Santa Cruz y Calahumana”</p>
         </div>
-        <div>
-          <h1 className="text-4xl font-semibold">SISET</h1>
-          <p className="mt-2 text-lg text-sky-100">Sistema de Gestión y Seguimiento de Trámites</p>
-          <p className="mt-8 max-w-md text-2xl leading-snug font-light">
-            Seguimiento de trámites en línea, de La Paz a Ancocagua.
+        <div className="max-w-md">
+          <h1 className="text-[28px] leading-9 font-semibold text-tinta">SISET · Seguimiento de trámites</h1>
+          <p className="mt-2 text-[15px] text-suave">
+            Cada hoja de ruta, paso a paso, entre Calahumana (La Paz) y la Unidad Académica Ancocagua.
           </p>
+          <ol className="mt-8 hidden lg:block" aria-label="El camino de un trámite">
+            {CAMINO.map((p, i) => (
+              <li key={p.paso} className="flex gap-3">
+                <span className="flex flex-col items-center" aria-hidden>
+                  <span
+                    className={clsx(
+                      'mt-1.5 size-2.5 shrink-0 rounded-full',
+                      i === 0 || i === CAMINO.length - 1 ? 'bg-primario' : 'border-[1.5px] border-primario bg-marco',
+                    )}
+                  />
+                  {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-control" />}
+                </span>
+                <span className="pb-4">
+                  <span className="block text-sm font-medium text-tinta">{p.paso}</span>
+                  <span className="block text-[13px] text-suave">{p.donde}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
-        <p className="text-xs text-sky-200">Unidad Académica Ancocagua · Pucarani</p>
+        <p className="hidden text-[13px] text-suave lg:block">Unidad Académica Ancocagua · Pucarani</p>
       </div>
 
-      <div className="flex items-center justify-center px-4 py-10">
+      <div className="flex justify-center px-4 py-8 sm:py-10 lg:items-center">
         <div className="w-full max-w-sm">
-          <div className="mb-6 lg:hidden">
-            <h1 className="text-2xl font-semibold text-primario">SISET</h1>
-            <p className="text-sm text-slate-500">Seguimiento de trámites · UA Ancocagua</p>
-          </div>
-          <form onSubmit={enviar} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm" noValidate>
-            <h2 className="mb-5 text-lg font-semibold text-slate-900">Iniciar sesión</h2>
+          <form onSubmit={enviar} className="rounded-[10px] border border-borde bg-white p-6" noValidate>
+            <h2 className="mb-5 text-lg font-semibold text-tinta">Iniciar sesión</h2>
             <div className="space-y-4">
               {motivoCierre && !escribio && !error && <Alerta tipo="info">{MENSAJE_CIERRE[motivoCierre]}</Alerta>}
               <Input
@@ -121,7 +139,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setVer(!ver)}
-                  className="absolute top-7 right-2 rounded p-1 text-slate-400 hover:text-slate-600"
+                  className="absolute top-[30px] right-1.5 rounded p-1 text-suave hover:text-tinta"
                   aria-label={ver ? 'Ocultar contraseña' : 'Ver contraseña'}
                 >
                   {ver ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -141,9 +159,9 @@ export function Login() {
 
           <Link
             to="/seguimiento"
-            className="mt-4 flex items-center gap-3 rounded-xl border-2 border-dashed border-acento/40 bg-sky-50 p-4 text-sm font-medium text-primario hover:border-acento"
+            className="mt-4 flex items-center gap-3 rounded-[10px] border border-borde p-4 text-sm font-medium text-tinta transition-colors hover:border-control hover:bg-[#f7f9fb]"
           >
-            <QrCode className="size-8 shrink-0 text-acento" />
+            <QrCode className="size-6 shrink-0 text-primario" strokeWidth={1.5} />
             ¿Eres egresado? Consulta tu trámite sin iniciar sesión
           </Link>
 
@@ -198,20 +216,21 @@ function UsuariosPrueba({
 }) {
   const [abierto, setAbierto] = useState(!DEMO);
   return (
-    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 text-sm">
+    <div className="mt-4 rounded-[10px] bg-[#f5f7fa] text-sm">
       <button
         type="button"
         onClick={() => setAbierto(!abierto)}
         aria-expanded={abierto}
-        className="flex w-full items-center justify-between px-4 py-3 font-medium text-amber-900"
+        className="flex w-full items-center justify-between px-4 py-3 font-medium text-tinta"
       >
         Usuarios de prueba <ChevronDown className={`size-4 transition-transform ${abierto ? 'rotate-180' : ''}`} />
       </button>
       {abierto && (
-        <div className="border-t border-amber-200 px-2 pb-2">
-          {aviso && <p className="px-2 pt-2 text-xs text-amber-800">{aviso}</p>}
-          <p className="px-2 py-2 text-xs text-amber-800">
-            Contraseña de todos: <code className="font-semibold">{password}</code>. Clic en una fila para autocompletar.
+        <div className="border-t border-borde px-2 pb-2">
+          {aviso && <p className="px-2 pt-2 text-[13px] text-suave">{aviso}</p>}
+          <p className="px-2 py-2 text-[13px] text-suave">
+            Contraseña de todos: <code className="font-mono font-medium text-tinta">{password}</code>. Clic en una fila
+            para autocompletar.
           </p>
           <ul>
             {cuentas.map((c) => (
@@ -219,11 +238,11 @@ function UsuariosPrueba({
                 <button
                   type="button"
                   onClick={() => onElegir(c.usuario, password)}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-amber-100"
+                  className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-activo"
                 >
                   <span className="min-w-0">
-                    <code className="text-slate-800">{c.usuario}</code>
-                    {c.detalle && <span className="block truncate text-xs text-slate-600">{c.detalle}</span>}
+                    <code className="font-mono text-tinta">{c.usuario}</code>
+                    {c.detalle && <span className="block truncate text-xs text-suave">{c.detalle}</span>}
                   </span>
                   <RolBadge rol={c.rol} />
                 </button>

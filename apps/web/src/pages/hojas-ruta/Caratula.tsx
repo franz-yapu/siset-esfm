@@ -40,7 +40,7 @@ export function Caratula() {
       <div className="no-print mx-auto mb-4 flex max-w-[8.5in] justify-between gap-2 px-4">
         <Link
           to={`/hojas-ruta/${h.nro}`}
-          className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900"
+          className="inline-flex items-center gap-1 text-sm text-suave hover:text-tinta"
         >
           <ArrowLeft className="size-4" />
           Volver al trámite
@@ -62,7 +62,7 @@ function Hoja({ h }: { h: DetalleHojaRuta }) {
   const sedeIngreso = h.sedeIngreso.codigo === 'ANCOCAGUA' ? 'ANCOCAGUA' : 'LA_PAZ';
   const pasos = pasosDelFlujo(flujoDe(h.tipo.requiereValorado, sedeIngreso));
   return (
-    <article className="mx-auto min-h-[11in] max-w-[8.5in] bg-white p-[0.75in] text-slate-900 shadow-lg print:min-h-0 print:max-w-none print:p-0 print:shadow-none">
+    <article className="mx-auto min-h-[11in] max-w-[8.5in] bg-white p-[0.75in] text-tinta shadow-lg print:min-h-0 print:max-w-none print:p-0 print:shadow-none">
       <header className="flex items-start justify-between gap-6 border-b-2 border-slate-900 pb-4">
         <div className="text-xs leading-relaxed uppercase">
           <p className="font-bold">Estado Plurinacional de Bolivia · Ministerio de Educación</p>
@@ -74,7 +74,7 @@ function Hoja({ h }: { h: DetalleHojaRuta }) {
       </header>
       <h1 className="mt-6 text-center text-lg font-bold tracking-wide uppercase">Hoja de ruta</h1>
       <p className="text-center text-3xl font-bold tracking-widest">{h.nro}</p>
-      <p className="mt-1 text-center text-xs text-slate-500">Consulte el estado en línea escaneando el código QR</p>
+      <p className="mt-1 text-center text-xs text-suave">Consulte el estado en línea escaneando el código QR</p>
 
       <table className="mt-6 w-full border border-slate-900 text-sm">
         <tbody className="[&_td]:border [&_td]:border-slate-900 [&_td]:px-3 [&_td]:py-2">
@@ -120,7 +120,7 @@ function Hoja({ h }: { h: DetalleHojaRuta }) {
               <tr key={p.hacia} className="h-12 [&_td]:border [&_td]:border-slate-900 [&_td]:px-2">
                 <td>
                   {ESTADOS_HR[p.hacia].etiqueta}
-                  <span className="block text-xs text-slate-500">{sedeHr(p.sede)}</span>
+                  <span className="block text-xs text-suave">{sedeHr(p.sede)}</span>
                 </td>
                 <td className="text-xs">{hecho ? hecho.usuario.nombre : RESPONSABLE[p.rol]}</td>
                 <td className="text-xs">{hecho ? fecha(hecho.fecha) : ''}</td>
@@ -130,7 +130,7 @@ function Hoja({ h }: { h: DetalleHojaRuta }) {
           })}
         </tbody>
       </table>
-      <p className="mt-6 text-xs text-slate-500">
+      <p className="mt-6 text-xs text-suave">
         Documento generado por SISET. Cada paso se registra también en el sistema.
       </p>
     </article>

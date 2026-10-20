@@ -26,7 +26,7 @@ export function AvisoInactividad({
         </>
       }
     >
-      <p className="text-sm text-slate-700" aria-live="polite">
+      <p className="text-sm text-tinta" aria-live="polite">
         Por seguridad, tu sesión se cerrará en <strong>{segundos ?? 0} s</strong> por inactividad.
       </p>
     </Modal>

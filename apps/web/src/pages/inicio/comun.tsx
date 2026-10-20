@@ -1,16 +1,35 @@
 import type { ReactNode } from 'react';
 import { primerNombre } from '@/lib/formato';
 
-/** Saludo de los inicios por rol. */
-export function Saludo({ nombre, children }: { nombre: string; children?: ReactNode }) {
+/**
+ * Cabecera de los inicios por rol: el saludo como título y, debajo, lo que hay que hacer hoy (calculado de los datos);
+ * a la derecha, la acción más frecuente del puesto.
+ */
+export function Saludo({ nombre, children, acciones }: { nombre: string; children?: ReactNode; acciones?: ReactNode }) {
   return (
-    <div className="mb-5">
-      <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">Hola, {primerNombre(nombre)}</h1>
-      {children && <p className="mt-1 text-sm text-slate-500">{children}</p>}
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="text-[22px] leading-7 font-semibold text-tinta">Hola, {primerNombre(nombre)}</h1>
+        {children && <p className="mt-1 text-[15px] text-suave">{children}</p>}
+      </div>
+      {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}
     </div>
   );
 }
 
-export function GrillaKpi({ children }: { children: ReactNode }) {
-  return <div className="mb-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">{children}</div>;
+/**
+ * "Tienes 1 trámite por recoger y 2 por remitir": los pasos con algo pendiente, en una frase. El sustantivo va en el
+ * primero, en singular o plural según su cantidad.
+ */
+export function pendientes(
+  pasos: { total: number; texto: string }[],
+  nada: string,
+  sustantivo: [string, string] = ['trámite', 'trámites'],
+): string {
+  const con = pasos.filter((p) => p.total > 0);
+  if (con.length === 0) return nada;
+  const partes = con.map((p, i) =>
+    i === 0 ? `${p.total} ${sustantivo[p.total === 1 ? 0 : 1]} ${p.texto}` : `${p.total} ${p.texto}`,
+  );
+  return partes.length === 1 ? `Tienes ${partes[0]}.` : `Tienes ${partes.slice(0, -1).join(', ')} y ${partes.at(-1)}.`;
 }

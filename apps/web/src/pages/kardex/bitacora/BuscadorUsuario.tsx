@@ -45,12 +45,12 @@ export function BuscadorUsuario({ valor, onCambiar }: Props) {
   if (valor) {
     return (
       <div>
-        <span className="mb-1 block text-sm font-medium text-slate-700">Usuario</span>
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+        <span className="mb-1 block text-sm font-medium text-tinta">Usuario</span>
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-control bg-[#f5f7fa] px-3 py-2 text-sm">
           <span className="truncate">{valor.nombre ?? `Usuario #${valor.id}`}</span>
           <button
             type="button"
-            className="rounded p-0.5 text-slate-500 hover:bg-slate-200"
+            className="rounded p-0.5 text-suave hover:bg-slate-200"
             aria-label="Quitar filtro de usuario"
             onClick={() => onCambiar(null)}
           >
@@ -63,7 +63,7 @@ export function BuscadorUsuario({ valor, onCambiar }: Props) {
 
   return (
     <div className="relative">
-      <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-tinta">
         Usuario
       </label>
       <input
@@ -80,22 +80,22 @@ export function BuscadorUsuario({ valor, onCambiar }: Props) {
           if (e.target.value.trim().length < MIN_CARACTERES) setAbierto(false);
         }}
         onBlur={() => setTimeout(() => setAbierto(false), 150)}
-        className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-acento focus:ring-2 focus:ring-acento/20 focus:outline-none"
+        className="block w-full rounded-lg border border-control bg-white px-3 py-2 text-sm text-tinta placeholder:text-suave focus:border-acento focus:ring-2 focus:ring-acento/20 focus:outline-none"
       />
       {abierto && (
         <ul
           id={`${id}-lista`}
           role="listbox"
-          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-[10px] border border-borde bg-white py-1 shadow-lg"
         >
           {opciones.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-slate-500">Sin coincidencias</li>
+            <li className="px-3 py-2 text-sm text-suave">Sin coincidencias</li>
           ) : (
             opciones.map((u) => (
               <li key={u.id} role="option" aria-selected={false}>
                 <button
                   type="button"
-                  className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-[#f5f7fa]"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     setTexto('');
@@ -103,7 +103,7 @@ export function BuscadorUsuario({ valor, onCambiar }: Props) {
                     onCambiar(u);
                   }}
                 >
-                  {u.nombre} <span className="text-slate-500">· {u.usuario}</span>
+                  {u.nombre} <span className="text-suave">· {u.usuario}</span>
                 </button>
               </li>
             ))

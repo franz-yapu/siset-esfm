@@ -6,7 +6,7 @@ export { Semaforo } from './Semaforo';
 export { Timeline, type PasoTimeline } from './Timeline';
 export { ProgresoPasos } from './ProgresoPasos';
 export { DataTable, type Columna } from './DataTable';
-export { KpiCard } from './KpiCard';
+export { GrillaKpi, KpiCard } from './KpiCard';
 export { Modal } from './Modal';
 export { Tabs, type Tab } from './Tabs';
 export { EmptyState } from './EmptyState';

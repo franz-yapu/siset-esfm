@@ -59,7 +59,7 @@ export function Modal({ open, title, onClose, footer, size = 'md', children, cer
   if (!open) return null;
   return createPortal(
     <div
-      className="no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4"
+      className="no-print fixed inset-0 z-50 flex items-end justify-center bg-[#14181f]/45 p-0 sm:items-center sm:p-4"
       onMouseDown={(e) => cerrable && e.target === e.currentTarget && onClose()}
     >
       <div
@@ -69,15 +69,15 @@ export function Modal({ open, title, onClose, footer, size = 'md', children, cer
         aria-labelledby="modal-titulo"
         className={clsx('flex max-h-[92vh] w-full flex-col rounded-t-xl bg-white shadow-xl sm:rounded-xl', ANCHO[size])}
       >
-        <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-3">
-          <h2 id="modal-titulo" className="text-base font-semibold text-slate-900">
+        <header className="flex items-center justify-between gap-4 border-b border-regla px-5 py-3">
+          <h2 id="modal-titulo" className="text-base font-semibold text-tinta">
             {title}
           </h2>
           {cerrable && (
             <button
               type="button"
               onClick={onClose}
-              className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-md p-1 text-suave hover:bg-activo hover:text-tinta"
               aria-label="Cerrar"
             >
               <X className="size-5" />
@@ -86,7 +86,7 @@ export function Modal({ open, title, onClose, footer, size = 'md', children, cer
         </header>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
         {footer && (
-          <footer className="flex flex-wrap justify-end gap-2 border-t border-slate-200 px-5 py-3">{footer}</footer>
+          <footer className="flex flex-wrap justify-end gap-2 border-t border-regla px-5 py-3">{footer}</footer>
         )}
       </div>
     </div>,

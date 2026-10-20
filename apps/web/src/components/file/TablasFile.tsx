@@ -16,9 +16,7 @@ export function TablaMatriculas({ file }: { file: FileAcademico }) {
           key: 'estado',
           header: 'Estado',
           render: (m) => (
-            <Badge className={m.estado === 'Vigente' ? 'bg-sky-50 text-sky-700 ring-sky-300' : undefined}>
-              {m.estado}
-            </Badge>
+            <Badge className={m.estado === 'Vigente' ? 'bg-[#e4edf6] text-[#173b5c]' : undefined}>{m.estado}</Badge>
           ),
         },
       ]}
@@ -40,11 +38,7 @@ export function TablaResultados({ file }: { file: FileAcademico }) {
           header: 'Resultado',
           render: (r) => (
             <Badge
-              className={
-                r.resultado === 'APROBADO'
-                  ? 'bg-green-50 text-green-700 ring-green-300'
-                  : 'bg-red-50 text-red-700 ring-red-300'
-              }
+              className={r.resultado === 'APROBADO' ? 'bg-[#dcfae5] text-[#04250e]' : 'bg-[#ffedea] text-[#831c1e]'}
             >
               {r.resultado === 'APROBADO' ? 'Aprobado' : 'Reprobado'}
             </Badge>

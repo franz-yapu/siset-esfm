@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Bar, Line } from 'react-chartjs-2';
-import { AlertTriangle, CheckCircle2, Clock, Layers, Loader, Undo2 } from 'lucide-react';
 import '@/lib/graficos';
 import { AZUL, AZUL_OSCURO } from '@/lib/graficos';
 import type { FiltrosReporte } from '@/types/hojas-ruta';
@@ -10,6 +9,7 @@ import { ESTADOS_HR, sedeHr } from '@/config/estados-hoja-ruta';
 import { diasTexto } from '@/lib/formato';
 import {
   Alerta,
+  GrillaKpi,
   Card,
   Cargando,
   DataTable,
@@ -40,7 +40,7 @@ export function Reportes() {
   return (
     <>
       <PageHeader titulo="Reportes" subtitulo="Indicadores de trámites (RF-13)" />
-      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-3">
+      <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-3">
         <Input
           label="Ingreso desde"
           type="date"
@@ -72,19 +72,17 @@ export function Reportes() {
         !error && <Cargando />
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <KpiCard titulo="Total de trámites" valor={k.total} icono={Layers} />
-            <KpiCard titulo="En curso" valor={k.enCurso} icono={Loader} color="violeta" />
-            <KpiCard titulo="Entregados" valor={k.entregados} icono={CheckCircle2} color="verde" />
-            <KpiCard titulo="Devueltos con observación" valor={k.devueltos} icono={Undo2} color="ambar" />
+          <GrillaKpi columnas={6}>
+            <KpiCard titulo="Total de trámites" valor={k.total} />
+            <KpiCard titulo="En curso" valor={k.enCurso} />
+            <KpiCard titulo="Entregados" valor={k.entregados} />
+            <KpiCard titulo="Devueltos con observación" valor={k.devueltos} />
             <KpiCard
               titulo="Tiempo promedio a la entrega"
               valor={k.tiempoPromedioDias === null ? '—' : `${k.tiempoPromedioDias} d`}
-              icono={Clock}
-              color="gris"
             />
-            <KpiCard titulo="Atrasados > 72 horas" valor={k.detenidos.length} icono={AlertTriangle} color="rojo" />
-          </div>
+            <KpiCard alerta titulo="Atrasados > 72 horas" valor={k.detenidos.length} />
+          </GrillaKpi>
           <div className="mb-4 grid gap-4 lg:grid-cols-2">
             <Card title="Trámites por estado">
               <div className="h-72">

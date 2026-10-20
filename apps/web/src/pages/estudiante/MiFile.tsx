@@ -8,8 +8,8 @@ import { RequisitosFile } from '@/components/file/RequisitosFile';
 
 const Dato = ({ titulo, valor }: { titulo: string; valor: string | null }) => (
   <div>
-    <dt className="text-xs text-slate-500">{titulo}</dt>
-    <dd className="text-sm text-slate-800">{valor || '—'}</dd>
+    <dt className="text-xs text-suave">{titulo}</dt>
+    <dd className="text-sm text-tinta">{valor || '—'}</dd>
   </div>
 );
 
@@ -51,7 +51,7 @@ export function MiFile() {
           </dl>
         )}
       </Card>
-      <p className="mt-3 text-xs text-slate-500">Vista de solo lectura. Si encuentras un error, acércate a Kardex.</p>
+      <p className="mt-3 text-xs text-suave">Vista de solo lectura. Si encuentras un error, acércate a Kardex.</p>
     </>
   );
 }

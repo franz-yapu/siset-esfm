@@ -96,7 +96,7 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
               key: 'nro',
               header: 'N.º HR',
               principal: true,
-              render: (h) => <span className="font-medium">{h.nro}</span>,
+              render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
             },
             { key: 'tipo', header: 'Tipo' },
             { key: 'ingreso', header: 'Ingreso', render: (h) => fecha(h.fechaIngreso) },
@@ -116,7 +116,7 @@ export function SeccionesDemoFile({ fileId, tab, editable, onCambio }: Props) {
             {
               key: 'cambio',
               header: 'Cambio',
-              render: (r) => <code className="text-xs break-all text-slate-500">{JSON.stringify(r.despues)}</code>,
+              render: (r) => <code className="text-xs break-all text-suave">{JSON.stringify(r.despues)}</code>,
             },
           ]}
         />

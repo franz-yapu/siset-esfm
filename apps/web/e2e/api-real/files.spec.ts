@@ -29,7 +29,10 @@ test.describe.serial('E11 · files', () => {
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
     await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
-    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+    await page
+      .getByRole('row')
+      .filter({ hasText: `CI ${CI}` })
+      .click();
     await page.getByLabel('Celular').fill('70000001');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByText('Datos actualizados')).toBeVisible();
@@ -53,7 +56,10 @@ test.describe.serial('E11 · files', () => {
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
     await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
-    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+    await page
+      .getByRole('row')
+      .filter({ hasText: `CI ${CI}` })
+      .click();
 
     await page.getByRole('button', { name: 'Bloquear', exact: true }).click();
     const modal = page.getByRole('dialog', { name: 'Bloquear file' });
@@ -91,7 +97,10 @@ test.describe.serial('E11 · files', () => {
     await irA(page, '/files');
     await page.getByLabel('Buscar').fill(CI);
     await expect(page).toHaveURL(new RegExp(`texto=${CI}`));
-    await page.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+    await page
+      .getByRole('row')
+      .filter({ hasText: `CI ${CI}` })
+      .click();
     await page.getByRole('tab', { name: 'Requisitos' }).click();
     const tacfi = 'Certificado legalizado de TACFI – Artístico I';
     const tarjeta = page.getByRole('listitem', { name: tacfi, exact: true });
@@ -110,7 +119,10 @@ test.describe.serial('E11 · files', () => {
     await irA(coordinador, '/files');
     await coordinador.getByLabel('Buscar').fill(CI);
     await expect(coordinador).toHaveURL(new RegExp(`texto=${CI}`));
-    await coordinador.getByRole('row', { name: new RegExp(`^${CI} `) }).click();
+    await coordinador
+      .getByRole('row')
+      .filter({ hasText: `CI ${CI}` })
+      .click();
     await coordinador.getByRole('tab', { name: 'Requisitos' }).click();
     const vista = coordinador.getByRole('listitem', { name: tacfi, exact: true });
     await expect(vista.getByText('Completo')).toBeVisible();

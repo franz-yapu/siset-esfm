@@ -17,7 +17,7 @@ export function Tabs({ tabs, activa, onChange, className }: Props) {
   return (
     <div
       role="tablist"
-      className={clsx('-mx-4 flex gap-1 overflow-x-auto border-b border-slate-200 px-4 sm:mx-0 sm:px-0', className)}
+      className={clsx('-mx-4 flex gap-5 overflow-x-auto border-b border-borde px-4 sm:mx-0 sm:px-0', className)}
     >
       {tabs.map((t) => (
         <button
@@ -27,20 +27,15 @@ export function Tabs({ tabs, activa, onChange, className }: Props) {
           aria-selected={activa === t.id}
           onClick={() => onChange(t.id)}
           className={clsx(
-            '-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+            '-mb-px flex h-10 shrink-0 items-center gap-1.5 border-b-2 text-sm whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-acento',
             activa === t.id
-              ? 'border-acento text-acento'
-              : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
+              ? 'border-primario font-medium text-tinta'
+              : 'border-transparent text-suave hover:border-control hover:text-tinta',
           )}
         >
           {t.label}
           {t.count !== undefined && (
-            <span
-              className={clsx(
-                'rounded-full px-1.5 text-xs tabular-nums',
-                activa === t.id ? 'bg-acento text-white' : 'bg-slate-200 text-slate-600',
-              )}
-            >
+            <span className={clsx('text-[13px] tabular-nums', activa === t.id ? 'text-tinta' : 'text-suave')}>
               {t.count}
             </span>
           )}

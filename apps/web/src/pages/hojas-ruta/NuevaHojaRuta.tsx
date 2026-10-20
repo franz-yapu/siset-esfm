@@ -123,10 +123,10 @@ export function NuevaHojaRuta() {
                 inputMode="search"
                 error={intento ? 'Selecciona un titular' : null}
               />
-              <Search className="pointer-events-none absolute top-9 right-3 size-4 text-slate-400" />
+              <Search className="pointer-events-none absolute top-9 right-3 size-4 text-suave" />
               {lista.length > 0 && (
                 <ul
-                  className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg"
+                  className="absolute z-10 mt-1 w-full overflow-hidden rounded-[10px] border border-borde bg-white shadow-lg"
                   role="listbox"
                 >
                   {lista.map((f) => (
@@ -137,7 +137,7 @@ export function NuevaHojaRuta() {
                           setTitular(f);
                           setIntento(false);
                         }}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-[#f5f7fa]"
                       >
                         <span>
                           <span className="font-medium">{f.ci}</span> · {f.nombre}
@@ -149,17 +149,17 @@ export function NuevaHojaRuta() {
                 </ul>
               )}
               {buscado.length >= 2 && sugerencias && lista.length === 0 && (
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-suave">
                   No hay files de egresados con ese dato. Pide a Kardex que registre o actualice el file.
                 </p>
               )}
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3">
+              <div className="flex items-start justify-between gap-3 rounded-[10px] border border-borde p-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{titular.nombre}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-semibold text-tinta">{titular.nombre}</p>
+                  <p className="text-sm text-suave">
                     CI {titular.ci} · {titular.especialidad}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export function NuevaHojaRuta() {
                     setTexto('');
                     setErrorTitular(null);
                   }}
-                  className="rounded p-1 text-slate-400 hover:bg-slate-100"
+                  className="rounded p-1 text-suave hover:bg-[#eef1f4]"
                   aria-label="Cambiar titular"
                 >
                   <X className="size-4" />
@@ -214,7 +214,7 @@ export function NuevaHojaRuta() {
                 inputMode="numeric"
               />
             ) : (
-              tipoElegido && <p className="text-sm text-slate-500">Este trámite no lleva valorado.</p>
+              tipoElegido && <p className="text-sm text-suave">Este trámite no lleva valorado.</p>
             )}
             <Textarea
               label="Observación (opcional)"
@@ -268,13 +268,13 @@ export function NuevaHojaRuta() {
         {creada && (
           <div className="flex flex-col items-center text-center">
             <CheckCircle2 className="size-10 text-green-600" />
-            <p className="mt-2 text-sm text-slate-500">Código generado</p>
+            <p className="mt-2 text-sm text-suave">Código generado</p>
             <p className="text-2xl font-bold tracking-wide text-primario">{creada.nro}</p>
-            <div className="my-4 rounded-lg border border-slate-200 p-3">
+            <div className="my-4 rounded-[10px] border border-borde p-3">
               <QRCodeSVG value={urlSeguimiento(creada.nro)} size={168} />
             </div>
-            <p className="text-xs break-all text-slate-500">{urlSeguimiento(creada.nro)}</p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="text-xs break-all text-suave">{urlSeguimiento(creada.nro)}</p>
+            <p className="mt-2 text-sm text-suave">
               {creada.titular.nombre} · {creada.tipo.nombre}
             </p>
           </div>

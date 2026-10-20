@@ -35,16 +35,16 @@ export function MisTramites() {
             <li key={t.nro}>
               <Link
                 to={`/mis-tramites/${t.nro}`}
-                className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-acento hover:shadow-md"
+                className="block rounded-[10px] border border-borde bg-white p-4 transition-colors hover:border-control hover:bg-[#f7f9fb]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-slate-900">{t.nro}</p>
-                    <p className="text-sm text-slate-500">{t.tipo}</p>
+                    <p className="font-semibold text-tinta">{t.nro}</p>
+                    <p className="text-sm text-suave">{t.tipo}</p>
                   </div>
                   <EstadoBadge estado={t.estado} />
                 </div>
-                <p className="mt-3 text-xs text-slate-500">Ingresó el {fecha(t.fechaIngreso)}</p>
+                <p className="mt-3 text-xs text-suave">Ingresó el {fecha(t.fechaIngreso)}</p>
               </Link>
             </li>
           ))}
@@ -71,7 +71,7 @@ export function MiTramite() {
           <>
             <Link
               to="/mis-tramites"
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-suave hover:bg-[#eef1f4]"
             >
               <ArrowLeft className="size-4" />
               Volver
@@ -89,7 +89,7 @@ export function MiTramite() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card title="Estado actual">
           <EstadoBadge estado={t.estado} className="text-sm" />
-          <p className="mt-3 flex items-center gap-1 text-sm text-slate-600">
+          <p className="mt-3 flex items-center gap-1 text-sm text-suave">
             <MapPin className="size-4" />
             {nombreSede(t.sedeActualId)}
           </p>

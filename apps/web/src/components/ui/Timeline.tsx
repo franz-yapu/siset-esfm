@@ -41,26 +41,24 @@ export function Timeline({
         const actual = i === 0;
         return (
           <li key={`${m.etiqueta}-${m.fecha}-${i}`} className="relative flex gap-3 pb-5 last:pb-0">
-            {i < lista.length - 1 && (
-              <span aria-hidden className="absolute top-5 left-[9px] h-full w-0.5 bg-slate-200" />
-            )}
+            {i < lista.length - 1 && <span aria-hidden className="absolute top-5 left-[9px] h-full w-px bg-borde" />}
             <span
               aria-hidden
               className={clsx(
                 'relative z-10 mt-0.5 size-5 shrink-0 rounded-full border-4 border-white',
                 m.punto,
-                actual && 'ring-4 ring-acento/25',
+                actual && 'ring-2 ring-[#c9d7e5]',
               )}
             />
-            <div className={clsx('min-w-0 flex-1 rounded-lg px-3 py-2', actual ? 'bg-sky-50 ring-1 ring-sky-200' : '')}>
+            <div className={clsx('min-w-0 flex-1 rounded-lg px-3 py-2', actual ? 'bg-[#f5f7fa]' : '')}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <p className={clsx('text-sm', actual ? 'font-semibold text-slate-900' : 'font-medium text-slate-700')}>
+                <p className={clsx('text-sm', actual ? 'font-semibold text-tinta' : 'font-medium text-tinta')}>
                   {m.etiqueta}
-                  {actual && <span className="ml-2 text-xs font-normal text-acento">Estado actual</span>}
+                  {actual && <span className="ml-2 text-xs font-normal text-suave">Estado actual</span>}
                 </p>
-                <time className="text-xs text-slate-500">{fechaHora(m.fecha)}</time>
+                <time className="text-xs text-suave">{fechaHora(m.fecha)}</time>
               </div>
-              <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-slate-500">
+              <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-suave">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="size-3" aria-hidden />
                   {m.sede}
@@ -72,7 +70,7 @@ export function Timeline({
                   </span>
                 )}
               </p>
-              {m.obs && <p className="mt-1 text-xs text-slate-600 italic">“{m.obs}”</p>}
+              {m.obs && <p className="mt-1 text-xs text-suave italic">“{m.obs}”</p>}
             </div>
           </li>
         );

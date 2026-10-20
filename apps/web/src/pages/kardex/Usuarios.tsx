@@ -26,9 +26,9 @@ const POR_PAGINA = 20;
 const ESPERA_BUSQUEDA = 300;
 
 const ESTADO: Record<EstadoUsuario, { texto: string; clase: string }> = {
-  ACTIVO: { texto: 'Activo', clase: 'bg-green-50 text-green-700 ring-green-300' },
-  INACTIVO: { texto: 'Inactivo', clase: 'bg-slate-100 text-slate-600 ring-slate-300' },
-  BLOQUEADO: { texto: 'Bloqueado', clase: 'bg-red-50 text-red-700 ring-red-300' },
+  ACTIVO: { texto: 'Activo', clase: 'bg-[#dcfae5] text-[#04250e]' },
+  INACTIVO: { texto: 'Inactivo', clase: 'bg-[#eef1f4] text-[#2b3440]' },
+  BLOQUEADO: { texto: 'Bloqueado', clase: 'bg-[#ffedea] text-[#831c1e]' },
 };
 
 type TipoAccion = 'restablecer' | 'desbloquear' | 'baja' | 'alta';
@@ -143,7 +143,7 @@ export function Usuarios() {
           </Button>
         }
       />
-      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-4">
+      <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-4">
         <Input
           label="Buscar"
           placeholder="CI o nombre"

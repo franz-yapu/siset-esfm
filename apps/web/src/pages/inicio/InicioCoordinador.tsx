@@ -1,14 +1,14 @@
 import { useNavigate } from 'react-router';
 import { Bar } from 'react-chartjs-2';
-import { CheckCircle2, Clock, PenLine } from 'lucide-react';
+import { PenLine } from 'lucide-react';
 import '@/lib/graficos';
 import { AZUL } from '@/lib/graficos';
 import { useUsuario } from '@/hooks';
 import { useResumenCoordinador } from '@/hooks/useHojasRuta';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import { diasDesde, diasTexto } from '@/lib/formato';
-import { Alerta, Button, Card, Cargando, DataTable, KpiCard } from '@/components/ui';
-import { GrillaKpi, Saludo } from './comun';
+import { Alerta, Button, Card, Cargando, DataTable, GrillaKpi, KpiCard } from '@/components/ui';
+import { Saludo } from './comun';
 
 /**
  * P-14 · Inicio Coordinador contra GET /hojas-ruta (D-20): los trámites que esperan su firma, los que están en
@@ -23,17 +23,15 @@ export function InicioCoordinador() {
 
   return (
     <>
-      <Saludo nombre={u.nombre}>Coordinación Académica · UA Ancocagua</Saludo>
-      <GrillaKpi>
-        <KpiCard titulo="Esperan tu firma" valor={r.firmar.length} icono={PenLine} color="violeta" to="/firmas" />
-        <KpiCard titulo="Trámites en curso" valor={r.enCurso} icono={Clock} color="ambar" to="/hojas-ruta" />
-        <KpiCard
-          titulo="Entregados"
-          valor={r.entregados}
-          icono={CheckCircle2}
-          color="verde"
-          to="/hojas-ruta?estado=ENTREGADO"
-        />
+      <Saludo nombre={u.nombre}>
+        {r.firmar.length === 0
+          ? 'No hay certificados esperando tu firma.'
+          : `${r.firmar.length} ${r.firmar.length === 1 ? 'certificado espera' : 'certificados esperan'} tu firma.`}
+      </Saludo>
+      <GrillaKpi columnas={3}>
+        <KpiCard alerta titulo="Esperan tu firma" valor={r.firmar.length} to="/firmas" />
+        <KpiCard titulo="Trámites en curso" valor={r.enCurso} to="/hojas-ruta" />
+        <KpiCard titulo="Entregados" valor={r.entregados} to="/hojas-ruta?estado=ENTREGADO" />
       </GrillaKpi>
       <div className="grid gap-4 xl:grid-cols-5">
         <Card title="Esperan tu firma (más antiguos primero)" className="xl:col-span-3">
@@ -47,7 +45,7 @@ export function InicioCoordinador() {
                 key: 'nro',
                 header: 'N.º HR',
                 principal: true,
-                render: (h) => <span className="font-medium">{h.nro}</span>,
+                render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
               },
               { key: 'titular', header: 'Titular', render: (h) => h.titular.nombre },
               { key: 'tipo', header: 'Tipo', ocultarEnMovil: true, render: (h) => h.tipo.nombre },
@@ -70,7 +68,7 @@ export function InicioCoordinador() {
               data={{
                 labels: r.porEstado.map((e) => ESTADOS_HR[e.estado].etiqueta),
                 datasets: [
-                  { label: 'Trámites', data: r.porEstado.map((e) => e.total), backgroundColor: AZUL, borderRadius: 4 },
+                  { label: 'Trámites', data: r.porEstado.map((e) => e.total), backgroundColor: AZUL, borderRadius: 2 },
                 ],
               }}
               options={{

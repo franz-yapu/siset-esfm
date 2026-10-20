@@ -69,7 +69,7 @@ export function HojasRuta() {
           )
         }
       />
-      <div className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input label="Buscar" placeholder="N.º, nombre o CI" value={texto} onChange={(e) => setTexto(e.target.value)} />
         <Select
           label="Estado"
@@ -124,18 +124,32 @@ export function HojasRuta() {
             key: 'nro',
             header: 'N.º HR',
             principal: true,
-            render: (h) => <span className="font-medium">{h.nro}</span>,
+            render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
           },
-          { key: 'titular', header: 'Titular', render: (h) => h.titular.nombre },
-          { key: 'ci', header: 'CI', render: (h) => h.titular.ci },
+          {
+            key: 'titular',
+            header: 'Titular',
+            render: (h) => (
+              <>
+                <span className="block">{h.titular.nombre}</span>
+                <span className="block font-mono text-xs text-suave">CI {h.titular.ci}</span>
+              </>
+            ),
+          },
           { key: 'tipo', header: 'Tipo', ocultarEnMovil: true, render: (h) => h.tipo.nombre },
           { key: 'estado', header: 'Estado', render: (h) => <EstadoHojaRutaBadge estado={h.estado} /> },
-          { key: 'sede', header: 'Sede actual', render: (h) => sedeHr(h.sedeActual) },
-          { key: 'ingreso', header: 'Ingreso', render: (h) => fecha(h.fechaIngreso) },
+          { key: 'sede', header: 'Sede actual', className: 'whitespace-nowrap', render: (h) => sedeHr(h.sedeActual) },
+          { key: 'ingreso', header: 'Ingreso', numerica: true, render: (h) => fecha(h.fechaIngreso) },
           {
             key: 'dias',
-            header: 'Días',
-            render: (h) => (h.fechaCierre ? `Entregado ${fecha(h.fechaCierre)}` : diasTexto(diasDesde(h.fechaIngreso))),
+            header: 'En curso',
+            numerica: true,
+            render: (h) =>
+              h.fechaCierre ? (
+                <span className="whitespace-nowrap text-suave">Cerró {fecha(h.fechaCierre).slice(0, 5)}</span>
+              ) : (
+                diasTexto(diasDesde(h.fechaIngreso))
+              ),
           },
         ]}
       />

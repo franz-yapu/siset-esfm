@@ -74,7 +74,7 @@ export function CargaMasiva() {
                   ? 'bg-primario text-white'
                   : i < paso
                     ? 'bg-green-100 text-green-800'
-                    : 'bg-slate-200 text-slate-600',
+                    : 'bg-slate-200 text-suave',
               )}
             >
               {i + 1}. {p}
@@ -97,12 +97,12 @@ export function CargaMasiva() {
             onDrop={soltar}
             className={clsx(
               'mt-4 flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed px-4 py-12 text-center',
-              arrastrando ? 'border-acento bg-sky-50' : 'border-slate-300',
+              arrastrando ? 'border-acento bg-sky-50' : 'border-control',
             )}
           >
-            <Upload className="size-8 text-slate-400" />
-            <span className="mt-2 font-medium text-slate-700">Arrastra aquí el archivo Excel</span>
-            <span className="text-sm text-slate-500">o haz clic para elegirlo (.xlsx)</span>
+            <Upload className="size-8 text-suave" />
+            <span className="mt-2 font-medium text-tinta">Arrastra aquí el archivo Excel</span>
+            <span className="text-sm text-suave">o haz clic para elegirlo (.xlsx)</span>
             <input
               type="file"
               accept=".xlsx,.xls,.csv"
@@ -174,7 +174,7 @@ export function CargaMasiva() {
             <p className="mt-3 text-lg font-semibold">
               {resumen.importados} importados, {resumen.errores} con error
             </p>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-suave">
               Los files nuevos quedan con requisitos pendientes. La operación quedó en la bitácora.
             </p>
             <Button className="mt-4" variant="secondary" onClick={reiniciar}>

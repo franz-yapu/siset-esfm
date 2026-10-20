@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import type { ColorSemaforo, FileAcademico } from '@/types';
 import { iniciales } from '@/lib/formato';
@@ -42,26 +43,26 @@ export function CabeceraFile({ file: f, acciones }: { file: DatosCabeceraFile; a
           {f.motivoBloqueo ? `${f.motivoBloqueo}. ` : ''}No se puede dictaminar ni emitir documentos. Acércate a Kardex.
         </Alerta>
       )}
-      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primario text-xl font-semibold text-white">
+      <div className="flex flex-col gap-4 rounded-[10px] border border-borde bg-white p-4 sm:flex-row sm:items-center">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e4edf6] text-base font-medium text-[#173b5c]">
           {iniciales(nombre)}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{nombre}</h1>
+            <h1 className="text-[22px] leading-7 font-semibold text-tinta">{nombre}</h1>
             <Badge>{f.condicion === 'EGRESADO' ? 'Egresado' : 'Estudiante'}</Badge>
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-sm md:grid-cols-4">
             {datos.map(([k, v]) => (
               <div key={k}>
-                <dt className="text-xs text-slate-500">{k}</dt>
-                <dd className="text-slate-800">{v}</dd>
+                <dt className="text-[13px] text-suave">{k}</dt>
+                <dd className={clsx('text-tinta', (k === 'CI' || k === 'Código') && 'font-mono text-[13px]')}>{v}</dd>
               </div>
             ))}
           </dl>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
-          {f.semaforo && <Semaforo color={f.semaforo} texto={textoSemaforo(f.semaforo, f.bloqueado)} size="lg" />}
+          {f.semaforo && <Semaforo color={f.semaforo} texto={textoSemaforo(f.semaforo, f.bloqueado)} />}
           {acciones}
         </div>
       </div>

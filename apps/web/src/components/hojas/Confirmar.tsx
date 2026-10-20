@@ -49,7 +49,7 @@ export function Confirmar({
         </>
       }
     >
-      <div className="text-sm text-slate-600">{children}</div>
+      <div className="text-sm text-suave">{children}</div>
     </Modal>
   );
 }

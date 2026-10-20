@@ -8,6 +8,8 @@ import { ROLES, rutaInicio } from '@/config/permisos';
 import { authService } from '@/services/auth.service';
 import { iniciales, primerNombre } from '@/lib/formato';
 import { todoMock } from '@/services/_modo';
+import { Breadcrumb } from './Breadcrumb';
+import { Marca } from './Marca';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -43,28 +45,30 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
   };
 
   return (
-    <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-slate-200 bg-white px-3 sm:px-4">
+    // Sobre el marco, sin regla: en escritorio lleva la ruta de navegación; en celular, el menú y la marca.
+    <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-2 bg-marco px-3 sm:px-4 lg:h-12 lg:px-2">
       <button
         type="button"
         onClick={onMenu}
-        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+        className="rounded-md p-2 text-suave hover:bg-activo lg:hidden"
         aria-label="Abrir menú"
       >
         <Menu className="size-5" />
       </button>
-      <Link to={rutaInicio(usuario.rol)} className="min-w-0 truncate font-semibold text-primario">
-        SISET <span className="hidden font-normal text-slate-500 sm:inline">· UA Ancocagua</span>
+      <Link to={rutaInicio(usuario.rol)} className="min-w-0 lg:hidden" aria-label="SISET, inicio">
+        <Marca />
       </Link>
+      <Breadcrumb rol={usuario.rol} className="hidden lg:flex" />
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
         {DEMO && (
-          <label className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-800 ring-1 ring-amber-200">
-            <span className="hidden sm:inline">Ver como:</span>
+          <label className="flex h-8 items-center gap-1.5 rounded-md border border-control bg-white px-2 text-[13px] text-suave">
+            <span className="hidden sm:inline">Ver como</span>
             <select
               value={usuario.id}
               onChange={(e) => cambiarRol(Number(e.target.value))}
               aria-label="Ver como"
-              className="max-w-28 bg-transparent font-medium focus:outline-none sm:max-w-none"
+              className="max-w-28 bg-transparent font-medium text-tinta focus:outline-none sm:max-w-none"
             >
               {authService.usuariosDemo().map((u) => (
                 <option key={u.id} value={u.id}>
@@ -79,29 +83,29 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
           <button
             type="button"
             onClick={() => setCampana(!campana)}
-            className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+            className="relative rounded-md p-2 text-suave hover:bg-activo"
             aria-label={`Alertas (${avisos.length})`}
             aria-expanded={campana}
           >
             <Bell className="size-5" />
             {avisos.length > 0 && (
-              <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-semibold text-white">
+              <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c4242a] px-1 text-[11px] leading-none font-medium text-white tabular-nums">
                 {avisos.length}
               </span>
             )}
           </button>
           {campana && (
-            <div className="absolute right-0 mt-2 w-72 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-              <p className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase">Alertas</p>
+            <div className="absolute right-0 mt-2 w-72 rounded-[10px] border border-borde bg-white py-1 shadow-lg">
+              <p className="px-3 py-2 text-[13px] font-medium text-suave">Alertas</p>
               {avisos.length === 0 ? (
-                <p className="px-3 pb-3 text-sm text-slate-500">No tienes alertas pendientes.</p>
+                <p className="px-3 pb-3 text-sm text-suave">No tienes alertas pendientes.</p>
               ) : (
                 avisos.map((a) => (
                   <Link
                     key={a.texto}
                     to={a.to}
                     onClick={() => setCampana(false)}
-                    className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    className="block px-3 py-2 text-sm text-tinta hover:bg-[#f5f7fa]"
                   >
                     {a.texto}
                   </Link>
@@ -115,26 +119,26 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
           <button
             type="button"
             onClick={() => setMenu(!menu)}
-            className="flex items-center gap-2 rounded-lg p-1 pr-2 hover:bg-slate-100"
+            className="flex items-center gap-2 rounded-md p-1 pr-2 hover:bg-activo"
             aria-expanded={menu}
             aria-label="Menú de usuario"
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-primario text-xs font-semibold text-white">
+            <span className="flex size-7 items-center justify-center rounded-full bg-activo text-xs font-medium text-tinta">
               {iniciales(usuario.nombre)}
             </span>
-            <span className="hidden text-sm text-slate-700 md:inline">{primerNombre(usuario.nombre)}</span>
-            <ChevronDown className="hidden size-4 text-slate-400 md:inline" />
+            <span className="hidden text-sm text-tinta md:inline">{primerNombre(usuario.nombre)}</span>
+            <ChevronDown className="hidden size-4 text-suave md:inline" />
           </button>
           {menu && (
-            <div className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-              <div className="border-b border-slate-100 px-3 py-2">
-                <p className="truncate text-sm font-medium text-slate-800">{usuario.nombre}</p>
-                <p className="text-xs text-slate-500">{ROLES[usuario.rol].nombre}</p>
+            <div className="absolute right-0 mt-2 w-60 rounded-[10px] border border-borde bg-white py-1 shadow-lg">
+              <div className="border-b border-regla px-3 py-2">
+                <p className="truncate text-sm font-medium text-tinta">{usuario.nombre}</p>
+                <p className="text-xs text-suave">{ROLES[usuario.rol].nombre}</p>
               </div>
               <Link
                 to="/perfil"
                 onClick={() => setMenu(false)}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-tinta hover:bg-[#f5f7fa]"
               >
                 <UserCircle className="size-4" />
                 Mi perfil

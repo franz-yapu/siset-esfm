@@ -7,7 +7,7 @@ import { nombreCompleto } from '@/lib/reglas';
 /** Hoja tamaño carta con encabezado institucional y marca de agua opcional (P-45). */
 export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vistaPrevia?: boolean }) {
   return (
-    <article className="relative mx-auto aspect-[8.5/11] w-full max-w-[8.5in] overflow-hidden bg-white p-[7%] text-[13px] leading-relaxed text-slate-900 shadow ring-1 ring-slate-200 print:aspect-auto print:shadow-none print:ring-0">
+    <article className="relative mx-auto aspect-[8.5/11] w-full max-w-[8.5in] overflow-hidden bg-white p-[7%] text-[13px] leading-relaxed text-tinta shadow ring-1 ring-slate-200 print:aspect-auto print:shadow-none print:ring-0">
       {vistaPrevia && (
         <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span className="-rotate-35 text-[clamp(2rem,9vw,5.5rem)] font-black tracking-widest whitespace-nowrap text-red-500/15 select-none">
@@ -47,7 +47,7 @@ export function PlantillaHistorial({ f }: { f: FileAcademico }) {
       </p>
       <table className="mt-4 w-full border border-slate-900 text-[12px]">
         <thead>
-          <tr className="bg-slate-100 [&_th]:border [&_th]:border-slate-900 [&_th]:px-2 [&_th]:py-1">
+          <tr className="bg-[#eef1f4] [&_th]:border [&_th]:border-slate-900 [&_th]:px-2 [&_th]:py-1">
             <th>Año de formación</th>
             <th>Gestión</th>
             <th>Resultado</th>
@@ -84,7 +84,7 @@ export function PlantillaTCLO({ f }: { f: FileAcademico }) {
         {f.especialidad}, acreditó el nivel <strong>{r.nivel ?? '—'}</strong> según certificado N.º{' '}
         <strong>{r.nro ?? '—'}</strong>.
       </p>
-      <p className="mt-3 text-[11px] text-slate-500">
+      <p className="mt-3 text-[11px] text-suave">
         (Texto provisional: la definición oficial de TCLO está pendiente, D-04.)
       </p>
       <Lugar />
@@ -101,7 +101,7 @@ export function PlantillaTACFI({ f }: { f: FileAcademico }) {
         Se hace constar que <strong>{nombreCompleto(f)}</strong>, con C.I. <strong>{f.ci}</strong>, entregó en Kardex la
         documentación TACFI en fecha {f.requisitos.TACFI.fecha ? fechaLarga(f.requisitos.TACFI.fecha) : '—'}.
       </p>
-      <p className="mt-3 text-[11px] text-slate-500">
+      <p className="mt-3 text-[11px] text-suave">
         (Texto provisional: la definición oficial de TACFI está pendiente, D-04.)
       </p>
       <Lugar />

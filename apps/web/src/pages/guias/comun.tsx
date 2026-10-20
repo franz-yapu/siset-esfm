@@ -37,11 +37,11 @@ export function PaginaGuia({
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <h1 className="text-2xl font-bold text-slate-900">{titulo}</h1>
-        <p className="mt-1 text-slate-600">{subtitulo}</p>
+        <h1 className="text-2xl font-bold text-tinta">{titulo}</h1>
+        <p className="mt-1 text-suave">{subtitulo}</p>
         {apartados.length > 0 && (
-          <nav aria-label="Contenido" className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-            <p className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Contenido</p>
+          <nav aria-label="Contenido" className="mt-5 rounded-[10px] border border-borde bg-white p-4">
+            <p className="mb-2 text-[13px] font-medium text-suave">Contenido</p>
             <ol className="grid gap-1 text-sm sm:grid-cols-2">
               {apartados.map((a, i) => (
                 <li key={a.id}>
@@ -54,7 +54,7 @@ export function PaginaGuia({
           </nav>
         )}
         <div className="mt-6 space-y-6">{children}</div>
-        <p className="mt-10 text-center text-xs text-slate-500">
+        <p className="mt-10 text-center text-xs text-suave">
           SISET · ESFM “Mcal. Andrés de Santa Cruz y Calahumana” · UA Ancocagua
         </p>
       </main>
@@ -64,9 +64,9 @@ export function PaginaGuia({
 
 export function Seccion({ id, titulo, children }: { id: string; titulo: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="mb-3 text-lg font-semibold text-slate-900">{titulo}</h2>
-      <div className="space-y-3 text-sm leading-relaxed text-slate-700 [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc">
+    <section id={id} className="scroll-mt-4 rounded-[10px] border border-borde bg-white p-5">
+      <h2 className="mb-3 text-lg font-semibold text-tinta">{titulo}</h2>
+      <div className="space-y-3 text-sm leading-relaxed text-tinta [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc">
         {children}
       </div>
     </section>
@@ -74,12 +74,12 @@ export function Seccion({ id, titulo, children }: { id: string; titulo: string; 
 }
 
 export const Subtitulo = ({ children }: { children: ReactNode }) => (
-  <h3 className="pt-2 font-semibold text-slate-900">{children}</h3>
+  <h3 className="pt-2 font-semibold text-tinta">{children}</h3>
 );
 
 /** Ruta de un archivo del repositorio. */
 export const Archivo = ({ children }: { children: ReactNode }) => (
-  <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.8rem] break-all text-primario">{children}</code>
+  <code className="rounded bg-[#eef1f4] px-1.5 py-0.5 text-[0.8rem] break-all text-primario">{children}</code>
 );
 
 /** Nombre de una función, constante o tabla. */
@@ -94,8 +94,8 @@ export const Nota = ({ children }: { children: ReactNode }) => (
 /** Pregunta desplegable (defensa, preguntas frecuentes). */
 export function Pregunta({ p, children }: { p: string; children: ReactNode }) {
   return (
-    <details className="group rounded-lg border border-slate-200 p-3 open:bg-slate-50">
-      <summary className="cursor-pointer font-medium text-slate-900 marker:text-acento">{p}</summary>
+    <details className="group rounded-[10px] border border-borde p-3 open:bg-[#f5f7fa]">
+      <summary className="cursor-pointer font-medium text-tinta marker:text-acento">{p}</summary>
       <div className="mt-2 space-y-2">{children}</div>
     </details>
   );
@@ -107,7 +107,7 @@ export function Tabla({ cabecera, filas }: { cabecera: readonly string[]; filas:
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-300 text-xs tracking-wide text-slate-500 uppercase">
+          <tr className="border-b border-borde text-[13px] text-suave">
             {cabecera.map((c) => (
               <th key={c} className="py-2 pr-4 font-semibold">
                 {c}
@@ -117,7 +117,7 @@ export function Tabla({ cabecera, filas }: { cabecera: readonly string[]; filas:
         </thead>
         <tbody>
           {filas.map((f, i) => (
-            <tr key={i} className="border-b border-slate-100 align-top">
+            <tr key={i} className="border-b border-regla align-top">
               {f.map((c, j) => (
                 <td key={j} className="py-2 pr-4">
                   {c}

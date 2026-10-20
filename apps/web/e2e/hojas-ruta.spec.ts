@@ -60,7 +60,10 @@ test('el Coordinador ve en su inicio lo que espera su firma y lo firma desde el 
 test('Kardex recoge un trámite avisado desde su inicio', async ({ page }) => {
   const problemas = vigilarConsola(page);
   await iniciarSesion(page, 'kardex');
-  await page.getByText('Trámites por recoger').click();
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: /^Por recoger/ })
+    .click();
   // La bandeja "Recojo y remisión" (DEC-041): elegir el trámite abre el panel con el paso de Kardex.
   await expect(page).toHaveURL(/\/revision$/);
   await expect(page.getByRole('tab', { name: /Por recoger/ })).toHaveAttribute('aria-selected', 'true');

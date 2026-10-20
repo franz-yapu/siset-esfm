@@ -1,15 +1,41 @@
 @import 'tailwindcss';
 
+/*
+ * Estilo "hoja en un marco" (tasteskill, framed-sheet): el menú y la barra superior comparten un marco teñido del azul de
+ * la ESFM; el trabajo va en una hoja blanca con borde fino y sin sombra. El azul institucional se reserva para la marca,
+ * la acción principal, la pestaña activa y el dato principal de cada pantalla (menos del 3 % de la pantalla).
+ */
 @theme {
-  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-primario: #1f4e79;
   --color-primario-oscuro: #173b5c;
-  --color-acento: #2e75b6;
-  --color-fondo: #f5f7fa;
+  --color-acento: #1f5f99;
+  /* El marco (menú y barra) y el fondo de la página fuera de la hoja. */
+  --color-fondo: #f0f3f7;
+  --color-marco: #f0f3f7;
+  /* Ítem activo del menú: un paso más oscuro que el marco, sin color. */
+  --color-activo: #e1e7ee;
+  /* Líneas en tres pasos: borde de hoja y tarjetas, reglas de filas, bordes de controles. */
+  --color-borde: #e3e7ec;
+  --color-regla: #eef1f4;
+  --color-control: #c9d1da;
+  --color-tinta: #14181f;
+  --color-suave: #525c69;
+}
+
+html {
+  font-size: 100%;
 }
 
 body {
-  @apply bg-fondo text-slate-800 antialiased;
+  @apply bg-fondo font-sans text-tinta antialiased;
+}
+
+/* Cifras que se comparan (tablas, contadores, fechas): tabulares. */
+.cifras,
+table {
+  font-variant-numeric: tabular-nums;
 }
 
 @media print {

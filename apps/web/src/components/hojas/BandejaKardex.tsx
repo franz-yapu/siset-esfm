@@ -88,7 +88,7 @@ export function BandejaKardex({
                 key: 'nro',
                 header: 'N.º HR',
                 principal: true,
-                render: (h) => <span className="font-medium">{h.nro}</span>,
+                render: (h) => <span className="font-mono text-[13px] font-medium whitespace-nowrap">{h.nro}</span>,
               },
               { key: 'titular', header: 'Titular', render: (h) => h.titular.nombre },
               { key: 'tipo', header: 'Tipo', ocultarEnMovil: true, render: (h) => h.tipo.nombre },
@@ -130,13 +130,13 @@ const ICONO_REQUISITO = {
 
 function Requisitos({ lista }: { lista: RequisitoDelFile[] }) {
   const obligatorios = lista.filter((r) => r.obligatorio && r.aplica);
-  if (!obligatorios.length) return <p className="text-sm text-slate-500">Sin requisitos obligatorios cargados.</p>;
+  if (!obligatorios.length) return <p className="text-sm text-suave">Sin requisitos obligatorios cargados.</p>;
   return (
     <ul className="space-y-1.5 text-sm">
       {obligatorios.map((r) => (
         <li key={r.codigo} className="flex items-center gap-2">
           {ICONO_REQUISITO[r.atrasado ? 'OBSERVADO' : r.estado]}
-          <span className={r.estado === 'COMPLETO' ? 'text-slate-700' : 'text-amber-800'}>
+          <span className={r.estado === 'COMPLETO' ? 'text-tinta' : 'text-amber-800'}>
             {r.nombre}
             {r.atrasado ? ' (atrasado)' : ''}
           </span>
@@ -201,7 +201,7 @@ function Panel({
         <button
           type="button"
           onClick={onCerrar}
-          className="rounded p-1 text-slate-400 hover:bg-slate-100"
+          className="rounded p-1 text-suave hover:bg-[#eef1f4]"
           aria-label="Cerrar panel"
         >
           <X className="size-4" />
@@ -212,8 +212,8 @@ function Panel({
         <Cargando />
       ) : (
         <>
-          <p className="font-medium text-slate-900">{h.titular.nombre}</p>
-          <p className="text-sm text-slate-500">
+          <p className="font-medium text-tinta">{h.titular.nombre}</p>
+          <p className="text-sm text-suave">
             {h.tipo.nombre} · CI {h.titular.ci}
             {h.nroValorado && ` · valorado ${h.nroValorado}`}
           </p>
@@ -224,14 +224,14 @@ function Panel({
           )}
           {mostrarPases && (
             <>
-              <h3 className="mt-4 mb-2 text-sm font-semibold text-slate-700">Envíos entre sedes</h3>
+              <h3 className="mt-4 mb-2 text-sm font-semibold text-tinta">Envíos entre sedes</h3>
               <ul className="space-y-1.5 text-sm">
                 {h.movimientos
                   .filter((m) => m.accion in PASOS_DE_PASE)
                   .map((m) => (
                     <li key={`${m.accion}-${m.fecha}`}>
-                      <span className="font-medium text-slate-800">{PASOS_DE_PASE[m.accion]}</span>
-                      <span className="text-slate-500">
+                      <span className="font-medium text-tinta">{PASOS_DE_PASE[m.accion]}</span>
+                      <span className="text-suave">
                         {' '}
                         · {m.usuario.nombre} · {fechaHora(m.fecha)}
                       </span>
@@ -242,15 +242,15 @@ function Panel({
           )}
           {conRequisitos && !mostrarPases && (
             <>
-              <h3 className="mt-4 mb-2 text-sm font-semibold text-slate-700">Requisitos obligatorios del file</h3>
+              <h3 className="mt-4 mb-2 text-sm font-semibold text-tinta">Requisitos obligatorios del file</h3>
               {cargandoReq || !requisitos ? <Cargando /> : <Requisitos lista={requisitos} />}
               <Link to={`/files/${h.titular.fileId}`} className="mt-2 inline-block text-sm text-acento hover:underline">
                 Abrir el file
               </Link>
             </>
           )}
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-            {h.acciones.length === 0 && <p className="text-sm text-slate-500">{esperando}</p>}
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-regla pt-4">
+            {h.acciones.length === 0 && <p className="text-sm text-suave">{esperando}</p>}
             {h.acciones.map((a) => (
               <Button
                 key={a.accion}

@@ -11,10 +11,10 @@ interface Props {
 
 export function Card({ title, actions, children, className, padding = true }: Props) {
   return (
-    <section className={clsx('min-w-0 rounded-lg border border-slate-200 bg-white shadow-sm', className)}>
+    <section data-tarjeta className={clsx('min-w-0 rounded-[10px] border border-borde bg-white', className)}>
       {(title || actions) && (
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
-          {title && <h2 className="text-sm font-semibold text-slate-800">{title}</h2>}
+        <header className="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-regla px-4 py-2.5">
+          {title && <h2 className="text-[15px] font-semibold text-tinta">{title}</h2>}
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>
       )}

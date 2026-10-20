@@ -44,7 +44,7 @@ test('con la API, el inicio de Kardex muestra solo los indicadores de files', as
   await page.getByRole('button', { name: /ingresar|iniciar/i }).click();
 
   await expect(page.getByText('152')).toBeVisible();
-  await expect(page.getByText('Files en rojo')).toBeVisible();
+  await expect(page.getByRole('main').getByRole('link', { name: /^En rojo/ })).toBeVisible();
   await expect(page.getByText('Trámites en revisión')).toHaveCount(0);
   await expect(page.getByRole('main').getByRole('link', { name: 'Revisión de trámites' })).toHaveCount(0);
   expect(pedidos.some((q) => q.get('bloqueado') === 'true')).toBe(true);

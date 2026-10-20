@@ -10,8 +10,8 @@ export function Badge({ className, children }: { className?: string; children: R
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-        className ?? 'bg-slate-100 text-slate-700 ring-slate-300',
+        'inline-flex h-[22px] flex-none items-center gap-1.5 rounded-full px-2 text-xs font-medium whitespace-nowrap',
+        className ?? 'bg-[#eef1f4] text-[#2b3440]',
       )}
     >
       {children}
@@ -25,7 +25,12 @@ export function EstadoBadge({ estado, className }: { estado: EstadoTramite; clas
 
 /** Estados de la hoja de ruta de la API (ADR-0005). */
 export function EstadoHojaRutaBadge({ estado, className }: { estado: EstadoHojaRuta; className?: string }) {
-  return <Badge className={clsx(ESTADOS_HR[estado].badge, className)}>{ESTADOS_HR[estado].etiqueta}</Badge>;
+  return (
+    <Badge className={clsx(ESTADOS_HR[estado].badge, className)}>
+      <span aria-hidden className={clsx('size-1.5 rounded-full', ESTADOS_HR[estado].punto)} />
+      {ESTADOS_HR[estado].etiqueta}
+    </Badge>
+  );
 }
 
 export function RolBadge({ rol }: { rol: Rol }) {

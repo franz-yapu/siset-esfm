@@ -21,15 +21,15 @@ export function MiPerfil() {
       <PageHeader titulo="Mi perfil" />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Mis datos">
-          <dl className="divide-y divide-slate-100 text-sm">
+          <dl className="divide-y divide-regla text-sm">
             {datos.map(([k, v]) => (
               <div key={k} className="grid grid-cols-3 gap-2 py-2">
-                <dt className="text-slate-500">{k}</dt>
-                <dd className="col-span-2 text-slate-800">{v}</dd>
+                <dt className="text-suave">{k}</dt>
+                <dd className="col-span-2 text-tinta">{v}</dd>
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-xs text-slate-500">Para corregir tus datos, acércate a Kardex.</p>
+          <p className="mt-3 text-xs text-suave">Para corregir tus datos, acércate a Kardex.</p>
         </Card>
         <Card title="Cambiar contraseña">
           <FormClave onListo={() => undefined} />

@@ -75,7 +75,7 @@ export function Files() {
           )
         }
       />
-      <div className="mb-4 grid items-end gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="mb-4 grid items-end gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-2 lg:grid-cols-6">
         <Input
           label="Buscar"
           placeholder="CI, nombre o código"
@@ -125,7 +125,7 @@ export function Files() {
           <option value="AMARILLO">Amarillo</option>
           <option value="ROJO">Rojo</option>
         </Select>
-        <label className="flex items-center gap-2 pb-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 pb-2 text-sm text-tinta">
           <input
             type="checkbox"
             className="size-4 accent-primario"
@@ -147,19 +147,36 @@ export function Files() {
         vacio="No hay files con esos filtros"
         onRowClick={(x) => nav(`/files/${x.id}`)}
         columns={[
-          { key: 'ci', header: 'CI', render: (x) => (x.complemento ? `${x.ci}-${x.complemento}` : x.ci) },
           {
             key: 'nombre',
             header: 'Nombre completo',
             principal: true,
-            render: (x) => <span className="font-medium">{x.nombre}</span>,
+            render: (x) => (
+              <>
+                <span className="block font-medium">{x.nombre}</span>
+                <span className="block font-mono text-xs text-suave">
+                  CI {x.complemento ? `${x.ci}-${x.complemento}` : x.ci}
+                </span>
+              </>
+            ),
           },
-          { key: 'codigo', header: 'Código', ocultarEnMovil: true },
+          {
+            key: 'codigo',
+            header: 'Código',
+            ocultarEnMovil: true,
+            render: (x) => <span className="font-mono text-[13px] whitespace-nowrap">{x.codigo}</span>,
+          },
           { key: 'especialidad', header: 'Especialidad' },
           {
             key: 'anio',
             header: 'Ingreso',
-            render: (x) => (x.condicion === 'EGRESADO' ? `${x.anioIngreso} · Egresado` : x.anioIngreso),
+            numerica: true,
+            render: (x) => (
+              <>
+                <span className="block">{x.anioIngreso}</span>
+                {x.condicion === 'EGRESADO' && <span className="block text-xs text-suave">Egresado</span>}
+              </>
+            ),
           },
           // Calculado por la API (S2.5); el egresado no tiene (DEC-060).
           {
@@ -169,7 +186,7 @@ export function Files() {
               x.semaforo ? (
                 <Semaforo color={x.semaforo} texto={textoSemaforo(x.semaforo, x.bloqueado)} size="sm" />
               ) : (
-                <span className="text-xs text-slate-500">Sin requisitos (egresado)</span>
+                <span className="text-[13px] text-suave">Sin requisitos</span>
               ),
           },
           {
@@ -177,9 +194,9 @@ export function Files() {
             header: 'Bloqueado',
             render: (x) =>
               x.bloqueado ? (
-                <Lock className="size-4 text-red-600" aria-label="Bloqueado" />
+                <Lock className="size-4 text-[#c4242a]" strokeWidth={1.75} aria-label="Bloqueado" />
               ) : (
-                <span className="text-slate-300">—</span>
+                <span className="text-suave">—</span>
               ),
           },
         ]}

@@ -15,6 +15,8 @@ export interface Columna<T> {
   ocultarEnMovil?: boolean;
   /** Columna principal: en celular va como título de la tarjeta. */
   principal?: boolean;
+  /** Cifras o fechas que se comparan: a la derecha y con dígitos tabulares, encabezado incluido. */
+  numerica?: boolean;
 }
 
 interface Props<T> {
@@ -99,7 +101,7 @@ export function DataTable<T>({
             <label className="relative min-w-0 flex-1 sm:max-w-xs">
               <span className="sr-only">Buscar</span>
               <Search
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-suave"
                 aria-hidden
               />
               <input
@@ -109,7 +111,7 @@ export function DataTable<T>({
                   setPagina(0);
                 }}
                 placeholder="Buscar…"
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-9 text-sm focus:border-acento focus:ring-2 focus:ring-acento/20 focus:outline-none"
+                className="h-9 w-full rounded-md border border-control bg-white pr-3 pl-9 text-sm text-tinta placeholder:text-[#6b7280] focus:border-acento focus:ring-2 focus:ring-acento/20 focus:outline-none"
               />
             </label>
           )}
@@ -124,15 +126,15 @@ export function DataTable<T>({
           ))}
         </div>
       ) : filas.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 bg-white">
+        <div className="rounded-[10px] border border-borde bg-white [[data-tarjeta]_&]:border-0">
           <EmptyState titulo={vacio} />
         </div>
       ) : (
         <>
           {/* Escritorio: tabla */}
-          <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white md:block">
+          <div className="hidden overflow-x-auto rounded-[10px] border border-borde bg-white md:block [[data-tarjeta]_&]:-mx-3 [[data-tarjeta]_&]:-mb-2 [[data-tarjeta]_&]:rounded-none [[data-tarjeta]_&]:border-0">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
+              <thead className="border-b border-borde text-[13px] text-suave">
                 <tr>
                   {seleccion && (
                     <th className="w-10 px-3 py-2">
@@ -149,14 +151,18 @@ export function DataTable<T>({
                     <th
                       key={c.key}
                       scope="col"
-                      className={clsx('px-3 py-2 font-medium whitespace-nowrap', c.className)}
+                      className={clsx(
+                        'h-10 px-3 font-normal whitespace-nowrap',
+                        c.numerica && 'text-right',
+                        c.className,
+                      )}
                       aria-sort={orden?.key === c.key ? (orden.asc ? 'ascending' : 'descending') : undefined}
                     >
                       {c.sortValue ? (
                         <button
                           type="button"
                           onClick={() => ordenar(c)}
-                          className="inline-flex items-center gap-1 uppercase hover:text-slate-700"
+                          className="inline-flex items-center gap-1 hover:text-tinta"
                         >
                           {c.header}
                           {orden?.key === c.key &&
@@ -169,7 +175,7 @@ export function DataTable<T>({
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-regla">
                 {visibles.map((f) => {
                   const k = rowKey(f);
                   return (
@@ -177,9 +183,9 @@ export function DataTable<T>({
                       key={k}
                       onClick={onRowClick ? () => onRowClick(f) : undefined}
                       className={clsx(
-                        onRowClick && 'cursor-pointer hover:bg-slate-50',
-                        resaltar?.(f) && 'bg-amber-50/60',
-                        seleccion?.seleccionados.has(k) && 'bg-sky-50',
+                        onRowClick && 'cursor-pointer hover:bg-[#f7f9fb]',
+                        resaltar?.(f) && 'bg-[#fffbeb]',
+                        seleccion?.seleccionados.has(k) && 'bg-activo/60',
                       )}
                     >
                       {seleccion && (
@@ -197,7 +203,11 @@ export function DataTable<T>({
                         // Las columnas sin encabezado son de acciones: no disparan el clic de la fila.
                         <td
                           key={c.key}
-                          className={clsx('px-3 py-2.5 align-middle', c.className)}
+                          className={clsx(
+                            'px-3 py-3 align-middle',
+                            c.numerica && 'text-right tabular-nums',
+                            c.className,
+                          )}
                           onClick={c.header ? undefined : (e) => e.stopPropagation()}
                         >
                           {celda(c, f)}
@@ -211,7 +221,7 @@ export function DataTable<T>({
           </div>
 
           {/* Celular: tarjetas */}
-          <ul className="space-y-2 md:hidden">
+          <ul className="space-y-2 md:hidden [[data-tarjeta]_&]:space-y-0 [[data-tarjeta]_&]:divide-y [[data-tarjeta]_&]:divide-regla">
             {visibles.map((f) => {
               const k = rowKey(f);
               return (
@@ -219,9 +229,9 @@ export function DataTable<T>({
                   key={k}
                   onClick={onRowClick ? () => onRowClick(f) : undefined}
                   className={clsx(
-                    'rounded-lg border border-slate-200 bg-white p-3 shadow-sm',
-                    onRowClick && 'cursor-pointer active:bg-slate-50',
-                    resaltar?.(f) && 'border-amber-300',
+                    'rounded-[10px] border border-borde bg-white p-3 [[data-tarjeta]_&]:rounded-none [[data-tarjeta]_&]:border-0 [[data-tarjeta]_&]:px-0',
+                    onRowClick && 'cursor-pointer active:bg-[#f7f9fb]',
+                    resaltar?.(f) && 'border-[#fde68a] bg-[#fffbeb]',
                     seleccion?.seleccionados.has(k) && 'ring-2 ring-acento',
                   )}
                 >
@@ -236,16 +246,16 @@ export function DataTable<T>({
                         className="mt-1 accent-primario"
                       />
                     )}
-                    <div className="min-w-0 flex-1 font-medium text-slate-800">{celda(principal, f)}</div>
+                    <div className="min-w-0 flex-1 font-medium text-tinta">{celda(principal, f)}</div>
                   </div>
                   <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
                     {columns
                       .filter((c) => c !== principal && !c.ocultarEnMovil)
                       .map((c) => (
                         <div key={c.key} className="contents">
-                          {c.header ? <dt className="text-slate-500">{c.header}</dt> : <dt />}
+                          {c.header ? <dt className="text-suave">{c.header}</dt> : <dt />}
                           <dd
-                            className="min-w-0 text-slate-700"
+                            className="min-w-0 text-tinta"
                             onClick={c.header ? undefined : (e) => e.stopPropagation()}
                           >
                             {celda(c, f)}
@@ -259,7 +269,10 @@ export function DataTable<T>({
           </ul>
 
           {paginas > 1 && (
-            <nav className="mt-3 flex items-center justify-between text-sm text-slate-500" aria-label="Paginación">
+            <nav
+              className="mt-3 flex items-center justify-between text-sm text-suave tabular-nums"
+              aria-label="Paginación"
+            >
               <span>
                 {actual * pageSize + 1}–{Math.min(filas.length, (actual + 1) * pageSize)} de {filas.length}
               </span>
@@ -269,7 +282,7 @@ export function DataTable<T>({
                   onClick={() => setPagina(actual - 1)}
                   disabled={actual === 0}
                   aria-label="Página anterior"
-                  className="rounded-lg border border-slate-300 bg-white p-1.5 disabled:opacity-40"
+                  className="rounded-md border border-control bg-white p-1.5 text-tinta hover:bg-[#f5f7fa] disabled:text-[#9aa5b1] disabled:hover:bg-white"
                 >
                   <ChevronLeft className="size-4" />
                 </button>
@@ -281,7 +294,7 @@ export function DataTable<T>({
                   onClick={() => setPagina(actual + 1)}
                   disabled={actual >= paginas - 1}
                   aria-label="Página siguiente"
-                  className="rounded-lg border border-slate-300 bg-white p-1.5 disabled:opacity-40"
+                  className="rounded-md border border-control bg-white p-1.5 text-tinta hover:bg-[#f5f7fa] disabled:text-[#9aa5b1] disabled:hover:bg-white"
                 >
                   <ChevronRight className="size-4" />
                 </button>

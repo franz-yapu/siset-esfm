@@ -32,9 +32,9 @@ export function ProgresoPasos({ estado }: { estado: EstadoTramite }) {
           />
         ))}
       </div>
-      <p className="mt-1.5 text-xs text-slate-500">
+      <p className="mt-1.5 text-xs text-suave">
         Paso {actual + 1} de {PASOS_PROGRESO.length}:{' '}
-        <span className="font-medium text-slate-700">{ESTADOS[estado].etiqueta}</span>
+        <span className="font-medium text-tinta">{ESTADOS[estado].etiqueta}</span>
       </p>
     </div>
   );

@@ -39,19 +39,19 @@ export function ModalPasswordTemporal({ usuario, nombre, passwordTemporal, onCer
         </Button>
       }
     >
-      <div className="space-y-4 text-sm text-slate-700">
+      <div className="space-y-4 text-sm text-tinta">
         <p>
           Entregue estos datos a <strong>{nombre}</strong>.
         </p>
         <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-          <dt className="text-slate-500">Usuario</dt>
+          <dt className="text-suave">Usuario</dt>
           <dd>
             <code className="font-mono">{usuario}</code>
           </dd>
-          <dt className="text-slate-500">Contraseña</dt>
+          <dt className="text-suave">Contraseña</dt>
           <dd className="flex items-center gap-2">
             <code
-              className="rounded bg-slate-100 px-2 py-1 font-mono text-base tracking-wider select-all"
+              className="rounded bg-[#eef1f4] px-2 py-1 font-mono text-base tracking-wider select-all"
               data-testid="password-temporal"
             >
               {passwordTemporal}

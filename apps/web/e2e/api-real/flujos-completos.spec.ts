@@ -169,7 +169,8 @@ test.describe.serial('certificado sin valorado: Calahumana → Ancocagua → Coo
       'Entregado',
     ])
       await expect(page.getByText(paso, { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Secretaría')).toHaveCount(0); // sin quién hizo cada paso (RF-09 CA3)
+    // Sin quién hizo cada paso (RF-09 CA3); la ayuda del costado nombra las oficinas, no a las personas.
+    await expect(page.getByRole('region', { name: 'Avance del trámite' }).getByText('Secretaría')).toHaveCount(0);
   });
 
   test('la bitácora tiene la ingesta y los 7 cambios de estado', async ({ page }) => {

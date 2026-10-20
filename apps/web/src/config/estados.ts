@@ -20,34 +20,21 @@ interface InfoEstado {
   punto: string;
 }
 
+/** Los estados del prototipo, con el mismo criterio que los de la hoja de ruta: un tono mientras avanza. */
+const EN_CURSO = { badge: 'bg-[#eef1f4] text-[#2b3440]', punto: 'bg-primario' };
+
 export const ESTADOS: Record<EstadoTramite, InfoEstado> = {
-  REGISTRADO: { etiqueta: 'Registrado', badge: 'bg-slate-100 text-slate-700 ring-slate-300', punto: 'bg-slate-400' },
-  EN_TRANSITO_ANC: {
-    etiqueta: 'En tránsito a Ancocagua',
-    badge: 'bg-sky-50 text-sky-700 ring-sky-300',
-    punto: 'bg-sky-500',
-  },
-  RECIBIDO: { etiqueta: 'Recibido', badge: 'bg-blue-50 text-blue-700 ring-blue-300', punto: 'bg-blue-600' },
-  EN_REVISION: {
-    etiqueta: 'En revisión',
-    badge: 'bg-indigo-50 text-indigo-700 ring-indigo-300',
-    punto: 'bg-indigo-600',
-  },
-  OBSERVADO: { etiqueta: 'Observado', badge: 'bg-amber-50 text-amber-700 ring-amber-300', punto: 'bg-amber-500' },
-  DICTAMINADO: {
-    etiqueta: 'Dictaminado',
-    badge: 'bg-violet-50 text-violet-700 ring-violet-300',
-    punto: 'bg-violet-600',
-  },
-  EN_IMPRESION: { etiqueta: 'En impresión', badge: 'bg-cyan-50 text-cyan-700 ring-cyan-300', punto: 'bg-cyan-600' },
-  EN_TRANSITO_LP: {
-    etiqueta: 'En tránsito a La Paz',
-    badge: 'bg-sky-50 text-sky-700 ring-sky-300',
-    punto: 'bg-sky-500',
-  },
-  EN_FIRMA: { etiqueta: 'En firma', badge: 'bg-purple-50 text-purple-700 ring-purple-300', punto: 'bg-purple-600' },
-  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-lime-50 text-lime-700 ring-lime-300', punto: 'bg-lime-500' },
-  ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-green-50 text-green-700 ring-green-300', punto: 'bg-green-600' },
+  REGISTRADO: { etiqueta: 'Registrado', ...EN_CURSO },
+  EN_TRANSITO_ANC: { etiqueta: 'En tránsito a Ancocagua', ...EN_CURSO },
+  RECIBIDO: { etiqueta: 'Recibido', ...EN_CURSO },
+  EN_REVISION: { etiqueta: 'En revisión', ...EN_CURSO },
+  OBSERVADO: { etiqueta: 'Observado', badge: 'bg-[#fffbeb] text-[#92400e]', punto: 'bg-[#d97706]' },
+  DICTAMINADO: { etiqueta: 'Dictaminado', ...EN_CURSO },
+  EN_IMPRESION: { etiqueta: 'En impresión', ...EN_CURSO },
+  EN_TRANSITO_LP: { etiqueta: 'En tránsito a La Paz', ...EN_CURSO },
+  EN_FIRMA: { etiqueta: 'En firma', ...EN_CURSO },
+  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-[#e4edf6] text-[#173b5c]', punto: 'bg-primario' },
+  ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-[#dcfae5] text-[#04250e]', punto: 'bg-[#247b50]' },
 };
 
 /** Pasos de la barra de progreso (Observado no es un paso, es un desvío). */

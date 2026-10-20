@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { NavLink } from 'react-router';
-import { MapPin, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import clsx from 'clsx';
 import type { Usuario } from '@/types';
 import { ROLES, rutaInicio } from '@/config/permisos';
 import { usePermisos } from '@/hooks';
 import { itemsDelMenu } from '@/lib/permisos';
 import { nombreSede } from '@/config/catalogos';
+import { Marca } from './Marca';
 
 interface Props {
   usuario: Usuario;
@@ -15,7 +16,7 @@ interface Props {
 }
 
 /**
- * Menú lateral azul: los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
+ * Menú lateral sobre el marco (sin color propio; el ítem activo es un gris un paso más oscuro): los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
  * Inicio y Mi perfil. En celular es un panel deslizable.
  */
 export function Sidebar({ usuario, abierto, onCerrar }: Props) {
@@ -40,24 +41,31 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
       />
       <aside
         className={clsx(
-          'no-print fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-primario text-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          'no-print fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-marco transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
           abierto ? 'translate-x-0' : '-translate-x-full',
         )}
         aria-label="Menú principal"
       >
-        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
-          <span className="font-semibold tracking-wide">SISET</span>
+        <div className="flex h-14 items-center justify-between px-4 lg:h-12">
+          <Marca />
           <button
             type="button"
             onClick={onCerrar}
-            className="rounded p-1 hover:bg-white/10 lg:hidden"
+            className="rounded-md p-1.5 text-suave hover:bg-activo lg:hidden"
             aria-label="Cerrar menú"
           >
             <X className="size-5" />
           </button>
         </div>
-        <nav className="flex-1 overflow-y-auto px-2 py-3">
-          <ul className="space-y-0.5">
+        {/* El alcance: el puesto y la sede de quien trabaja. */}
+        <div className="mx-4 mt-1 mb-3">
+          <p className="text-sm font-medium text-tinta">{ROLES[usuario.rol].nombre}</p>
+          <p className="text-[13px] text-suave">
+            {usuario.sedeId ? nombreSede(usuario.sedeId) : 'ESFM · UA Ancocagua'}
+          </p>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-2 pb-3">
+          <ul className="space-y-px">
             {items.map((m) => {
               const ruta = m.id === 'inicio' ? rutaInicio(usuario.rol) : m.ruta;
               return (
@@ -68,14 +76,14 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
                     onClick={onCerrar}
                     className={({ isActive }) =>
                       clsx(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                        'flex h-8 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-acento',
                         isActive
-                          ? 'bg-white font-medium text-primario'
-                          : 'text-sky-100 hover:bg-white/10 hover:text-white',
+                          ? 'bg-activo font-medium text-tinta'
+                          : 'text-suave hover:bg-activo/60 hover:text-tinta',
                       )
                     }
                   >
-                    <m.icono className="size-4 shrink-0" aria-hidden />
+                    <m.icono className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
                     {m.etiqueta}
                   </NavLink>
                 </li>
@@ -83,15 +91,7 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
             })}
           </ul>
         </nav>
-        <div className="border-t border-white/10 px-4 py-3 text-xs text-sky-100">
-          <p className="font-medium text-white">{ROLES[usuario.rol].nombre}</p>
-          {usuario.sedeId && (
-            <p className="mt-0.5 flex items-center gap-1">
-              <MapPin className="size-3" aria-hidden />
-              Sede: {nombreSede(usuario.sedeId)}
-            </p>
-          )}
-        </div>
+        <p className="px-4 py-3 text-xs text-suave">Escuela Superior de Formación de Maestros · Calahumana</p>
       </aside>
     </>
   );

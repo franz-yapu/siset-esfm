@@ -6,6 +6,8 @@ import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import { Alerta, Button, Card, EstadoHojaRutaBadge, Input, Timeline } from '@/components/ui';
 import { fecha } from '@/lib/formato';
+import { Marca } from '@/components/layout/Marca';
+import { CAMINO } from '@/config/camino-tramite';
 
 /** P-02 · Consulta pública de trámite contra POST /seguimiento (RF-09, S4.1). A esta página apunta el QR. */
 export function Seguimiento() {
@@ -40,22 +42,31 @@ export function Seguimiento() {
   };
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-primario px-4 py-4 text-white">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          <div>
-            <p className="font-semibold">SISET</p>
-            <p className="text-xs text-sky-100">Consulta pública de trámites</p>
-          </div>
-          <Link to="/login" className="flex items-center gap-1 text-sm text-sky-100 hover:text-white">
+    <div className="min-h-screen bg-white">
+      <header className="bg-marco">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
+          <Link to="/login" aria-label="SISET, iniciar sesión">
+            <Marca />
+          </Link>
+          <Link to="/login" className="flex items-center gap-1 text-sm text-suave hover:text-tinta">
             <ArrowLeft className="size-4" />
             Iniciar sesión
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
-        <Card title="Consulta el estado de tu trámite">
-          <form onSubmit={consultar} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end" noValidate>
+      <main className="mx-auto grid max-w-5xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-4">
+          <div>
+            <h1 className="text-[22px] leading-7 font-semibold text-tinta">Consulta el estado de tu trámite</h1>
+            <p className="mt-1 text-[15px] text-suave">
+              Escribe el N.º de tu hoja de ruta y el CI del titular. No necesitas una cuenta.
+            </p>
+          </div>
+          <form
+            onSubmit={consultar}
+            className="grid gap-3 rounded-[10px] bg-[#f5f7fa] p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            noValidate
+          >
             <Input
               id="nro-hr"
               label="N.º de hoja de ruta"
@@ -74,43 +85,73 @@ export function Seguimiento() {
               Consultar
             </Button>
           </form>
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-            <ShieldCheck className="size-3.5" />
+          <p className="flex items-center gap-1.5 text-[13px] text-suave">
+            <ShieldCheck className="size-4" strokeWidth={1.75} />
             Por tu seguridad solo mostramos tu nombre y el avance del trámite.
           </p>
-        </Card>
 
-        {error && <Alerta tipo="error">{error}</Alerta>}
+          {error && <Alerta tipo="error">{error}</Alerta>}
 
-        {res && (
-          <Card>
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-slate-500">
-                  {res.nro} · {res.tipo}
-                </p>
-                <p className="text-lg font-semibold text-slate-900">{res.titular}</p>
-                <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
-                  <MapPin className="size-3.5" />
-                  Ahora en: {res.sedeActual} · Ingresó el {fecha(res.fechaIngreso)}
-                  {res.fechaCierre &&
-                    ` · ${res.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'} el ${fecha(res.fechaCierre)}`}
-                </p>
-              </div>
-              <EstadoHojaRutaBadge estado={res.estado} className="text-sm" />
-            </div>
-            <Timeline
-              ocultarResponsable
-              pasos={res.pasos.map((p) => ({
-                etiqueta: ESTADOS_HR[p.estado].etiqueta,
-                punto: ESTADOS_HR[p.estado].punto,
-                fecha: p.fecha,
-                sede: p.sede,
-                usuario: '',
-              }))}
-            />
-          </Card>
-        )}
+          {res && (
+            <section aria-label="Avance del trámite">
+              <Card>
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[13px] text-suave">
+                      <span className="font-mono">{res.nro}</span> · {res.tipo}
+                    </p>
+                    <p className="text-lg font-semibold text-tinta">{res.titular}</p>
+                    <p className="mt-1 flex items-center gap-1 text-sm text-suave">
+                      <MapPin className="size-3.5" />
+                      Ahora en: {res.sedeActual} · Ingresó el {fecha(res.fechaIngreso)}
+                      {res.fechaCierre &&
+                        ` · ${res.estado === 'DEVUELTO' ? 'Devuelto' : 'Entregado'} el ${fecha(res.fechaCierre)}`}
+                    </p>
+                  </div>
+                  <EstadoHojaRutaBadge estado={res.estado} />
+                </div>
+                <Timeline
+                  ocultarResponsable
+                  pasos={res.pasos.map((p) => ({
+                    etiqueta: ESTADOS_HR[p.estado].etiqueta,
+                    punto: ESTADOS_HR[p.estado].punto,
+                    fecha: p.fecha,
+                    sede: p.sede,
+                    usuario: '',
+                  }))}
+                />
+              </Card>
+            </section>
+          )}
+        </div>
+
+        {/* Ayuda al costado: dónde está el número y por dónde pasa un trámite. */}
+        <aside className="space-y-6 text-sm">
+          <section>
+            <h2 className="text-[15px] font-semibold text-tinta">¿Dónde está el N.º?</h2>
+            <p className="mt-1 text-suave">
+              En la carátula que te dieron al registrar el trámite. Su código QR abre esta página con el número ya
+              escrito.
+            </p>
+          </section>
+          <section>
+            <h2 className="text-[15px] font-semibold text-tinta">Por dónde pasa un trámite</h2>
+            <ol className="mt-3">
+              {CAMINO.map((p, i) => (
+                <li key={p.paso} className="flex gap-3">
+                  <span className="flex flex-col items-center" aria-hidden>
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primario" />
+                    {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-borde" />}
+                  </span>
+                  <span className="pb-3">
+                    <span className="block font-medium text-tinta">{p.paso}</span>
+                    <span className="block text-[13px] text-suave">{p.donde}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </aside>
       </main>
     </div>
   );

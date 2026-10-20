@@ -114,7 +114,7 @@ export function ModalEntrega({ abierto, nro, ciTitular, onCerrar, onConfirmar }:
         />
         <Input label="Fecha" type="date" value={dia} onChange={(e) => setDia(e.target.value)} max={hoy()} />
         {familiar && (
-          <label className="flex items-start gap-2 text-sm text-slate-700">
+          <label className="flex items-start gap-2 text-sm text-tinta">
             <input
               type="checkbox"
               className="mt-0.5"
