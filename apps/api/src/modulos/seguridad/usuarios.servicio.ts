@@ -13,8 +13,8 @@ import {
   buscarUsuarioDetalle,
   contarOtrosAdminActivos,
   crearUsuario,
+  cuentasDePersona,
   listarUsuarios,
-  tieneUsuario,
   type CambiosUsuario,
   type UsuarioDetalleBd,
 } from './usuario.repositorio';
@@ -63,6 +63,26 @@ export interface UsuarioConPassword {
 
 /** Nombre de usuario: el CI, con el complemento si lo hay (SDD S0.11 §2.4, D-25). */
 export const usernameDe = (ci: string, complemento: string): string => (complemento ? `${ci}-${complemento}` : ci);
+
+/** La segunda cuenta de una persona, la de Administrador, lleva este sufijo: `1234567-ADM` (DEC-063). */
+export const SUFIJO_ADMIN = '-ADM';
+
+/** Roles del personal que pueden sumar una cuenta de Administrador (DEC-063): no el estudiante ni el egresado. */
+const ROLES_CON_CUENTA_ADMIN = new Set(['KARDEX', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR']);
+
+/**
+ * El username de la cuenta nueva, o null si la persona no puede tener otra. Sin cuenta: el CI (con complemento). Con
+ * una cuenta del personal que no es ADMIN: solo puede sumar la de Administrador, con `SUFIJO_ADMIN` (DEC-063).
+ */
+export function usernameNuevo(
+  base: string,
+  rol: string,
+  cuentas: readonly { rol: { codigo: string } }[],
+): string | null {
+  if (cuentas.length === 0) return base;
+  if (rol !== 'ADMIN' || cuentas.length > 1 || !ROLES_CON_CUENTA_ADMIN.has(cuentas[0].rol.codigo)) return null;
+  return `${base}${SUFIJO_ADMIN}`;
+}
 
 const CAMPOS_PERSONALES = ['nombres', 'apellidoPaterno', 'apellidoMaterno', 'email', 'celular'] as const;
 
@@ -190,17 +210,24 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
       const passwordHash = await hashPassword(passwordTemporal); // fuera de la transacción: tarda
       const usuario = await bd.$transaction(async (tx) => {
         const existente = await personas.buscarPersonaPorCi(tx, datosPersona.ci, datosPersona.complemento);
-        if (existente && (await tieneUsuario(tx, existente.id))) {
-          throw new ErrorConflicto('Ya existe un usuario con ese CI.', undefined, 'USUARIO_EXISTENTE');
+        const cuentas = existente ? await cuentasDePersona(tx, existente.id) : [];
+        const username = usernameNuevo(usernameDe(datosPersona.ci, datosPersona.complemento), rol, cuentas);
+        if (!username) {
+          throw new ErrorConflicto(
+            'Ya existe un usuario con ese CI. Solo se le puede sumar una cuenta de Administrador.',
+            undefined,
+            'USUARIO_EXISTENTE',
+          );
         }
-        // Si la persona ya existe sin cuenta (p. ej., tiene file), se reutiliza sin tocar sus datos (DEC-020 #6).
+        // Si la persona ya existe (sin cuenta, p. ej. con file, o con su cuenta de Kardex), se reutiliza sin tocar
+        // sus datos (DEC-020 #6).
         const persona = existente ?? (await personas.crearPersona(tx, datosPersona));
         const { id } = await conSedeValida(async () =>
           crearUsuario(tx, {
             personaId: persona.id,
             rolId: await buscarRolId(tx, rol),
             sedeId,
-            username: usernameDe(persona.ci, persona.complemento),
+            username,
             passwordHash,
           }),
         );
@@ -244,6 +271,13 @@ export function crearServicioUsuarios({ bd, personas }: DependenciasUsuarios) {
         const cambiosCuenta: CambiosUsuario = {};
         if (cambios.rol !== undefined && cambios.rol !== u.rol.codigo) {
           if (id === autorId) throw sobreSiMismo('No puede cambiar su propio rol.');
+          // Con dos cuentas, cada una es de su rol: el nombre de usuario lo dice (DEC-063).
+          if ((await cuentasDePersona(tx, u.personaId)).length > 1) {
+            throw new ErrorNegocio(
+              'Esta persona tiene dos cuentas (una de Administrador): el rol de cada una no se cambia.',
+              'CUENTA_DOBLE',
+            );
+          }
           if (u.rol.codigo === 'ADMIN') await exigirOtroAdmin(tx, u);
           cambiosCuenta.rolId = await buscarRolId(tx, cambios.rol);
           antes.rol = u.rol.codigo;

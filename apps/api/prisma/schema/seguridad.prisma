@@ -15,7 +15,8 @@ model Rol {
 
 model Usuario {
   id                    Int                  @id @default(autoincrement())
-  personaId             Int                  @unique @map("persona_id")
+  /// Una cuenta por persona y rol: el Kardex que también administra tiene una segunda, `<CI>-ADM` (DEC-063).
+  personaId             Int                  @map("persona_id")
   rolId                 Int                  @map("rol_id")
   /// Sede del personal; NULL para estudiante y egresado (D-24).
   sedeId                Int?                 @map("sede_id")
@@ -43,6 +44,7 @@ model Usuario {
   /// back-relation (ADR-0001: no usar desde otro módulo)
   movimientosHojaRuta   MovimientoHojaRuta[]
 
+  @@unique([personaId, rolId])
   @@index([rolId])
   @@index([sedeId])
   @@map("usuario")

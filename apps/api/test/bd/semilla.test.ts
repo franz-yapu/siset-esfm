@@ -106,4 +106,15 @@ describe('seed del modelo v1 (SDD S0.11 §2.3)', () => {
     expect(admin.rol.codigo).toBe('ADMIN');
     expect(admin.debeCambiarPassword).toBe(true);
   });
+
+  it('si el Administrador es el mismo CI que el Kardex, crea la cuenta CI-ADM de la misma persona (DEC-063)', async () => {
+    await sembrar(bd, KARDEX_SEMILLA, KARDEX_SEMILLA);
+    await sembrar(bd, KARDEX_SEMILLA, KARDEX_SEMILLA);
+    const kardex = await buscarKardex();
+    const cuentas = await bd.usuario.findMany({ where: { personaId: kardex.personaId }, include: { rol: true } });
+    expect(cuentas.map((c) => [c.username, c.rol.codigo]).sort()).toEqual([
+      [KARDEX_SEMILLA.ci, 'KARDEX'],
+      [`${KARDEX_SEMILLA.ci}-ADM`, 'ADMIN'],
+    ]);
+  });
 });

@@ -69,6 +69,16 @@ export const erroresDelFormulario = (e: unknown): ErroresFormulario =>
 /** `usuario` de una cuenta nueva: CI o CI-COMPLEMENTO (D-25, igual que la API). */
 export const usuarioDe = (ci: string, complemento: string): string => (complemento ? `${ci}-${complemento}` : ci);
 
+/** Roles del personal que pueden sumar una cuenta de Administrador, `<CI>-ADM` (DEC-063, igual que la API). */
+const ROLES_CON_CUENTA_ADMIN = new Set(['KARDEX', 'SEC_DIR', 'SEC_COORD', 'COORDINADOR']);
+
+/** `usuario` de la cuenta nueva o null si esa persona no puede tener otra (DEC-063, igual que la API). */
+export function usuarioNuevoDe(base: string, rol: string, rolesExistentes: readonly string[]): string | null {
+  if (rolesExistentes.length === 0) return base;
+  if (rol !== 'ADMIN' || rolesExistentes.length > 1 || !ROLES_CON_CUENTA_ADMIN.has(rolesExistentes[0])) return null;
+  return `${base}-ADM`;
+}
+
 /** Nombre para mostrar: nombres y apellidos (igual que la API). */
 export const nombreCompletoDe = (d: {
   nombres: string;

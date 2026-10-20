@@ -129,6 +129,43 @@ describe('POST /api/v1/usuarios (SDD S1.8 §2.2, RF-03 CA1)', () => {
     expect(r.body.error.code).toBe('USUARIO_EXISTENTE');
   });
 
+  it('DEC-063: al Kardex se le suma la cuenta de Administrador, CI-ADM, con la misma persona y su propia contraseña', async () => {
+    const ci = nuevoCi();
+    const kardex = await crear({ ci, rol: 'KARDEX' });
+    const r = await como('post', '/usuarios', datosNuevo({ ci, rol: 'ADMIN', nombres: 'Otro nombre' }));
+    expect(r.status).toBe(201);
+    expect(r.body.usuario).toMatchObject({ usuario: `${ci}-ADM`, rol: 'ADMIN', ci, nombre: 'Rosa Quispe' });
+    const [a, b] = await bd.usuario.findMany({ where: { id: { in: [kardex.usuario.id, r.body.usuario.id] } } });
+    expect(a.personaId).toBe(b.personaId);
+    expect((await login(`${ci}-adm`, r.body.passwordTemporal)).status).toBe(200);
+    expect((await login(ci, r.body.passwordTemporal)).status).toBe(401);
+  });
+
+  it('DEC-063: sin segunda cuenta que no sea de Administrador, ni dos de Administrador, ni para un estudiante', async () => {
+    const ci = nuevoCi();
+    await crear({ ci, rol: 'KARDEX' });
+    for (const rol of ['SEC_COORD', 'KARDEX']) {
+      expect((await como('post', '/usuarios', datosNuevo({ ci, rol }))).body.error.code).toBe('USUARIO_EXISTENTE');
+    }
+    await crear({ ci, rol: 'ADMIN' });
+    expect((await como('post', '/usuarios', datosNuevo({ ci, rol: 'ADMIN' }))).status).toBe(409);
+
+    const ciAdmin = nuevoCi();
+    await crear({ ci: ciAdmin, rol: 'ADMIN' });
+    expect((await como('post', '/usuarios', datosNuevo({ ci: ciAdmin, rol: 'ADMIN' }))).status).toBe(409);
+  });
+
+  it('DEC-063: con dos cuentas, el rol de ninguna se cambia (422 CUENTA_DOBLE)', async () => {
+    const ci = nuevoCi();
+    const kardex = await crear({ ci, rol: 'KARDEX' });
+    const admin = await crear({ ci, rol: 'ADMIN' });
+    for (const id of [kardex.usuario.id, admin.usuario.id]) {
+      const r = await como('patch', `/usuarios/${id}`, { rol: 'SEC_COORD' });
+      expect([r.status, r.body.error.code]).toEqual([422, 'CUENTA_DOBLE']);
+    }
+    expect((await como('patch', `/usuarios/${kardex.usuario.id}`, { celular: '76543210' })).status).toBe(200);
+  });
+
   it('CI de una persona sin cuenta: la reutiliza sin cambiar sus datos', async () => {
     const ci = nuevoCi();
     const persona = await bd.persona.create({ data: { ci, nombres: 'Juana', apellidoPaterno: 'Mamani' } });

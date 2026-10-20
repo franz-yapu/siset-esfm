@@ -13,7 +13,13 @@ import { CLAVE_DEMO, type UsuarioMock } from '@/mocks/usuarios';
 import { SEDES } from '@/config/catalogos';
 import { ahora, delay } from '@/lib/formato';
 import { ErrorApi } from '@/lib/errores';
-import { nombreCompletoDe, normalizarDatosUsuario, usuarioDe, validarDatosUsuario } from '@/lib/usuarios';
+import {
+  nombreCompletoDe,
+  normalizarDatosUsuario,
+  usuarioDe,
+  usuarioNuevoDe,
+  validarDatosUsuario,
+} from '@/lib/usuarios';
 import { LATENCIA } from './_comun';
 import type { ServicioUsuarios } from './usuarios.service';
 
@@ -117,9 +123,14 @@ export const usuariosMock: ServicioUsuarios = {
     await delay(LATENCIA);
     const d = normalizarDatosUsuario(datos);
     exigirValidos(d);
-    const usuario = usuarioDe(d.ci, d.complemento);
-    if (db.usuarios.some((u) => u.usuario === usuario || (u.ci === d.ci && (u.complemento ?? '') === d.complemento)))
-      throw new ErrorApi('Ya existe un usuario con ese CI.', 'USUARIO_EXISTENTE', 409);
+    const roles = db.usuarios.filter((u) => u.ci === d.ci && (u.complemento ?? '') === d.complemento).map((u) => u.rol);
+    const usuario = usuarioNuevoDe(usuarioDe(d.ci, d.complemento), d.rol, roles);
+    if (!usuario || db.usuarios.some((u) => u.usuario === usuario))
+      throw new ErrorApi(
+        'Ya existe un usuario con ese CI. Solo se le puede sumar una cuenta de Administrador.',
+        'USUARIO_EXISTENTE',
+        409,
+      );
     const nuevo: UsuarioMock = {
       id: Math.max(0, ...db.usuarios.map((u) => u.id)) + 1,
       usuario,
@@ -164,6 +175,11 @@ export const usuariosMock: ServicioUsuarios = {
     exigirValidos(d);
     if (d.rol !== u.rol) {
       if (u.id === actor.id) throw negocio('No puede cambiar su propio rol.', 'OPERACION_SOBRE_SI_MISMO');
+      if (db.usuarios.filter((o) => o.ci === u.ci && (o.complemento ?? '') === (u.complemento ?? '')).length > 1)
+        throw negocio(
+          'Esta persona tiene dos cuentas (una de Administrador): el rol de cada una no se cambia.',
+          'CUENTA_DOBLE',
+        );
       if (u.rol === 'ADMIN') exigirOtroAdmin(u);
     }
 

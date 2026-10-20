@@ -1,5 +1,5 @@
 import type { ClienteBd, TransaccionBd } from '../src/compartido/bd';
-import { esquemaPassword, hashPassword, usernameDe } from '../src/modulos/seguridad';
+import { esquemaPassword, hashPassword, usernameDe, usernameNuevo } from '../src/modulos/seguridad';
 
 // Valores copiados de apps/web/src/config/{permisos,catalogos}.ts (mismos códigos
 // y nombres que el prototipo). La API no importa del frontend; el test
@@ -274,7 +274,8 @@ export interface ResultadoSemilla {
 
 /**
  * Crea la cuenta inicial si no existe. Si ya existe, no se toca (puede haber cambiado su contraseña o su rol).
- * La contraseña viene de una variable de entorno: se cambia al primer ingreso (S1.x).
+ * La contraseña viene de una variable de entorno: se cambia al primer ingreso (S1.x). Si el Administrador es la
+ * misma persona que el Kardex (mismo CI), su cuenta es `<CI>-ADM` (DEC-063).
  */
 async function sembrarCuenta(tx: TransaccionBd, cuenta: KardexInicial, rol: 'KARDEX' | 'ADMIN', passwordHash: string) {
   const persona = await tx.persona.upsert({
@@ -290,7 +291,10 @@ async function sembrarCuenta(tx: TransaccionBd, cuenta: KardexInicial, rol: 'KAR
   });
   const { id: rolId } = await tx.rol.findUniqueOrThrow({ where: { codigo: rol } });
   const sede = await tx.sede.findUniqueOrThrow({ where: { codigo: cuenta.sede } });
-  const username = usernameDe(cuenta.ci, cuenta.complemento);
+  const cuentas = await tx.usuario.findMany({ where: { personaId: persona.id }, select: { rol: true } });
+  if (cuentas.some((c) => c.rol.codigo === rol)) return;
+  const username = usernameNuevo(usernameDe(cuenta.ci, cuenta.complemento), rol, cuentas);
+  if (!username) throw new Error(`El CI ${cuenta.ci} ya tiene una cuenta y no puede sumar la de ${rol}.`);
   await tx.usuario.upsert({
     where: { username },
     create: { username, personaId: persona.id, rolId, sedeId: sede.id, passwordHash, debeCambiarPassword: true },

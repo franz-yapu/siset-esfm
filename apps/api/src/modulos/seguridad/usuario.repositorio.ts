@@ -82,8 +82,13 @@ export type UsuarioDetalleBd = NonNullable<Awaited<ReturnType<typeof buscarUsuar
 export const listarUsuarios = (cliente: Cliente, where: Prisma.UsuarioWhereInput) =>
   cliente.usuario.findMany({ where, select: SELECCION_DETALLE });
 
-export const tieneUsuario = async (cliente: Cliente, personaId: number): Promise<boolean> =>
-  (await cliente.usuario.findUnique({ where: { personaId }, select: { id: true } })) !== null;
+/** Las cuentas de una persona: una, o dos si el Kardex también administra (DEC-063). */
+export const cuentasDePersona = (cliente: Cliente, personaId: number) =>
+  cliente.usuario.findMany({
+    where: { personaId },
+    select: { id: true, username: true, rol: { select: { codigo: true } } },
+    orderBy: { id: 'asc' },
+  });
 
 export const buscarRolId = async (cliente: Cliente, codigo: string): Promise<number> =>
   (await cliente.rol.findUniqueOrThrow({ where: { codigo }, select: { id: true } })).id;

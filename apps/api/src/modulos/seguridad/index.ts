@@ -9,4 +9,4 @@ export { crearAutorizar, type Autorizar, type PermisoConcedido } from './autoriz
 export { ACCIONES, POLITICA, RECURSOS, type Accion, type Recurso } from './autorizacion.politica';
 export { describirUsuarios } from './usuario.repositorio';
 export { crearModuloUsuarios } from './usuarios.modulo';
-export { usernameDe } from './usuarios.servicio';
+export { SUFIJO_ADMIN, usernameDe, usernameNuevo } from './usuarios.servicio';

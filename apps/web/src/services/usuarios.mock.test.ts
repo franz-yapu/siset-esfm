@@ -114,6 +114,16 @@ describe('usuariosMock.crear', () => {
     expect([e.codigo, e.estado]).toEqual(['USUARIO_EXISTENTE', 409]);
   });
 
+  it('al personal con cuenta se le suma solo la de Administrador, como CI-ADM; el rol de cada una no cambia (DEC-063)', async () => {
+    const { usuario: base } = await usuariosMock.crear({ ...nuevo, ci: '4567891' }, kardex());
+    const { usuario: admin } = await usuariosMock.crear({ ...nuevo, ci: '4567891', rol: 'ADMIN' }, kardex());
+    expect([base.usuario, admin.usuario, admin.rol]).toEqual(['4567891-1B', '4567891-1B-ADM', 'ADMIN']);
+    expect((await errorDe(usuariosMock.crear({ ...nuevo, ci: '4567891', rol: 'ADMIN' }, kardex()))).codigo).toBe(
+      'USUARIO_EXISTENTE',
+    );
+    expect((await errorDe(usuariosMock.editar(base.id, { rol: 'KARDEX' }, kardex()))).codigo).toBe('CUENTA_DOBLE');
+  });
+
   it('datos inválidos → 400 VALIDACION con detalles en el formato de la API', async () => {
     const e = await errorDe(usuariosMock.crear({ ...nuevo, ci: 'abc', apellidoPaterno: null }, kardex()));
     expect([e.codigo, e.estado]).toEqual(['VALIDACION', 400]);

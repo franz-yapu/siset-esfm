@@ -74,7 +74,7 @@ export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), .
  */
 export async function asegurarEstudiantesPrueba(bd: ClienteBd): Promise<number> {
   const personas = await bd.persona.findMany({
-    where: { ci: { in: CIS_ESTUDIANTES_PRUEBA }, complemento: '', usuario: null },
+    where: { ci: { in: CIS_ESTUDIANTES_PRUEBA }, complemento: '', usuarios: { none: {} } },
     select: { id: true, ci: true },
   });
   if (!personas.length) return 0;

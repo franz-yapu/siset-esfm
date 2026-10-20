@@ -902,8 +902,8 @@ D-27 del 14-oct) · **Estado:** activa, implementada el 2026-10-19 · ADR-0009
    el Kardex inicial). La migración `20261019120000` agrega el rol en las bases existentes. En la prueba, la cuenta
    es **9000005** (Prueba.2026), creada por `bd:datos-prueba` también en una base que ya tenía los datos.
 6. Queda por saber quién será el Administrador en producción (nombre y CI): D-51 en la hoja.
-   (2026-10-20) La persona que responde la hoja lo será hasta diciembre; faltan nombre, CI y sede, y si también es
-   Kardex, confirmar dos cuentas (Kardex con su CI y Administrador con `<CI>-ADM`): D-51b, fila 71.
+   (2026-10-20) Lo será el Responsable de Kardex hasta diciembre, con dos cuentas (DEC-063); faltan nombre, CI y
+   sede: D-51b, fila 71.
 
 ## DEC-055 — Kardex administra el catálogo de requisitos por modalidad
 
@@ -1057,3 +1057,22 @@ personal» (formato de Archivo Kardex) · **Estado:** activa, implementada el 20
    modalidad; la tabla NRO / REQUISITOS / SI / NO y las firmas «Estudiante» y «Unidad de Sistemas y Archivo Kardex».
    El mismo botón está en la pestaña _Requisitos_ del file, para Kardex.
 4. Los escudos de la hoja de papel no van todavía: hacen falta los archivos de imagen oficiales (no se toman de la foto).
+
+## DEC-063 — El Responsable de Kardex también es Administrador: dos cuentas
+
+**Fecha:** 2026-10-20 · **Fuente:** D-51 (la escuela: "pongan mis datos, lo administraré hasta diciembre") y el
+usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-054; "preparar las dos cuentas") ·
+**Estado:** activa, implementada el 2026-10-20
+
+1. Una persona puede tener **una cuenta por rol** (`usuario`: único `persona_id` + `rol_id`, ya no `persona_id` solo).
+   Lo único permitido es que alguien del personal (Kardex, Secretarías o Coordinador) **sume una cuenta de
+   Administrador**; el estudiante y el egresado no, y nadie tiene dos del mismo rol ni una tercera.
+2. La cuenta de Administrador lleva el usuario **`<CI>-ADM`** (por ejemplo `1234567-ADM`); la otra sigue con el CI.
+   Cada una tiene su contraseña, su bloqueo y sus sesiones, y la bitácora muestra cuál hizo cada cosa. Kardex sigue
+   sin ver Usuarios ni Bitácora desde su cuenta (DEC-054 #2): para eso entra con la `-ADM`.
+3. El Administrador la crea en _Usuarios_ con el mismo CI y rol Administrador (la persona se reutiliza sin tocar sus
+   datos). Un CI con cuenta que pida otro rol sigue dando `USUARIO_EXISTENTE`.
+4. Con dos cuentas, **el rol de ninguna se cambia** (`CUENTA_DOBLE`, 422): el nombre de usuario dice cuál es cuál. Si
+   deja de administrar, se da de baja la `-ADM`.
+5. **Producción:** el seed crea las dos si `SEED_ADMIN_CI` es el mismo que `SEED_KARDEX_CI` (migración
+   `20261020120000`). Faltan su nombre, CI y sede (D-51b).
