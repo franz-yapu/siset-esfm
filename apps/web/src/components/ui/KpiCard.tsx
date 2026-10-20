@@ -31,7 +31,7 @@ export function KpiCard({ titulo, valor, to, detalle, alerta }: Props) {
       to={to}
       className={clsx(
         clase,
-        'transition-colors hover:bg-[#f7f9fb] focus-visible:relative focus-visible:outline-2 focus-visible:outline-acento',
+        'transition-colors hover:bg-acento-palido/60 focus-visible:relative focus-visible:outline-2 focus-visible:outline-acento',
       )}
     >
       {cuerpo}

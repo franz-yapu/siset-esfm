@@ -6,7 +6,7 @@ type Tipo = 'info' | 'exito' | 'aviso' | 'error' | 'bloqueo';
 
 const ESTILO: Record<Tipo, { clase: string; icono: typeof Info }> = {
   // Pares pálidos con tinta del mismo tono; el bloqueo es el único lleno, porque impide seguir.
-  info: { clase: 'border-borde bg-[#f5f7fa] text-tinta', icono: Info },
+  info: { clase: 'border-[#cfe0f1] bg-acento-palido text-primario-oscuro', icono: Info },
   exito: { clase: 'border-[#bfe8cd] bg-[#effaf3] text-[#14532d]', icono: CheckCircle2 },
   aviso: { clase: 'border-[#fde68a] bg-[#fffbeb] text-[#92400e]', icono: AlertTriangle },
   error: { clase: 'border-[#f6c9c4] bg-[#fff4f2] text-[#831c1e]', icono: AlertTriangle },

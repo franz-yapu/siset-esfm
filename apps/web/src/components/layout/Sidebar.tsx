@@ -7,7 +7,6 @@ import { ROLES, rutaInicio } from '@/config/permisos';
 import { usePermisos } from '@/hooks';
 import { itemsDelMenu } from '@/lib/permisos';
 import { nombreSede } from '@/config/catalogos';
-import { Marca } from './Marca';
 
 interface Props {
   usuario: Usuario;
@@ -16,7 +15,7 @@ interface Props {
 }
 
 /**
- * Menú lateral sobre el marco (sin color propio; el ítem activo es un gris un paso más oscuro): los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
+ * Menú lateral azul (el primario); el ítem activo es una pastilla blanca: los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
  * Inicio y Mi perfil. En celular es un panel deslizable.
  */
 export function Sidebar({ usuario, abierto, onCerrar }: Props) {
@@ -41,31 +40,31 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
       />
       <aside
         className={clsx(
-          'no-print fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-marco transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          'no-print fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-primario text-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
           abierto ? 'translate-x-0' : '-translate-x-full',
         )}
         aria-label="Menú principal"
       >
-        <div className="flex h-14 items-center justify-between px-4 lg:h-12">
-          <Marca />
+        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+          <span className="text-lg font-semibold tracking-wide">SISET</span>
           <button
             type="button"
             onClick={onCerrar}
-            className="rounded-md p-1.5 text-suave hover:bg-activo lg:hidden"
+            className="rounded-md p-1.5 text-sky-100 hover:bg-white/10 lg:hidden"
             aria-label="Cerrar menú"
           >
             <X className="size-5" />
           </button>
         </div>
         {/* El alcance: el puesto y la sede de quien trabaja. */}
-        <div className="mx-4 mt-1 mb-3">
-          <p className="text-sm font-medium text-tinta">{ROLES[usuario.rol].nombre}</p>
-          <p className="text-[13px] text-suave">
+        <div className="mx-4 mt-3 mb-3">
+          <p className="text-sm font-medium text-white">{ROLES[usuario.rol].nombre}</p>
+          <p className="text-[13px] text-sky-100">
             {usuario.sedeId ? nombreSede(usuario.sedeId) : 'ESFM · UA Ancocagua'}
           </p>
         </div>
         <nav className="flex-1 overflow-y-auto px-2 pb-3">
-          <ul className="space-y-px">
+          <ul className="space-y-0.5">
             {items.map((m) => {
               const ruta = m.id === 'inicio' ? rutaInicio(usuario.rol) : m.ruta;
               return (
@@ -76,10 +75,10 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
                     onClick={onCerrar}
                     className={({ isActive }) =>
                       clsx(
-                        'flex h-8 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-acento',
+                        'flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-white',
                         isActive
-                          ? 'bg-activo font-medium text-tinta'
-                          : 'text-suave hover:bg-activo/60 hover:text-tinta',
+                          ? 'bg-white font-medium text-primario'
+                          : 'text-sky-100 hover:bg-white/10 hover:text-white',
                       )
                     }
                   >
@@ -91,7 +90,9 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
             })}
           </ul>
         </nav>
-        <p className="px-4 py-3 text-xs text-suave">Escuela Superior de Formación de Maestros · Calahumana</p>
+        <p className="border-t border-white/10 px-4 py-3 text-xs text-sky-100">
+          Escuela Superior de Formación de Maestros · Calahumana
+        </p>
       </aside>
     </>
   );

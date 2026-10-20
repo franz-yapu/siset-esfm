@@ -31,6 +31,17 @@ const FILAS: Fila[] = [
   error,
 }));
 
+/** Las columnas que lee la carga, en el orden de la plantilla, con la regla de cada una. */
+const COLUMNAS: [string, string][] = [
+  ['CI', 'Único; con complemento: 1234567-1A'],
+  ['Nombres', 'Obligatorio'],
+  ['Apellidos', 'Paterno y materno'],
+  ['Código de estudiante', 'Único'],
+  ['Especialidad', 'Como en el catálogo'],
+  ['Año de ingreso', 'Cuatro cifras'],
+  ['Condición', 'Estudiante o Egresado'],
+];
+
 /** P-46 · Carga masiva de files (simulada). */
 export function CargaMasiva() {
   const u = useUsuario();
@@ -62,55 +73,91 @@ export function CargaMasiva() {
   return (
     <>
       <PageHeader titulo="Carga masiva de files" subtitulo="Para migrar los files históricos desde Excel (D-13)." />
-      <ol className="mb-4 flex flex-wrap gap-2 text-sm">
+      {/* Los tres pasos, en orden: el actual en celeste, los hechos en verde. */}
+      <ol className="mb-5 flex flex-wrap gap-2 text-sm" aria-label="Pasos de la carga">
         {['Subir archivo', 'Revisar', 'Importar'].map((p, i) => {
           const paso = resumen ? 2 : archivo ? 1 : 0;
           return (
             <li
               key={p}
+              aria-current={i === paso ? 'step' : undefined}
               className={clsx(
-                'rounded-full px-3 py-1',
+                'flex h-8 items-center gap-2 rounded-full px-3',
                 i === paso
-                  ? 'bg-primario text-white'
+                  ? 'bg-acento-palido font-medium text-primario'
                   : i < paso
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-slate-200 text-suave',
+                    ? 'bg-[#dcfae5] text-[#04250e]'
+                    : 'bg-[#eef2f6] text-suave',
               )}
             >
-              {i + 1}. {p}
+              {i < paso ? (
+                <CheckCircle2 className="size-4" aria-hidden />
+              ) : (
+                <span
+                  aria-hidden
+                  className={clsx('size-2 rounded-full', i === paso ? 'bg-acento' : 'border-[1.5px] border-control')}
+                />
+              )}
+              {p}
             </li>
           );
         })}
       </ol>
 
       {!archivo && (
-        <Card>
-          <Button variant="secondary" icon={Download} onClick={() => toast.success('Plantilla descargada (simulado)')}>
-            Descargar plantilla Excel
-          </Button>
-          <label
-            onDragOver={(e) => {
-              e.preventDefault();
-              setArrastrando(true);
-            }}
-            onDragLeave={() => setArrastrando(false)}
-            onDrop={soltar}
-            className={clsx(
-              'mt-4 flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed px-4 py-12 text-center',
-              arrastrando ? 'border-acento bg-sky-50' : 'border-control',
-            )}
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <Card
+            className="flex flex-col [&>div:last-child]:flex [&>div:last-child]:flex-1"
+            title="Subir el Excel"
+            actions={
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={Download}
+                onClick={() => toast.success('Plantilla descargada (simulado)')}
+              >
+                Descargar plantilla
+              </Button>
+            }
           >
-            <Upload className="size-8 text-suave" />
-            <span className="mt-2 font-medium text-tinta">Arrastra aquí el archivo Excel</span>
-            <span className="text-sm text-suave">o haz clic para elegirlo (.xlsx)</span>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              className="sr-only"
-              onChange={(e) => setArchivo(e.target.files?.[0]?.name ?? 'files_historicos.xlsx')}
-            />
-          </label>
-        </Card>
+            <label
+              onDragOver={(e) => {
+                e.preventDefault();
+                setArrastrando(true);
+              }}
+              onDragLeave={() => setArrastrando(false)}
+              onDrop={soltar}
+              className={clsx(
+                'flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-16 text-center transition-colors hover:border-acento hover:bg-acento-palido/50',
+                arrastrando ? 'border-acento bg-acento-palido' : 'border-control',
+              )}
+            >
+              <Upload className="size-8 text-acento" strokeWidth={1.5} />
+              <span className="mt-2 font-medium text-tinta">Arrastra aquí el archivo Excel</span>
+              <span className="text-sm text-suave">o haz clic para elegirlo (.xlsx)</span>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="sr-only"
+                onChange={(e) => setArchivo(e.target.files?.[0]?.name ?? 'files_historicos.xlsx')}
+              />
+            </label>
+          </Card>
+          {/* Lo que Kardex necesita saber antes de llenar la plantilla. */}
+          <Card title="Columnas de la plantilla" className="self-start">
+            <ul className="divide-y divide-regla text-sm">
+              {COLUMNAS.map(([columna, nota]) => (
+                <li key={columna} className="flex items-baseline justify-between gap-3 py-2">
+                  <span className="font-medium text-tinta">{columna}</span>
+                  <span className="text-right text-[13px] text-suave">{nota}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-[13px] text-suave">
+              Una fila por estudiante. Las filas con errores se muestran al revisar y no se importan.
+            </p>
+          </Card>
+        </div>
       )}
 
       {archivo && !resumen && (

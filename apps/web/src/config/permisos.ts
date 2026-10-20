@@ -20,23 +20,23 @@ import {
 import type { Rol } from '@/types';
 
 export const ROLES: Record<Rol, { nombre: string; inicio: string; badge: string }> = {
-  ESTUDIANTE: { nombre: 'Estudiante', inicio: '/estudiante', badge: 'bg-[#eef1f4] text-[#2b3440]' },
+  ESTUDIANTE: { nombre: 'Estudiante', inicio: '/estudiante', badge: 'bg-acento-palido text-primario' },
   // Sin cuenta (D-08, DEC-032): si una entrara, va al seguimiento público.
-  EGRESADO: { nombre: 'Egresado', inicio: '/seguimiento', badge: 'bg-[#eef1f4] text-[#2b3440]' },
-  SEC_DIR: { nombre: 'Secretaría de Dirección', inicio: '/sec-dir', badge: 'bg-[#eef1f4] text-[#2b3440]' },
+  EGRESADO: { nombre: 'Egresado', inicio: '/seguimiento', badge: 'bg-acento-palido text-primario' },
+  SEC_DIR: { nombre: 'Secretaría de Dirección', inicio: '/sec-dir', badge: 'bg-acento-palido text-primario' },
   SEC_COORD: {
     nombre: 'Secretaría de Coordinación',
     inicio: '/sec-coord',
-    badge: 'bg-[#eef1f4] text-[#2b3440]',
+    badge: 'bg-acento-palido text-primario',
   },
   COORDINADOR: {
     nombre: 'Coordinador Académico',
     inicio: '/coordinador',
-    badge: 'bg-[#eef1f4] text-[#2b3440]',
+    badge: 'bg-acento-palido text-primario',
   },
-  KARDEX: { nombre: 'Kardex', inicio: '/kardex', badge: 'bg-[#eef1f4] text-[#2b3440]' },
+  KARDEX: { nombre: 'Kardex', inicio: '/kardex', badge: 'bg-acento-palido text-primario' },
   // Usuarios, roles y bitácora; no hace trámites (DEC-054).
-  ADMIN: { nombre: 'Administrador', inicio: '/admin', badge: 'bg-[#eef1f4] text-[#2b3440]' },
+  ADMIN: { nombre: 'Administrador', inicio: '/admin', badge: 'bg-acento-palido text-primario' },
 };
 
 /** Recursos y acciones de la política de la API (`autorizacion.politica.ts`); un test de paridad los compara. */

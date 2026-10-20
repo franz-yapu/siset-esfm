@@ -16,7 +16,7 @@ export function CaminoTramites({ titulo, pasos }: { titulo: string; pasos: PasoC
   return (
     <section className="mb-6" aria-label={titulo}>
       <h2 className="mb-2 text-[15px] font-semibold text-tinta">{titulo}</h2>
-      <ol className="overflow-hidden rounded-[10px] border border-borde sm:flex">
+      <ol className="overflow-hidden rounded-[10px] border border-borde bg-white sm:flex">
         {pasos.map((p, i) => {
           const ultimo = i === pasos.length - 1;
           return (
@@ -30,7 +30,7 @@ export function CaminoTramites({ titulo, pasos }: { titulo: string; pasos: PasoC
                   <span
                     className={clsx(
                       'size-2.5 shrink-0 rounded-full',
-                      p.total > 0 ? 'bg-primario' : 'border-[1.5px] border-control bg-white',
+                      p.total > 0 ? 'bg-acento' : 'border-[1.5px] border-control bg-white',
                     )}
                   />
                   <span

@@ -6,7 +6,6 @@ import { hojasRutaService } from '@/services/hojasRuta.service';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
 import { Alerta, Button, Card, EstadoHojaRutaBadge, Input, Timeline } from '@/components/ui';
 import { fecha } from '@/lib/formato';
-import { Marca } from '@/components/layout/Marca';
 import { CAMINO } from '@/config/camino-tramite';
 
 /** P-02 · Consulta pública de trámite contra POST /seguimiento (RF-09, S4.1). A esta página apunta el QR. */
@@ -43,12 +42,13 @@ export function Seguimiento() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-marco">
+      <header className="bg-primario text-white">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
-          <Link to="/login" aria-label="SISET, iniciar sesión">
-            <Marca />
-          </Link>
-          <Link to="/login" className="flex items-center gap-1 text-sm text-suave hover:text-tinta">
+          <div>
+            <p className="font-semibold tracking-wide">SISET</p>
+            <p className="text-xs text-sky-100">Consulta pública de trámites</p>
+          </div>
+          <Link to="/login" className="flex items-center gap-1 text-sm text-sky-100 hover:text-white">
             <ArrowLeft className="size-4" />
             Iniciar sesión
           </Link>
@@ -140,7 +140,7 @@ export function Seguimiento() {
               {CAMINO.map((p, i) => (
                 <li key={p.paso} className="flex gap-3">
                   <span className="flex flex-col items-center" aria-hidden>
-                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primario" />
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-acento" />
                     {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-borde" />}
                   </span>
                   <span className="pb-3">

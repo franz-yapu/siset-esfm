@@ -29,13 +29,13 @@ export function Tabs({ tabs, activa, onChange, className }: Props) {
           className={clsx(
             '-mb-px flex h-10 shrink-0 items-center gap-1.5 border-b-2 text-sm whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-acento',
             activa === t.id
-              ? 'border-primario font-medium text-tinta'
+              ? 'border-acento font-medium text-acento'
               : 'border-transparent text-suave hover:border-control hover:text-tinta',
           )}
         >
           {t.label}
           {t.count !== undefined && (
-            <span className={clsx('text-[13px] tabular-nums', activa === t.id ? 'text-tinta' : 'text-suave')}>
+            <span className={clsx('text-[13px] tabular-nums', activa === t.id ? 'text-acento' : 'text-suave')}>
               {t.count}
             </span>
           )}

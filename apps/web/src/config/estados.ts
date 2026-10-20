@@ -21,7 +21,7 @@ interface InfoEstado {
 }
 
 /** Los estados del prototipo, con el mismo criterio que los de la hoja de ruta: un tono mientras avanza. */
-const EN_CURSO = { badge: 'bg-[#eef1f4] text-[#2b3440]', punto: 'bg-primario' };
+const EN_CURSO = { badge: 'bg-acento-palido text-primario', punto: 'bg-acento' };
 
 export const ESTADOS: Record<EstadoTramite, InfoEstado> = {
   REGISTRADO: { etiqueta: 'Registrado', ...EN_CURSO },
@@ -33,7 +33,7 @@ export const ESTADOS: Record<EstadoTramite, InfoEstado> = {
   EN_IMPRESION: { etiqueta: 'En impresión', ...EN_CURSO },
   EN_TRANSITO_LP: { etiqueta: 'En tránsito a La Paz', ...EN_CURSO },
   EN_FIRMA: { etiqueta: 'En firma', ...EN_CURSO },
-  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-[#e4edf6] text-[#173b5c]', punto: 'bg-primario' },
+  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-[#d6e4f2] text-primario-oscuro', punto: 'bg-primario' },
   ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-[#dcfae5] text-[#04250e]', punto: 'bg-[#247b50]' },
 };
 

@@ -9,7 +9,6 @@ import { authService } from '@/services/auth.service';
 import { iniciales, primerNombre } from '@/lib/formato';
 import { todoMock } from '@/services/_modo';
 import { Breadcrumb } from './Breadcrumb';
-import { Marca } from './Marca';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -45,8 +44,8 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
   };
 
   return (
-    // Sobre el marco, sin regla: en escritorio lleva la ruta de navegación; en celular, el menú y la marca.
-    <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-2 bg-marco px-3 sm:px-4 lg:h-12 lg:px-2">
+    // Barra blanca: en escritorio lleva la ruta de navegación; en celular, el menú y el nombre.
+    <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-borde bg-white px-3 sm:px-4">
       <button
         type="button"
         onClick={onMenu}
@@ -55,8 +54,8 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
       >
         <Menu className="size-5" />
       </button>
-      <Link to={rutaInicio(usuario.rol)} className="min-w-0 lg:hidden" aria-label="SISET, inicio">
-        <Marca />
+      <Link to={rutaInicio(usuario.rol)} className="min-w-0 truncate font-semibold text-primario lg:hidden">
+        SISET <span className="font-normal text-suave">· UA Ancocagua</span>
       </Link>
       <Breadcrumb rol={usuario.rol} className="hidden lg:flex" />
 
@@ -123,7 +122,7 @@ export function Header({ usuario, onMenu }: { usuario: Usuario; onMenu: () => vo
             aria-expanded={menu}
             aria-label="Menú de usuario"
           >
-            <span className="flex size-7 items-center justify-center rounded-full bg-activo text-xs font-medium text-tinta">
+            <span className="flex size-8 items-center justify-center rounded-full bg-primario text-xs font-semibold text-white">
               {iniciales(usuario.nombre)}
             </span>
             <span className="hidden text-sm text-tinta md:inline">{primerNombre(usuario.nombre)}</span>

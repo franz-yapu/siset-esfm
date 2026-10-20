@@ -1030,3 +1030,11 @@ presentaron todo antes") · **Estado:** activa, implementada el 2026-10-19
    de una tarjeta, la tabla no dibuja un segundo marco.
 7. Solo en desarrollo, `?como=<id>` abre la demo con esa cuenta para revisar pantallas sin pasar por el login (no
    llega al build de producción).
+8. **Corrección del usuario (mismo día):** no le gustaron los colores del marco gris ni la marca dibujada. Vuelven el
+   **menú azul** (primario `#1F4E79`, ítem activo en blanco), la barra superior blanca y el **logo de texto "SISET"**.
+   La paleta queda en **dos colores**: primario `#1F4E79` (menú, acción principal) y **secundario celeste `#2E75B6`**
+   (pestaña activa, enlaces, el punto del camino del trámite, el dato principal de los gráficos y los estados en curso,
+   en celeste pálido). Verde, ámbar y rojo, solo para estados. Se quedan la tipografía, los indicadores sin íconos, el
+   camino del trámite y las tablas.
+9. Revisadas también: bitácora (texto a 13–14px, aviso con un solo ícono), carga masiva (los pasos sin números y la
+   tarjeta "Columnas de la plantilla" junto al área para soltar el archivo) y guías.

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import clsx from 'clsx';
-import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode } from 'lucide-react';
+import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
@@ -12,7 +12,6 @@ import { authService } from '@/services/auth.service';
 import { todoMock } from '@/services/_modo';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
 import { guiasDeTesis } from '@/pages/guias/visibilidad';
-import { Marca } from '@/components/layout/Marca';
 import { CAMINO } from '@/config/camino-tramite';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
@@ -76,39 +75,37 @@ export function Login() {
   };
 
   return (
-    <div className="grid min-h-screen bg-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      {/* El marco de SISET: quién es la escuela y el camino que sigue cada hoja de ruta entre las dos sedes. */}
-      <div className="flex flex-col gap-8 bg-marco px-6 py-6 sm:px-10 lg:justify-between lg:p-12">
-        <div className="flex items-center gap-3">
-          <Marca conNombre={false} />
-          <p className="text-sm text-suave">ESFM “Mcal. Andrés de Santa Cruz y Calahumana”</p>
+    <div className="grid min-h-screen bg-fondo lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* La escuela, el sistema y el camino que sigue cada hoja de ruta entre las dos sedes, sobre el azul. */}
+      <div className="flex flex-col gap-8 bg-primario px-6 py-6 text-white sm:px-10 lg:justify-between lg:p-12">
+        <div className="flex items-center gap-2 text-sm text-sky-100">
+          <Route className="size-5" aria-hidden />
+          ESFM “Mcal. Andrés de Santa Cruz y Calahumana”
         </div>
         <div className="max-w-md">
-          <h1 className="text-[28px] leading-9 font-semibold text-tinta">SISET · Seguimiento de trámites</h1>
-          <p className="mt-2 text-[15px] text-suave">
-            Cada hoja de ruta, paso a paso, entre Calahumana (La Paz) y la Unidad Académica Ancocagua.
-          </p>
-          <ol className="mt-8 hidden lg:block" aria-label="El camino de un trámite">
+          <h1 className="text-4xl font-semibold">SISET</h1>
+          <p className="mt-2 text-lg text-sky-100">Sistema de Gestión y Seguimiento de Trámites</p>
+          <ol className="mt-10 hidden lg:block" aria-label="El camino de un trámite">
             {CAMINO.map((p, i) => (
               <li key={p.paso} className="flex gap-3">
                 <span className="flex flex-col items-center" aria-hidden>
                   <span
                     className={clsx(
                       'mt-1.5 size-2.5 shrink-0 rounded-full',
-                      i === 0 || i === CAMINO.length - 1 ? 'bg-primario' : 'border-[1.5px] border-primario bg-marco',
+                      i === 0 || i === CAMINO.length - 1 ? 'bg-white' : 'border-[1.5px] border-sky-200 bg-primario',
                     )}
                   />
-                  {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-control" />}
+                  {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-white/25" />}
                 </span>
                 <span className="pb-4">
-                  <span className="block text-sm font-medium text-tinta">{p.paso}</span>
-                  <span className="block text-[13px] text-suave">{p.donde}</span>
+                  <span className="block text-sm font-medium text-white">{p.paso}</span>
+                  <span className="block text-[13px] text-sky-100">{p.donde}</span>
                 </span>
               </li>
             ))}
           </ol>
         </div>
-        <p className="hidden text-[13px] text-suave lg:block">Unidad Académica Ancocagua · Pucarani</p>
+        <p className="hidden text-xs text-sky-100 lg:block">Unidad Académica Ancocagua · Pucarani</p>
       </div>
 
       <div className="flex justify-center px-4 py-8 sm:py-10 lg:items-center">
@@ -159,9 +156,9 @@ export function Login() {
 
           <Link
             to="/seguimiento"
-            className="mt-4 flex items-center gap-3 rounded-[10px] border border-borde p-4 text-sm font-medium text-tinta transition-colors hover:border-control hover:bg-[#f7f9fb]"
+            className="mt-4 flex items-center gap-3 rounded-[10px] border border-borde bg-white p-4 text-sm font-medium text-primario transition-colors hover:border-acento hover:bg-acento-palido"
           >
-            <QrCode className="size-6 shrink-0 text-primario" strokeWidth={1.5} />
+            <QrCode className="size-7 shrink-0 text-acento" strokeWidth={1.5} />
             ¿Eres egresado? Consulta tu trámite sin iniciar sesión
           </Link>
 
@@ -216,7 +213,7 @@ function UsuariosPrueba({
 }) {
   const [abierto, setAbierto] = useState(!DEMO);
   return (
-    <div className="mt-4 rounded-[10px] bg-[#f5f7fa] text-sm">
+    <div className="mt-4 rounded-[10px] border border-borde bg-white text-sm">
       <button
         type="button"
         onClick={() => setAbierto(!abierto)}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { Eye, Lock, RotateCcw, X } from 'lucide-react';
+import { Eye, RotateCcw, X } from 'lucide-react';
 import clsx from 'clsx';
 import type { FiltrosAuditoria, RegistroAuditoria } from '@/types/bitacora';
 import {
@@ -85,10 +85,7 @@ export function Bitacora() {
         subtitulo={data ? `${numero.format(total)} ${total === 1 ? 'registro' : 'registros'}` : undefined}
       />
       <Alerta tipo="info" className="mb-4">
-        <span className="inline-flex items-center gap-1">
-          <Lock className="size-4" />
-          Registro de solo lectura. No se puede modificar ni borrar.
-        </span>
+        Registro de solo lectura. No se puede modificar ni borrar.
       </Alerta>
 
       <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -197,7 +194,7 @@ export function Bitacora() {
                       onClick={() => r.usuario && porUsuario(r.usuario)}
                     >
                       <span className="block">{r.usuario.nombre}</span>
-                      <span className="block text-xs text-suave">{r.usuario.usuario}</span>
+                      <span className="block text-[13px] text-suave">{r.usuario.usuario}</span>
                     </button>
                   ) : (
                     <span className="text-suave italic">Sin usuario</span>
@@ -207,7 +204,7 @@ export function Bitacora() {
                 key: 'ip',
                 header: 'IP',
                 ocultarEnMovil: true,
-                render: (r) => <code className="text-xs">{r.ip ?? '—'}</code>,
+                render: (r) => <code className="font-mono text-[13px] text-suave">{r.ip ?? '—'}</code>,
               },
               {
                 key: 'modulo',
@@ -226,7 +223,10 @@ export function Bitacora() {
                   r.entidad ? (
                     <button
                       type="button"
-                      className={clsx('text-left text-xs hover:underline', esCiInexistente(r) && 'text-amber-700')}
+                      className={clsx(
+                        'text-left text-sm text-acento hover:underline',
+                        esCiInexistente(r) && 'text-[#92400e]',
+                      )}
                       title="Ver el historial de este registro"
                       onClick={() => historialDe(r)}
                     >

@@ -1,25 +1,25 @@
 @import 'tailwindcss';
 
 /*
- * Estilo "hoja en un marco" (tasteskill, framed-sheet): el menú y la barra superior comparten un marco teñido del azul de
- * la ESFM; el trabajo va en una hoja blanca con borde fino y sin sombra. El azul institucional se reserva para la marca,
- * la acción principal, la pestaña activa y el dato principal de cada pantalla (menos del 3 % de la pantalla).
+ * Paleta de dos colores (DEC-061, corregida a pedido del usuario): el azul institucional de la ESFM como primario (menú,
+ * acción principal) y el celeste como secundario (pestaña activa, enlaces, realces y el dato principal de los
+ * gráficos). Verde, ámbar y rojo quedan solo para estados.
  */
 @theme {
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-primario: #1f4e79;
   --color-primario-oscuro: #173b5c;
-  --color-acento: #1f5f99;
-  /* El marco (menú y barra) y el fondo de la página fuera de la hoja. */
-  --color-fondo: #f0f3f7;
-  --color-marco: #f0f3f7;
-  /* Ítem activo del menú: un paso más oscuro que el marco, sin color. */
-  --color-activo: #e1e7ee;
-  /* Líneas en tres pasos: borde de hoja y tarjetas, reglas de filas, bordes de controles. */
-  --color-borde: #e3e7ec;
-  --color-regla: #eef1f4;
-  --color-control: #c9d1da;
+  /* Secundario. */
+  --color-acento: #2e75b6;
+  --color-acento-palido: #e8f1fa;
+  --color-fondo: #f5f7fa;
+  /* Ítem activo en listas y menús claros. */
+  --color-activo: #e8eef5;
+  /* Líneas en tres pasos: borde de tarjetas, reglas de filas, bordes de controles. */
+  --color-borde: #e2e8f0;
+  --color-regla: #eef2f6;
+  --color-control: #c8d1dc;
   --color-tinta: #14181f;
   --color-suave: #525c69;
 }
