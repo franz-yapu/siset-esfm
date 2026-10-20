@@ -902,6 +902,8 @@ D-27 del 14-oct) · **Estado:** activa, implementada el 2026-10-19 · ADR-0009
    el Kardex inicial). La migración `20261019120000` agrega el rol en las bases existentes. En la prueba, la cuenta
    es **9000005** (Prueba.2026), creada por `bd:datos-prueba` también en una base que ya tenía los datos.
 6. Queda por saber quién será el Administrador en producción (nombre y CI): D-51 en la hoja.
+   (2026-10-20) La persona que responde la hoja lo será hasta diciembre; faltan nombre, CI y sede, y si también es
+   Kardex, confirmar dos cuentas (Kardex con su CI y Administrador con `<CI>-ADM`): D-51b, fila 71.
 
 ## DEC-055 — Kardex administra el catálogo de requisitos por modalidad
 
