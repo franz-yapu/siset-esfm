@@ -3,6 +3,9 @@
 Respuestas a **“observaciones a corregir.xlsx”** (desarrollo, lanzamiento, pruebas y evaluación de calidad y
 seguridad) con datos medidos el 22-oct-2026. Es material para el perfil del proyecto.
 
+> **¿Primera vez?** Lee [GUIA-ESTUDIANTE.md](GUIA-ESTUDIANTE.md): explica cada prueba con palabras simples, cómo
+> leer cada imagen y qué responder en la defensa.
+
 ## Informe
 
 | Archivo                                                      | Qué es                                                                       |
