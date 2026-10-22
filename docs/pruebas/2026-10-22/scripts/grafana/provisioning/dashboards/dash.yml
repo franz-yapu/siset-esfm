@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+  - name: siset
+    folder: SISET
+    type: file
+    options: {path: /var/lib/grafana/dashboards}

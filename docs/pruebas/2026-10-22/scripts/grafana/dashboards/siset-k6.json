@@ -1,0 +1,208 @@
+{
+ "uid": "siset-k6",
+ "title": "SISET — pruebas k6",
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "refresh": "10s",
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "Usuarios virtuales simultáneos",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     }
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT max(\"value\") FROM \"vus\" WHERE $timeFilter GROUP BY time(5s) fill(none)",
+     "alias": "usuarios"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Peticiones por segundo",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "reqps"
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"value\")/5 FROM \"http_reqs\" WHERE $timeFilter GROUP BY time(5s) fill(0)",
+     "alias": "req/s"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Tiempo de respuesta (p50 / p95 / máx)",
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "ms"
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT median(\"value\") FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time(5s) fill(none)",
+     "alias": "p50"
+    },
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT percentile(\"value\",95) FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time(5s) fill(none)",
+     "alias": "p95"
+    },
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT max(\"value\") FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time(5s) fill(none)",
+     "alias": "máx"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Peticiones fallidas por segundo",
+   "gridPos": {
+    "x": 12,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "reqps"
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"value\")/5 FROM \"http_req_failed\" WHERE $timeFilter GROUP BY time(5s) fill(0)",
+     "alias": "fallidas/s"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "p95 por endpoint",
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 24,
+    "h": 10
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "ms"
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT percentile(\"value\",95) FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time(10s), \"name\" fill(none)",
+     "alias": "$tag_name"
+    }
+   ],
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  }
+ ]
+}

@@ -16,6 +16,7 @@ solo lo que toca la tarea.
 | `docs/decisions/LOG.md`          | Log append-only de decisiones/respuestas de stakeholders (`DEC-###`).                                                      |
 | `docs/proceso/`                  | Cómo se trabaja: `modo-normal.md` (ramas, SDD, PR) y `modo-demo.md` (temporal, todo en main).                              |
 | `docs/planning/`                 | Artefactos generados: backlog, roadmaps de sprint, cuerpos de tickets. Nombres de archivo con fecha, nada se edita a mano. |
+| `docs/pruebas/<fecha>/`          | Evidencias de pruebas (carga, estrés, seguridad, ISO 25010/27001): informe, capturas, datos y scripts. No se editan.       |
 
 ## Precedencia cuando los docs no coinciden
 

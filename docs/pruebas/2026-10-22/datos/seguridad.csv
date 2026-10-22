@@ -1,0 +1,18 @@
+n,prueba,esperado,obtenido,resultado
+1,"Endpoint protegido sin token (GET /files)",401,401,OK
+2,"Token alterado (firma inválida)",401,401,OK
+3,"Token de otro sistema (JWT falso HS256)",401,401,OK
+4,"SEC_DIR intenta ver files (sin permiso, DEC-054)",403,403,OK
+5,"Estudiante intenta listar files de todos",403,403,OK
+6,"Estudiante intenta abrir el file de otro (id 14)",40[34],403,OK
+7,"Estudiante intenta gestionar usuarios",403,403,OK
+8,"Kardex intenta gestionar usuarios (solo ADMIN, DEC-054)",403,403,OK
+9,"Inyección SQL en el filtro de búsqueda",[24]00,200,OK
+10,"Inyección SQL en el login",40[01],401,OK
+11,"Campo extra no permitido en el cuerpo (mass assignment)",400,400,OK
+12,"Cuerpo mayor al límite (200 KB)",413,413,OK
+13,"5 intentos fallidos: la 6.ª vez con la contraseña correcta sigue bloqueada",4[02][0-9],401,OK
+14,"Más de 10 logins por minuto desde la misma IP",429,429,OK
+15,"UPDATE sobre la bitácora con el rol de la aplicación",DENEGADO,DENEGADO,OK
+16,"DELETE sobre la bitácora con el rol de la aplicación",DENEGADO,DENEGADO,OK
+17,"Contraseñas guardadas con bcrypt costo 12",\$2[aby]\$12\$,$2b$12$,OK

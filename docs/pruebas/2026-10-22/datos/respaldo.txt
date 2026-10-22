@@ -1,0 +1,27 @@
+== 1) Respaldo (pg_dump formato custom)
+archivo /tmp/siset.dump  110299 bytes
+   duración: .213143098 s
+== 2) Restauración en una base nueva (siset_restaurada)
+NOTICE:  database "siset_restaurada" does not exist, skipping
+   duración: .485817201 s
+== 3) Comparación de filas por tabla (original vs restaurada)
+   _prisma_migrations             17       17  OK
+   bloqueo_file                    0        0  OK
+   especialidad                    5        5  OK
+   file_academico                 33       33  OK
+   hoja_ruta                     313      313  OK
+   hoja_ruta_correlativo           1        1  OK
+   log_auditoria                 472      472  OK
+   modalidad_ingreso               4        4  OK
+   movimiento_hoja_ruta          360      360  OK
+   parametro                       3        3  OK
+   persona                        44       44  OK
+   refresh_token                 214      214  OK
+   requisito_file                  3        3  OK
+   requisito_tipo                 27       27  OK
+   rol                             7        7  OK
+   sede                            2        2  OK
+   tipo_tramite                    4        4  OK
+   usuario                        41       41  OK
+== Tablas iguales: 18 de 18
+== Huella MD5 de hoja_ruta: original 48e8c8553b7daacef1aa224dbcf6e2bf / restaurada 48e8c8553b7daacef1aa224dbcf6e2bf IGUALES-OK

@@ -1,0 +1,122 @@
+[
+ [
+  "navegador",
+  "dispositivo",
+  "login",
+  "lista de files",
+  "detalle de file",
+  "seguimiento público",
+  "sin scroll horizontal",
+  "errores de consola",
+  "carga inicial (ms)",
+  "resultado"
+ ],
+ [
+  "chromium",
+  "escritorio 1366×768",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  655,
+  "EXITOSA"
+ ],
+ [
+  "chromium",
+  "tablet 820×1180",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  647,
+  "EXITOSA"
+ ],
+ [
+  "chromium",
+  "celular 360×800",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  655,
+  "EXITOSA"
+ ],
+ [
+  "chrome",
+  "escritorio 1366×768",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  665,
+  "EXITOSA"
+ ],
+ [
+  "chrome",
+  "tablet 820×1180",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  638,
+  "EXITOSA"
+ ],
+ [
+  "chrome",
+  "celular 360×800",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  644,
+  "EXITOSA"
+ ],
+ [
+  "firefox",
+  "escritorio 1366×768",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  829,
+  "EXITOSA"
+ ],
+ [
+  "firefox",
+  "tablet 820×1180",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  699,
+  "EXITOSA"
+ ],
+ [
+  "firefox",
+  "celular 360×800",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  "SÍ",
+  0,
+  663,
+  "EXITOSA"
+ ]
+]

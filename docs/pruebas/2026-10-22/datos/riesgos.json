@@ -1,0 +1,15 @@
+[
+{"id":"R1","amenaza":"Pérdida de datos: aún no hay respaldo automático diario en producción","p":3,"i":5,"control":"Respaldo diario con pg_dump y retención de 30 días antes de la puesta en producción; restauración ya probada en local (sección 4.3.2)"},
+{"id":"R2","amenaza":"Caída del VPS o de Coolify","p":2,"i":4,"control":"Contenedores con reinicio automático y healthchecks; volver a una versión anterior por etiqueta de imagen"},
+{"id":"R3","amenaza":"Corte de internet en la sede Ancocagua","p":4,"i":3,"control":"La interfaz avisa “sin conexión” y no pierde formularios; el trámite sigue en papel y se registra después"},
+{"id":"R4","amenaza":"Robo o adivinación de contraseñas","p":2,"i":5,"control":"bcrypt costo 12, bloqueo tras 5 intentos, límite de 10 logins/min por IP; falta la doble verificación TOTP"},
+{"id":"R5","amenaza":"Un usuario ve datos de otro rol o de otro estudiante","p":1,"i":5,"control":"Casbin por rol, “propio” y sede validados en el servicio; probado (sección 4.3.3)"},
+{"id":"R6","amenaza":"Saturación de la web con mucho tráfico (hallazgo del estrés)","p":2,"i":3,"control":"Activar keepalive entre Nginx y la API (verificado: ver 4.2.2)"},
+{"id":"R7","amenaza":"Reglas del negocio que la escuela aún no confirma","p":3,"i":3,"control":"Registro de dudas y decisiones (DEC); reglas provisionales señaladas"},
+{"id":"R8","amenaza":"Dependencia con vulnerabilidad conocida","p":2,"i":4,"control":"npm audit en cada CI (0 altas y críticas); overrides cuando hace falta (csv-parse)"},
+{"id":"R9","amenaza":"Alteración o borrado de la bitácora","p":1,"i":4,"control":"Rol de BD de la app sin UPDATE/DELETE/TRUNCATE + triggers de solo inserción"},
+{"id":"R10","amenaza":"Error humano al cargar datos","p":3,"i":2,"control":"Validación con Zod, confirmaciones y bitácora con valores antes/después"},
+{"id":"R11","amenaza":"Poca adopción por falta de capacitación","p":3,"i":3,"control":"Capacitación 28–29 oct, manual en /guia/manual"},
+{"id":"R12","amenaza":"Un solo responsable técnico del sistema","p":3,"i":4,"control":"Documentación completa en docs/ (decisiones, diseño por tarea, guía de despliegue)"},
+{"id":"R13","amenaza":"Vencimiento del certificado HTTPS","p":1,"i":3,"control":"Renovación automática de Let’s Encrypt con Traefik"}
+]

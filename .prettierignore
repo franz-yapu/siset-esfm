@@ -7,3 +7,5 @@ _templates
 .claude
 **/generado
 **/migrations/**/*.sql
+# Evidencias de pruebas: se guardan tal como se corrieron
+docs/pruebas

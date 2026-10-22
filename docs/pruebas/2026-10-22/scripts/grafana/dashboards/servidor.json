@@ -1,0 +1,123 @@
+{
+ "uid": "siset-recursos",
+ "title": "SISET — recursos durante la prueba",
+ "refresh": "5s",
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "schemaVersion": 39,
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "CPU del equipo (%)",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "max": 100,
+     "min": 0
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"cpu_pct\") FROM \"servidor\" WHERE $timeFilter GROUP BY time(2s) fill(none)"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM usada del equipo (MB)",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "decmbytes",
+     "min": 0
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"mem_mb\") FROM \"servidor\" WHERE $timeFilter GROUP BY time(2s) fill(none)"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU por contenedor (% de 1 núcleo)",
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 12,
+    "h": 10
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "min": 0
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "alias": "$tag_nombre",
+     "query": "SELECT mean(\"cpu_pct\") FROM \"contenedor\" WHERE $timeFilter GROUP BY time(4s), \"nombre\" fill(none)"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM por contenedor (MB)",
+   "gridPos": {
+    "x": 12,
+    "y": 8,
+    "w": 12,
+    "h": 10
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "k6"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "decmbytes",
+     "min": 0
+    }
+   },
+   "targets": [
+    {
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "alias": "$tag_nombre",
+     "query": "SELECT mean(\"mem_mb\") FROM \"contenedor\" WHERE $timeFilter GROUP BY time(4s), \"nombre\" fill(none)"
+    }
+   ]
+  }
+ ]
+}
