@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
-import { useAuth, useUsuario } from '@/hooks';
+import { useAuth, usePermisos, useUsuario } from '@/hooks';
+import { Cargando } from '@/components/ui';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
@@ -10,6 +11,9 @@ export function AppLayout() {
   const { version } = useAuth();
   const [menu, setMenu] = useState(false);
   const { pathname } = useLocation();
+  // Sin permisos todavía, el menú y la pantalla saldrían a medias: mejor una sola carga.
+  const { cargando } = usePermisos();
+  if (cargando) return <Cargando />;
 
   return (
     <div className="flex min-h-screen bg-fondo">

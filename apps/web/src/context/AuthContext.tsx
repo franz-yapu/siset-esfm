@@ -4,6 +4,7 @@ import type { Usuario } from '@/types';
 import { authService } from '@/services/auth.service';
 import { aUsuario } from '@/services/auth.api';
 import { reiniciarDemo } from '@/services/demo.service';
+import { consultaPermisos } from '@/services/permisos.service';
 import { borrarAccessToken, suscribirSesion } from '@/lib/sesion';
 import {
   borrarUltimaActividad,
@@ -95,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       restaurar: () => authService.restaurar(),
       cerrar: () => authService.logout(null),
     })
-      .then(({ usuario: u, motivo }) => {
+      .then(async ({ usuario: u, motivo }) => {
+        // Los permisos llegan junto con la sesión: el menú no aparece a medias.
+        if (u) await queryClient.prefetchQuery(consultaPermisos(u));
         if (!vigente) return;
         if (motivo) borrarUltimaActividad();
         setUsuario(u);
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       vigente = false;
     };
-  }, []);
+  }, [queryClient]);
 
   // Lo que avisa el cliente HTTP: un refresh trae el usuario al día; uno fallido, la sesión perdida.
   useEffect(
@@ -165,6 +168,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (u: string, password: string) => {
       const real = await authService.login(u, password);
       queryClient.clear();
+      // Se espera a los permisos antes de entrar: así el inicio se pinta completo, con su menú (prefetch no rechaza).
+      await queryClient.prefetchQuery(consultaPermisos(real));
       escribirUltimaActividad(Date.now());
       setMotivoCierre(null);
       setUsuario(real);
@@ -179,10 +184,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     avisarPestanas(null);
   }, [limpiar, avisarPestanas]);
 
-  const verComo = useCallback(async (id: number) => {
-    const u = await authService.verComo(id);
-    if (u) setUsuario(u);
-  }, []);
+  const verComo = useCallback(
+    async (id: number) => {
+      const u = await authService.verComo(id);
+      if (!u) return;
+      await queryClient.prefetchQuery(consultaPermisos(u));
+      setUsuario(u);
+    },
+    [queryClient],
+  );
 
   const refrescar = useCallback(async () => {
     const u = await authService.restaurar();
