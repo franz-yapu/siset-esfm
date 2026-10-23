@@ -48,7 +48,7 @@ jobs:
             --build-arg VITE_USAR_API=auth,usuarios,bitacora,files,hojasRuta \
             --build-arg VITE_DEMO=false \
             --build-arg VITE_CUENTAS_PRUEBA=true \
-            --build-arg VITE_VERSION=${{ steps.tag.outputs.version }} \
+            --build-arg VITE_COMPILACION=${{ steps.tag.outputs.version }} \
             --build-arg VITE_PUBLIC_URL=https://${{ inputs.dominio }} \
             --label "org.opencontainers.image.source=$FUENTE" \
             -t "$REGISTRO/siset-web:prueba" -t "$REGISTRO/siset-web:${{ steps.tag.outputs.version }}" .

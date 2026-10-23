@@ -1,7 +1,13 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
+
+// La versión que se ve al pie sale de package.json (src/config/version.ts).
+process.env.VITE_VERSION = (
+  JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+).version;
 
 // El despliegue de prueba publica contraseñas en el login: que no lo indexen los buscadores (SDD S0.12 §2.5).
 const noIndexar: Plugin = {

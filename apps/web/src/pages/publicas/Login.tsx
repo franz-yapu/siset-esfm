@@ -14,7 +14,7 @@ import { consultaPermisos, type MisPermisos } from '@/services/permisos.service'
 import { puedeVolverA } from '@/lib/permisos';
 import { todoMock } from '@/services/_modo';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
-import { VERSION } from '@/config/version';
+import { COMPILACION, VERSION } from '@/config/version';
 import { guiasDeTesis } from '@/pages/guias/visibilidad';
 import { CAMINO } from '@/config/camino-tramite';
 
@@ -118,7 +118,9 @@ export function Login() {
         </div>
         <p className="hidden text-xs text-sky-100 lg:block">
           Unidad Académica Ancocagua · Pucarani
-          <span className="ml-2 font-mono text-[11px] text-sky-200/80">Versión {VERSION}</span>
+          <span className="ml-2 font-mono text-[11px] text-sky-200/80" title={`Compilación ${COMPILACION}`}>
+            {VERSION}
+          </span>
         </p>
       </div>
 
