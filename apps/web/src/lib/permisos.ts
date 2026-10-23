@@ -19,3 +19,14 @@ export const itemsDelMenu = (permisos: readonly Permiso[]): ItemMenu[] =>
  */
 export const esAccesoDenegado = (e: unknown): boolean =>
   e instanceof ErrorApi && e.estado === 403 && e.codigo !== 'CAMBIO_PASSWORD_REQUERIDO';
+
+/**
+ * ¿Se puede volver a esta ruta tras el login? Si la sesión anterior era de otra persona, su pantalla puede no
+ * corresponderle (daría 403). Se mira la sección del menú que la contiene; una ruta fuera del menú se deja pasar.
+ */
+export const puedeVolverA = (permisos: readonly Permiso[], ruta: string): boolean => {
+  const seccion = MENU.filter((m) => m.ruta && (ruta === m.ruta || ruta.startsWith(`${m.ruta}/`))).sort(
+    (a, b) => b.ruta.length - a.ruta.length,
+  )[0];
+  return !seccion || puedeAbrirRuta(permisos, seccion.id);
+};

@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_USAR_API?: string;
   /** Vacío → '/api/v1' (proxy de Vite en desarrollo, Nginx en producción). */
   readonly VITE_API_URL?: string;
+  /** Etiqueta de la imagen desplegada, para ver en pantalla qué versión está publicada. */
+  readonly VITE_VERSION?: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;

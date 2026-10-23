@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth, usePermisos, useUsuario } from '@/hooks';
 import { Cargando } from '@/components/ui';
+import { rutaInicio } from '@/config/permisos';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
@@ -13,6 +14,13 @@ export function AppLayout() {
   const { pathname } = useLocation();
   // Sin permisos todavía, el menú y la pantalla saldrían a medias: mejor una sola carga.
   const { cargando } = usePermisos();
+  // Si cambia la persona («Ver como» o una sesión de otra cuenta en otra pestaña), la pantalla de la anterior no se
+  // vuelve a evaluar con los permisos nuevos (daría 403): se va directo al inicio de quien entró.
+  const [idDeLaRuta, setIdDeLaRuta] = useState(usuario.id);
+  if (idDeLaRuta !== usuario.id) {
+    if (pathname !== rutaInicio(usuario.rol)) return <Navigate to={rutaInicio(usuario.rol)} replace />;
+    setIdDeLaRuta(usuario.id);
+  }
   if (cargando) return <Cargando />;
 
   return (

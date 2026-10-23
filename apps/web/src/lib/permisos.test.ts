@@ -3,7 +3,7 @@ import type { Rol, Usuario } from '@/types';
 import { PERMISO_RUTA, type IdMenu, type IdRuta } from '@/config/permisos';
 import { permisosMock } from '@/services/permisos.mock';
 import { ErrorApi } from './errores';
-import { cumple, esAccesoDenegado, itemsDelMenu, puedeAbrirRuta } from './permisos';
+import { cumple, esAccesoDenegado, itemsDelMenu, puedeAbrirRuta, puedeVolverA } from './permisos';
 
 const usuario = (rol: Rol): Usuario => ({ id: 1, usuario: 'x', nombre: 'X', rol, sedeId: null, activo: true });
 const permisosDe = async (rol: Rol) => (await permisosMock.misPermisos(usuario(rol))).permisos;
@@ -71,6 +71,23 @@ describe('permisos de la web (SDD S1.11 §2.2)', () => {
     const permisos = [{ recurso: 'files', accion: 'leer' }] as const;
     expect(cumple(permisos, { recurso: 'files', accion: 'leer' })).toBe(true);
     expect(cumple(permisos, { recurso: 'files', accion: 'editar' })).toBe(false);
+  });
+});
+
+describe('puedeVolverA: la ruta de la sesión anterior tras el login', () => {
+  it('no devuelve a otra persona a una pantalla de otro rol', async () => {
+    expect(puedeVolverA(await permisosDe('SEC_DIR'), '/files')).toBe(false);
+    expect(puedeVolverA(await permisosDe('SEC_DIR'), '/files/12/editar')).toBe(false);
+    expect(puedeVolverA(await permisosDe('KARDEX'), '/files/12')).toBe(true);
+  });
+
+  it('la sección más específica manda: Nueva hoja de ruta no es Hojas de ruta', async () => {
+    expect(puedeVolverA(await permisosDe('KARDEX'), '/hojas-ruta')).toBe(true);
+    expect(puedeVolverA(await permisosDe('KARDEX'), '/hojas-ruta/nueva')).toBe(false);
+  });
+
+  it('una ruta fuera del menú se deja pasar', () => {
+    expect(puedeVolverA([], '/cambiar-clave')).toBe(true);
   });
 });
 

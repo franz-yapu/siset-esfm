@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
@@ -9,8 +10,11 @@ import type { Usuario } from '@/types';
 import type { MotivoCierre } from '@/context/AuthContext';
 import { ErrorApi } from '@/lib/errores';
 import { authService } from '@/services/auth.service';
+import { consultaPermisos, type MisPermisos } from '@/services/permisos.service';
+import { puedeVolverA } from '@/lib/permisos';
 import { todoMock } from '@/services/_modo';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
+import { VERSION } from '@/config/version';
 import { guiasDeTesis } from '@/pages/guias/visibilidad';
 import { CAMINO } from '@/config/camino-tramite';
 
@@ -42,7 +46,14 @@ export function Login() {
   const { usuario, login, motivoCierre } = useAuth();
   const nav = useNavigate();
   const desde = rutaDeOrigen(useLocation().state);
-  const destino = (u: Usuario) => (u.debeCambiarClave ? '/cambiar-clave' : (desde ?? rutaInicio(u.rol)));
+  const queryClient = useQueryClient();
+  // Volver a donde se estaba solo si a quien entra le corresponde: puede ser otra cuenta que la de la sesión vencida.
+  // Los permisos ya están en caché: el login los trae antes de resolver.
+  const destino = (u: Usuario) => {
+    if (u.debeCambiarClave) return '/cambiar-clave';
+    const permisos = queryClient.getQueryData<MisPermisos>(consultaPermisos(u).queryKey)?.permisos ?? [];
+    return desde && puedeVolverA(permisos, desde) ? desde : rutaInicio(u.rol);
+  };
   const [escribio, setEscribio] = useState(false);
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
@@ -105,7 +116,10 @@ export function Login() {
             ))}
           </ol>
         </div>
-        <p className="hidden text-xs text-sky-100 lg:block">Unidad Académica Ancocagua · Pucarani</p>
+        <p className="hidden text-xs text-sky-100 lg:block">
+          Unidad Académica Ancocagua · Pucarani
+          <span className="ml-2 font-mono text-[11px] text-sky-200/80">Versión {VERSION}</span>
+        </p>
       </div>
 
       <div className="flex justify-center px-4 py-8 sm:py-10 lg:items-center">
