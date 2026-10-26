@@ -26,7 +26,7 @@ export interface ApiAuth {
   /** true solo mientras se restaura la sesión al arrancar. */
   cargando: boolean;
   /** Inicia sesión. Rechaza con ErrorApi (CREDENCIALES_INVALIDAS, DEMASIADAS_PETICIONES, SIN_CONEXION…). */
-  login: (usuario: string, password: string) => Promise<Usuario>;
+  login: (usuario: string, password: string, captcha?: string) => Promise<Usuario>;
   /** Cierra sesión. Nunca rechaza: si la API falla, igual limpia la sesión local. */
   logout: () => Promise<void>;
   /** Vuelve a leer el usuario de la sesión (en API: POST /auth/refresh, que relee rol, sede y cpw). */
@@ -165,8 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [usuarioId, limpiar, avisarPestanas]);
 
   const login = useCallback(
-    async (u: string, password: string) => {
-      const real = await authService.login(u, password);
+    async (u: string, password: string, captcha?: string) => {
+      const real = await authService.login(u, password, captcha);
       queryClient.clear();
       // Se espera a los permisos antes de entrar: así el inicio se pinta completo, con su menú (prefetch no rechaza).
       await queryClient.prefetchQuery(consultaPermisos(real));

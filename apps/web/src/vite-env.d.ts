@@ -17,3 +17,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** El idioma del widget ALTCHA (ADR-0012): el paquete no trae tipos para es-419; solo registra los textos. */
+declare module 'altcha/i18n/es-419';

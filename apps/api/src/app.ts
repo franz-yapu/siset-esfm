@@ -106,6 +106,7 @@ export function crearApp({
       nombreDe: buscarNombreCompleto,
       leerParametros: leerParametrosEnteros,
       loginLimitePorMinuto: config.loginLimitePorMinuto,
+      captchaTrasFallos: config.captchaTrasFallos,
     }),
     // Crear un usuario crea su persona en la misma transacción: la raíz pasa personas (SDD S1.8 §2.4).
     crearModuloUsuarios({

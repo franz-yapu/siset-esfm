@@ -7,7 +7,13 @@ import { registrarEvento, type AccionAuditoria } from '@/modulos/auditoria';
 
 type Cliente = ClienteBd | TransaccionBd;
 
-export type MotivoLoginFallido = 'PASSWORD_INCORRECTA' | 'CUENTA_BLOQUEADA' | 'CUENTA_INACTIVA' | 'CI_INEXISTENTE';
+export type MotivoLoginFallido =
+  | 'PASSWORD_INCORRECTA'
+  | 'CUENTA_BLOQUEADA'
+  | 'CUENTA_INACTIVA'
+  | 'CI_INEXISTENTE'
+  | 'CAPTCHA_REQUERIDO'
+  | 'CAPTCHA_INVALIDO';
 
 const registrar = (
   cliente: Cliente,
@@ -41,6 +47,24 @@ export const registrarLoginCiInexistente = (cliente: Cliente, ciIntentado: strin
     // null explícito: si no, registrarEvento tomaría el usuario del contexto.
     usuarioId: null,
     despues: { motivo: 'CI_INEXISTENTE' satisfies MotivoLoginFallido },
+  });
+
+/**
+ * Login rechazado por el captcha (ADR-0012): sin mirar la contraseña ni la cuenta, así que va como el CI inexistente,
+ * sin usuario y con el CI intentado en entidad_id.
+ */
+export const registrarLoginSinCaptcha = (
+  cliente: Cliente,
+  ciIntentado: string,
+  motivo: Extract<MotivoLoginFallido, 'CAPTCHA_REQUERIDO' | 'CAPTCHA_INVALIDO'>,
+) =>
+  registrarEvento(cliente, {
+    accion: 'LOGIN_FALLIDO',
+    modulo: 'SEGURIDAD',
+    entidad: 'usuario',
+    entidadId: ciIntentado,
+    usuarioId: null,
+    despues: { motivo },
   });
 
 export const registrarLoginFallido = (

@@ -16,6 +16,8 @@ export const configDePrueba = (extra: Partial<Config> = {}): Config => ({
   jsonLimite: '1kb',
   jwtSecreto: SECRETO_JWT_DE_PRUEBA,
   loginLimitePorMinuto: 10,
+  // Apagado: muchos tests fallan el login a propósito desde la misma IP. Las pruebas del captcha lo prenden.
+  captchaTrasFallos: 0,
   ...extra,
 });
 

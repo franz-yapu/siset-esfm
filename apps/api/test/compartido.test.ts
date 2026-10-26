@@ -33,6 +33,7 @@ describe('cargarConfig', () => {
       jsonLimite: '100kb',
       jwtSecreto: SECRETO,
       loginLimitePorMinuto: 10,
+      captchaTrasFallos: 3,
     });
   });
 

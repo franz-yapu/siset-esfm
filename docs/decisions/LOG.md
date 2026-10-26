@@ -1076,3 +1076,23 @@ usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-05
    deja de administrar, se da de baja la `-ADM`.
 5. **Producción:** el seed crea las dos si `SEED_ADMIN_CI` es el mismo que `SEED_KARDEX_CI` (migración
    `20261020120000`). Faltan su nombre, CI y sede (D-51b).
+
+## DEC-064 — Observaciones del tutor (26-oct): lo que decidió el responsable
+
+**Fecha:** 2026-10-26 · **Fuente:** `observaciones del tutor.xlsx` y el responsable · SDD `docs/sdd/OBS-T1/SDD.md` ·
+**Estado:** activa (en implementación)
+
+1. **Captcha** en el login tras 3 fallos por IP (ADR-0012). Suma los motivos `CAPTCHA_REQUERIDO` y `CAPTCHA_INVALIDO`
+   a `LOGIN_FALLIDO` (cambia la lista cerrada de DEC-011). El TOTP de DEC-018 #1 sigue pendiente para cuando entren
+   los estudiantes reales.
+2. **Datos editables:** los no relevantes (correo, celular, dirección y foto) los cambian el estudiante y Kardex; los
+   demás, solo Kardex.
+3. **Carga de estudiantes y egresados por Excel** (S2.8 + S2.13), además del alta y la edición manual en Kardex.
+   Reemplaza "carga manual" de D-13b. Kardex importa los files; el Excel lo prepara un estudiante.
+4. **Cuenta del estudiante al cargarlo:** usuario = CI; contraseña inicial = fecha de nacimiento `dd-mm-aaaa`, solo
+   como **contraseña temporal** con cambio obligatorio en el primer ingreso (excepción a DEC-011, que la nueva sí
+   cumple). La fecha de nacimiento pasa a ser obligatoria para los estudiantes.
+5. **Egresados sin cuenta** (D-08, reconfirmado por la escuela el 26-oct): los estudiantes de 1.º a 5.º entran con su
+   cuenta; los egresados siguen su trámite con el QR de la hoja de ruta. Al pasar a egresado, la cuenta se desactiva.
+6. Las observaciones #6, #9, #11 y #12 (lentitud, error de conexión, cuentas que no entraban) quedan solo como
+   diagnóstico, sin cambios.

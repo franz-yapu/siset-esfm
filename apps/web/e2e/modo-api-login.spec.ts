@@ -109,3 +109,52 @@ test('P-03 permite cerrar sesión', async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
   expect(logout).toBe(true);
 });
+
+test('captcha (ADR-0012): tras CAPTCHA_REQUERIDO aparece "No soy un robot" y el login lleva la solución', async ({
+  page,
+}) => {
+  // Un reto real firmado con una clave de prueba: el widget lo resuelve en el navegador, como en producción.
+  const { createChallenge } = await import('altcha-lib');
+  const { deriveKey } = await import('altcha-lib/algorithms/pbkdf2');
+  await page.route('**/api/v1/auth/captcha', async (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(
+        await createChallenge({
+          algorithm: 'PBKDF2/SHA-256',
+          cost: 100,
+          deriveKey,
+          hmacSignatureSecret: 'clave-de-prueba-e2e',
+          expiresAt: new Date(Date.now() + 5 * 60_000),
+        }),
+      ),
+    }),
+  );
+  const cuerpos: { captcha?: string }[] = [];
+  await page.route('**/api/v1/auth/login', (r) => {
+    const cuerpo = r.request().postDataJSON() as { captcha?: string };
+    cuerpos.push(cuerpo);
+    return r.fulfill(
+      cuerpo.captcha
+        ? sesion('jwt-login', true)
+        : error(400, 'CAPTCHA_REQUERIDO', 'Hubo varios intentos fallidos desde esta conexión.'),
+    );
+  });
+
+  await ingresar(page);
+  await expect(page.getByText('Hubo varios intentos fallidos desde esta conexión.')).toBeVisible();
+  // Sin marcar el captcha no envía nada.
+  await page.getByRole('button', { name: /ingresar/i }).click();
+  await expect(page.getByText(/marca «no soy un robot»/i)).toBeVisible();
+  expect(cuerpos).toHaveLength(1);
+
+  // La casilla del widget está tapada por su etiqueta: se hace clic en el texto, como una persona.
+  await page.getByText('No soy un robot', { exact: true }).click();
+  await expect(page.getByText('Verificado', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('button', { name: /ingresar/i }).click();
+  await expect(page).toHaveURL(/\/cambiar-clave/);
+  expect(cuerpos).toHaveLength(2);
+  const solucion = JSON.parse(Buffer.from(cuerpos[1].captcha!, 'base64').toString()) as { solution: unknown };
+  expect(solucion.solution).toMatchObject({ counter: expect.any(Number), derivedKey: expect.any(String) });
+});

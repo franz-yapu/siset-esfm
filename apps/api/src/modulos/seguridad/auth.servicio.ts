@@ -8,6 +8,7 @@ import {
   registrarCambioPassword,
   registrarLogin,
   registrarLoginCiInexistente,
+  registrarLoginSinCaptcha,
   registrarLoginFallido,
   registrarLogout,
   registrarReusoSesion,
@@ -314,7 +315,12 @@ export function crearServicioAuth({
     });
   }
 
-  return { login, refrescar, cerrarSesion, cambiarPassword };
+  /** El login que el captcha frenó antes de mirar la contraseña (ADR-0012): queda en la bitácora. */
+  async function rechazoPorCaptcha(usuario: string, motivo: 'CAPTCHA_REQUERIDO' | 'CAPTCHA_INVALIDO') {
+    await registrarLoginSinCaptcha(bd, usuario, motivo);
+  }
+
+  return { login, rechazoPorCaptcha, refrescar, cerrarSesion, cambiarPassword };
 }
 
 export type ServicioAuth = ReturnType<typeof crearServicioAuth>;

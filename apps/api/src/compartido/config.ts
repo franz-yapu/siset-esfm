@@ -22,6 +22,8 @@ const esquema = z.object({
   JWT_SECRET: z.string().min(32),
   /** Rate limit del login por IP (RNF-10, SDD S1.4 §2.3). Solo los tests lo cambian. */
   LOGIN_LIMITE_POR_MINUTO: z.coerce.number().int().min(1).default(10),
+  /** Logins fallidos por IP en 15 min antes de pedir captcha (ADR-0012); 0 lo apaga. */
+  CAPTCHA_TRAS_FALLOS: z.coerce.number().int().min(0).default(3),
 });
 
 export interface Config {
@@ -34,6 +36,7 @@ export interface Config {
   jsonLimite: string;
   jwtSecreto: string;
   loginLimitePorMinuto: number;
+  captchaTrasFallos: number;
 }
 
 /**
@@ -57,5 +60,6 @@ export function cargarConfig(entorno: Record<string, string | undefined> = proce
     jsonLimite: e.JSON_LIMITE,
     jwtSecreto: e.JWT_SECRET,
     loginLimitePorMinuto: e.LOGIN_LIMITE_POR_MINUTO,
+    captchaTrasFallos: e.CAPTCHA_TRAS_FALLOS,
   };
 }

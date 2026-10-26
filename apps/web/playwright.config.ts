@@ -36,6 +36,8 @@ const apiE2E = {
     CORS_ORIGEN: `http://localhost:${PUERTO_WEB_API_REAL}`,
     // Todas las pruebas salen de 127.0.0.1: el límite real (DEC-013 #4) ya tiene su propia prueba.
     LOGIN_LIMITE_POR_MINUTO: '1000',
+    // Igual con el captcha (ADR-0012): las pruebas que fallan el login no deben pedirlo a las siguientes.
+    CAPTCHA_TRAS_FALLOS: '0',
     LOG_LEVEL: 'warn',
   },
   reuseExistingServer: !CI,

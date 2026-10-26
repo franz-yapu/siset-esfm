@@ -1,5 +1,6 @@
 import type { CookieOptions, Request, RequestHandler, Response } from 'express';
 import { ErrorApp } from '@/compartido/errores';
+import { ErrorCaptcha, type Captcha } from './captcha';
 import { datosValidos } from '@/compartido/http';
 import { esquemasCambiarPassword, esquemasLogin, type RespuestaLogin } from './auth.esquemas';
 import { sesionDe } from './autenticar';
@@ -28,10 +29,27 @@ function responderSesion(res: Response, { refreshToken, refreshExpiraEn, ...resp
   res.json(respuesta satisfies RespuestaLogin);
 }
 
-export const crearControladorAuth = (servicio: ServicioAuth) => {
-  const login: RequestHandler = async (_req, res) => {
+export const crearControladorAuth = (servicio: ServicioAuth, captcha: Captcha) => {
+  const login: RequestHandler = async (req, res) => {
     const { body } = datosValidos(res, esquemasLogin);
-    responderSesion(res, await servicio.login(body.usuario, body.password));
+    const ip = req.ip ?? '';
+    // Tras 3 fallos desde la IP, primero el captcha; sin él ni se mira la contraseña (ADR-0012).
+    if (captcha.requerido(ip)) {
+      try {
+        await captcha.verificar(body.captcha);
+      } catch (e) {
+        if (e instanceof ErrorCaptcha) await servicio.rechazoPorCaptcha(body.usuario, e.motivo);
+        throw e;
+      }
+    }
+    try {
+      const sesion = await servicio.login(body.usuario, body.password);
+      captcha.exito(ip);
+      responderSesion(res, sesion);
+    } catch (e) {
+      if (e instanceof ErrorApp && e.codigo === 'CREDENCIALES_INVALIDAS') captcha.fallo(ip);
+      throw e;
+    }
   };
 
   const refrescar: RequestHandler = async (req, res) => {

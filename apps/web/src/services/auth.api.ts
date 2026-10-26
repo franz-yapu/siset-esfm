@@ -19,9 +19,9 @@ export const aUsuario = ({ debeCambiarPassword, ultimoAcceso, ...u }: RespuestaL
  * lo que define el PRD §5.
  */
 export const authApi: typeof authMock = {
-  async login(usuario: string, password: string): Promise<Usuario> {
-    // `password`, no `clave`: así lo tapa la redacción de logs y bitácora (DEC-011).
-    const { data } = await api.post<RespuestaLogin>('/auth/login', { usuario, password });
+  async login(usuario: string, password: string, captcha?: string): Promise<Usuario> {
+    // `password`, no `clave`: así lo tapa la redacción de logs y bitácora (DEC-011). `captcha`: ADR-0012.
+    const { data } = await api.post<RespuestaLogin>('/auth/login', { usuario, password, captcha });
     guardarAccessToken(data.accessToken);
     return aUsuario(data.usuario);
   },

@@ -1,4 +1,5 @@
 import { Router, type RequestHandler } from 'express';
+import { z } from 'zod';
 import { rateLimit } from 'express-rate-limit';
 import { ErrorDemasiadasPeticiones } from '@/compartido/errores';
 import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
@@ -29,9 +30,12 @@ export const crearRutasAuth = (
   controlador: ReturnType<typeof crearControladorAuth>,
   limitePorMinuto: number,
   autenticar: RequestHandler,
+  retoCaptcha: RequestHandler,
 ): Router =>
   Router()
     .post('/auth/login', limitarLogin(limitePorMinuto), validar(esquemasLogin), controlador.login)
+    // Pública, con el mismo rate limit que el login (ADR-0012).
+    .get('/auth/captcha', limitarLogin(limitePorMinuto), retoCaptcha)
     .post('/auth/refresh', controlador.refrescar)
     .post('/auth/logout', controlador.logout)
     // Sin autorizar: cualquiera con sesión, incluso con cpw (SDD S1.6 §2.5).
@@ -48,6 +52,21 @@ export const crearRutasAuth = (
 const error = (description: string) => ({ description, content: { 'application/json': { schema: esquemaError } } });
 
 export const openapiAuth: ZodOpenApiPathsObject = {
+  '/api/v1/auth/captcha': {
+    get: {
+      tags: ['Sesión'],
+      summary: 'Reto ALTCHA para el login (ADR-0012)',
+      description:
+        'Un reto de prueba de trabajo firmado, que vence a los 5 minutos y sirve una sola vez. El widget lo resuelve y manda la solución en `captcha` del login.',
+      responses: {
+        '200': {
+          description: 'El reto (formato de ALTCHA v2).',
+          content: { 'application/json': { schema: z.object({}).loose() } },
+        },
+        '429': error('Más de 10 pedidos por minuto desde la misma IP (DEMASIADAS_PETICIONES).'),
+      },
+    },
+  },
   '/api/v1/auth/login': {
     post: {
       tags: ['Sesión'],
@@ -63,7 +82,9 @@ export const openapiAuth: ZodOpenApiPathsObject = {
           },
           content: { 'application/json': { schema: esquemaRespuestaLogin } },
         },
-        '400': error('Datos inválidos (VALIDACION).'),
+        '400': error(
+          'Datos inválidos (VALIDACION); o, tras 3 fallos desde la IP, falta el captcha (CAPTCHA_REQUERIDO) o no verifica (CAPTCHA_INVALIDO), ADR-0012.',
+        ),
         '429': error('Más de 10 intentos por minuto desde la misma IP (DEMASIADAS_PETICIONES).'),
         '401': error(
           'CI o contraseña incorrectos (CREDENCIALES_INVALIDAS): misma respuesta si la cuenta no existe, está inactiva o bloqueada.',

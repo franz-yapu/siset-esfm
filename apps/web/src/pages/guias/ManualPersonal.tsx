@@ -37,6 +37,10 @@ export function ManualPersonal() {
             Administrador se la restablece (no hay recuperación por correo).
           </li>
           <li>
+            Tras <strong>3 intentos fallidos</strong> desde la misma conexión aparece <em>No soy un robot</em>:
+            márquelo, espere a que diga <em>Verificado</em> (unos segundos) y vuelva a pulsar <em>Ingresar</em>.
+          </li>
+          <li>
             Con <strong>15 minutos sin actividad</strong> la sesión se cierra sola; al minuto 14 aparece un aviso para
             seguir conectado. En una computadora compartida, use siempre <em>Cerrar sesión</em> (menú con su nombre,
             arriba a la derecha).

@@ -16,6 +16,8 @@ export const esquemaLogin = z
       .meta({ example: '1234567-1A' }),
     /** Sin la política de DEC-011: una contraseña temporal o anterior a la regla tiene que poder entrar. */
     password: z.string().min(1).max(200).meta({ example: 'abc123.!' }),
+    /** La solución del widget ALTCHA (base64); solo se exige tras 3 fallos desde la IP (ADR-0012). */
+    captcha: z.string().max(8000).optional(),
   })
   .meta({ id: 'Login', description: 'Credenciales: CI (con complemento si lo tiene) y contraseña.' });
 
