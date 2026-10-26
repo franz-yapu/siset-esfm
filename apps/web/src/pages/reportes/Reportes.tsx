@@ -1,14 +1,22 @@
 import { useState } from 'react';
+import { Download, Printer } from 'lucide-react';
 import { Link } from 'react-router';
 import { Bar, Line } from 'react-chartjs-2';
 import '@/lib/graficos';
 import { AZUL, AZUL_OSCURO } from '@/lib/graficos';
 import type { FiltrosReporte } from '@/types/hojas-ruta';
 import { useReporteHojasRuta, useTiposTramite } from '@/hooks/useHojasRuta';
+import { useUsuario } from '@/hooks';
 import { ESTADOS_HR, sedeHr } from '@/config/estados-hoja-ruta';
-import { diasTexto } from '@/lib/formato';
+import { ahora, diasTexto, fechaHora, hoy } from '@/lib/formato';
+import { descargarCsv } from '@/lib/csv';
+import { etiquetaMes, filasCsvReporte, filtrosEnTexto, seccionesReporte } from '@/lib/reporte-hojas-ruta';
+import { ZonaImpresion } from '@/pages/documentos/Plantillas';
+import { ReporteImpreso } from '@/components/reportes/ReporteImpreso';
+import { NOMBRE_INSTITUCION } from '@/config/institucion';
 import {
   Alerta,
+  Button,
   GrillaKpi,
   Card,
   Cargando,
@@ -19,9 +27,6 @@ import {
   PageHeader,
   Select,
 } from '@/components/ui';
-
-const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const etiquetaMes = (aaaaMm: string) => `${MESES[Number(aaaaMm.slice(5, 7)) - 1]} ${aaaaMm.slice(2, 4)}`;
 
 /** P-60 · Reportes (SEC_DIR, COORDINADOR, KARDEX), contra GET /reportes/hojas-ruta (RF-13, DEC-039). */
 
@@ -35,11 +40,42 @@ export function Reportes() {
   const [f, setF] = useState<FiltrosReporte>({});
   const { data: tipos = [] } = useTiposTramite();
   const { data: k, isLoading, error } = useReporteHojasRuta(f);
+  const u = useUsuario();
   const set = (p: Partial<FiltrosReporte>) => setF({ ...f, ...p });
+
+  // Impresión y CSV (observación #5 del tutor): las mismas tablas, con los filtros y quién lo generó.
+  const secciones = k ? seccionesReporte(k) : [];
+  const filtros = filtrosEnTexto(f, tipos);
+  const generado = `Generado por ${u.nombre} el ${fechaHora(ahora())}`;
+  const exportar = () =>
+    descargarCsv(
+      `reporte-tramites-${hoy()}.csv`,
+      filasCsvReporte([NOMBRE_INSTITUCION, 'Reporte de trámites', filtros, generado], secciones),
+    );
 
   return (
     <>
-      <PageHeader titulo="Reportes" subtitulo="Indicadores de trámites (RF-13)" />
+      <PageHeader
+        titulo="Reportes"
+        subtitulo="Indicadores de trámites (RF-13)"
+        acciones={
+          k && (
+            <>
+              <Button variant="secondary" icon={Download} onClick={exportar}>
+                Exportar a Excel
+              </Button>
+              <Button icon={Printer} onClick={() => window.print()}>
+                Imprimir / PDF
+              </Button>
+            </>
+          )
+        }
+      />
+      {k && (
+        <ZonaImpresion>
+          <ReporteImpreso filtros={filtros} generado={generado} secciones={secciones} />
+        </ZonaImpresion>
+      )}
       <div className="mb-4 grid gap-3 rounded-[10px] bg-[#f5f7fa] p-3 sm:grid-cols-3">
         <Input
           label="Ingreso desde"

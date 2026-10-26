@@ -99,8 +99,9 @@ export function DetalleFile() {
   const [tab, setTab] = useState<Tab>('datos');
   const { data: f, isLoading, error } = useFile(fileId);
   const leeRequisitos = puede({ recurso: 'requisitos', accion: 'leer' }) && f?.condicion !== 'EGRESADO';
-  // Los mismos que muestra la pestaña (caché compartida): la hoja del folder para imprimir (DEC-062).
-  const requisitos = useRequisitos(fileId, leeRequisitos && tab === 'requisitos');
+  // Los mismos que muestra la pestaña (caché compartida): la hoja del folder para imprimir (DEC-062). Se piden al
+  // abrir el file porque el botón está en la cabecera, a la vista (observación #4 del tutor, SDD OBS-T1).
+  const requisitos = useRequisitos(fileId, leeRequisitos);
   const { data: especialidades = [] } = useEspecialidades();
   const editar = useMutacionFiles((d: DatosCrearFile) =>
     filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
@@ -137,7 +138,15 @@ export function DetalleFile() {
 
   return (
     <>
-      <CabeceraFile file={f} acciones={editable && <BloqueoFile file={f} />} />
+      <CabeceraFile
+        file={f}
+        acciones={
+          <>
+            {leeRequisitos && <ImprimirFolder file={f} requisitos={requisitos.data} />}
+            {editable && <BloqueoFile file={f} />}
+          </>
+        }
+      />
       <ResolucionBloqueo file={f} sinMotivo className="mb-4" />
       {!demo && (
         <Alerta tipo="info" className="mb-4">
@@ -155,14 +164,7 @@ export function DetalleFile() {
             onGuardar={guardar}
           />
         )}
-        {tab === 'requisitos' && leeRequisitos && (
-          <>
-            <div className="mb-3 flex justify-end">
-              <ImprimirFolder file={f} requisitos={requisitos.data} />
-            </div>
-            <RequisitosFile fileId={f.id} editable={registraRequisitos} />
-          </>
-        )}
+        {tab === 'requisitos' && leeRequisitos && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
         {tab === 'tramites-api' && <TramitesFile fileId={f.id} ci={f.ci} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
         {tab !== 'datos' && tab !== 'requisitos' && tab !== 'tramites-api' && tab !== 'historial-api' && (

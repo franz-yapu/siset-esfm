@@ -163,9 +163,9 @@ export function ManualPersonal() {
           </li>
           <li>Use el buscador de cada bandeja para encontrar un trámite por N.º, nombre o CI.</li>
           <li>
-            <strong>Hoja del folder:</strong> en la pestaña <em>Requisitos</em> de un file,{' '}
-            <em>Imprimir hoja del folder</em> imprime la hoja «Documentación existente en folder personal» con Sí o No
-            en cada requisito, lista para la firma del estudiante y de Kardex.
+            <strong>Hoja del folder:</strong> arriba de cada file, <em>Imprimir requisitos</em> imprime la hoja
+            «Documentación existente en folder personal» con Sí o No en cada requisito, lista para la firma del
+            estudiante y de Kardex.
           </li>
         </ol>
         <Subtitulo>Requisitos por modalidad</Subtitulo>
@@ -191,6 +191,10 @@ export function ManualPersonal() {
           <li>
             <strong>Reportes:</strong> trámites por estado, por tipo y por mes, tiempo promedio y trámites atrasados
             (más de 72 horas sin moverse: el trámite debe responderse en 48 a 72 horas).
+          </li>
+          <li>
+            <em>Imprimir / PDF</em> imprime el reporte con los filtros elegidos, en tablas y con el encabezado de la
+            escuela; <em>Exportar a Excel</em> descarga las mismas cifras en un archivo que abre Excel.
           </li>
         </ul>
       </Seccion>
@@ -301,9 +305,9 @@ export function ManualPersonal() {
             <em>Mi file académico</em> abre en la <strong>hoja del folder</strong>: los requisitos de la hoja
             «Documentación existente en folder personal», con la marca en <em>Sí</em> o en <em>No</em> según lo que
             Kardex registró. Los que no le corresponden (por género o modalidad) y los «si corresponde» que no presentó
-            quedan sin marca. <em>Imprimir hoja del folder</em> la imprime en el formato de Archivo Kardex (también se
-            puede guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto.
-            Es solo lectura: si algo está mal, acérquese a Kardex.
+            quedan sin marca. <em>Imprimir requisitos</em> la imprime en el formato de Archivo Kardex (también se puede
+            guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto. Es
+            solo lectura: si algo está mal, acérquese a Kardex.
           </li>
           <li>Funciona en el celular. Las cuentas de estudiantes se habilitan después del piloto del personal.</li>
         </ul>

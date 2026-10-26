@@ -19,6 +19,6 @@ test('el estudiante ve su hoja del folder con Sí y No, y la imprime en el forma
   await page.emulateMedia({ media: 'print' });
   await expect(page.getByRole('heading', { name: /Documentación existente en folder personal/i })).toBeVisible();
   await expect(page.getByText('Uso exclusivo de Archivo Kardex', { exact: false })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Imprimir hoja del folder' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Imprimir requisitos' })).toBeHidden();
   expect(problemas).toEqual([]);
 });

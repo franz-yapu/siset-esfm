@@ -142,3 +142,10 @@ Y a la escuela: **#14** ¿los colores institucionales son verde y blanco?
   previa (sin fecha no hay contraseña inicial).
 - **Tiempo:** tres días hasta el 29-oct; si no alcanza, priorizar #7, #11/#12, #5, #8 y #3, que son los que el tutor
   volverá a mirar.
+
+## 7 · Avance
+
+| Fecha  | Punto del plan | Commit / nota                                                                                                                                                                                                                                                                                                                                                               |
+| ------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 26-oct | 1 · #7         | Nombre oficial en `config/institucion.ts`, usado en login, menú, guías, carátula, plantillas y hoja del folder.                                                                                                                                                                                                                                                             |
+| 26-oct | 2 · #5 y #4    | Reportes: **Imprimir / PDF** (hoja carta con encabezado, filtros, tablas y "Generado por … el …") y **Exportar a Excel** (CSV con `;` y BOM, en el navegador; sin cambios en la API). File de Kardex: **Imprimir requisitos** pasa a la cabecera. **Desvío:** la hoja impresa no suma la fecha de entrega, para no alterar el formato de papel de Archivo Kardex (DEC-062). |

@@ -140,7 +140,7 @@ function HojaImpresa({ file: f, filas, gestion }: { file: DatosHoja; filas: Fila
 }
 
 /**
- * Botón "Imprimir hoja del folder": deja la hoja en la zona de impresión (oculta en pantalla) y abre el diálogo de
+ * Botón "Imprimir requisitos" (la hoja del folder): deja la hoja en la zona de impresión (oculta en pantalla) y abre el diálogo de
  * impresión del navegador, donde también se puede guardar como PDF.
  */
 export function ImprimirFolder({
@@ -153,7 +153,7 @@ export function ImprimirFolder({
   return (
     <>
       <Button variant="secondary" icon={Printer} disabled={!requisitos} onClick={() => window.print()}>
-        Imprimir hoja del folder
+        Imprimir requisitos
       </Button>
       {requisitos && (
         <ZonaImpresion>
