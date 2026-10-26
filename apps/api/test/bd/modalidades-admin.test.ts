@@ -30,7 +30,7 @@ const nuevoFile = (modalidad: string) => {
     nombres: 'Prueba',
     apellidoPaterno: 'Modalidad',
     apellidoMaterno: null,
-    fechaNacimiento: null,
+    fechaNacimiento: '2004-05-10',
     celular: null,
     email: null,
     codigo: `MOD-${n}`,

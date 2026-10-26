@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { Lock, UserPlus } from 'lucide-react';
+import { FileSpreadsheet, Lock, UserPlus } from 'lucide-react';
 import type { ColorSemaforo } from '@/types';
 import type { CondicionFile, FiltrosFiles } from '@/types/files';
 import { usePermiso } from '@/hooks';
@@ -69,9 +69,15 @@ export function Files() {
         subtitulo={editable ? `${total} files` : `${total} files · solo lectura`}
         acciones={
           puedeCrear && (
-            <Button icon={UserPlus} onClick={() => nav('/files/nuevo')}>
-              Nuevo file
-            </Button>
+            <>
+              {/* DEC-064 #3: los files de estudiantes y egresados también llegan desde un Excel. */}
+              <Button variant="secondary" icon={FileSpreadsheet} onClick={() => nav('/carga-masiva')}>
+                Importar desde Excel
+              </Button>
+              <Button icon={UserPlus} onClick={() => nav('/files/nuevo')}>
+                Nuevo file
+              </Button>
+            </>
           )
         }
       />

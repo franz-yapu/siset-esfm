@@ -6,8 +6,10 @@ import type {
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
+  FileCreado,
   FileDetalle,
   FiltrosFiles,
+  ResultadoImportacion,
 } from '@/types/files';
 import { auditar, copia, db } from '@/mocks/db';
 import type { FileMock } from '@/mocks/fileMock';
@@ -172,7 +174,8 @@ export const filesMock: ServicioFiles = {
     return aDetalle(f);
   },
 
-  async crear(datos: DatosCrearFile, actor: Usuario): Promise<FileDetalle> {
+  /** La demo no tiene cuentas de estudiante nuevas: `cuentaEstudiante` es null. */
+  async crear(datos: DatosCrearFile, actor: Usuario): Promise<FileCreado> {
     await delay(LATENCIA);
     const d = normalizarDatosFile(datos);
     exigirValidos(d, true);
@@ -203,7 +206,58 @@ export const filesMock: ServicioFiles = {
     db.files.push(nuevo);
     const detalle = aDetalle(nuevo);
     auditar(actor.nombre, MODULO, 'Crear file', nuevo.codigo, null, { ...detalle });
-    return copia(detalle);
+    return { ...copia(detalle), cuentaEstudiante: null };
+  },
+
+  /** Como la API (DEC-064 #3): revisa cada fila; con `aplicar`, crea o actualiza todo, o nada si hay errores. */
+  async importar(filas: DatosCrearFile[], aplicar: boolean, actor: Usuario): Promise<ResultadoImportacion> {
+    await delay(LATENCIA);
+    const vistos = new Set<string>();
+    const revisadas = filas.map((crudo, i) => {
+      const d = normalizarDatosFile(crudo);
+      const existente = db.files.find((f) => f.ci === d.ci && (f.complemento ?? '') === d.complemento);
+      const errores = Object.entries(validarDatosFile(d, true)).map(([campo, mensaje]) => ({ campo, mensaje }));
+      if (vistos.has(d.ci)) errores.push({ campo: 'ci', mensaje: 'El CI se repite en el archivo' });
+      vistos.add(d.ci);
+      if (db.files.some((f) => f.codigo === d.codigo && f.id !== existente?.id)) {
+        errores.push({ campo: 'codigo', mensaje: 'Ese código de estudiante ya es de otro file' });
+      }
+      const actual = existente ? aDetalle(existente) : null;
+      const cambios = actual
+        ? (Object.keys(d) as (keyof DatosCrearFile)[]).filter(
+            (k) => k !== 'ci' && k !== 'complemento' && d[k] !== actual[k],
+          )
+        : [];
+      return {
+        d,
+        existente,
+        fila: {
+          fila: i + 1,
+          ci: d.ci,
+          nombre: [d.nombres, d.apellidoPaterno, d.apellidoMaterno].filter(Boolean).join(' '),
+          accion: errores.length ? 'ERROR' : !actual ? 'CREAR' : cambios.length ? 'ACTUALIZAR' : 'SIN_CAMBIOS',
+          cambios,
+          errores,
+          cuenta: null,
+        } satisfies ResultadoImportacion['filas'][number],
+      };
+    });
+    const cuenta = (a: string) => revisadas.filter((r) => r.fila.accion === a).length;
+    const resumen = {
+      crear: cuenta('CREAR'),
+      actualizar: cuenta('ACTUALIZAR'),
+      sinCambios: cuenta('SIN_CAMBIOS'),
+      errores: cuenta('ERROR'),
+    };
+    if (!aplicar || resumen.errores) return { aplicado: false, resumen, filas: revisadas.map((r) => r.fila) };
+    for (const r of revisadas) {
+      if (r.fila.accion === 'CREAR') await filesMock.crear(r.d, actor);
+      if (r.fila.accion === 'ACTUALIZAR' && r.existente) {
+        const { ci: _ci, complemento: _c, ...cambios } = r.d;
+        await filesMock.editar(r.existente.id, cambios, actor);
+      }
+    }
+    return { aplicado: true, resumen, filas: revisadas.map((r) => r.fila) };
   },
 
   async editar(id: number, cambios: CambiosFile, actor: Usuario): Promise<FileDetalle> {

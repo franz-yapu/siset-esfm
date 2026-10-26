@@ -5,6 +5,7 @@ import {
   esquemasCrearFile,
   esquemasDesbloquearFile,
   esquemasEditarFile,
+  esquemasImportarFiles,
   esquemasListarFiles,
   esquemasUnFile,
 } from './files.esquemas';
@@ -21,6 +22,11 @@ export const crearControladorFiles = (servicio: ServicioFiles) => {
 
   const crear: RequestHandler = async (_req, res) => {
     res.status(201).json(await servicio.crear(datosValidos(res, esquemasCrearFile).body));
+  };
+
+  const importar: RequestHandler = async (_req, res) => {
+    const { body } = datosValidos(res, esquemasImportarFiles);
+    res.json(await servicio.importar(body.filas, body.aplicar));
   };
 
   const editar: RequestHandler = async (_req, res) => {
@@ -57,5 +63,5 @@ export const crearControladorFiles = (servicio: ServicioFiles) => {
     res.json(await servicio.obtener(await servicio.idPropio()));
   };
 
-  return { listar, obtener, mio, crear, editar, bloquear, desbloquear, bloqueo, pdfBloqueo };
+  return { listar, obtener, mio, crear, importar, editar, bloquear, desbloquear, bloqueo, pdfBloqueo };
 };

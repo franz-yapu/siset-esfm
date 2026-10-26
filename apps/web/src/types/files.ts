@@ -101,3 +101,25 @@ export interface Bloqueo {
   bloqueadoEn: string;
   bloqueadoPor: { id: number; nombre: string } | null;
 }
+
+/** Qué pasó con la cuenta del estudiante al registrar o importar su file (DEC-064 #4, #5). */
+export type ResultadoCuenta = 'CREADA' | 'EXISTENTE' | 'REACTIVADA' | 'USUARIO_OCUPADO' | 'DESACTIVADA';
+
+/** POST /files: el file y su cuenta (null en el egresado). */
+export type FileCreado = FileDetalle & { cuentaEstudiante?: ResultadoCuenta | null };
+
+/** POST /files/importacion (DEC-064 #3): qué hace (o hizo) con cada fila. */
+export interface ResultadoImportacion {
+  aplicado: boolean;
+  resumen: { crear: number; actualizar: number; sinCambios: number; errores: number };
+  filas: {
+    /** N.º de fila enviada, desde 1. */
+    fila: number;
+    ci: string | null;
+    nombre: string | null;
+    accion: 'CREAR' | 'ACTUALIZAR' | 'SIN_CAMBIOS' | 'ERROR';
+    cambios: string[];
+    errores: { campo: string; mensaje: string }[];
+    cuenta: ResultadoCuenta | null;
+  }[];
+}

@@ -9,7 +9,7 @@ const base: DatosCrearFile = {
   nombres: 'Juana',
   apellidoPaterno: 'Mamani',
   apellidoMaterno: null,
-  fechaNacimiento: null,
+  fechaNacimiento: '2004-05-10',
   celular: null,
   email: null,
   codigo: 'EST-1',
@@ -25,6 +25,15 @@ describe('reglas del formulario del file (SDD S2.9-S2.10 §2.5)', () => {
   it('D-45: la modalidad es obligatoria al registrar un estudiante, no al editar ni para un egresado', () => {
     const sin = { ...base, modalidad: null };
     expect(validarDatosFile(sin, true, 2026)).toEqual({ modalidad: 'Elija la modalidad de ingreso' });
+    expect(validarDatosFile(sin, false, 2026)).toEqual({});
+    expect(validarDatosFile({ ...sin, condicion: 'EGRESADO' }, true, 2026)).toEqual({});
+  });
+
+  it('DEC-064 #4: la fecha de nacimiento es obligatoria al registrar un estudiante (su contraseña inicial)', () => {
+    const sin = { ...base, fechaNacimiento: null };
+    expect(validarDatosFile(sin, true, 2026)).toEqual({
+      fechaNacimiento: 'La fecha de nacimiento es obligatoria para un estudiante: es su contraseña inicial',
+    });
     expect(validarDatosFile(sin, false, 2026)).toEqual({});
     expect(validarDatosFile({ ...sin, condicion: 'EGRESADO' }, true, 2026)).toEqual({});
   });

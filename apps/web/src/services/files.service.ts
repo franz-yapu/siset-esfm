@@ -6,8 +6,10 @@ import type {
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
+  FileCreado,
   FileDetalle,
   FiltrosFiles,
+  ResultadoImportacion,
 } from '@/types/files';
 import { usaApi } from './_modo';
 import { filesApi } from './files.api';
@@ -23,7 +25,10 @@ export interface ServicioFiles {
   obtener(id: number): Promise<FileDetalle>;
   /** "Mi file" del estudiante (S2.7): la API lo toma de la sesión; el mock, de `actor.fileId`. */
   mio(actor: Usuario): Promise<FileDetalle>;
-  crear(d: DatosCrearFile, actor: Usuario): Promise<FileDetalle>;
+  /** Un estudiante queda además con su cuenta (DEC-064 #4): la respuesta dice qué pasó con ella. */
+  crear(d: DatosCrearFile, actor: Usuario): Promise<FileCreado>;
+  /** Desde el Excel (DEC-064 #3): `aplicar` false solo revisa; true escribe todo, o nada si hay errores. */
+  importar(filas: DatosCrearFile[], aplicar: boolean, actor: Usuario): Promise<ResultadoImportacion>;
   editar(id: number, c: CambiosFile, actor: Usuario): Promise<FileDetalle>;
   /** Por licencia temporal, con la resolución y su PDF (D-29, DEC-049). La glosa queda como motivo del file. */
   bloquear(id: number, d: DatosBloqueo, actor: Usuario): Promise<FileDetalle>;

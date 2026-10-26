@@ -7,6 +7,15 @@ import { cambiosDeFile } from '@/lib/files';
 import { Alerta, Card, Cargando, PageHeader } from '@/components/ui';
 import { datosDeFile, FormDatosFile } from '@/components/file/FormDatosFile';
 
+/** Qué decirle a Kardex sobre la cuenta del estudiante al crear el file (DEC-064 #4). */
+const MENSAJE_CUENTA: Record<string, string> = {
+  CREADA: 'File creado. Su cuenta: usuario = CI, contraseña = fecha de nacimiento (dd-mm-aaaa).',
+  EXISTENTE: 'File creado. Ya tenía su cuenta de estudiante.',
+  REACTIVADA: 'File creado. Su cuenta de estudiante se reactivó.',
+  USUARIO_OCUPADO: 'File creado, sin cuenta: su CI ya es el usuario de otra cuenta. Avise al Administrador.',
+  NINGUNA: 'File creado',
+};
+
 /** P-42 · Nuevo / editar file (KARDEX), contra POST y PATCH /files (S2.10). */
 export function FormFile() {
   const { id } = useParams();
@@ -38,7 +47,7 @@ export function FormFile() {
       return;
     }
     const f = await crear.mutateAsync(d);
-    toast.success('File creado');
+    toast.success(MENSAJE_CUENTA[f.cuentaEstudiante ?? 'NINGUNA']);
     nav(`/files/${f.id}`);
   };
 

@@ -159,6 +159,11 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
           value={d.fechaNacimiento ?? ''}
           onChange={(e) => set({ fechaNacimiento: e.target.value })}
           error={errores.fechaNacimiento}
+          hint={
+            !editando && d.condicion === 'ESTUDIANTE'
+              ? 'Con el file se crea su cuenta: usuario = CI, contraseña = esta fecha (dd-mm-aaaa), a cambiar al entrar.'
+              : undefined
+          }
         />
         <Input
           label="Celular"

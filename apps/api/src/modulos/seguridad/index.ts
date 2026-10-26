@@ -10,3 +10,10 @@ export { ACCIONES, POLITICA, RECURSOS, type Accion, type Recurso } from './autor
 export { describirUsuarios } from './usuario.repositorio';
 export { crearModuloUsuarios } from './usuarios.modulo';
 export { SUFIJO_ADMIN, usernameDe, usernameNuevo } from './usuarios.servicio';
+export {
+  asegurarCuentaEstudiante,
+  desactivarCuentaEstudiante,
+  hashInicialEstudiante,
+  passwordInicialEstudiante,
+  type ResultadoCuenta,
+} from './cuentas-estudiante';

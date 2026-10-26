@@ -28,6 +28,7 @@ import {
 } from '@/modulos/catalogos';
 import {
   crearModuloFiles,
+  RUTA_IMPORTACION_FILES,
   datosBasicosFile,
   egresadosDePersonas,
   fileIdsDePersonas,
@@ -47,8 +48,11 @@ import {
 import { crearModuloAuditoria } from '@/modulos/auditoria';
 import { crearModuloSalud } from '@/modulos/salud';
 import {
+  asegurarCuentaEstudiante,
   crearAutenticar,
   crearAutorizar,
+  desactivarCuentaEstudiante,
+  hashInicialEstudiante,
   crearModuloAuth,
   crearModuloUsuarios,
   describirUsuarios,
@@ -82,7 +86,9 @@ export function crearApp({
   app.use(pinoHttp({ logger, genReqId: () => obtenerContexto()?.idPeticion ?? randomUUID() }));
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigen, credentials: true }));
-  app.use(express.json({ limit: config.jsonLimite }));
+  // La importación de files trae su propio límite, mayor, y lo aplica después de autenticar (DEC-064 #3).
+  const json = express.json({ limit: config.jsonLimite });
+  app.use((req, res, next) => (req.path === RUTA_IMPORTACION_FILES ? next() : json(req, res, next)));
   app.use(cookieParser()); // la cookie del refresh (SDD S1.5 §2.5)
 
   const autenticar = crearAutenticar(config.jwtSecreto);
@@ -118,6 +124,12 @@ export function crearApp({
     // El file crea su persona en la misma transacción; la especialidad sale de catalogos (SDD S2.2 §2).
     crearModuloFiles({
       bd,
+      // La cuenta del estudiante nace con su file (DEC-064 #4); files no importa seguridad (ADR-0001).
+      cuentas: {
+        hashInicial: hashInicialEstudiante,
+        asegurar: asegurarCuentaEstudiante,
+        desactivar: desactivarCuentaEstudiante,
+      },
       autenticar,
       autorizar: {
         leer: autorizar('files', 'leer'),

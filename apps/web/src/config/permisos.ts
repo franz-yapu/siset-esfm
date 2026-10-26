@@ -104,8 +104,8 @@ export interface ItemMenu {
 
 /**
  * Menú lateral: SPEC §3. El orden de este arreglo es el orden en pantalla. "Bandeja de pases" y "Firma y entrega"
- * vuelven al menú, contra la API (D-36, DEC-052). Fuera del menú: "Carga masiva" (D-13b: Kardex carga los files a
- * mano, DEC-044); su ruta sigue para la demo.
+ * vuelven al menú, contra la API (D-36, DEC-052). Fuera del menú: "Carga masiva", que se abre desde "Files académicos"
+ * con "Importar desde Excel" (DEC-064 #3).
  */
 export const MENU: ItemMenu[] = [
   { id: 'inicio', etiqueta: 'Inicio', ruta: '', icono: Home },

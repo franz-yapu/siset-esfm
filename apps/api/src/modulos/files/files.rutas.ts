@@ -1,4 +1,4 @@
-import { Router, type RequestHandler } from 'express';
+import express, { Router, type RequestHandler } from 'express';
 import type { z } from 'zod';
 import type { ZodOpenApiResponseObject } from 'zod-openapi';
 import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
@@ -9,10 +9,14 @@ import {
   esquemaFormularioBloqueo,
   esquemaCrearFile,
   esquemaEditarFile,
+  esquemaFileCreado,
   esquemaFileDetalle,
   esquemaFiltrosFiles,
   esquemaIdFile,
   esquemaPaginaFiles,
+  esquemaImportarFiles,
+  esquemaResultadoImportacion,
+  esquemasImportarFiles,
   esquemasBloquearFile,
   esquemasCrearFile,
   esquemasDesbloquearFile,
@@ -30,6 +34,10 @@ export interface AutorizarFiles {
   editar: RequestHandler;
 }
 
+/** La única ruta con otro límite de cuerpo: 2000 filas del Excel (DEC-064 #3). La raíz la saltea en su parser. */
+export const RUTA_IMPORTACION_FILES = '/api/v1/files/importacion';
+const jsonImportacion = express.json({ limit: '2mb' });
+
 /** `/files` (SDD S2.2 §2.1, DEC-015): KARDEX crea y edita; el personal lee. */
 export const crearRutasFiles = (
   controlador: ReturnType<typeof crearControladorFiles>,
@@ -41,6 +49,16 @@ export const crearRutasFiles = (
     .get('/files/mio', autenticar, autorizar.leerPropio, controlador.mio)
     .get('/files/:id', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.obtener)
     .post('/files', autenticar, autorizar.crear, validar(esquemasCrearFile), controlador.crear)
+    // Crea y actualiza: la usa Kardex, que tiene los dos permisos. El cuerpo se lee solo después de autorizar.
+    .post(
+      '/files/importacion',
+      autenticar,
+      autorizar.crear,
+      autorizar.editar,
+      jsonImportacion,
+      validar(esquemasImportarFiles),
+      controlador.importar,
+    )
     .patch('/files/:id', autenticar, autorizar.editar, validar(esquemasEditarFile), controlador.editar)
     .get('/files/:id/bloqueo', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.bloqueo)
     .get('/files/:id/bloqueo/pdf', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.pdfBloqueo)
@@ -89,15 +107,31 @@ export const openapiFiles: ZodOpenApiPathsObject = {
       tags: ['Files'],
       summary: 'Registrar un file (solo Kardex)',
       description:
-        'Crea la persona del estudiante y su file en una transacción. Si el CI ya es de una persona sin file, la reutiliza sin cambiar sus datos.',
+        'Crea la persona del estudiante y su file en una transacción. Si el CI ya es de una persona sin file, la reutiliza sin cambiar sus datos. Un estudiante queda con su cuenta: usuario = CI, contraseña inicial = fecha de nacimiento dd-mm-aaaa, a cambiar en el primer ingreso (DEC-064).',
       security: [{ bearerAuth: [] }],
       requestBody: { content: { 'application/json': { schema: esquemaCrearFile } } },
       responses: {
-        '201': json('File creado.', esquemaFileDetalle),
+        '201': json('File creado, con el resultado de la cuenta del estudiante.', esquemaFileCreado),
         '400': error('Datos inválidos (VALIDACION).'),
         ...comunes,
         '409': error('La persona ya tiene file (FILE_EXISTENTE) o el código se repite (CODIGO_EXISTENTE).'),
         '422': error('La especialidad no existe (ESPECIALIDAD_INEXISTENTE).'),
+      },
+    },
+  },
+  '/api/v1/files/importacion': {
+    post: {
+      tags: ['Files'],
+      summary: 'Importar files desde el Excel (solo Kardex)',
+      description:
+        'Cada fila con los campos de "Nuevo file": crea el file o, si el CI ya tiene uno, lo actualiza. Con `aplicar: false` solo revisa y dice qué haría; con `true` escribe todo en una transacción, o nada si alguna fila tiene errores. Los estudiantes quedan con su cuenta; los egresados, sin cuenta activa (DEC-064). Hasta 2000 filas y 2 MB.',
+      security: [{ bearerAuth: [] }],
+      requestBody: { content: { 'application/json': { schema: esquemaImportarFiles } } },
+      responses: {
+        '200': json('Qué pasa (o pasó) con cada fila.', esquemaResultadoImportacion),
+        '400': error('El cuerpo no tiene filas o tiene más de 2000 (VALIDACION).'),
+        ...comunes,
+        '413': error('Más de 2 MB.'),
       },
     },
   },

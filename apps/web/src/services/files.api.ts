@@ -5,8 +5,10 @@ import type {
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
+  FileCreado,
   FileDetalle,
   FiltrosFiles,
+  ResultadoImportacion,
 } from '@/types/files';
 import { api } from '@/lib/api';
 import type { ServicioFiles } from './files.service';
@@ -33,8 +35,13 @@ export const filesApi: ServicioFiles = {
     return (await api.get<FileDetalle>('/files/mio')).data;
   },
 
-  async crear(d: DatosCrearFile): Promise<FileDetalle> {
-    return (await api.post<FileDetalle>('/files', d)).data;
+  async crear(d: DatosCrearFile): Promise<FileCreado> {
+    return (await api.post<FileCreado>('/files', d)).data;
+  },
+
+  async importar(filas: DatosCrearFile[], aplicar: boolean): Promise<ResultadoImportacion> {
+    // Crear cuentas calcula una contraseña por estudiante: puede tardar más que el límite general.
+    return (await api.post<ResultadoImportacion>('/files/importacion', { filas, aplicar }, { timeout: 180_000 })).data;
   },
 
   async editar(id: number, c: CambiosFile): Promise<FileDetalle> {

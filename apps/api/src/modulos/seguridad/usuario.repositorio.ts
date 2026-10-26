@@ -96,7 +96,8 @@ export const buscarRolId = async (cliente: Cliente, codigo: string): Promise<num
 export interface NuevoUsuario {
   personaId: number;
   rolId: number;
-  sedeId: number;
+  /** null: el estudiante no tiene sede (D-24). */
+  sedeId: number | null;
   username: string;
   passwordHash: string;
 }

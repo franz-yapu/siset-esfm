@@ -217,7 +217,7 @@ export function Login() {
               aviso={
                 DEMO
                   ? null
-                  : 'Entorno de prueba con datos ficticios. Los estudiantes no inician sesión: consultan su trámite en "¿Eres egresado?".'
+                  : 'Entorno de prueba con datos ficticios. Los estudiantes entran con su CI y su fecha de nacimiento (dd-mm-aaaa); los egresados consultan su trámite en "¿Eres egresado?".'
               }
               onElegir={(u, clave) => {
                 setUser(u);

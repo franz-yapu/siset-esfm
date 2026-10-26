@@ -382,19 +382,22 @@ describe('GET /api/v1/catalogos/especialidades', () => {
 });
 
 describe('GET /api/v1/files/mio (S2.7, DEC-043)', () => {
-  /** Un usuario ESTUDIANTE para la persona dada, sin sede (D-24). */
+  /**
+   * La cuenta ESTUDIANTE de la persona, sin sede (D-24): la que le creó el alta del file (DEC-064 #4) o, si no tiene
+   * file, una a mano.
+   */
   async function estudiante(personaId: number): Promise<string> {
-    const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } });
-    const persona = await bd.persona.findUniqueOrThrow({ where: { id: personaId } });
-    const u = await bd.usuario.create({
-      data: {
-        personaId,
-        rolId: rol.id,
-        username: persona.ci,
-        passwordHash: await hashPassword(PASSWORD_DE_PRUEBA),
-        debeCambiarPassword: false,
-      },
-    });
+    const u =
+      (await bd.usuario.findFirst({ where: { personaId, rol: { codigo: 'ESTUDIANTE' } } })) ??
+      (await bd.usuario.create({
+        data: {
+          personaId,
+          rolId: (await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } })).id,
+          username: (await bd.persona.findUniqueOrThrow({ where: { id: personaId } })).ci,
+          passwordHash: await hashPassword(PASSWORD_DE_PRUEBA),
+          debeCambiarPassword: false,
+        },
+      }));
     return tokenDe(u.id, 'ESTUDIANTE');
   }
   const pedir = (ruta: string, token: string) =>

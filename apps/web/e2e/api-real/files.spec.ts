@@ -22,6 +22,8 @@ test.describe.serial('E11 · files', () => {
     await page.getByLabel('Especialidad').selectOption({ label: 'Matemática' });
     await page.getByLabel('Modalidad de ingreso').selectOption('A');
     await page.getByLabel('Año de ingreso').fill('2024');
+    // DEC-064 #4: obligatoria para un estudiante, es su contraseña inicial.
+    await page.getByLabel('Fecha de nacimiento').fill('2004-05-10');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.getByRole('heading', { name: 'Prueba Archivo' })).toBeVisible();
     await expect(page.getByText(/se habilitan en una próxima versión/)).toBeVisible();

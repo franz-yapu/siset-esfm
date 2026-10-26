@@ -56,6 +56,14 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
   { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: LEEN_FILES },
   { metodo: 'post', documentada: '/api/v1/files', ruta: '/files', cuerpo: {}, permitidos: SOLO_KARDEX },
   { metodo: 'get', documentada: '/api/v1/files/mio', ruta: '/files/mio', permitidos: ['ESTUDIANTE'] },
+  // Importación desde Excel (DEC-064 #3): pide crear y editar files, es decir, Kardex.
+  {
+    metodo: 'post',
+    documentada: '/api/v1/files/importacion',
+    ruta: '/files/importacion',
+    cuerpo: {},
+    permitidos: SOLO_KARDEX,
+  },
   {
     metodo: 'get',
     documentada: '/api/v1/files/mio/requisitos',

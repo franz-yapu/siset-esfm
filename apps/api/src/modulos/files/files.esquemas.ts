@@ -106,6 +106,11 @@ export const esquemaCrearFile = z
     message: 'Elija la modalidad de ingreso (A, B1, B2 o B3)',
     path: ['modalidad'],
   })
+  // DEC-064 #4: la fecha de nacimiento es la contraseña inicial del estudiante.
+  .refine((d) => d.condicion !== 'ESTUDIANTE' || d.fechaNacimiento, {
+    message: 'La fecha de nacimiento es obligatoria para un estudiante: es su contraseña inicial',
+    path: ['fechaNacimiento'],
+  })
   .meta({ id: 'CrearFile', description: 'Persona del estudiante y su file. Se crea desbloqueado.' });
 
 /** Sin CI ni complemento (identidad) ni bloqueo (S2.3, D-07b): `strictObject` los rechaza con 400. */
@@ -230,3 +235,54 @@ export const esquemaBloqueo = z
   .meta({ id: 'Bloqueo', description: 'El bloqueo abierto del file, sin el PDF.' });
 
 export type Bloqueo = z.infer<typeof esquemaBloqueo>;
+
+/** Importación desde Excel (DEC-064 #3): hasta 2000 filas; cada una con los campos de "Nuevo file". */
+export const MAX_FILAS_IMPORTACION = 2000;
+
+export const esquemaImportarFiles = z
+  .strictObject({
+    /** false: solo revisa y dice qué haría. true: lo aplica todo junto, o nada si alguna fila tiene errores. */
+    aplicar: z.boolean().default(false),
+    /** Cada fila se valida aparte con `CrearFile`, para informar los errores fila por fila. */
+    filas: z.array(z.unknown()).min(1, 'El archivo no tiene filas').max(MAX_FILAS_IMPORTACION),
+  })
+  .meta({ id: 'ImportarFiles' });
+
+export const esquemasImportarFiles = { body: esquemaImportarFiles };
+
+export const ACCIONES_IMPORTACION = ['CREAR', 'ACTUALIZAR', 'SIN_CAMBIOS', 'ERROR'] as const;
+export const RESULTADOS_CUENTA = ['CREADA', 'EXISTENTE', 'REACTIVADA', 'USUARIO_OCUPADO', 'DESACTIVADA'] as const;
+
+export const esquemaResultadoImportacion = z
+  .object({
+    aplicado: z.boolean(),
+    resumen: z.object({
+      crear: z.number().int(),
+      actualizar: z.number().int(),
+      sinCambios: z.number().int(),
+      errores: z.number().int(),
+    }),
+    filas: z.array(
+      z.object({
+        /** N.º de fila de datos, desde 1 (sin el encabezado). */
+        fila: z.number().int(),
+        ci: z.string().nullable(),
+        nombre: z.string().nullable(),
+        accion: z.enum(ACCIONES_IMPORTACION),
+        /** Qué campos cambian al actualizar. */
+        cambios: z.array(z.string()),
+        errores: z.array(z.object({ campo: z.string(), mensaje: z.string() })),
+        /** Solo al aplicar: qué pasó con la cuenta del estudiante. */
+        cuenta: z.enum(RESULTADOS_CUENTA).nullable(),
+      }),
+    ),
+  })
+  .meta({ id: 'ResultadoImportacion' });
+
+export type ResultadoImportacion = z.infer<typeof esquemaResultadoImportacion>;
+export type FilaImportacion = ResultadoImportacion['filas'][number];
+
+/** POST /files: el file y qué pasó con la cuenta del estudiante (null en el egresado, que no tiene). */
+export const esquemaFileCreado = esquemaFileDetalle
+  .extend({ cuentaEstudiante: z.enum(['CREADA', 'EXISTENTE', 'REACTIVADA', 'USUARIO_OCUPADO']).nullable() })
+  .meta({ id: 'FileCreado' });

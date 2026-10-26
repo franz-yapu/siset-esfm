@@ -14,13 +14,16 @@ import {
   type FileBd,
 } from './file.repositorio';
 import { buscarBloqueoAbierto, buscarPdfBloqueoAbierto, cerrarBloqueo, crearBloqueo } from './bloqueo.repositorio';
-import type {
-  Bloqueo,
-  CambiosFileApi,
-  DatosBloqueo,
-  DatosCrearFile,
-  FileDetalle,
-  FiltrosFiles,
+import {
+  esquemaCrearFile,
+  type Bloqueo,
+  type CambiosFileApi,
+  type DatosBloqueo,
+  type DatosCrearFile,
+  type FileDetalle,
+  type FilaImportacion,
+  type FiltrosFiles,
+  type ResultadoImportacion,
 } from './files.esquemas';
 import { listarEstadosDeFiles } from './requisito.repositorio';
 import {
@@ -71,8 +74,31 @@ export interface RequisitoParaSemaforo extends RequisitoParaReglas {
   id: number;
 }
 
+/** Resultado de dejar activa la cuenta del estudiante (seguridad, vía la raíz; DEC-064). */
+export type ResultadoCuenta = 'CREADA' | 'EXISTENTE' | 'REACTIVADA' | 'USUARIO_OCUPADO';
+
+/** Las cuentas de estudiante: las arma la raíz con seguridad (ADR-0001); files no importa seguridad. */
+export interface CuentasParaFiles {
+  /** bcrypt de la contraseña inicial (dd-mm-aaaa); tarda: se calcula fuera de la transacción si se puede. */
+  hashInicial(fechaNacimiento: string): Promise<string>;
+  asegurar(
+    tx: TransaccionBd,
+    datos: { personaId: number; ci: string; complemento: string; passwordHash: string },
+  ): Promise<ResultadoCuenta>;
+  desactivar(tx: TransaccionBd, personaId: number): Promise<boolean>;
+}
+
+const sinFechaNacimiento = () =>
+  new ErrorValidacion([
+    {
+      ruta: 'body.fechaNacimiento',
+      mensaje: 'La fecha de nacimiento es obligatoria para un estudiante: es su contraseña inicial',
+    },
+  ]);
+
 export interface DependenciasFiles {
   bd: ClienteBd;
+  cuentas: CuentasParaFiles;
   obtenerRequisitosActivos(cliente: Cliente): Promise<RequisitoParaSemaforo[]>;
   personas: PersonasParaFiles;
   especialidades: EspecialidadesParaFiles;
@@ -157,6 +183,7 @@ const modalidadInexistente = (codigo: string) =>
  */
 export function crearServicioFiles({
   bd,
+  cuentas,
   personas,
   especialidades,
   obtenerRequisitosActivos,
@@ -223,6 +250,276 @@ export function crearServicioFiles({
     if (codigo !== null && !(await especialidades.modalidadActiva(tx, codigo))) throw modalidadInexistente(codigo);
   }
 
+  /** El hash de la contraseña inicial si el file es de un estudiante (fuera de la transacción: bcrypt tarda). */
+  async function hashSiEstudiante(condicion: string, fechaNacimiento: string | null): Promise<string | null> {
+    if (condicion !== 'ESTUDIANTE') return null;
+    if (!fechaNacimiento) throw sinFechaNacimiento();
+    return cuentas.hashInicial(fechaNacimiento);
+  }
+
+  async function crearEnTx(
+    tx: TransaccionBd,
+    datos: DatosCrearFile,
+    hash: string | null,
+  ): Promise<FileDetalle & { cuentaEstudiante: ResultadoCuenta | null }> {
+    const {
+      codigo,
+      especialidadId,
+      anioIngreso,
+      condicion,
+      genero,
+      modalidad,
+      anioFormacion,
+      fechaNacimiento,
+      ...persona
+    } = datos;
+    const existente = await personas.buscarPersonaPorCi(tx, persona.ci, persona.complemento);
+    if (existente && (await tieneFile(tx, existente.id))) {
+      throw new ErrorConflicto('Esa persona ya tiene un file.', undefined, 'FILE_EXISTENTE');
+    }
+    await exigirCodigoLibre(tx, codigo);
+    await exigirEspecialidad(tx, especialidadId);
+    await exigirModalidad(tx, modalidad);
+    // Si la persona ya existe sin file (p. ej., del personal), se reutiliza sin tocar sus datos (DEC-020 #6).
+    const p = existente ?? (await personas.crearPersona(tx, { ...persona, fechaNacimiento: aFecha(fechaNacimiento) }));
+    const { id } = await crearFile(tx, {
+      personaId: p.id,
+      codigoEstudiante: codigo,
+      especialidadId,
+      anioIngreso,
+      condicion,
+      genero,
+      modalidad,
+      anioFormacion,
+    });
+    const { d } = await cargar(tx, id);
+    await registrarEvento(tx, {
+      accion: 'CREAR',
+      modulo: 'FILES',
+      entidad: 'file_academico',
+      entidadId: id,
+      despues: d,
+    });
+    const cuentaEstudiante = hash
+      ? await cuentas.asegurar(tx, { personaId: p.id, ci: p.ci, complemento: p.complemento, passwordHash: hash })
+      : null;
+    return { ...d, cuentaEstudiante };
+  }
+
+  /** `hash`: la contraseña inicial ya calculada (la importación la calcula antes de la transacción). */
+  async function editarEnTx(
+    tx: TransaccionBd,
+    id: number,
+    cambios: CambiosFileApi,
+    hash?: string,
+  ): Promise<FileDetalle> {
+    const { f, p, d } = await cargar(tx, id);
+    const antes: Record<string, unknown> = {};
+    const despues: Record<string, unknown> = {};
+
+    const cambiosPersona: CambiosPersonales = {};
+    for (const campo of CAMPOS_PERSONALES) {
+      const valor = cambios[campo];
+      if (valor === undefined || valor === d[campo]) continue;
+      antes[campo] = d[campo];
+      despues[campo] = valor;
+      Object.assign(cambiosPersona, { [campo]: campo === 'fechaNacimiento' ? aFecha(valor) : valor });
+    }
+    const apellidoPaterno = 'apellidoPaterno' in cambiosPersona ? cambiosPersona.apellidoPaterno : p.apellidoPaterno;
+    const apellidoMaterno = 'apellidoMaterno' in cambiosPersona ? cambiosPersona.apellidoMaterno : p.apellidoMaterno;
+    if (!apellidoPaterno && !apellidoMaterno) {
+      throw new ErrorValidacion([{ ruta: 'body.apellidoPaterno', mensaje: 'Debe tener al menos un apellido' }]);
+    }
+
+    const cambiosFile: CambiosFile = {};
+    if (cambios.codigo !== undefined && cambios.codigo !== f.codigoEstudiante) {
+      await exigirCodigoLibre(tx, cambios.codigo, id);
+      cambiosFile.codigoEstudiante = cambios.codigo;
+      antes.codigo = f.codigoEstudiante;
+      despues.codigo = cambios.codigo;
+    }
+    if (cambios.especialidadId !== undefined && cambios.especialidadId !== f.especialidadId) {
+      await exigirEspecialidad(tx, cambios.especialidadId);
+      cambiosFile.especialidadId = cambios.especialidadId;
+      antes.especialidadId = f.especialidadId;
+      despues.especialidadId = cambios.especialidadId;
+    }
+    if (cambios.modalidad !== undefined && cambios.modalidad !== f.modalidad) {
+      await exigirModalidad(tx, cambios.modalidad);
+    }
+    for (const campo of ['anioIngreso', 'condicion', 'genero', 'modalidad', 'anioFormacion'] as const) {
+      const valor = cambios[campo];
+      if (valor === undefined || valor === f[campo]) continue;
+      Object.assign(cambiosFile, { [campo]: valor });
+      antes[campo] = f[campo];
+      despues[campo] = valor;
+    }
+
+    // Nada cambió de verdad: no hay escritura ni evento.
+    if (Object.keys(despues).length === 0) return d;
+    // La cuenta sigue a la condición (DEC-064 #5): el egresado no tiene cuenta; si vuelve a estudiante, se reactiva
+    // o se crea con su fecha de nacimiento.
+    if (despues.condicion === 'EGRESADO') await cuentas.desactivar(tx, p.id);
+    if (despues.condicion === 'ESTUDIANTE') {
+      const nacimiento = cambios.fechaNacimiento !== undefined ? cambios.fechaNacimiento : d.fechaNacimiento;
+      if (!nacimiento) throw sinFechaNacimiento();
+      await cuentas.asegurar(tx, {
+        personaId: p.id,
+        ci: p.ci,
+        complemento: p.complemento,
+        passwordHash: hash ?? (await cuentas.hashInicial(nacimiento)),
+      });
+    }
+    if (Object.keys(cambiosPersona).length > 0) await personas.actualizarPersona(tx, p.id, cambiosPersona);
+    if (Object.keys(cambiosFile).length > 0) await actualizarFile(tx, id, cambiosFile);
+    await registrarEvento(tx, {
+      accion: 'EDITAR',
+      modulo: 'FILES',
+      entidad: 'file_academico',
+      entidadId: id,
+      antes,
+      despues,
+    });
+    return (await cargar(tx, id)).d;
+  }
+
+  /** Los campos que se comparan al actualizar un file desde el Excel (los de "Nuevo file" menos la identidad). */
+  const CAMPOS_IMPORTACION = [
+    ...CAMPOS_PERSONALES,
+    'codigo',
+    'especialidadId',
+    'anioIngreso',
+    'condicion',
+    'genero',
+    'modalidad',
+    'anioFormacion',
+  ] as const;
+
+  /**
+   * Importación desde Excel (DEC-064 #3): cada fila crea el file o, si el CI ya tiene uno, lo actualiza. Primero
+   * revisa todo (sin escribir) y dice qué haría con cada fila; con `aplicar`, lo escribe en una sola transacción,
+   * o nada si alguna fila tiene errores. Los estudiantes quedan con su cuenta (DEC-064 #4); los egresados, sin cuenta
+   * activa (D-08). Cada file deja su evento CREAR o EDITAR, como el alta y la edición a mano.
+   */
+  async function importar(crudas: unknown[], aplicar: boolean): Promise<ResultadoImportacion> {
+    const validas: { i: number; datos: DatosCrearFile; fileId: number | null }[] = [];
+    const filas: FilaImportacion[] = crudas.map((cruda, i) => {
+      const r = esquemaCrearFile.safeParse(cruda);
+      const base = { fila: i + 1, cambios: [], cuenta: null };
+      if (!r.success) {
+        const ci = typeof (cruda as { ci?: unknown })?.ci === 'string' ? (cruda as { ci: string }).ci : null;
+        return {
+          ...base,
+          ci,
+          nombre: null,
+          accion: 'ERROR',
+          errores: r.error.issues.map((e) => ({ campo: String(e.path[0] ?? ''), mensaje: e.message })),
+        };
+      }
+      const d = r.data;
+      validas.push({ i, datos: d, fileId: null });
+      return {
+        ...base,
+        ci: d.complemento ? `${d.ci}-${d.complemento}` : d.ci,
+        nombre: [d.nombres, d.apellidoPaterno, d.apellidoMaterno].filter(Boolean).join(' '),
+        accion: 'CREAR',
+        errores: [],
+      };
+    });
+    const error = (i: number, campo: string, mensaje: string) => {
+      filas[i].accion = 'ERROR';
+      filas[i].errores.push({ campo, mensaje });
+    };
+
+    // El mismo CI o el mismo código dos veces en el archivo.
+    const vistos = { ci: new Map<string, number>(), codigo: new Map<string, number>() };
+    for (const { i, datos } of validas) {
+      const ci = `${datos.ci}|${datos.complemento}`;
+      if (vistos.ci.has(ci)) error(i, 'ci', `El CI se repite en la fila ${vistos.ci.get(ci)! + 1}`);
+      else vistos.ci.set(ci, i);
+      if (vistos.codigo.has(datos.codigo)) {
+        error(i, 'codigo', `El código se repite en la fila ${vistos.codigo.get(datos.codigo)! + 1}`);
+      } else vistos.codigo.set(datos.codigo, i);
+    }
+
+    // Contra la base: catálogos, si ya tiene file y de quién es el código. En una transacción de solo lectura.
+    await bd.$transaction(
+      async (tx) => {
+        for (const v of validas) {
+          const { i, datos } = v;
+          const persona = await personas.buscarPersonaPorCi(tx, datos.ci, datos.complemento);
+          v.fileId = persona ? await buscarIdFileDePersona(tx, persona.id) : null;
+          const actual = v.fileId === null ? null : await cargar(tx, v.fileId);
+          if ((await especialidades.nombreEspecialidadActiva(tx, datos.especialidadId)) === null) {
+            error(i, 'especialidadId', 'La especialidad no existe o está dada de baja');
+          }
+          const modalidadNueva = !actual || datos.modalidad !== actual.f.modalidad;
+          if (modalidadNueva && datos.modalidad && !(await especialidades.modalidadActiva(tx, datos.modalidad))) {
+            error(i, 'modalidad', `La modalidad ${datos.modalidad} no existe o está dada de baja`);
+          }
+          const duenoCodigo = await tx.fileAcademico.findUnique({
+            where: { codigoEstudiante: datos.codigo },
+            select: { id: true },
+          });
+          if (duenoCodigo && duenoCodigo.id !== v.fileId) {
+            error(i, 'codigo', 'Ese código de estudiante ya es de otro file');
+          }
+          if (actual && filas[i].accion !== 'ERROR') {
+            const cambios = CAMPOS_IMPORTACION.filter((c) => datos[c] !== actual.d[c]);
+            filas[i].accion = cambios.length ? 'ACTUALIZAR' : 'SIN_CAMBIOS';
+            filas[i].cambios = cambios;
+          }
+        }
+      },
+      { timeout: 60_000 },
+    );
+
+    const resumen = {
+      crear: filas.filter((f) => f.accion === 'CREAR').length,
+      actualizar: filas.filter((f) => f.accion === 'ACTUALIZAR').length,
+      sinCambios: filas.filter((f) => f.accion === 'SIN_CAMBIOS').length,
+      errores: filas.filter((f) => f.accion === 'ERROR').length,
+    };
+    if (!aplicar || resumen.errores > 0) return { aplicado: false, resumen, filas };
+
+    // bcrypt tarda: las contraseñas iniciales se calculan antes, en paralelo, no dentro de la transacción.
+    const hashes = new Map<number, string>();
+    await Promise.all(
+      validas
+        .filter((v) => v.datos.condicion === 'ESTUDIANTE')
+        .map(async (v) => hashes.set(v.i, await cuentas.hashInicial(v.datos.fechaNacimiento!))),
+    );
+    await bd.$transaction(
+      async (tx) => {
+        for (const { i, datos, fileId } of validas) {
+          const hash = hashes.get(i);
+          if (fileId === null) {
+            const creado = await crearEnTx(tx, datos, hash ?? null);
+            filas[i].cuenta = creado.cuentaEstudiante;
+            continue;
+          }
+          // La cuenta antes que el file: así el informe dice si se desactivó o se reactivó ahora (la edición también
+          // la ajusta, pero ya la encuentra como debe quedar).
+          const { personaId } = (await buscarFile(tx, fileId))!;
+          filas[i].cuenta = hash
+            ? await cuentas.asegurar(tx, {
+                personaId,
+                ci: datos.ci,
+                complemento: datos.complemento,
+                passwordHash: hash,
+              })
+            : (await cuentas.desactivar(tx, personaId))
+              ? 'DESACTIVADA'
+              : null;
+          const { ci: _ci, complemento: _complemento, ...cambios } = datos;
+          await editarEnTx(tx, fileId, cambios, hash);
+        }
+      },
+      { timeout: 120_000, maxWait: 10_000 },
+    );
+    return { aplicado: true, resumen, filas };
+  }
+
   return {
     async listar(filtros: FiltrosFiles): Promise<Pagina<FileDetalle>> {
       const where: Prisma.FileAcademicoWhereInput[] = [];
@@ -278,49 +575,13 @@ export function crearServicioFiles({
       return id;
     },
 
-    async crear(datos: DatosCrearFile): Promise<FileDetalle> {
-      const {
-        codigo,
-        especialidadId,
-        anioIngreso,
-        condicion,
-        genero,
-        modalidad,
-        anioFormacion,
-        fechaNacimiento,
-        ...persona
-      } = datos;
-      return bd.$transaction(async (tx) => {
-        const existente = await personas.buscarPersonaPorCi(tx, persona.ci, persona.complemento);
-        if (existente && (await tieneFile(tx, existente.id))) {
-          throw new ErrorConflicto('Esa persona ya tiene un file.', undefined, 'FILE_EXISTENTE');
-        }
-        await exigirCodigoLibre(tx, codigo);
-        await exigirEspecialidad(tx, especialidadId);
-        await exigirModalidad(tx, modalidad);
-        // Si la persona ya existe sin file (p. ej., del personal), se reutiliza sin tocar sus datos (DEC-020 #6).
-        const p =
-          existente ?? (await personas.crearPersona(tx, { ...persona, fechaNacimiento: aFecha(fechaNacimiento) }));
-        const { id } = await crearFile(tx, {
-          personaId: p.id,
-          codigoEstudiante: codigo,
-          especialidadId,
-          anioIngreso,
-          condicion,
-          genero,
-          modalidad,
-          anioFormacion,
-        });
-        const { d } = await cargar(tx, id);
-        await registrarEvento(tx, {
-          accion: 'CREAR',
-          modulo: 'FILES',
-          entidad: 'file_academico',
-          entidadId: id,
-          despues: d,
-        });
-        return d;
-      });
+    /**
+     * Alta del file (SDD S2.2). Si es estudiante, también su cuenta: usuario = CI, contraseña inicial = fecha de
+     * nacimiento (DEC-064 #4). La respuesta dice qué pasó con la cuenta.
+     */
+    async crear(datos: DatosCrearFile): Promise<FileDetalle & { cuentaEstudiante: ResultadoCuenta | null }> {
+      const hash = await hashSiEstudiante(datos.condicion, datos.fechaNacimiento);
+      return bd.$transaction((tx) => crearEnTx(tx, datos, hash));
     },
 
     /**
@@ -413,66 +674,10 @@ export function crearServicioFiles({
     },
 
     async editar(id: number, cambios: CambiosFileApi): Promise<FileDetalle> {
-      return bd.$transaction(async (tx) => {
-        const { f, p, d } = await cargar(tx, id);
-        const antes: Record<string, unknown> = {};
-        const despues: Record<string, unknown> = {};
-
-        const cambiosPersona: CambiosPersonales = {};
-        for (const campo of CAMPOS_PERSONALES) {
-          const valor = cambios[campo];
-          if (valor === undefined || valor === d[campo]) continue;
-          antes[campo] = d[campo];
-          despues[campo] = valor;
-          Object.assign(cambiosPersona, { [campo]: campo === 'fechaNacimiento' ? aFecha(valor) : valor });
-        }
-        const apellidoPaterno =
-          'apellidoPaterno' in cambiosPersona ? cambiosPersona.apellidoPaterno : p.apellidoPaterno;
-        const apellidoMaterno =
-          'apellidoMaterno' in cambiosPersona ? cambiosPersona.apellidoMaterno : p.apellidoMaterno;
-        if (!apellidoPaterno && !apellidoMaterno) {
-          throw new ErrorValidacion([{ ruta: 'body.apellidoPaterno', mensaje: 'Debe tener al menos un apellido' }]);
-        }
-
-        const cambiosFile: CambiosFile = {};
-        if (cambios.codigo !== undefined && cambios.codigo !== f.codigoEstudiante) {
-          await exigirCodigoLibre(tx, cambios.codigo, id);
-          cambiosFile.codigoEstudiante = cambios.codigo;
-          antes.codigo = f.codigoEstudiante;
-          despues.codigo = cambios.codigo;
-        }
-        if (cambios.especialidadId !== undefined && cambios.especialidadId !== f.especialidadId) {
-          await exigirEspecialidad(tx, cambios.especialidadId);
-          cambiosFile.especialidadId = cambios.especialidadId;
-          antes.especialidadId = f.especialidadId;
-          despues.especialidadId = cambios.especialidadId;
-        }
-        if (cambios.modalidad !== undefined && cambios.modalidad !== f.modalidad) {
-          await exigirModalidad(tx, cambios.modalidad);
-        }
-        for (const campo of ['anioIngreso', 'condicion', 'genero', 'modalidad', 'anioFormacion'] as const) {
-          const valor = cambios[campo];
-          if (valor === undefined || valor === f[campo]) continue;
-          Object.assign(cambiosFile, { [campo]: valor });
-          antes[campo] = f[campo];
-          despues[campo] = valor;
-        }
-
-        // Nada cambió de verdad: no hay escritura ni evento.
-        if (Object.keys(despues).length === 0) return d;
-        if (Object.keys(cambiosPersona).length > 0) await personas.actualizarPersona(tx, p.id, cambiosPersona);
-        if (Object.keys(cambiosFile).length > 0) await actualizarFile(tx, id, cambiosFile);
-        await registrarEvento(tx, {
-          accion: 'EDITAR',
-          modulo: 'FILES',
-          entidad: 'file_academico',
-          entidadId: id,
-          antes,
-          despues,
-        });
-        return (await cargar(tx, id)).d;
-      });
+      return bd.$transaction((tx) => editarEnTx(tx, id, cambios));
     },
+
+    importar: (filas: unknown[], aplicar: boolean) => importar(filas, aplicar),
   };
 }
 

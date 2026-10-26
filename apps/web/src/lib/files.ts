@@ -54,6 +54,9 @@ export function validarDatosFile(
   if (!d.apellidoPaterno && !d.apellidoMaterno) e.apellidoPaterno = 'Debe tener al menos un apellido';
   if (d.fechaNacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(d.fechaNacimiento))
     e.fechaNacimiento = 'Fecha con formato AAAA-MM-DD';
+  // DEC-064 #4: es la contraseña inicial del estudiante.
+  if (creando && !d.fechaNacimiento && d.condicion === 'ESTUDIANTE')
+    e.fechaNacimiento = 'La fecha de nacimiento es obligatoria para un estudiante: es su contraseña inicial';
   if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) e.email = 'El correo no tiene un formato válido';
   if (!d.codigo) e.codigo = 'El código de estudiante es obligatorio';
   if (!d.especialidadId) e.especialidadId = 'Elija la especialidad';

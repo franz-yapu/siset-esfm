@@ -1,233 +1,297 @@
-import { useState, type DragEvent } from 'react';
-import { CheckCircle2, Download, FileSpreadsheet, Upload, XCircle } from 'lucide-react';
+import { useState, type ChangeEvent, type DragEvent } from 'react';
+import { Download, FileSpreadsheet, Upload } from 'lucide-react';
 import clsx from 'clsx';
+import type { ResultadoImportacion } from '@/types/files';
 import { useToast, useUsuario } from '@/hooks';
-import { filesPrototipoService, type DatosFile } from '@/services/files-prototipo.service';
-import { Alerta, Button, Card, DataTable, PageHeader } from '@/components/ui';
+import { useEspecialidades, useMutacionFiles } from '@/hooks/useFiles';
+import { filesService } from '@/services/files.service';
+import {
+  COLUMNAS_IMPORTACION,
+  leerFilas,
+  tituloDeCampo,
+  type Celda,
+  type ErrorDeCampo,
+  type FilaLeida,
+} from '@/lib/importacion-files';
+import { Alerta, Badge, Button, Card, DataTable, PageHeader } from '@/components/ui';
 
-type Fila = DatosFile & { fila: number; error?: string };
+type Accion = ResultadoImportacion['filas'][number]['accion'];
 
-/** Datos fijos de la vista previa (simulación del Excel leído). */
-const FILAS: Fila[] = [
-  ['8011223', 'Ximena', 'Huarachi Coaquira', 'EST-2026-0101', 'Matemática'],
-  ['8022334', 'Daniel', 'Mamani Tola', 'EST-2026-0102', 'Comunicación y Lenguajes'],
-  ['7012345', 'Juan', 'Mamani C.', 'EST-2026-0103', 'Matemática', 'CI duplicado'],
-  ['8044556', 'Patricia', 'Condori Huanca', 'EST-2026-0104', 'Educación Física y Deportes'],
-  ['8055667', 'Ronald', 'Quisbert Limachi', 'EST-2026-0105', 'Ciencias Naturales: Biología-Geografía'],
-  ['8066778', 'Mery', 'Alanoca Ticona', 'EST-2026-0106', 'Historia', 'Especialidad no existe'],
-  ['8077889', 'Iván', 'Choque Rojas', 'EST-2026-0107', 'Educación Primaria Comunitaria Vocacional'],
-  ['8088990', 'Roxana', 'Poma Callisaya', 'EST-2026-0108', 'Matemática'],
-  ['8099001', 'Wilson', 'Nina Apaza', 'EST-2026-0109', 'Comunicación y Lenguajes'],
-  ['8100112', 'Lidia', 'Yujra Quispe', 'EST-2026-0110', 'Educación Primaria Comunitaria Vocacional'],
-].map(([ci, nombres, apellidos, codigo, especialidad, error], i) => ({
-  fila: i + 2,
-  ci,
-  nombres,
-  apellidos,
-  codigo,
-  especialidad,
-  anioIngreso: 2026,
-  condicion: 'ESTUDIANTE',
-  error,
-}));
+const ACCION: Record<Accion, { texto: string; clase: string }> = {
+  CREAR: { texto: 'Nuevo', clase: 'bg-[#e8f1fa] text-[#1f4e79]' },
+  ACTUALIZAR: { texto: 'Se actualiza', clase: 'bg-[#fff6e0] text-[#8a5a00]' },
+  SIN_CAMBIOS: { texto: 'Sin cambios', clase: 'bg-[#eef1f4] text-[#2b3440]' },
+  ERROR: { texto: 'Con errores', clase: 'bg-[#fdecec] text-[#b4232a]' },
+};
 
-/** Las columnas que lee la carga, en el orden de la plantilla, con la regla de cada una. */
-const COLUMNAS: [string, string][] = [
-  ['CI', 'Único; con complemento: 1234567-1A'],
-  ['Nombres', 'Obligatorio'],
-  ['Apellidos', 'Paterno y materno'],
-  ['Código de estudiante', 'Único'],
-  ['Especialidad', 'Como en el catálogo'],
-  ['Año de ingreso', 'Cuatro cifras'],
-  ['Condición', 'Estudiante o Egresado'],
-];
+const CUENTA: Record<string, string> = {
+  CREADA: 'cuenta creada',
+  EXISTENTE: 'ya tenía cuenta',
+  REACTIVADA: 'cuenta reactivada',
+  DESACTIVADA: 'cuenta desactivada (egresado)',
+  USUARIO_OCUPADO: 'sin cuenta: su CI ya es usuario de otra cuenta',
+};
 
-/** P-46 · Carga masiva de files (simulada). */
+interface FilaVista {
+  filaExcel: number;
+  ci: string;
+  nombre: string;
+  accion: Accion;
+  detalle: string[];
+  cuenta: string | null;
+}
+
+/**
+ * Une lo que no se pudo leer del Excel con lo que dijo la API: si la web ya marcó un campo, su mensaje manda (la API
+ * solo vería el valor de relleno).
+ */
+function vista(leidas: FilaLeida[], r: ResultadoImportacion): FilaVista[] {
+  return r.filas.map((f, i) => {
+    const leida = leidas[i];
+    const propios = new Set(leida.errores.map((e) => e.campo));
+    const errores: ErrorDeCampo[] = [
+      ...leida.errores,
+      ...f.errores.filter((e) => !propios.has(e.campo.replace(/^body\./, ''))),
+    ];
+    return {
+      filaExcel: leida.filaExcel,
+      ci: f.ci ?? leida.datos.ci,
+      nombre: f.nombre ?? leida.datos.nombres,
+      accion: errores.length ? 'ERROR' : f.accion,
+      detalle: errores.length
+        ? errores.map((e) => `${tituloDeCampo(e.campo)}: ${e.mensaje}`)
+        : f.cambios.map((c) => `Cambia ${tituloDeCampo(c).toLowerCase()}`),
+      cuenta: f.cuenta ? CUENTA[f.cuenta] : null,
+    };
+  });
+}
+
+/** La plantilla: los encabezados con un ejemplo, las reglas y el catálogo de especialidades. */
+async function descargarPlantilla(especialidades: { nombre: string }[]) {
+  const { default: escribir } = await import('write-excel-file/browser');
+  const negrita = (value: string) => ({ value, fontWeight: 'bold' as const });
+  await escribir([
+    {
+      sheet: 'Files',
+      data: [COLUMNAS_IMPORTACION.map((c) => negrita(c.titulo)), COLUMNAS_IMPORTACION.map((c) => c.ejemplo)],
+      columns: COLUMNAS_IMPORTACION.map((c) => ({ width: Math.max(14, c.titulo.length + 4) })),
+    },
+    {
+      sheet: 'Instrucciones',
+      data: [
+        [negrita('Columna'), negrita('Regla')],
+        ...COLUMNAS_IMPORTACION.map((c) => [c.titulo, c.regla]),
+        [],
+        ['Una fila por estudiante o egresado. Si el CI ya tiene file, se actualiza con los datos de la fila.'],
+        ['Los estudiantes quedan con su cuenta: usuario = CI, contraseña = fecha de nacimiento (dd-mm-aaaa).'],
+        ['Los egresados no tienen cuenta: siguen su trámite con el QR de la hoja de ruta.'],
+      ],
+      columns: [{ width: 24 }, { width: 70 }],
+    },
+    {
+      sheet: 'Especialidades',
+      data: [[negrita('Especialidad')], ...especialidades.map((e) => [e.nombre])],
+      columns: [{ width: 50 }],
+    },
+  ]).toFile('plantilla-files-siset.xlsx');
+}
+
+/** P-46 · Importar files desde Excel (DEC-064 #3), contra POST /files/importacion. */
 export function CargaMasiva() {
   const u = useUsuario();
   const toast = useToast();
+  const { data: especialidades = [] } = useEspecialidades();
   const [archivo, setArchivo] = useState<string | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
-  const [importando, setImportando] = useState(false);
-  const [resumen, setResumen] = useState<{ importados: number; errores: number } | null>(null);
-  const validas = FILAS.filter((f) => !f.error).length;
+  const [leyendo, setLeyendo] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [leidas, setLeidas] = useState<FilaLeida[]>([]);
+  const [revision, setRevision] = useState<ResultadoImportacion | null>(null);
+  const [resultado, setResultado] = useState<ResultadoImportacion | null>(null);
+  const importar = useMutacionFiles((aplicar: boolean) =>
+    filesService.importar(
+      leidas.map((l) => l.datos),
+      aplicar,
+      u,
+    ),
+  );
+
+  const filas = revision ? vista(leidas, resultado ?? revision) : [];
+  const conErrores = filas.filter((f) => f.accion === 'ERROR').length;
+  const aEscribir = filas.filter((f) => f.accion === 'CREAR' || f.accion === 'ACTUALIZAR').length;
+
+  const leer = async (f: File | undefined) => {
+    if (!f) return;
+    setArchivo(f.name);
+    setError(null);
+    setRevision(null);
+    setResultado(null);
+    setLeyendo(true);
+    try {
+      const { readSheet } = await import('read-excel-file/browser');
+      const hoja = (await readSheet(f)) as unknown as Celda[][];
+      // Si el catálogo todavía no llegó, se espera: sin él, ninguna especialidad coincidiría.
+      const catalogo = especialidades.length ? especialidades : await filesService.especialidades();
+      const leido = leerFilas(hoja, catalogo);
+      if (leido.error || leido.filas.length === 0) {
+        setError(leido.error ?? 'El archivo no tiene filas con datos debajo del encabezado.');
+        setLeidas([]);
+        return;
+      }
+      setLeidas(leido.filas);
+      setRevision(
+        await filesService.importar(
+          leido.filas.map((l) => l.datos),
+          false,
+          u,
+        ),
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error && 'codigo' in e
+          ? e.message
+          : 'No se pudo leer el archivo. Use un Excel (.xlsx) con la plantilla.',
+      );
+    } finally {
+      setLeyendo(false);
+    }
+  };
+
+  const aplicar = async () => {
+    const r = await importar.mutateAsync(true);
+    setResultado(r);
+    if (r.aplicado) {
+      toast.success(`Importados: ${r.resumen.crear} nuevos y ${r.resumen.actualizar} actualizados`);
+    } else {
+      toast.error('No se importó nada: hay filas con errores');
+    }
+  };
 
   const soltar = (e: DragEvent) => {
     e.preventDefault();
     setArrastrando(false);
-    setArchivo(e.dataTransfer.files[0]?.name ?? 'files_historicos.xlsx');
-  };
-  const importar = async () => {
-    setImportando(true);
-    try {
-      setResumen(await filesPrototipoService.importar(FILAS, u));
-    } finally {
-      setImportando(false);
-    }
-  };
-  const reiniciar = () => {
-    setArchivo(null);
-    setResumen(null);
+    void leer(e.dataTransfer.files[0]);
   };
 
   return (
     <>
-      <PageHeader titulo="Carga masiva de files" subtitulo="Para migrar los files históricos desde Excel (D-13)." />
-      {/* Los tres pasos, en orden: el actual en celeste, los hechos en verde. */}
-      <ol className="mb-5 flex flex-wrap gap-2 text-sm" aria-label="Pasos de la carga">
-        {['Subir archivo', 'Revisar', 'Importar'].map((p, i) => {
-          const paso = resumen ? 2 : archivo ? 1 : 0;
-          return (
-            <li
-              key={p}
-              aria-current={i === paso ? 'step' : undefined}
-              className={clsx(
-                'flex h-8 items-center gap-2 rounded-full px-3',
-                i === paso
-                  ? 'bg-acento-palido font-medium text-primario'
-                  : i < paso
-                    ? 'bg-[#dcfae5] text-[#04250e]'
-                    : 'bg-[#eef2f6] text-suave',
-              )}
-            >
-              {i < paso ? (
-                <CheckCircle2 className="size-4" aria-hidden />
-              ) : (
-                <span
-                  aria-hidden
-                  className={clsx('size-2 rounded-full', i === paso ? 'bg-acento' : 'border-[1.5px] border-control')}
-                />
-              )}
-              {p}
-            </li>
-          );
-        })}
-      </ol>
-
-      {!archivo && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <Card
-            className="flex flex-col [&>div:last-child]:flex [&>div:last-child]:flex-1"
-            title="Subir el Excel"
-            actions={
-              <Button
-                size="sm"
-                variant="secondary"
-                icon={Download}
-                onClick={() => toast.success('Plantilla descargada (simulado)')}
-              >
-                Descargar plantilla
-              </Button>
-            }
+      <PageHeader
+        titulo="Importar files desde Excel"
+        subtitulo="Estudiantes y egresados con los mismos datos de «Nuevo file». Si el CI ya tiene file, se actualiza."
+        acciones={
+          <Button variant="secondary" icon={Download} onClick={() => void descargarPlantilla(especialidades)}>
+            Descargar plantilla
+          </Button>
+        }
+      />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+        <Card title="1 · Elegir el archivo">
+          <label
+            onDragOver={(e) => {
+              e.preventDefault();
+              setArrastrando(true);
+            }}
+            onDragLeave={() => setArrastrando(false)}
+            onDrop={soltar}
+            className={clsx(
+              'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border-2 border-dashed p-8 text-center text-sm',
+              arrastrando ? 'border-acento bg-acento-palido' : 'border-borde hover:bg-[#f5f7fa]',
+            )}
           >
-            <label
-              onDragOver={(e) => {
-                e.preventDefault();
-                setArrastrando(true);
-              }}
-              onDragLeave={() => setArrastrando(false)}
-              onDrop={soltar}
-              className={clsx(
-                'flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-16 text-center transition-colors hover:border-acento hover:bg-acento-palido/50',
-                arrastrando ? 'border-acento bg-acento-palido' : 'border-control',
-              )}
-            >
-              <Upload className="size-8 text-acento" strokeWidth={1.5} />
-              <span className="mt-2 font-medium text-tinta">Arrastra aquí el archivo Excel</span>
-              <span className="text-sm text-suave">o haz clic para elegirlo (.xlsx)</span>
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                className="sr-only"
-                onChange={(e) => setArchivo(e.target.files?.[0]?.name ?? 'files_historicos.xlsx')}
-              />
-            </label>
-          </Card>
-          {/* Lo que Kardex necesita saber antes de llenar la plantilla. */}
-          <Card title="Columnas de la plantilla" className="self-start">
-            <ul className="divide-y divide-regla text-sm">
-              {COLUMNAS.map(([columna, nota]) => (
-                <li key={columna} className="flex items-baseline justify-between gap-3 py-2">
-                  <span className="font-medium text-tinta">{columna}</span>
-                  <span className="text-right text-[13px] text-suave">{nota}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-[13px] text-suave">
-              Una fila por estudiante. Las filas con errores se muestran al revisar y no se importan.
-            </p>
-          </Card>
-        </div>
-      )}
-
-      {archivo && !resumen && (
-        <Card
-          title={
-            <span className="flex items-center gap-2">
-              <FileSpreadsheet className="size-4 text-green-700" />
-              {archivo}
+            <FileSpreadsheet className="size-8 text-acento" aria-hidden />
+            <span className="font-medium text-tinta">
+              {archivo ?? 'Arrastre aquí el Excel o haga clic para elegirlo'}
             </span>
-          }
-          actions={
-            <>
-              <Button variant="secondary" onClick={reiniciar}>
-                Cambiar archivo
+            <span className="text-suave">Solo .xlsx · la primera hoja · la fila 1 con los encabezados</span>
+            <input
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              className="sr-only"
+              aria-label="Archivo Excel"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                void leer(e.target.files?.[0]);
+                e.target.value = '';
+              }}
+            />
+          </label>
+          {leyendo && <p className="mt-3 text-sm text-suave">Leyendo y revisando…</p>}
+          {error && (
+            <Alerta tipo="error" className="mt-3">
+              {error}
+            </Alerta>
+          )}
+        </Card>
+        <Card title="Columnas">
+          <ul className="space-y-1.5 text-sm">
+            {COLUMNAS_IMPORTACION.map((c) => (
+              <li key={c.campo}>
+                <span className="font-medium text-tinta">{c.titulo}</span>
+                {c.obligatoria && <span className="text-[#b4232a]"> *</span>}
+                <span className="block text-[13px] text-suave">{c.regla}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+
+      {revision && (
+        <Card title={resultado?.aplicado ? '3 · Resultado' : '2 · Revisión'} className="mt-4">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+            <Badge className={ACCION.CREAR.clase}>{(resultado ?? revision).resumen.crear} nuevos</Badge>
+            <Badge className={ACCION.ACTUALIZAR.clase}>
+              {(resultado ?? revision).resumen.actualizar} se actualizan
+            </Badge>
+            <Badge className={ACCION.SIN_CAMBIOS.clase}>{(resultado ?? revision).resumen.sinCambios} sin cambios</Badge>
+            <Badge className={ACCION.ERROR.clase}>{conErrores} con errores</Badge>
+          </div>
+          {resultado?.aplicado ? (
+            <Alerta tipo="exito" className="mb-3">
+              Importación terminada. Los estudiantes entran con su CI y su fecha de nacimiento (dd-mm-aaaa); el sistema
+              les pide cambiarla al entrar.
+            </Alerta>
+          ) : conErrores ? (
+            <Alerta tipo="error" className="mb-3">
+              Corrija las filas con errores en el Excel y vuelva a elegirlo. No se importa nada mientras haya errores.
+            </Alerta>
+          ) : (
+            <div className="mb-3 flex justify-end">
+              <Button
+                icon={Upload}
+                loading={importar.isPending}
+                disabled={aEscribir === 0}
+                onClick={() => void aplicar()}
+              >
+                {aEscribir === 0 ? 'Nada que importar' : `Importar ${aEscribir} files`}
               </Button>
-              <Button icon={Upload} loading={importando} onClick={importar}>
-                Importar {validas} filas válidas
-              </Button>
-            </>
-          }
-        >
-          <Alerta tipo="aviso" className="mb-3">
-            {FILAS.length - validas} filas tienen errores y no se importarán. Corrígelas en el Excel y vuelve a
-            subirlas.
-          </Alerta>
+            </div>
+          )}
           <DataTable
-            data={FILAS}
-            rowKey={(f) => f.fila}
-            resaltar={(f) => Boolean(f.error)}
+            data={filas}
+            rowKey={(f) => f.filaExcel}
+            vacio="Sin filas"
             columns={[
-              { key: 'fila', header: 'Fila' },
+              { key: 'filaExcel', header: 'Fila', render: (f) => <span className="tabular-nums">{f.filaExcel}</span> },
               { key: 'ci', header: 'CI', principal: true },
-              { key: 'nombre', header: 'Nombre', render: (f) => `${f.nombres} ${f.apellidos}` },
-              { key: 'codigo', header: 'Código' },
-              { key: 'esp', header: 'Especialidad', render: (f) => f.especialidad },
+              { key: 'nombre', header: 'Nombre' },
               {
-                key: 'val',
-                header: 'Validación',
-                render: (f) =>
-                  f.error ? (
-                    <span className="inline-flex items-center gap-1 text-red-700">
-                      <XCircle className="size-4" />
-                      {f.error}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-green-700">
-                      <CheckCircle2 className="size-4" />
-                      OK
-                    </span>
-                  ),
+                key: 'accion',
+                header: 'Qué pasa',
+                render: (f) => <Badge className={ACCION[f.accion].clase}>{ACCION[f.accion].texto}</Badge>,
+              },
+              {
+                key: 'detalle',
+                header: 'Detalle',
+                render: (f) => (
+                  <ul className={clsx('text-[13px]', f.accion === 'ERROR' ? 'text-[#b4232a]' : 'text-suave')}>
+                    {f.detalle.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                    {f.cuenta && <li className="text-tinta">{f.cuenta}</li>}
+                  </ul>
+                ),
               },
             ]}
           />
-        </Card>
-      )}
-
-      {resumen && (
-        <Card>
-          <div className="flex flex-col items-center py-6 text-center">
-            <CheckCircle2 className="size-12 text-green-600" />
-            <p className="mt-3 text-lg font-semibold">
-              {resumen.importados} importados, {resumen.errores} con error
-            </p>
-            <p className="text-sm text-suave">
-              Los files nuevos quedan con requisitos pendientes. La operación quedó en la bitácora.
-            </p>
-            <Button className="mt-4" variant="secondary" onClick={reiniciar}>
-              Cargar otro archivo
-            </Button>
-          </div>
         </Card>
       )}
     </>

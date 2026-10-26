@@ -122,7 +122,16 @@ export function ManualPersonal() {
           <li>
             <strong>Registrar un file:</strong> botón <em>Nuevo file</em>. Llene los datos y la condición (estudiante o
             egresado). Para que Secretaría registre un trámite, el titular debe tener file como{' '}
-            <strong>egresado</strong>.
+            <strong>egresado</strong>. Al registrar un <strong>estudiante</strong> se crea su cuenta: usuario = su CI,
+            contraseña = su fecha de nacimiento (dd-mm-aaaa), que el sistema le pide cambiar al entrar; por eso la fecha
+            de nacimiento es obligatoria. Si pasa a egresado, su cuenta se desactiva (sigue su trámite con el QR).
+          </li>
+          <li>
+            <strong>Importar desde Excel:</strong> en <em>Files académicos</em>, botón <em>Importar desde Excel</em>.
+            Descargue la plantilla (las columnas son los datos de <em>Nuevo file</em>), llénela con una fila por
+            estudiante o egresado y súbala. El sistema muestra qué hará con cada fila (nuevo, se actualiza, sin cambios
+            o con errores); si hay errores, corrija el Excel y vuelva a subirlo: no se importa nada mientras haya
+            errores. Si el CI ya tiene file, se actualiza con los datos de la fila.
           </li>
           <li>
             <strong>Comprobante de recepción:</strong> cada registro de un requisito queda en la pestaña{' '}
@@ -326,7 +335,10 @@ export function ManualPersonal() {
             <em>Mis entregas</em> está cada documento que Kardex le registró, con fecha y hora, y su comprobante (REC-…)
             para volver a imprimirlo. Es solo lectura: si algo está mal, acérquese a Kardex.
           </li>
-          <li>Funciona en el celular. Las cuentas de estudiantes se habilitan después del piloto del personal.</li>
+          <li>
+            Funciona en el celular. El estudiante entra con su CI y su fecha de nacimiento (dd-mm-aaaa) y, la primera
+            vez, elige su propia contraseña.
+          </li>
         </ul>
       </Seccion>
 
