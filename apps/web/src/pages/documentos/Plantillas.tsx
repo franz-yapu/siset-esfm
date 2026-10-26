@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { FileAcademico, TipoDocumento } from '@/types';
 import { fechaLarga, hoy, ordinal } from '@/lib/formato';
 import { nombreCompleto } from '@/lib/reglas';
+import { ESTADO_MINISTERIO, INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
 
 /** Hoja tamaño carta con encabezado institucional y marca de agua opcional (P-45). */
 export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vistaPrevia?: boolean }) {
@@ -16,10 +17,10 @@ export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vist
         </div>
       )}
       <header className="border-b-2 border-slate-900 pb-3 text-center text-[11px] leading-snug uppercase">
-        <p className="font-bold">Estado Plurinacional de Bolivia · Ministerio de Educación</p>
-        <p>Escuela Superior de Formación de Maestros</p>
-        <p className="font-semibold">“Mcal. Andrés de Santa Cruz y Calahumana”</p>
-        <p>Unidad Académica Ancocagua</p>
+        <p className="font-bold">{ESTADO_MINISTERIO}</p>
+        <p>{INSTITUCION}</p>
+        <p className="font-semibold">{NOMBRE_ESCUELA}</p>
+        <p>{UNIDAD_ACADEMICA}</p>
       </header>
       {children}
     </article>

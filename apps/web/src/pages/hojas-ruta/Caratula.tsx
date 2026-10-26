@@ -10,6 +10,7 @@ import { flujoDe, pasosDelFlujo, type RolHojaRuta } from '@/lib/maquina-hojas-ru
 import { urlSeguimiento } from '@/lib/qr';
 import { Alerta, Button, Cargando } from '@/components/ui';
 import { ZonaImpresion } from '@/pages/documentos/Plantillas';
+import { ESTADO_MINISTERIO, INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
 
 const RESPONSABLE: Record<RolHojaRuta, string> = {
   SEC_DIR: 'Secretaría de Dirección',
@@ -65,10 +66,10 @@ function Hoja({ h }: { h: DetalleHojaRuta }) {
     <article className="mx-auto min-h-[11in] max-w-[8.5in] bg-white p-[0.75in] text-tinta shadow-lg print:min-h-0 print:max-w-none print:p-0 print:shadow-none">
       <header className="flex items-start justify-between gap-6 border-b-2 border-slate-900 pb-4">
         <div className="text-xs leading-relaxed uppercase">
-          <p className="font-bold">Estado Plurinacional de Bolivia · Ministerio de Educación</p>
-          <p>Escuela Superior de Formación de Maestros</p>
-          <p className="font-semibold">“Mcal. Andrés de Santa Cruz y Calahumana”</p>
-          <p>Unidad Académica Ancocagua</p>
+          <p className="font-bold">{ESTADO_MINISTERIO}</p>
+          <p>{INSTITUCION}</p>
+          <p className="font-semibold">{NOMBRE_ESCUELA}</p>
+          <p>{UNIDAD_ACADEMICA}</p>
         </div>
         <QRCodeSVG value={urlSeguimiento(h.nro)} size={104} />
       </header>

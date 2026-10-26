@@ -17,6 +17,7 @@ import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/
 import { COMPILACION, VERSION } from '@/config/version';
 import { guiasDeTesis } from '@/pages/guias/visibilidad';
 import { CAMINO } from '@/config/camino-tramite';
+import { INSTITUCION, NOMBRE_ESCUELA } from '@/config/institucion';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -89,9 +90,12 @@ export function Login() {
     <div className="grid min-h-screen bg-fondo lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       {/* La escuela, el sistema y el camino que sigue cada hoja de ruta entre las dos sedes, sobre el azul. */}
       <div className="flex flex-col gap-8 bg-primario px-6 py-6 text-white sm:px-10 lg:justify-between lg:p-12">
-        <div className="flex items-center gap-2 text-sm text-sky-100">
-          <Route className="size-5" aria-hidden />
-          ESFM “Mcal. Andrés de Santa Cruz y Calahumana”
+        <div className="flex items-start gap-2 text-sm text-sky-100">
+          <Route className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <p>
+            {INSTITUCION}
+            <span className="block font-medium text-white">{NOMBRE_ESCUELA}</span>
+          </p>
         </div>
         <div className="max-w-md">
           <h1 className="text-4xl font-semibold">SISET</h1>

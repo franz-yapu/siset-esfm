@@ -8,6 +8,7 @@ import { usePermisos } from '@/hooks';
 import { itemsDelMenu } from '@/lib/permisos';
 import { nombreSede } from '@/config/catalogos';
 import { COMPILACION, VERSION } from '@/config/version';
+import { NOMBRE_INSTITUCION } from '@/config/institucion';
 
 interface Props {
   usuario: Usuario;
@@ -92,7 +93,7 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
           </ul>
         </nav>
         <p className="border-t border-white/10 px-4 py-3 text-xs text-sky-100">
-          Escuela Superior de Formación de Maestros · Calahumana
+          {NOMBRE_INSTITUCION}
           <span className="mt-1 block font-mono text-[11px] text-sky-200/80" title={`Compilación ${COMPILACION}`}>
             {VERSION}
           </span>

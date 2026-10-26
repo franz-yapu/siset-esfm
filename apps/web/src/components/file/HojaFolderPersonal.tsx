@@ -5,6 +5,7 @@ import type { RequisitoDelFile } from '@/types/requisitos';
 import { anioEnPalabras, filasDelFolder, type FilaFolder } from '@/lib/folder-personal';
 import { Button } from '@/components/ui';
 import { ZonaImpresion } from '@/pages/documentos/Plantillas';
+import { INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
 
 type DatosHoja = Pick<
   FileDetalle,
@@ -80,9 +81,9 @@ function HojaImpresa({ file: f, filas, gestion }: { file: DatosHoja; filas: Fila
   return (
     <article className="mx-auto max-w-[8in] bg-white text-[10.5px] leading-tight text-black">
       <header className="text-center text-[12px] leading-snug font-semibold uppercase">
-        <p>Escuela Superior de Formación de Maestros</p>
-        <p>“Mcal. Andrés de Santa Cruz y Calahumana”</p>
-        <p className="font-bold">Unidad Académica Ancocagua</p>
+        <p>{INSTITUCION}</p>
+        <p>{NOMBRE_ESCUELA}</p>
+        <p className="font-bold">{UNIDAD_ACADEMICA}</p>
       </header>
       <h1 className="mt-3 text-center text-[13px] leading-snug font-bold uppercase">
         Documentación existente en folder personal

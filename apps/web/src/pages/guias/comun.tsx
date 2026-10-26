@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+import { NOMBRE_INSTITUCION, UNIDAD_ACADEMICA } from '@/config/institucion';
 
 export interface Apartado {
   id: string;
@@ -55,7 +56,7 @@ export function PaginaGuia({
         )}
         <div className="mt-6 space-y-6">{children}</div>
         <p className="mt-10 text-center text-xs text-suave">
-          SISET · ESFM “Mcal. Andrés de Santa Cruz y Calahumana” · UA Ancocagua
+          SISET · {NOMBRE_INSTITUCION} · {UNIDAD_ACADEMICA}
         </p>
       </main>
     </div>
