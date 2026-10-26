@@ -231,8 +231,14 @@ export function ManualPersonal() {
           </li>
           <li>
             Se genera el <strong>N.º de hoja de ruta</strong> (HR-AAAA-NNNNNN) con su <strong>código QR</strong>.{' '}
-            <em>Imprimir carátula</em> da la hoja para el expediente físico, con los pasos y espacio para firmas y
-            sellos. Entregue al egresado el N.º para su seguimiento.
+            <em>Imprimir carátula</em> da la hoja de ruta en <strong>media carta</strong> (la mitad de arriba de una
+            hoja carta, para cortar), con los pasos y espacio para firmas y sellos. Entregue al egresado el N.º para su
+            seguimiento.
+          </li>
+          <li>
+            <strong>Constancia de entrega:</strong> la misma hoja trae a la derecha la constancia. Después de registrar
+            la entrega, en el detalle del trámite pulse <em>Imprimir constancia de entrega</em>: sale llena con quién
+            recibió, su C.I., en qué calidad y la fecha, para que firme quien recoge.
           </li>
           <li>
             <strong>Firmas en Calahumana:</strong> cuando Dirección Académica y luego Dirección General firman el

@@ -85,12 +85,17 @@ export function DetalleHojaRuta() {
         }
         subtitulo={`${h.tipo.nombre} · ingresó el ${fecha(h.fechaIngreso)}`}
         acciones={
+          // Ya entregado, la hoja lleva la constancia con la firma de quien recogió (observación #8 del tutor).
           <Link
             to={`/hojas-ruta/${h.nro}/caratula`}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-suave ring-1 ring-control hover:bg-[#f5f7fa]"
+            className={
+              h.estado === 'ENTREGADO'
+                ? 'inline-flex items-center gap-2 rounded-lg bg-primario px-3 py-2 text-sm font-medium text-white hover:bg-primario-oscuro'
+                : 'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-suave ring-1 ring-control hover:bg-[#f5f7fa]'
+            }
           >
             <Printer className="size-4" />
-            Carátula
+            {h.estado === 'ENTREGADO' ? 'Imprimir constancia de entrega' : 'Imprimir hoja de ruta'}
           </Link>
         }
       />
