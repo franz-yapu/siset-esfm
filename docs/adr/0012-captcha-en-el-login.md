@@ -39,8 +39,8 @@ hCaptcha.
    - Va sin usuario y con el CI intentado en `entidad_id`, como el CI inexistente (D-26).
    - Es un evento de acceso nuevo dentro de la lista cerrada de DEC-011.
 6. **Web:**
-   - El widget aparece cuando la API responde `CAPTCHA_REQUERIDO`, o después de 3 errores de contraseña en esa
-     pantalla.
+   - El widget aparece solo cuando la API responde `CAPTCHA_REQUERIDO` o `CAPTCHA_INVALIDO`: la API es la única que
+     cuenta los fallos, así que la web no adivina el umbral.
    - El widget se carga solo en ese momento (`import()`), para no pesar en el resto del sistema.
    - En el modo demo (auth simulada) no hay captcha.
 7. **CSP:** el widget resuelve el reto en Web Workers creados desde `blob:`. El nginx suma `worker-src 'self' blob:`;

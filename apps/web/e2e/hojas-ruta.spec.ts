@@ -33,6 +33,8 @@ test('SEC_DIR registra un historial con valorado, avisa a Kardex y lo ve en la l
   await page.getByRole('link', { name: 'Hojas de ruta' }).first().click();
   await page.getByLabel('Buscar').fill(nro);
   await expect(page.getByRole('row', { name: new RegExp(nro) })).toBeVisible();
+  // La búsqueda pasa a la URL tras 300 ms: si se navega antes, ese cambio pendiente devuelve a la lista.
+  await expect(page).toHaveURL(/texto=/);
 
   // Un certificado no lleva valorado.
   await page.getByRole('button', { name: 'Nueva hoja de ruta' }).click();

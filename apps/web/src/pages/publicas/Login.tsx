@@ -12,7 +12,7 @@ import { ErrorApi } from '@/lib/errores';
 import { authService } from '@/services/auth.service';
 import { consultaPermisos, type MisPermisos } from '@/services/permisos.service';
 import { puedeVolverA } from '@/lib/permisos';
-import { todoMock, usaApi } from '@/services/_modo';
+import { todoMock } from '@/services/_modo';
 import { Captcha } from '@/components/auth/Captcha';
 import { CUENTAS_PRUEBA, mostrarCuentasPrueba, PASSWORD_PRUEBA } from '@/config/cuentas-prueba';
 import { COMPILACION, VERSION } from '@/config/version';
@@ -30,9 +30,7 @@ const CUENTAS = mostrarCuentasPrueba(import.meta.env.VITE_CUENTAS_PRUEBA);
 const AVISO_BLOQUEO =
   'Varios intentos fallidos seguidos bloquean la cuenta por un tiempo. Si no puedes entrar, acércate a Kardex.';
 
-/** Con la API, tras 3 errores de contraseña se pide el captcha sin esperar a que la API lo exija (ADR-0012). */
-const CON_CAPTCHA = usaApi('auth');
-const FALLOS_ANTES_DEL_CAPTCHA = 3;
+/** El captcha lo pide la API (ADR-0012): la web lo muestra cuando responde uno de estos códigos. */
 const ES_CAPTCHA = (codigo: string) => codigo === 'CAPTCHA_REQUERIDO' || codigo === 'CAPTCHA_INVALIDO';
 
 const MENSAJE_CIERRE: Record<MotivoCierre, string> = {
@@ -67,7 +65,6 @@ export function Login() {
   const [ver, setVer] = useState(false);
   const [error, setError] = useState<{ mensaje: string; avisoBloqueo: boolean } | null>(null);
   const [cargando, setCargando] = useState(false);
-  const [fallos, setFallos] = useState(0);
   const [pideCaptcha, setPideCaptcha] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
   // Cada reto sirve una sola vez: tras un intento, el widget se vuelve a montar con uno nuevo.
@@ -92,11 +89,7 @@ export function Login() {
       nav(destino(u), { replace: true });
     } catch (err) {
       const codigo = err instanceof ErrorApi ? err.codigo : '';
-      if (codigo === 'CREDENCIALES_INVALIDAS') {
-        setPassword('');
-        setFallos(fallos + 1);
-        if (CON_CAPTCHA && fallos + 1 >= FALLOS_ANTES_DEL_CAPTCHA) setPideCaptcha(true);
-      }
+      if (codigo === 'CREDENCIALES_INVALIDAS') setPassword('');
       if (ES_CAPTCHA(codigo)) setPideCaptcha(true);
       if (captcha || ES_CAPTCHA(codigo)) {
         setCaptcha(null);
