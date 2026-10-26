@@ -115,3 +115,40 @@ export const esquemaRequisitoDelFile = z
   });
 
 export type RequisitoDelFile = z.infer<typeof esquemaRequisitoDelFile>;
+
+/** Los campos de un requisito que la bitácora guarda al registrarlo (los que compara `registrar`). */
+export const CAMPOS_REQUISITO = [
+  'estado',
+  'fecha',
+  'nroDocumento',
+  'observacion',
+  'nombreCurso',
+  'entidadEmisora',
+] as const;
+
+/**
+ * Una entrega o actualización de un requisito del file, leída de la bitácora (observación #3 del tutor, SDD OBS-T1).
+ * `nro` es el id del evento: el N.º del comprobante, el mismo que se ve en la bitácora.
+ */
+export const esquemaEntregaRequisito = z
+  .object({
+    nro: z.number().int().meta({ example: 1532 }),
+    fecha: z.iso.datetime(),
+    codigo: z.string().meta({ example: 'TACFI_1' }),
+    nombre: z.string(),
+    gestion: z.string().nullable().meta({ example: 'II/2025' }),
+    cambios: z.array(
+      z.object({
+        campo: z.enum(CAMPOS_REQUISITO),
+        antes: z.string().nullable(),
+        despues: z.string().nullable(),
+      }),
+    ),
+    registradoPor: quien,
+  })
+  .meta({
+    id: 'EntregaDeRequisito',
+    description: 'Un registro de Kardex sobre un requisito del file, con lo que cambió. Sirve de comprobante.',
+  });
+
+export type EntregaRequisito = z.infer<typeof esquemaEntregaRequisito>;

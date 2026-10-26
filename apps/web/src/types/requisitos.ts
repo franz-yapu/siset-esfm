@@ -62,3 +62,16 @@ export interface DatosRequisito {
   nombreCurso: string | null;
   entidadEmisora: string | null;
 }
+
+export type CampoRequisito = 'estado' | 'fecha' | 'nroDocumento' | 'observacion' | 'nombreCurso' | 'entidadEmisora';
+
+/** GET /files/:id/entregas (SDD OBS-T1, #3): un registro de Kardex sobre un requisito; `nro` es el del comprobante. */
+export interface EntregaRequisito {
+  nro: number;
+  fecha: string;
+  codigo: string;
+  nombre: string;
+  gestion: string | null;
+  cambios: { campo: CampoRequisito; antes: string | null; despues: string | null }[];
+  registradoPor: { id: number; nombre: string } | null;
+}

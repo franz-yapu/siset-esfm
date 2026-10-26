@@ -62,6 +62,8 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     ruta: '/files/mio/requisitos',
     permitidos: ['ESTUDIANTE'],
   },
+  // Entregas de requisitos (SDD OBS-T1, observación #3): como leer los requisitos.
+  { metodo: 'get', documentada: '/api/v1/files/mio/entregas', ruta: '/files/mio/entregas', permitidos: ['ESTUDIANTE'] },
   { metodo: 'get', documentada: '/api/v1/files/{id}', ruta: `/files/${ID_INEXISTENTE}`, permitidos: LEEN_FILES },
   {
     metodo: 'patch',
@@ -95,6 +97,12 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
     metodo: 'get',
     documentada: '/api/v1/files/{id}/requisitos',
     ruta: `/files/${ID_INEXISTENTE}/requisitos`,
+    permitidos: LEEN_REQUISITOS,
+  },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/{id}/entregas',
+    ruta: `/files/${ID_INEXISTENTE}/entregas`,
     permitidos: LEEN_REQUISITOS,
   },
   {

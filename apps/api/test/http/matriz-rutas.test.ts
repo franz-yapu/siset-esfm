@@ -71,7 +71,7 @@ describe('matriz HTTP: denegaciones (SDD S1.14 §2.1, R6)', () => {
     },
   );
 
-  it('ESTUDIANTE y EGRESADO no entran a ninguna ruta del personal (el estudiante, solo a "mi file", S2.7)', () => {
+  it('ESTUDIANTE y EGRESADO no entran a ninguna ruta del personal (el estudiante, solo a "mi file", S2.7, y sus entregas, OBS-T1)', () => {
     for (const rol of ['ESTUDIANTE', 'EGRESADO'] as const) {
       const ajenas = RUTAS_PROTEGIDAS.filter((f) => f.permitidos !== 'cualquier-sesion' && !f.permitidos.includes(rol));
       expect(negados.filter((n) => n.rol === rol)).toHaveLength(ajenas.length);
@@ -79,7 +79,7 @@ describe('matriz HTTP: denegaciones (SDD S1.14 §2.1, R6)', () => {
     const delEstudiante = RUTAS_PROTEGIDAS.filter(
       (f) => f.permitidos !== 'cualquier-sesion' && f.permitidos.includes('ESTUDIANTE'),
     );
-    expect(delEstudiante.map((f) => f.ruta)).toEqual(['/files/mio', '/files/mio/requisitos']);
+    expect(delEstudiante.map((f) => f.ruta)).toEqual(['/files/mio', '/files/mio/requisitos', '/files/mio/entregas']);
   });
 });
 

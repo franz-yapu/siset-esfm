@@ -4,6 +4,7 @@ import type { ZodOpenApiResponseObject } from 'zod-openapi';
 import { datosValidos, esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import { esquemaIdFile } from './files.esquemas';
 import {
+  esquemaEntregaRequisito,
   esquemaParamsRequisito,
   esquemaRegistrarRequisito,
   esquemaRequisitoDelFile,
@@ -38,8 +39,17 @@ export function crearRutasRequisitos(
   const listarPropios: RequestHandler = async (_req, res) => {
     res.json(await servicio.listar(await idFilePropio()));
   };
+  // Entregas de requisitos (observación #3 del tutor, SDD OBS-T1): mismos permisos que leer los requisitos.
+  const entregas: RequestHandler = async (_req, res) => {
+    res.json(await servicio.entregas(datosValidos(res, esquemasListarRequisitos).params.id));
+  };
+  const entregasPropias: RequestHandler = async (_req, res) => {
+    res.json(await servicio.entregas(await idFilePropio()));
+  };
   return Router()
     .get('/files/mio/requisitos', autenticar, autorizar.leerPropio, listarPropios)
+    .get('/files/mio/entregas', autenticar, autorizar.leerPropio, entregasPropias)
+    .get('/files/:id/entregas', autenticar, autorizar.leer, validar(esquemasListarRequisitos), entregas)
     .get('/files/:id/requisitos', autenticar, autorizar.leer, validar(esquemasListarRequisitos), listar)
     .put('/files/:id/requisitos/:codigo', autenticar, autorizar.editar, validar(esquemasRegistrarRequisito), registrar);
 }
@@ -65,6 +75,36 @@ export const openapiRequisitos: ZodOpenApiPathsObject = {
         '200': json('Requisitos de mi file.', z.array(esquemaRequisitoDelFile)),
         ...comunes,
         '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
+      },
+    },
+  },
+  '/api/v1/files/mio/entregas': {
+    get: {
+      tags: ['Files'],
+      summary: 'Mis entregas de requisitos (estudiante)',
+      description:
+        'Cada registro de Kardex sobre un requisito de mi file, del más nuevo al más viejo, con lo que cambió. El N.º es el del evento de la bitácora: sirve de comprobante.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': json('Entregas de mi file.', z.array(esquemaEntregaRequisito)),
+        ...comunes,
+        '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
+      },
+    },
+  },
+  '/api/v1/files/{id}/entregas': {
+    get: {
+      tags: ['Files'],
+      summary: 'Entregas de requisitos del file',
+      description:
+        'Cada registro de Kardex sobre un requisito del file, del más nuevo al más viejo, con lo que cambió.',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      responses: {
+        '200': json('Entregas del file.', z.array(esquemaEntregaRequisito)),
+        '400': error('Id inválido (VALIDACION).'),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
       },
     },
   },

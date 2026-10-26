@@ -62,4 +62,7 @@ table {
   .zona-impresion {
     display: block;
   }
+  body:has(.zona-prioritaria) .zona-impresion:not(.zona-prioritaria) {
+    display: none;
+  }
 }

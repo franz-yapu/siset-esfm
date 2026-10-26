@@ -1,5 +1,5 @@
 import type { Usuario } from '@/types';
-import type { DatosRequisito, RequisitoDelFile } from '@/types/requisitos';
+import type { DatosRequisito, EntregaRequisito, RequisitoDelFile } from '@/types/requisitos';
 import { usaApi } from './_modo';
 import { requisitosApi } from './requisitos.api';
 import { requisitosMock } from './requisitos.mock';
@@ -10,6 +10,10 @@ export interface ServicioRequisitos {
   /** Los del file del estudiante (S2.7): la API lo toma de la sesión; el mock, de `actor.fileId`. */
   mios(actor: Usuario): Promise<RequisitoDelFile[]>;
   registrar(fileId: number, codigo: string, d: DatosRequisito, actor: Usuario): Promise<RequisitoDelFile>;
+  /** Las entregas del file, de la más nueva a la más vieja (SDD OBS-T1, #3). */
+  entregas(fileId: number): Promise<EntregaRequisito[]>;
+  /** Las del file del estudiante: la API las toma de la sesión; el mock, de `actor.fileId`. */
+  misEntregas(actor: Usuario): Promise<EntregaRequisito[]>;
 }
 
 /** Sigue al modo de files: los requisitos son parte del file. */

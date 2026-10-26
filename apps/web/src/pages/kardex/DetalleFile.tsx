@@ -18,9 +18,10 @@ import { SeccionesDemoFile, type TabDemo } from '@/components/file/SeccionesDemo
 import { BloqueoFile, ResolucionBloqueo } from '@/components/file/BloqueoFile';
 import { RequisitosFile } from '@/components/file/RequisitosFile';
 import { ImprimirFolder } from '@/components/file/HojaFolderPersonal';
-import { useRequisitos } from '@/hooks/useRequisitos';
+import { useEntregas, useRequisitos } from '@/hooks/useRequisitos';
+import { EntregasRequisitos } from '@/components/file/EntregasRequisitos';
 
-type Tab = 'datos' | 'requisitos' | 'tramites-api' | 'historial-api' | TabDemo;
+type Tab = 'datos' | 'requisitos' | 'entregas' | 'tramites-api' | 'historial-api' | TabDemo;
 
 /** Historial del file desde la bitácora (solo KARDEX la lee, DEC-015). */
 function HistorialFile({ fileId }: { fileId: number }) {
@@ -102,6 +103,7 @@ export function DetalleFile() {
   // Los mismos que muestra la pestaña (caché compartida): la hoja del folder para imprimir (DEC-062). Se piden al
   // abrir el file porque el botón está en la cabecera, a la vista (observación #4 del tutor, SDD OBS-T1).
   const requisitos = useRequisitos(fileId, leeRequisitos);
+  const entregas = useEntregas(fileId, leeRequisitos && tab === 'entregas');
   const { data: especialidades = [] } = useEspecialidades();
   const editar = useMutacionFiles((d: DatosCrearFile) =>
     filesService.editar(fileId, cambiosDeFile(datosDeFile(f!), d), u),
@@ -122,7 +124,12 @@ export function DetalleFile() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'datos', label: 'Datos personales' },
-    ...(leeRequisitos ? ([{ id: 'requisitos', label: 'Requisitos' }] as const) : []),
+    ...(leeRequisitos
+      ? ([
+          { id: 'requisitos', label: 'Requisitos' },
+          { id: 'entregas', label: 'Entregas' },
+        ] as const)
+      : []),
     ...(demo
       ? ([
           { id: 'matriculas', label: 'Matrículas' },
@@ -165,11 +172,23 @@ export function DetalleFile() {
           />
         )}
         {tab === 'requisitos' && leeRequisitos && <RequisitosFile fileId={f.id} editable={registraRequisitos} />}
+        {tab === 'entregas' && leeRequisitos && (
+          <EntregasRequisitos
+            titular={f}
+            entregas={entregas.data}
+            cargando={entregas.isLoading}
+            error={entregas.error}
+          />
+        )}
         {tab === 'tramites-api' && <TramitesFile fileId={f.id} ci={f.ci} />}
         {tab === 'historial-api' && <HistorialFile fileId={f.id} />}
-        {tab !== 'datos' && tab !== 'requisitos' && tab !== 'tramites-api' && tab !== 'historial-api' && (
-          <SeccionesDemoFile fileId={f.id} tab={tab} editable={editable} onCambio={alCambiar} />
-        )}
+        {tab !== 'datos' &&
+          tab !== 'requisitos' &&
+          tab !== 'entregas' &&
+          tab !== 'tramites-api' &&
+          tab !== 'historial-api' && (
+            <SeccionesDemoFile fileId={f.id} tab={tab} editable={editable} onCambio={alCambiar} />
+          )}
       </Card>
     </>
   );

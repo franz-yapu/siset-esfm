@@ -1,5 +1,6 @@
 export { registrarEvento } from './auditoria.servicio';
 export { crearModuloAuditoria } from './auditoria.modulo';
+export { eventosDeEntidad, type EventoDeEntidad } from './auditoria.consulta';
 export {
   redactar,
   REDACTADO,

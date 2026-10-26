@@ -15,3 +15,12 @@ export async function listarRegistros(
   ]);
   return { filas, total };
 }
+
+/** Los eventos de un registro, del más nuevo al más viejo (el índice entidad + entidad_id + fecha). */
+export const listarEventosDeEntidad = (cliente: ClienteBd, entidad: string, entidadId: string, max: number) =>
+  cliente.logAuditoria.findMany({
+    where: { entidad, entidadId },
+    orderBy: [{ fecha: 'desc' }, { id: 'desc' }],
+    take: max,
+    select: { id: true, fecha: true, usuarioId: true, accion: true, datosAntes: true, datosDespues: true },
+  });

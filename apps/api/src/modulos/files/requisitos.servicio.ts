@@ -1,7 +1,7 @@
 import type { ClienteBd, TransaccionBd } from '@/compartido/bd';
 import { ErrorNegocio, ErrorNoEncontrado, ErrorValidacion } from '@/compartido/errores';
 import { obtenerContexto } from '@/compartido/http';
-import { registrarEvento } from '@/modulos/auditoria';
+import { eventosDeEntidad, registrarEvento } from '@/modulos/auditoria';
 import { buscarFile, type FileBd } from './file.repositorio';
 import { guardarRequisitoDelFile, listarRequisitosDelFile, type RequisitoFileBd } from './requisito.repositorio';
 import {
@@ -11,7 +11,13 @@ import {
   resumenDeGestiones,
   type RequisitoParaReglas,
 } from './requisitos-reglas';
-import type { DatosRequisito, RegistroDeGestion, RequisitoDelFile } from './requisitos.esquemas';
+import {
+  CAMPOS_REQUISITO,
+  type DatosRequisito,
+  type EntregaRequisito,
+  type RegistroDeGestion,
+  type RequisitoDelFile,
+} from './requisitos.esquemas';
 
 type Cliente = ClienteBd | TransaccionBd;
 
@@ -36,7 +42,7 @@ export interface DependenciasRequisitos {
 const deFecha = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 const aFecha = (s: string | null) => (s ? new Date(`${s}T00:00:00Z`) : null);
 
-const CAMPOS = ['estado', 'fecha', 'nroDocumento', 'observacion', 'nombreCurso', 'entidadEmisora'] as const;
+const CAMPOS = CAMPOS_REQUISITO;
 
 /** Lo que el formulario compara contra lo guardado. */
 type Registro = Pick<RequisitoDelFile, (typeof CAMPOS)[number]>;
@@ -49,6 +55,10 @@ const SIN_REGISTRO: Registro = {
   nombreCurso: null,
   entidadEmisora: null,
 };
+
+const comoObjeto = (v: unknown): Record<string, unknown> =>
+  v !== null && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+const comoTexto = (v: unknown): string | null => (v === null || v === undefined ? null : String(v));
 
 /** Reglas que dependen del tipo de requisito (DEC-051); los mensajes van debajo de cada campo. */
 function exigirSegunTipo(tipo: RequisitoCatalogoFiles, d: DatosRequisito) {
@@ -143,8 +153,44 @@ export function crearServicioRequisitos({ bd, obtenerRequisitosActivos, describi
     return armar(await obtenerRequisitosActivos(bd), await listarRequisitosDelFile(bd, fileId), file);
   }
 
+  /**
+   * Las entregas y actualizaciones de requisitos del file, de la más nueva a la más vieja (observación #3 del tutor,
+   * SDD OBS-T1). Salen de la bitácora: son los EDITAR del file que llevan el código del requisito (S2.10, §2.3).
+   */
+  async function entregas(fileId: number): Promise<EntregaRequisito[]> {
+    await cargarFile(bd, fileId);
+    const eventos = (await eventosDeEntidad(bd, 'file_academico', String(fileId))).filter(
+      (e) => e.accion === 'EDITAR' && typeof comoObjeto(e.despues).requisito === 'string',
+    );
+    const nombres = new Map((await obtenerRequisitosActivos(bd)).map((r) => [r.codigo, r.nombre]));
+    const usuarios = await describirUsuarios([
+      ...new Set(eventos.map((e) => e.usuarioId).filter((id): id is number => id !== null)),
+    ]);
+    return eventos.map((e) => {
+      const antes = comoObjeto(e.antes);
+      const despues = comoObjeto(e.despues);
+      const codigo = String(despues.requisito);
+      return {
+        nro: e.id,
+        fecha: e.fecha.toISOString(),
+        codigo,
+        // Si el requisito ya no está activo en el catálogo, queda su código.
+        nombre: nombres.get(codigo) ?? codigo,
+        gestion: typeof despues.gestion === 'string' ? despues.gestion : null,
+        cambios: CAMPOS.filter((c) => c in despues).map((campo) => ({
+          campo,
+          antes: comoTexto(antes[campo]),
+          despues: comoTexto(despues[campo]),
+        })),
+        registradoPor:
+          e.usuarioId === null ? null : { id: e.usuarioId, nombre: usuarios.get(e.usuarioId)?.nombre ?? '' },
+      };
+    });
+  }
+
   return {
     listar,
+    entregas,
 
     /**
      * Registra o actualiza uno (SDD S2.4 §2.1); en los por gestión, el de esa gestión (DEC-051). Sin cambios

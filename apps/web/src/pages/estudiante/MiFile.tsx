@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useUsuario } from '@/hooks';
 import { useMiFile } from '@/hooks/useFiles';
-import { useMisRequisitos } from '@/hooks/useRequisitos';
+import { useMisEntregas, useMisRequisitos } from '@/hooks/useRequisitos';
+import { EntregasRequisitos } from '@/components/file/EntregasRequisitos';
 import { fecha } from '@/lib/formato';
 import { Alerta, Card, Cargando, Tabs } from '@/components/ui';
 import { CabeceraFile } from '@/components/file/CabeceraFile';
@@ -25,6 +26,7 @@ export function MiFile() {
   const [tab, setTab] = useState('requisitos');
   const { data: f, isLoading, error } = useMiFile(u);
   const requisitos = useMisRequisitos(u, Boolean(f));
+  const entregas = useMisEntregas(u, Boolean(f) && tab === 'entregas');
   if (isLoading) return <Cargando />;
   if (error || !f) return <Alerta tipo="error">{error?.message ?? 'No se pudo leer tu file.'}</Alerta>;
 
@@ -39,6 +41,7 @@ export function MiFile() {
           tabs={[
             { id: 'requisitos', label: 'Hoja del folder' },
             { id: 'detalle', label: 'Detalle de requisitos' },
+            { id: 'entregas', label: 'Mis entregas' },
             { id: 'datos', label: 'Mis datos' },
           ]}
         />
@@ -56,6 +59,15 @@ export function MiFile() {
             </>
           ))}
         {tab === 'detalle' && <RequisitosFile fileId={f.id} editable={false} propio />}
+        {tab === 'entregas' && (
+          <EntregasRequisitos
+            titular={f}
+            entregas={entregas.data}
+            cargando={entregas.isLoading}
+            error={entregas.error}
+            propio
+          />
+        )}
         {tab === 'datos' && (
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Dato titulo="Nombre completo" valor={f.nombre} />

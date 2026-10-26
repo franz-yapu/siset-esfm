@@ -120,6 +120,11 @@ export function ManualPersonal() {
             <strong>egresado</strong>.
           </li>
           <li>
+            <strong>Comprobante de recepción:</strong> cada registro de un requisito queda en la pestaña{' '}
+            <em>Entregas</em> del file, con fecha, hora y quién lo hizo. El botón con el N.º (REC-…) abre el comprobante
+            en media carta: imprímalo, fírmelo y entrégueselo al estudiante como respaldo de que dejó el documento.
+          </li>
+          <li>
             <strong>Requisitos:</strong> en el file, pestaña <em>Requisitos</em>: los 24 de la hoja del folder personal,
             en su orden, más las tres defensas del TCLOA. Botón <em>Registrar</em>: estado (completo, pendiente u
             observado), fecha, N.º de documento y observación. Los TACFI piden además el nombre del curso y la entidad
@@ -312,8 +317,9 @@ export function ManualPersonal() {
             «Documentación existente en folder personal», con la marca en <em>Sí</em> o en <em>No</em> según lo que
             Kardex registró. Los que no le corresponden (por género o modalidad) y los «si corresponde» que no presentó
             quedan sin marca. <em>Imprimir requisitos</em> la imprime en el formato de Archivo Kardex (también se puede
-            guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto. Es
-            solo lectura: si algo está mal, acérquese a Kardex.
+            guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto. En{' '}
+            <em>Mis entregas</em> está cada documento que Kardex le registró, con fecha y hora, y su comprobante (REC-…)
+            para volver a imprimirlo. Es solo lectura: si algo está mal, acérquese a Kardex.
           </li>
           <li>Funciona en el celular. Las cuentas de estudiantes se habilitan después del piloto del personal.</li>
         </ul>

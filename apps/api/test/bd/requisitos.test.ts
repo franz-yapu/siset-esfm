@@ -191,6 +191,49 @@ describe('requisitos del file (SDD S2.4, DEC-051, ADR-0007)', () => {
     expect(otro.status).toBe(400);
   });
 
+  it('entregas (SDD OBS-T1, #3): cada registro de Kardex, del más nuevo al más viejo, con lo que cambió', async () => {
+    const id = await nuevoFile();
+    expect((await como('KARDEX', 'get', `/files/${id}/entregas`)).body).toEqual([]);
+    await como('KARDEX', 'put', `/files/${id}/requisitos/MATRICULA`, {
+      estado: 'COMPLETO',
+      fecha: '2026-03-01',
+      nroDocumento: 'V-123',
+      gestion: '2026',
+    });
+    await como('KARDEX', 'put', `/files/${id}/requisitos/MATRICULA`, {
+      estado: 'COMPLETO',
+      fecha: '2026-03-02',
+      nroDocumento: 'V-123',
+      gestion: '2026',
+    });
+    // Sin cambios reales no hay evento, así que tampoco entrega.
+    await como('KARDEX', 'put', `/files/${id}/requisitos/MATRICULA`, {
+      estado: 'COMPLETO',
+      fecha: '2026-03-02',
+      nroDocumento: 'V-123',
+      gestion: '2026',
+    });
+    const r = await como('COORDINADOR', 'get', `/files/${id}/entregas`);
+    expect(r.status).toBe(200);
+    expect(r.body).toHaveLength(2);
+    const [ultima, primera] = r.body;
+    expect(ultima.nro).toBeGreaterThan(primera.nro);
+    expect(ultima).toMatchObject({
+      codigo: 'MATRICULA',
+      gestion: '2026',
+      cambios: [{ campo: 'fecha', antes: '2026-03-01', despues: '2026-03-02' }],
+      registradoPor: { id: ids.KARDEX, nombre: expect.stringContaining('María') },
+    });
+    expect(primera.cambios).toEqual(
+      expect.arrayContaining([
+        { campo: 'estado', antes: 'PENDIENTE', despues: 'COMPLETO' },
+        { campo: 'nroDocumento', antes: null, despues: 'V-123' },
+      ]),
+    );
+    expect(primera.nombre).not.toBe('MATRICULA');
+    expect((await como('KARDEX', 'get', '/files/99999999/entregas')).status).toBe(404);
+  });
+
   it('TACFI: completo exige curso y entidad emisora; los demás no los aceptan', async () => {
     const id = await nuevoFile();
     const falta = await como('KARDEX', 'put', `/files/${id}/requisitos/TACFI_TEC_1`, {

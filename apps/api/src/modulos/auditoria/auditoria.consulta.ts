@@ -1,7 +1,7 @@
 import type { ClienteBd, Prisma } from '@/compartido/bd';
 import { desplazamiento, type Pagina } from '@/compartido/http';
 import type { FiltrosAuditoria, RegistroAuditoria } from './auditoria.consulta.esquemas';
-import { listarRegistros } from './auditoria.repositorio';
+import { listarEventosDeEntidad, listarRegistros } from './auditoria.repositorio';
 
 /** Quién es cada usuario: lo arma la raíz de composición con seguridad y personas (ADR-0001). */
 export type DescribirUsuarios = (ids: number[]) => Promise<Map<number, { usuario: string; nombre: string }>>;
@@ -58,3 +58,34 @@ export const crearServicioConsultaAuditoria = (bd: ClienteBd, describirUsuarios:
     };
   },
 });
+
+/** Un evento de la bitácora tal como lo leen otros módulos (solo lectura; la tabla es de auditoria). */
+export interface EventoDeEntidad {
+  id: number;
+  fecha: Date;
+  usuarioId: number | null;
+  accion: string;
+  antes: unknown;
+  despues: unknown;
+}
+
+/**
+ * El historial de un registro para otro módulo, p. ej. las entregas de requisitos de un file (observación #3 del
+ * tutor, SDD OBS-T1). Leer no genera eventos (DEC-017).
+ */
+export async function eventosDeEntidad(
+  cliente: ClienteBd,
+  entidad: string,
+  entidadId: string,
+  max = 500,
+): Promise<EventoDeEntidad[]> {
+  const filas = await listarEventosDeEntidad(cliente, entidad, entidadId, max);
+  return filas.map((f) => ({
+    id: f.id,
+    fecha: f.fecha,
+    usuarioId: f.usuarioId,
+    accion: f.accion,
+    antes: f.datosAntes,
+    despues: f.datosDespues,
+  }));
+}

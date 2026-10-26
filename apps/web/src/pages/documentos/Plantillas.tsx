@@ -133,7 +133,13 @@ export function Documento({
   );
 }
 
-/** Zona que solo se ve al imprimir (oculta el resto de la app con CSS). */
-export function ZonaImpresion({ children }: { children: ReactNode }) {
-  return createPortal(<div className="zona-impresion">{children}</div>, document.body);
+/**
+ * Zona que solo se ve al imprimir (oculta el resto de la app con CSS). Una `prioritaria` (p. ej. el comprobante abierto
+ * en un modal) deja fuera a las demás de la pantalla, como la hoja del folder de la cabecera del file.
+ */
+export function ZonaImpresion({ children, prioritaria = false }: { children: ReactNode; prioritaria?: boolean }) {
+  return createPortal(
+    <div className={prioritaria ? 'zona-impresion zona-prioritaria' : 'zona-impresion'}>{children}</div>,
+    document.body,
+  );
 }

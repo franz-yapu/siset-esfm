@@ -22,6 +22,22 @@ export const useMisRequisitos = (actor: Usuario, habilitado = true) =>
     enabled: habilitado,
   });
 
+/** Las entregas de requisitos del file (SDD OBS-T1, #3); comparten clave con el file: registrar las refresca. */
+export const useEntregas = (fileId: number, habilitado = true) =>
+  useQuery({
+    queryKey: [...claveFiles, 'entregas', fileId],
+    queryFn: () => requisitosService.entregas(fileId),
+    enabled: habilitado && fileId > 0,
+  });
+
+/** Las del estudiante. */
+export const useMisEntregas = (actor: Usuario, habilitado = true) =>
+  useQuery({
+    queryKey: [...claveFiles, 'entregas', 'mias', actor.id],
+    queryFn: () => requisitosService.misEntregas(actor),
+    enabled: habilitado,
+  });
+
 /** Registrar invalida todo lo del file (requisitos e historial). */
 export function useRegistrarRequisito(fileId: number, actor: Usuario) {
   const cliente = useQueryClient();

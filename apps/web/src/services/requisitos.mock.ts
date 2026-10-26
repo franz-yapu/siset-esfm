@@ -1,5 +1,12 @@
 import type { Usuario } from '@/types';
-import type { DatosRequisito, EstadoRequisitoFile, RegistroDeGestion, RequisitoDelFile } from '@/types/requisitos';
+import type {
+  CampoRequisito,
+  DatosRequisito,
+  EntregaRequisito,
+  EstadoRequisitoFile,
+  RegistroDeGestion,
+  RequisitoDelFile,
+} from '@/types/requisitos';
 import { auditar, copia, db } from '@/mocks/db';
 import type { FileMock, RequisitoRegistradoMock } from '@/mocks/fileMock';
 import type { RequisitoCatalogo } from '@/config/requisitos';
@@ -19,6 +26,15 @@ import type { ServicioRequisitos } from './requisitos.service';
 
 // Mock con el contrato de S2.4 y DEC-051: el catálogo del seed de la API (los 24 del folder personal) y, por file,
 // lo registrado. Un file del prototipo arranca con lo que tenía en sus 3 requisitos genéricos.
+
+const CAMPOS: readonly CampoRequisito[] = [
+  'estado',
+  'fecha',
+  'nroDocumento',
+  'observacion',
+  'nombreCurso',
+  'entidadEmisora',
+];
 
 /** Clave de lo registrado: el código, o `código@gestión` en los por gestión. */
 const clave = (codigo: string, gestion: string) => (gestion ? `${codigo}@${gestion}` : codigo);
@@ -135,6 +151,41 @@ export const requisitosMock: ServicioRequisitos = {
     return requisitosMock.listar(actor.fileId ?? 0);
   },
 
+  /** Como la API (SDD OBS-T1, #3): los registros de requisitos del file en la bitácora de la demo. */
+  async entregas(fileId: number): Promise<EntregaRequisito[]> {
+    await delay(LATENCIA);
+    const f = buscar(fileId);
+    const nombres = new Map(db.requisitos.map((r) => [r.codigo, r.nombre]));
+    const texto = (v: unknown) => (v === null || v === undefined ? null : String(v));
+    return copia(
+      db.bitacora
+        .filter((b) => b.registro === f.codigo && typeof b.despues?.requisito === 'string')
+        .map((b) => {
+          const despues = b.despues ?? {};
+          const antes = b.antes ?? {};
+          const codigo = String(despues.requisito);
+          return {
+            nro: b.id,
+            fecha: b.fecha,
+            codigo,
+            nombre: nombres.get(codigo) ?? codigo,
+            gestion: typeof despues.gestion === 'string' ? despues.gestion : null,
+            cambios: CAMPOS.filter((c) => c in despues).map((campo) => ({
+              campo,
+              antes: texto(antes[campo]),
+              despues: texto(despues[campo]),
+            })),
+            registradoPor: { id: 0, nombre: b.usuario },
+          };
+        })
+        .reverse(),
+    );
+  },
+
+  async misEntregas(actor: Usuario): Promise<EntregaRequisito[]> {
+    return requisitosMock.entregas(actor.fileId ?? 0);
+  },
+
   async registrar(fileId: number, codigo: string, datos: DatosRequisito, actor: Usuario): Promise<RequisitoDelFile> {
     await delay(LATENCIA);
     const f = buscar(fileId);
@@ -162,7 +213,7 @@ export const requisitosMock: ServicioRequisitos = {
     };
     const antes: Record<string, unknown> = {};
     const despues: Record<string, unknown> = {};
-    for (const c of ['estado', 'fecha', 'nroDocumento', 'observacion', 'nombreCurso', 'entidadEmisora'] as const) {
+    for (const c of CAMPOS) {
       if (actual[c] !== d[c]) {
         antes[c] = actual[c];
         despues[c] = d[c];

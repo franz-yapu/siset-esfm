@@ -1,4 +1,4 @@
-import type { DatosRequisito, RequisitoDelFile } from '@/types/requisitos';
+import type { DatosRequisito, EntregaRequisito, RequisitoDelFile } from '@/types/requisitos';
 import { api } from '@/lib/api';
 import type { ServicioRequisitos } from './requisitos.service';
 
@@ -14,5 +14,13 @@ export const requisitosApi: ServicioRequisitos = {
 
   async registrar(fileId: number, codigo: string, d: DatosRequisito): Promise<RequisitoDelFile> {
     return (await api.put<RequisitoDelFile>(`/files/${fileId}/requisitos/${encodeURIComponent(codigo)}`, d)).data;
+  },
+
+  async entregas(fileId: number): Promise<EntregaRequisito[]> {
+    return (await api.get<EntregaRequisito[]>(`/files/${fileId}/entregas`)).data;
+  },
+
+  async misEntregas(): Promise<EntregaRequisito[]> {
+    return (await api.get<EntregaRequisito[]>('/files/mio/entregas')).data;
   },
 };
