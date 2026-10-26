@@ -31,6 +31,7 @@ export function usePermisos(): ApiPermisos {
     },
     enabled: Boolean(usuario),
     staleTime: Infinity,
+    retryOnMount: false,
   });
   const permisos = consulta.data?.permisos ?? SIN_PERMISOS;
   const puede = useCallback((p: Permiso) => cumple(permisos, p), [permisos]);
