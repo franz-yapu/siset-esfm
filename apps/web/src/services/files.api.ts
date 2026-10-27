@@ -1,16 +1,19 @@
 import type { Pagina } from '@/types/pagina';
 import type {
   Bloqueo,
+  CambiosContacto,
   CambiosFile,
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
   FileCreado,
   FileDetalle,
+  FileOMio,
   FiltrosFiles,
   ResultadoImportacion,
 } from '@/types/files';
 import { api } from '@/lib/api';
+import { ErrorApi } from '@/lib/errores';
 import type { ServicioFiles } from './files.service';
 
 /** Quita los filtros vacíos: la API pide `texto` de al menos 1 carácter. */
@@ -70,6 +73,30 @@ export const filesApi: ServicioFiles = {
 
   async pdfBloqueo(id: number): Promise<Blob> {
     return (await api.get<Blob>(`/files/${id}/bloqueo/pdf`, { responseType: 'blob', timeout: 120_000 })).data;
+  },
+
+  async editarMio(c: CambiosContacto): Promise<FileDetalle> {
+    return (await api.patch<FileDetalle>('/files/mio', c)).data;
+  },
+
+  async foto(id: FileOMio): Promise<Blob | null> {
+    try {
+      return (await api.get<Blob>(`/files/${id}/foto`, { responseType: 'blob' })).data;
+    } catch (e) {
+      // Sin foto: 404. Cualquier otro error se muestra.
+      if (e instanceof ErrorApi && e.estado === 404) return null;
+      throw e;
+    }
+  },
+
+  async guardarFoto(id: FileOMio, foto: Blob): Promise<FileDetalle> {
+    const datos = new FormData();
+    datos.append('foto', foto, 'foto.jpg');
+    return (await api.put<FileDetalle>(`/files/${id}/foto`, datos)).data;
+  },
+
+  async quitarFoto(id: FileOMio): Promise<FileDetalle> {
+    return (await api.delete<FileDetalle>(`/files/${id}/foto`)).data;
   },
 
   async especialidades(): Promise<Especialidad[]> {

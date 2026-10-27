@@ -37,6 +37,8 @@ const detalle: FileDetalle = {
   fechaNacimiento: null,
   celular: null,
   email: null,
+  direccion: null,
+  foto: null,
   especialidadId: 2,
   especialidad: 'Matemática',
   anioIngreso: 2024,

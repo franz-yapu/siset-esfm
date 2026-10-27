@@ -47,6 +47,7 @@ export interface PersonaFile {
   fechaNacimiento: Date | null;
   email: string | null;
   celular: string | null;
+  direccion: string | null;
 }
 
 type DatosPersonales = Omit<PersonaFile, 'id'>;
@@ -59,6 +60,24 @@ export interface PersonasParaFiles {
   buscarIdsPorNombre(cliente: Cliente, texto: string): Promise<number[]>;
   buscarIdsPorCi(cliente: Cliente, texto: string): Promise<number[]>;
   obtenerPersonas(cliente: Cliente, ids: number[]): Promise<Map<number, PersonaFile>>;
+  /** La foto (ADR-0013), en su tabla de personas. */
+  fechasDeFotos(cliente: Cliente, ids: number[]): Promise<Map<number, Date>>;
+  leerFoto(cliente: Cliente, personaId: number): Promise<{ contenido: Uint8Array; tipo: string } | null>;
+  guardarFoto(
+    tx: TransaccionBd,
+    personaId: number,
+    contenido: Uint8Array<ArrayBuffer>,
+    tipo: TipoFoto,
+  ): Promise<{ tipo: string; bytes: number } | null>;
+  borrarFoto(tx: TransaccionBd, personaId: number): Promise<{ tipo: string; bytes: number } | null>;
+}
+
+export type TipoFoto = 'image/jpeg' | 'image/png' | 'image/webp';
+
+/** La foto tal como llegó (ya revisada por `recibirFoto`). */
+export interface FotoSubida {
+  contenido: Buffer;
+  tipo: TipoFoto;
 }
 
 /** Lo que files necesita de catalogos; también lo arma la raíz. */
@@ -131,6 +150,7 @@ const CAMPOS_PERSONALES = [
   'fechaNacimiento',
   'email',
   'celular',
+  'direccion',
 ] as const;
 
 const aFecha = (iso: string | null): Date | null => (iso ? new Date(`${iso}T00:00:00Z`) : null);
@@ -138,7 +158,13 @@ const deFecha = (d: Date | null): string | null => (d ? d.toISOString().slice(0,
 
 const nombreCompleto = (p: PersonaFile) => [p.nombres, p.apellidoPaterno, p.apellidoMaterno].filter(Boolean).join(' ');
 
-function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: ColorSemaforo | null): FileDetalle {
+function detalle(
+  f: FileBd,
+  p: PersonaFile,
+  especialidad: string,
+  semaforo: ColorSemaforo | null,
+  foto: Date | undefined,
+): FileDetalle {
   return {
     id: f.id,
     codigo: f.codigoEstudiante,
@@ -151,6 +177,8 @@ function detalle(f: FileBd, p: PersonaFile, especialidad: string, semaforo: Colo
     fechaNacimiento: deFecha(p.fechaNacimiento),
     celular: p.celular,
     email: p.email,
+    direccion: p.direccion,
+    foto: foto?.toISOString() ?? null,
     especialidadId: f.especialidadId,
     especialidad,
     anioIngreso: f.anioIngreso,
@@ -232,7 +260,8 @@ export function crearServicioFiles({
     if (!p) throw new Error(`El file ${id} no tiene persona.`);
     const nombre = (await especialidades.nombresEspecialidades(cliente, [f.especialidadId])).get(f.especialidadId);
     const semaforo = (await semaforos(cliente, [f])).get(f.id) ?? null;
-    return { f, p, d: detalle(f, p, nombre ?? '', semaforo) };
+    const foto = (await personas.fechasDeFotos(cliente, [p.id])).get(p.id);
+    return { f, p, d: detalle(f, p, nombre ?? '', semaforo, foto) };
   }
 
   /** El código es único (DEC-016 #4): se revisa antes para dar un error claro. */
@@ -544,6 +573,10 @@ export function crearServicioFiles({
       );
       const nombres = await especialidades.nombresEspecialidades(bd, [...new Set(files.map((f) => f.especialidadId))]);
       const colores = await semaforos(bd, files);
+      const fotos = await personas.fechasDeFotos(
+        bd,
+        files.map((f) => f.personaId),
+      );
       const filas = files
         .filter((f) => !filtros.semaforo || colores.get(f.id) === filtros.semaforo)
         .map((f) => ({ f, p: datos.get(f.personaId)! }))
@@ -552,7 +585,9 @@ export function crearServicioFiles({
       return {
         datos: filas
           .slice(skip, skip + take)
-          .map(({ f, p }) => detalle(f, p, nombres.get(f.especialidadId) ?? '', colores.get(f.id) ?? null)),
+          .map(({ f, p }) =>
+            detalle(f, p, nombres.get(f.especialidadId) ?? '', colores.get(f.id) ?? null, fotos.get(p.id)),
+          ),
         pagina: filtros.pagina,
         porPagina: filtros.porPagina,
         total: filas.length,
@@ -678,6 +713,56 @@ export function crearServicioFiles({
     },
 
     importar: (filas: unknown[], aplicar: boolean) => importar(filas, aplicar),
+
+    /** El estudiante cambia su contacto (ADR-0013): el file sale de la sesión, nunca de la URL. */
+    async editarMio(cambios: Pick<CambiosFileApi, 'email' | 'celular' | 'direccion'>): Promise<FileDetalle> {
+      const id = await this.idPropio();
+      return bd.$transaction((tx) => editarEnTx(tx, id, cambios));
+    },
+
+    /** La foto del file (ADR-0013); 404 si no tiene. */
+    async foto(id: number): Promise<{ contenido: Buffer; tipo: string }> {
+      const { p } = await cargar(bd, id);
+      const f = await personas.leerFoto(bd, p.id);
+      if (!f) throw new ErrorNoEncontrado('El file no tiene foto.');
+      return { contenido: Buffer.from(f.contenido), tipo: f.tipo };
+    },
+
+    /** Crea o reemplaza la foto. En la bitácora, el tipo y el tamaño; nunca la imagen. */
+    async guardarFoto(id: number, foto: FotoSubida): Promise<FileDetalle> {
+      return bd.$transaction(async (tx) => {
+        const { p } = await cargar(tx, id);
+        const contenido = new Uint8Array(foto.contenido.byteLength);
+        contenido.set(foto.contenido);
+        const antes = await personas.guardarFoto(tx, p.id, contenido, foto.tipo);
+        await registrarEvento(tx, {
+          accion: 'EDITAR',
+          modulo: 'FILES',
+          entidad: 'file_academico',
+          entidadId: id,
+          antes: { foto: antes },
+          despues: { foto: { tipo: foto.tipo, bytes: foto.contenido.length } },
+        });
+        return (await cargar(tx, id)).d;
+      });
+    },
+
+    async quitarFoto(id: number): Promise<FileDetalle> {
+      return bd.$transaction(async (tx) => {
+        const { p } = await cargar(tx, id);
+        const antes = await personas.borrarFoto(tx, p.id);
+        if (!antes) throw new ErrorNegocio('El file no tiene foto.', 'ESTADO_SIN_CAMBIO');
+        await registrarEvento(tx, {
+          accion: 'EDITAR',
+          modulo: 'FILES',
+          entidad: 'file_academico',
+          entidadId: id,
+          antes: { foto: antes },
+          despues: { foto: null },
+        });
+        return (await cargar(tx, id)).d;
+      });
+    },
   };
 }
 

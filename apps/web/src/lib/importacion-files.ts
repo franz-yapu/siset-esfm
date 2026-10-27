@@ -53,6 +53,7 @@ export const COLUMNAS_IMPORTACION: readonly ColumnaImportacion[] = [
   },
   { titulo: 'Celular', campo: 'celular', regla: 'Opcional', ejemplo: '71234567', obligatoria: false },
   { titulo: 'Correo', campo: 'email', regla: 'Opcional', ejemplo: '', obligatoria: false },
+  { titulo: 'Dirección', campo: 'direccion', regla: 'Opcional', ejemplo: '', obligatoria: false },
   {
     titulo: 'Especialidad',
     campo: 'especialidadId',
@@ -218,6 +219,7 @@ export function leerFilas(
         fechaNacimiento: fecha ?? null,
         celular: opcional('celular'),
         email: opcional('email'),
+        direccion: opcional('direccion'),
         especialidadId,
         anioIngreso: anioIngreso ?? 0,
         condicion: condicion ?? 'ESTUDIANTE',

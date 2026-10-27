@@ -51,7 +51,7 @@ export const RECURSOS = [
   'reportes',
   'auditoria',
 ] as const;
-export const ACCIONES = ['crear', 'leer', 'leer_propio', 'editar'] as const;
+export const ACCIONES = ['crear', 'leer', 'leer_propio', 'editar', 'editar_propio'] as const;
 export type Recurso = (typeof RECURSOS)[number];
 export type Accion = (typeof ACCIONES)[number];
 export interface Permiso {

@@ -11,6 +11,8 @@ export const POLITICA_MOCK: readonly (readonly [Rol, Recurso, Accion])[] = [
   ['ADMIN', 'usuarios', 'leer'],
   ['ADMIN', 'usuarios', 'editar'],
   ['ESTUDIANTE', 'files', 'leer_propio'],
+  // Su correo, celular, dirección y foto (ADR-0013).
+  ['ESTUDIANTE', 'files', 'editar_propio'],
   ['SEC_COORD', 'files', 'leer'],
   ['COORDINADOR', 'files', 'leer'],
   ['KARDEX', 'files', 'crear'],

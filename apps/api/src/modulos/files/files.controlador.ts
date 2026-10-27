@@ -1,15 +1,16 @@
-import type { RequestHandler } from 'express';
+import type { Request, RequestHandler, Response } from 'express';
 import { datosValidos } from '@/compartido/http';
 import {
   esquemasBloquearFile,
   esquemasCrearFile,
   esquemasDesbloquearFile,
   esquemasEditarFile,
+  esquemasEditarMio,
   esquemasImportarFiles,
   esquemasListarFiles,
   esquemasUnFile,
 } from './files.esquemas';
-import type { ServicioFiles } from './files.servicio';
+import type { ServicioFiles, TipoFoto } from './files.servicio';
 
 export const crearControladorFiles = (servicio: ServicioFiles) => {
   const listar: RequestHandler = async (_req, res) => {
@@ -63,5 +64,54 @@ export const crearControladorFiles = (servicio: ServicioFiles) => {
     res.json(await servicio.obtener(await servicio.idPropio()));
   };
 
-  return { listar, obtener, mio, crear, importar, editar, bloquear, desbloquear, bloqueo, pdfBloqueo };
+  // ADR-0013: el estudiante cambia su contacto y su foto; Kardex, la foto de cualquier file.
+  const editarMio: RequestHandler = async (_req, res) => {
+    res.json(await servicio.editarMio(datosValidos(res, esquemasEditarMio).body));
+  };
+
+  const enviarFoto = (res: Response, f: { contenido: Buffer; tipo: string }) =>
+    res.type(f.tipo).set('Cache-Control', 'private, no-store').send(f.contenido);
+  const subida = (req: Request, res: Response) => ({
+    contenido: req.file!.buffer,
+    tipo: res.locals.tipoFoto as TipoFoto,
+  });
+
+  const foto: RequestHandler = async (_req, res) => {
+    enviarFoto(res, await servicio.foto(datosValidos(res, esquemasUnFile).params.id));
+  };
+  const miFoto: RequestHandler = async (_req, res) => {
+    enviarFoto(res, await servicio.foto(await servicio.idPropio()));
+  };
+  const guardarFoto: RequestHandler = async (req, res) => {
+    res.json(await servicio.guardarFoto(datosValidos(res, esquemasUnFile).params.id, subida(req, res)));
+  };
+  const guardarMiFoto: RequestHandler = async (req, res) => {
+    res.json(await servicio.guardarFoto(await servicio.idPropio(), subida(req, res)));
+  };
+  const quitarFoto: RequestHandler = async (_req, res) => {
+    res.json(await servicio.quitarFoto(datosValidos(res, esquemasUnFile).params.id));
+  };
+  const quitarMiFoto: RequestHandler = async (_req, res) => {
+    res.json(await servicio.quitarFoto(await servicio.idPropio()));
+  };
+
+  return {
+    listar,
+    obtener,
+    mio,
+    crear,
+    importar,
+    editar,
+    editarMio,
+    bloquear,
+    desbloquear,
+    bloqueo,
+    pdfBloqueo,
+    foto,
+    miFoto,
+    guardarFoto,
+    guardarMiFoto,
+    quitarFoto,
+    quitarMiFoto,
+  };
 };

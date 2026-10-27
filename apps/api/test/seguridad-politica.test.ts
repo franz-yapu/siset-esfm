@@ -10,9 +10,11 @@ const C = 'crear';
 const L = 'leer';
 const P = 'leer_propio';
 const E = 'editar';
+const EP = 'editar_propio';
 const ESPERADA: Record<string, Record<string, string[]>> = {
   usuarios: { ADMIN: [C, L, E] },
-  files: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
+  // ADR-0013: el estudiante edita su contacto y su foto.
+  files: { ESTUDIANTE: [P, EP], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
   requisitos: { ESTUDIANTE: [P], SEC_COORD: [L], COORDINADOR: [L], KARDEX: [C, L, E] },
   'hojas-ruta': { SEC_DIR: [C, L], SEC_COORD: [C, L], COORDINADOR: [L], KARDEX: [L, E] },
   pases: { SEC_DIR: [C, L], SEC_COORD: [C, L], COORDINADOR: [L], KARDEX: [C, L] },
@@ -34,8 +36,8 @@ const combinaciones = ROLES.flatMap((rol) =>
 );
 
 describe('matriz completa de autorización (ADR-0002, SDD S1.6 §4)', () => {
-  it('cubre las 252 combinaciones rol × recurso × acción', () => {
-    expect(combinaciones).toHaveLength(252);
+  it('cubre las 315 combinaciones rol × recurso × acción', () => {
+    expect(combinaciones).toHaveLength(315);
   });
 
   it.each(combinaciones)('$rol · $recurso · $accion → $permitido', async ({ rol, recurso, accion, permitido }) => {

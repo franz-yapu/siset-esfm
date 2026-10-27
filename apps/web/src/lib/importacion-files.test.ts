@@ -78,6 +78,7 @@ describe('importación de files desde Excel (DEC-064 #3)', () => {
           fechaNacimiento: '2004-03-15',
           celular: '71234567',
           email: null,
+          direccion: null,
           especialidadId: 1,
           anioIngreso: 2024,
           condicion: 'ESTUDIANTE',

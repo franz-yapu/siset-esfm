@@ -38,6 +38,8 @@ const camposEditables = {
   fechaNacimiento,
   email,
   celular: textoOpcional(20),
+  /** La edita también el estudiante (ADR-0013). */
+  direccion: textoOpcional(200),
   /**
    * Único y en texto libre (DEC-016 #4). El de la escuela (D-28c): 209 (UA Ancocagua) + iniciales + fecha de
    * nacimiento (DDMMAA) + 00, por ejemplo 209-AUM05030000; se escribe como en la matrícula.
@@ -95,6 +97,7 @@ export const esquemaCrearFile = z
     fechaNacimiento: camposEditables.fechaNacimiento.default(null),
     email: camposEditables.email.default(null),
     celular: camposEditables.celular.default(null),
+    direccion: camposEditables.direccion.default(null),
     condicion: camposEditables.condicion.default('ESTUDIANTE'),
     genero: camposEditables.genero.default(null),
     modalidad: camposEditables.modalidad.default(null),
@@ -205,6 +208,9 @@ export const esquemaFileDetalle = z
     fechaNacimiento: z.iso.date().nullable(),
     celular: z.string().nullable(),
     email: z.string().nullable(),
+    direccion: z.string().nullable(),
+    /** Cuándo cambió la foto, o null si no tiene (ADR-0013). Se lee aparte: `GET /files/{id}/foto`. */
+    foto: z.iso.datetime().nullable(),
     especialidadId: z.number().int(),
     especialidad: z.string(),
     anioIngreso: z.number().int(),
@@ -286,3 +292,15 @@ export type FilaImportacion = ResultadoImportacion['filas'][number];
 export const esquemaFileCreado = esquemaFileDetalle
   .extend({ cuentaEstudiante: z.enum(['CREADA', 'EXISTENTE', 'REACTIVADA', 'USUARIO_OCUPADO']).nullable() })
   .meta({ id: 'FileCreado' });
+
+/** Lo que el estudiante cambia de su file (ADR-0013): solo contacto. Cualquier otro campo da 400. */
+export const esquemaEditarMio = z
+  .strictObject({
+    email: camposEditables.email.optional(),
+    celular: camposEditables.celular.optional(),
+    direccion: camposEditables.direccion.optional(),
+  })
+  .refine((d) => Object.values(d).some((v) => v !== undefined), { message: 'Envíe al menos un campo para editar' })
+  .meta({ id: 'EditarMiFile', description: 'Correo, celular y dirección del estudiante de la sesión.' });
+
+export const esquemasEditarMio = { body: esquemaEditarMio };

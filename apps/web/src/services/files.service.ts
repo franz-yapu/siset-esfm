@@ -2,12 +2,14 @@ import type { Usuario } from '@/types';
 import type { Pagina } from '@/types/pagina';
 import type {
   Bloqueo,
+  CambiosContacto,
   CambiosFile,
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
   FileCreado,
   FileDetalle,
+  FileOMio,
   FiltrosFiles,
   ResultadoImportacion,
 } from '@/types/files';
@@ -30,6 +32,12 @@ export interface ServicioFiles {
   /** Desde el Excel (DEC-064 #3): `aplicar` false solo revisa; true escribe todo, o nada si hay errores. */
   importar(filas: DatosCrearFile[], aplicar: boolean, actor: Usuario): Promise<ResultadoImportacion>;
   editar(id: number, c: CambiosFile, actor: Usuario): Promise<FileDetalle>;
+  /** El estudiante cambia su correo, celular o dirección (ADR-0013). */
+  editarMio(c: CambiosContacto, actor: Usuario): Promise<FileDetalle>;
+  /** La foto, o null si no tiene (ADR-0013). */
+  foto(id: FileOMio, actor: Usuario): Promise<Blob | null>;
+  guardarFoto(id: FileOMio, foto: Blob, actor: Usuario): Promise<FileDetalle>;
+  quitarFoto(id: FileOMio, actor: Usuario): Promise<FileDetalle>;
   /** Por licencia temporal, con la resolución y su PDF (D-29, DEC-049). La glosa queda como motivo del file. */
   bloquear(id: number, d: DatosBloqueo, actor: Usuario): Promise<FileDetalle>;
   /** Sin datos (DEC-049 #4): quién y cuándo los pone la API. */

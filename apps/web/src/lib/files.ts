@@ -14,6 +14,7 @@ const CAMPOS: readonly CampoFile[] = [
   'fechaNacimiento',
   'celular',
   'email',
+  'direccion',
   'codigo',
   'especialidadId',
   'anioIngreso',
@@ -37,6 +38,7 @@ export const normalizarDatosFile = (d: DatosCrearFile): DatosCrearFile => ({
   fechaNacimiento: vacio(d.fechaNacimiento),
   celular: vacio(d.celular),
   email: vacio(d.email),
+  direccion: vacio(d.direccion),
   codigo: d.codigo.trim(),
   modalidad: (vacio(d.modalidad)?.toUpperCase() ?? null) as DatosCrearFile['modalidad'],
 });

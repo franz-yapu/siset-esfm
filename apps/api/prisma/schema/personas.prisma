@@ -11,13 +11,28 @@ model Persona {
   fechaNacimiento DateTime?      @map("fecha_nacimiento") @db.Date
   celular         String?        @db.VarChar(20)
   email           String?        @db.VarChar(120)
+  /// La edita el estudiante o Kardex (ADR-0013).
+  direccion       String?        @db.VarChar(200)
   createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
   /// back-relation (ADR-0001: no usar desde otro módulo)
   usuarios        Usuario[]
   /// back-relation (ADR-0001: no usar desde otro módulo)
   fileAcademico   FileAcademico?
+  foto            PersonaFoto?
 
   @@unique([ci, complemento])
   @@map("persona")
+}
+
+/// La foto de la persona (ADR-0013): aparte, para que las listas no la carguen. Hasta 1 MB (CHECK en la migración).
+model PersonaFoto {
+  personaId     Int      @id @map("persona_id")
+  contenido     Bytes
+  /// image/jpeg, image/png o image/webp, según sus primeros bytes.
+  tipo          String   @db.VarChar(20)
+  actualizadoEn DateTime @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  persona       Persona  @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("persona_foto")
 }

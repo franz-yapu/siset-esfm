@@ -2,12 +2,14 @@ import type { Usuario } from '@/types';
 import type { Pagina } from '@/types/pagina';
 import type {
   Bloqueo,
+  CambiosContacto,
   CambiosFile,
   DatosBloqueo,
   DatosCrearFile,
   Especialidad,
   FileCreado,
   FileDetalle,
+  FileOMio,
   FiltrosFiles,
   ResultadoImportacion,
 } from '@/types/files';
@@ -41,6 +43,9 @@ const apellidosDe = (f: FileMock): { paterno: string | null; materno: string | n
   return { paterno: paterno || null, materno: resto.join(' ') || null };
 };
 
+/** Las fotos de la demo: solo en memoria (ADR-0013). */
+const fotos = new Map<number, { blob: Blob; fecha: string }>();
+
 export const aDetalle = (f: FileMock): FileDetalle => {
   const { paterno, materno } = apellidosDe(f);
   return {
@@ -55,6 +60,8 @@ export const aDetalle = (f: FileMock): FileDetalle => {
     fechaNacimiento: f.fechaNacimiento ?? null,
     celular: f.celular ?? null,
     email: f.correo ?? null,
+    direccion: f.direccion ?? null,
+    foto: fotos.get(f.id)?.fecha ?? null,
     especialidadId: idEspecialidad(f.especialidad),
     especialidad: f.especialidad,
     anioIngreso: f.anioIngreso,
@@ -80,6 +87,9 @@ const noEncontrado = () => new ErrorApi('El file no existe.', 'NO_ENCONTRADO', 4
 const conflicto = (mensaje: string, codigo: string) => new ErrorApi(mensaje, codigo, 409);
 const validacion = (detalles: { ruta: string; mensaje: string }[]) =>
   new ErrorApi('Los datos enviados no son válidos.', 'VALIDACION', 400, detalles);
+
+/** 'mio' es el file del estudiante de la sesión. */
+const idDe = (id: FileOMio, actor: Usuario): number => (id === 'mio' ? (actor.fileId ?? 0) : id);
 
 const buscar = (id: number): FileMock => {
   const f = db.files.find((x) => x.id === id);
@@ -119,6 +129,7 @@ const aplicar = (f: FileMock, d: Partial<DatosCrearFile>) => {
   if (d.fechaNacimiento !== undefined) f.fechaNacimiento = d.fechaNacimiento ?? undefined;
   if (d.celular !== undefined) f.celular = d.celular ?? undefined;
   if (d.email !== undefined) f.correo = d.email ?? undefined;
+  if (d.direccion !== undefined) f.direccion = d.direccion;
   if (d.codigo !== undefined) f.codigo = d.codigo;
   if (d.especialidadId !== undefined) f.especialidad = exigirEspecialidad(d.especialidadId);
   if (d.anioIngreso !== undefined) f.anioIngreso = d.anioIngreso;
@@ -349,6 +360,31 @@ export const filesMock: ServicioFiles = {
     buscar(id);
     const b = bloqueos.get(id);
     return b ? copia(b.bloqueo) : null;
+  },
+
+  async editarMio(c: CambiosContacto, actor: Usuario): Promise<FileDetalle> {
+    return filesMock.editar(idDe('mio', actor), c, actor);
+  },
+
+  async foto(id: FileOMio, actor: Usuario): Promise<Blob | null> {
+    await delay(LATENCIA);
+    return fotos.get(idDe(id, actor))?.blob ?? null;
+  },
+
+  async guardarFoto(id: FileOMio, foto: Blob, actor: Usuario): Promise<FileDetalle> {
+    await delay(LATENCIA);
+    const f = buscar(idDe(id, actor));
+    fotos.set(f.id, { blob: foto, fecha: new Date().toISOString() });
+    auditar(actor.nombre, MODULO, 'Cambiar foto', f.codigo, null, { foto: { tipo: foto.type, bytes: foto.size } });
+    return copia(aDetalle(f));
+  },
+
+  async quitarFoto(id: FileOMio, actor: Usuario): Promise<FileDetalle> {
+    await delay(LATENCIA);
+    const f = buscar(idDe(id, actor));
+    if (!fotos.delete(f.id)) throw new ErrorApi('El file no tiene foto.', 'ESTADO_SIN_CAMBIO', 422);
+    auditar(actor.nombre, MODULO, 'Quitar foto', f.codigo, null, { foto: null });
+    return copia(aDetalle(f));
   },
 
   async pdfBloqueo(id: number): Promise<Blob> {

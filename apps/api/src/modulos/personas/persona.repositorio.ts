@@ -38,6 +38,7 @@ const SELECCION_PERSONA = {
   fechaNacimiento: true,
   email: true,
   celular: true,
+  direccion: true,
 } as const;
 
 export interface DatosPersona {
@@ -51,9 +52,11 @@ export interface DatosPersona {
   fechaNacimiento?: Date | null;
   email: string | null;
   celular: string | null;
+  /** Opcional al crear: la edita el estudiante o Kardex (ADR-0013). */
+  direccion?: string | null;
 }
 
-export type Persona = DatosPersona & { id: number; fechaNacimiento: Date | null };
+export type Persona = DatosPersona & { id: number; fechaNacimiento: Date | null; direccion: string | null };
 
 /** Lo que se puede editar de una persona: todo menos el CI y el complemento (DEC-020 #3). */
 export type CambiosPersona = Partial<Omit<DatosPersona, 'ci' | 'complemento'>>;
@@ -111,4 +114,51 @@ export async function buscarIdsPorNombre(cliente: ClienteBd | TransaccionBd, tex
 export async function buscarIdsPorCi(cliente: ClienteBd | TransaccionBd, texto: string): Promise<number[]> {
   const filas = await cliente.persona.findMany({ where: { ci: { contains: texto.trim() } }, select: { id: true } });
   return filas.map((f) => f.id);
+}
+
+// La foto de la persona (ADR-0013), en su tabla: las listas no la cargan.
+
+export type TipoFoto = 'image/jpeg' | 'image/png' | 'image/webp';
+
+/** Cuándo cambió la foto de cada persona que tiene una (para las fichas y para no mostrar una vieja). */
+export async function fechasDeFotos(cliente: ClienteBd | TransaccionBd, ids: number[]): Promise<Map<number, Date>> {
+  if (ids.length === 0) return new Map();
+  const filas = await cliente.personaFoto.findMany({
+    where: { personaId: { in: ids } },
+    select: { personaId: true, actualizadoEn: true },
+  });
+  return new Map(filas.map((f) => [f.personaId, f.actualizadoEn]));
+}
+
+export const leerFoto = (cliente: ClienteBd | TransaccionBd, personaId: number) =>
+  cliente.personaFoto.findUnique({
+    where: { personaId },
+    select: { contenido: true, tipo: true, actualizadoEn: true },
+  });
+
+/** Crea o reemplaza la foto. Devuelve el tamaño y el tipo de la anterior, para la bitácora. */
+export async function guardarFoto(
+  tx: TransaccionBd,
+  personaId: number,
+  contenido: Uint8Array<ArrayBuffer>,
+  tipo: TipoFoto,
+): Promise<{ tipo: string; bytes: number } | null> {
+  const antes = await tx.personaFoto.findUnique({ where: { personaId }, select: { tipo: true, contenido: true } });
+  await tx.personaFoto.upsert({
+    where: { personaId },
+    create: { personaId, contenido, tipo },
+    update: { contenido, tipo, actualizadoEn: new Date() },
+  });
+  return antes ? { tipo: antes.tipo, bytes: antes.contenido.length } : null;
+}
+
+/** Borra la foto; devuelve lo que había, o null si no tenía. */
+export async function borrarFoto(
+  tx: TransaccionBd,
+  personaId: number,
+): Promise<{ tipo: string; bytes: number } | null> {
+  const antes = await tx.personaFoto.findUnique({ where: { personaId }, select: { tipo: true, contenido: true } });
+  if (!antes) return null;
+  await tx.personaFoto.delete({ where: { personaId } });
+  return { tipo: antes.tipo, bytes: antes.contenido.length };
 }

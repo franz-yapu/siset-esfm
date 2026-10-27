@@ -32,6 +32,9 @@ export interface FileDetalle {
   fechaNacimiento: string | null;
   celular: string | null;
   email: string | null;
+  direccion: string | null;
+  /** Cuándo cambió la foto, o null si no tiene (ADR-0013). La imagen se pide aparte. */
+  foto: string | null;
   especialidadId: number;
   especialidad: string;
   anioIngreso: number;
@@ -54,6 +57,8 @@ export interface DatosCrearFile {
   fechaNacimiento: string | null;
   celular: string | null;
   email: string | null;
+  /** La edita también el estudiante (ADR-0013). */
+  direccion: string | null;
   codigo: string;
   especialidadId: number;
   anioIngreso: number;
@@ -63,6 +68,12 @@ export interface DatosCrearFile {
   modalidad: Modalidad | null;
   anioFormacion: number | null;
 }
+
+/** Lo que el estudiante cambia de su file (ADR-0013). */
+export type CambiosContacto = Partial<Pick<DatosCrearFile, 'email' | 'celular' | 'direccion'>>;
+
+/** El file de la URL, o 'mio' (el de la sesión, para el estudiante). */
+export type FileOMio = number | 'mio';
 
 /** Todo menos el CI y el complemento (no se editan, DEC-027 #1); solo lo que cambió. */
 export type CambiosFile = Partial<Omit<DatosCrearFile, 'ci' | 'complemento'>>;

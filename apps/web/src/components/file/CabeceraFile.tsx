@@ -1,10 +1,12 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import type { ColorSemaforo, FileAcademico } from '@/types';
+import type { FileOMio } from '@/types/files';
 import { iniciales } from '@/lib/formato';
 import { nombreCompleto, semaforoFile } from '@/lib/reglas';
 import { textoSemaforo } from '@/lib/semaforo';
 import { Alerta, Badge, Semaforo } from '@/components/ui';
+import { FotoFile } from './FotoFile';
 
 /** Lo que muestra la cabecera: sirve para el file de la API y para el del prototipo (DEC-028). */
 export interface DatosCabeceraFile {
@@ -27,8 +29,17 @@ export const cabeceraDePrototipo = (f: FileAcademico): DatosCabeceraFile => ({
   semaforo: semaforoFile(f),
 });
 
-/** Cabecera del file (P-20 y P-41): iniciales, datos y, si lo hay, el semáforo global. */
-export function CabeceraFile({ file: f, acciones }: { file: DatosCabeceraFile; acciones?: ReactNode }) {
+/** Cabecera del file (P-20 y P-41): foto o iniciales, datos y, si lo hay, el semáforo global. */
+export function CabeceraFile({
+  file: f,
+  acciones,
+  foto,
+}: {
+  file: DatosCabeceraFile;
+  acciones?: ReactNode;
+  /** Con la API: el file y la fecha de su foto (ADR-0013); sin esto, las iniciales. */
+  foto?: { id: FileOMio; version: string | null };
+}) {
   const nombre = f.nombre;
   const datos: [string, ReactNode][] = [
     ['CI', f.ci],
@@ -44,9 +55,13 @@ export function CabeceraFile({ file: f, acciones }: { file: DatosCabeceraFile; a
         </Alerta>
       )}
       <div className="flex flex-col gap-4 rounded-[10px] border border-borde bg-white p-4 sm:flex-row sm:items-center">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e4edf6] text-base font-medium text-[#173b5c]">
-          {iniciales(nombre)}
-        </span>
+        {foto ? (
+          <FotoFile id={foto.id} version={foto.version} nombre={nombre} />
+        ) : (
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e4edf6] text-base font-medium text-[#173b5c]">
+            {iniciales(nombre)}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-[22px] leading-7 font-semibold text-tinta">{nombre}</h1>

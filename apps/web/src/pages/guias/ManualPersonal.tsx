@@ -333,7 +333,8 @@ export function ManualPersonal() {
             quedan sin marca. <em>Imprimir requisitos</em> la imprime en el formato de Archivo Kardex (también se puede
             guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto. En{' '}
             <em>Mis entregas</em> está cada documento que Kardex le registró, con fecha y hora, y su comprobante (REC-…)
-            para volver a imprimirlo. Es solo lectura: si algo está mal, acérquese a Kardex.
+            para volver a imprimirlo. En <em>Mis datos</em> puede cambiar su <strong>foto</strong>, su correo, su
+            celular y su dirección; el resto lo cambia Kardex: si algo está mal, acérquese a Kardex.
           </li>
           <li>
             Funciona en el celular. El estudiante entra con su CI y su fecha de nacimiento (dd-mm-aaaa) y, la primera

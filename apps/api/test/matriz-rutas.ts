@@ -6,7 +6,7 @@ import type { CodigoRol } from '@/modulos/seguridad/autorizacion.politica';
  * obliga a decidir quién entra. La comparten `http/matriz-rutas.test.ts` (denegaciones, sin base)
  * y `bd/matriz-rutas.test.ts` (celdas permitidas, con base).
  */
-export type Metodo = 'get' | 'post' | 'patch' | 'put';
+export type Metodo = 'get' | 'post' | 'patch' | 'put' | 'delete';
 
 export interface FilaRuta {
   metodo: Metodo;
@@ -56,6 +56,35 @@ export const RUTAS_PROTEGIDAS: readonly FilaRuta[] = [
   { metodo: 'get', documentada: '/api/v1/files', ruta: '/files', permitidos: LEEN_FILES },
   { metodo: 'post', documentada: '/api/v1/files', ruta: '/files', cuerpo: {}, permitidos: SOLO_KARDEX },
   { metodo: 'get', documentada: '/api/v1/files/mio', ruta: '/files/mio', permitidos: ['ESTUDIANTE'] },
+  // ADR-0013: el estudiante cambia su contacto y su foto; Kardex, la foto de cualquier file.
+  {
+    metodo: 'patch',
+    documentada: '/api/v1/files/mio',
+    ruta: '/files/mio',
+    cuerpo: {},
+    permitidos: ['ESTUDIANTE'],
+  },
+  { metodo: 'get', documentada: '/api/v1/files/mio/foto', ruta: '/files/mio/foto', permitidos: ['ESTUDIANTE'] },
+  { metodo: 'put', documentada: '/api/v1/files/mio/foto', ruta: '/files/mio/foto', permitidos: ['ESTUDIANTE'] },
+  { metodo: 'delete', documentada: '/api/v1/files/mio/foto', ruta: '/files/mio/foto', permitidos: ['ESTUDIANTE'] },
+  {
+    metodo: 'get',
+    documentada: '/api/v1/files/{id}/foto',
+    ruta: `/files/${ID_INEXISTENTE}/foto`,
+    permitidos: LEEN_FILES,
+  },
+  {
+    metodo: 'put',
+    documentada: '/api/v1/files/{id}/foto',
+    ruta: `/files/${ID_INEXISTENTE}/foto`,
+    permitidos: SOLO_KARDEX,
+  },
+  {
+    metodo: 'delete',
+    documentada: '/api/v1/files/{id}/foto',
+    ruta: `/files/${ID_INEXISTENTE}/foto`,
+    permitidos: SOLO_KARDEX,
+  },
   // Importación desde Excel (DEC-064 #3): pide crear y editar files, es decir, Kardex.
   {
     metodo: 'post',

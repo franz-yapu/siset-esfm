@@ -12,6 +12,7 @@ const base: DatosCrearFile = {
   fechaNacimiento: '2004-05-10',
   celular: null,
   email: null,
+  direccion: null,
   codigo: 'EST-1',
   especialidadId: 2,
   anioIngreso: 2024,

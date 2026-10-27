@@ -71,7 +71,7 @@ describe('matriz HTTP: denegaciones (SDD S1.14 §2.1, R6)', () => {
     },
   );
 
-  it('ESTUDIANTE y EGRESADO no entran a ninguna ruta del personal (el estudiante, solo a "mi file", S2.7, y sus entregas, OBS-T1)', () => {
+  it('ESTUDIANTE y EGRESADO no entran a ninguna ruta del personal (el estudiante, solo a "mi file", S2.7, sus entregas, OBS-T1, y su contacto y foto, ADR-0013)', () => {
     for (const rol of ['ESTUDIANTE', 'EGRESADO'] as const) {
       const ajenas = RUTAS_PROTEGIDAS.filter((f) => f.permitidos !== 'cualquier-sesion' && !f.permitidos.includes(rol));
       expect(negados.filter((n) => n.rol === rol)).toHaveLength(ajenas.length);
@@ -79,7 +79,15 @@ describe('matriz HTTP: denegaciones (SDD S1.14 §2.1, R6)', () => {
     const delEstudiante = RUTAS_PROTEGIDAS.filter(
       (f) => f.permitidos !== 'cualquier-sesion' && f.permitidos.includes('ESTUDIANTE'),
     );
-    expect(delEstudiante.map((f) => f.ruta)).toEqual(['/files/mio', '/files/mio/requisitos', '/files/mio/entregas']);
+    expect(delEstudiante.map((f) => `${f.metodo} ${f.ruta}`)).toEqual([
+      'get /files/mio',
+      'patch /files/mio',
+      'get /files/mio/foto',
+      'put /files/mio/foto',
+      'delete /files/mio/foto',
+      'get /files/mio/requisitos',
+      'get /files/mio/entregas',
+    ]);
   });
 });
 

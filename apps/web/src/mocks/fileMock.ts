@@ -13,6 +13,8 @@ export type FileMock = FileAcademico & {
   /** Código del catálogo de modalidades (DEC-058). */
   modalidad?: string | null;
   anioFormacion?: number | null;
+  /** ADR-0013. */
+  direccion?: string | null;
   /**
    * Requisitos con el catálogo de S2.4; se arma de `requisitos` la primera vez que se lee. La clave es el código, o
    * `código@gestión` en los por gestión (DEC-051).

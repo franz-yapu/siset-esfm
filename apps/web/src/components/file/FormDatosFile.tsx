@@ -21,6 +21,7 @@ const vacio = (): DatosCrearFile => ({
   fechaNacimiento: '',
   celular: '',
   email: '',
+  direccion: '',
   codigo: '',
   especialidadId: 0,
   anioIngreso: new Date().getFullYear(),
@@ -40,6 +41,7 @@ export const datosDeFile = (f: FileDetalle): DatosCrearFile => ({
   fechaNacimiento: f.fechaNacimiento ?? '',
   celular: f.celular ?? '',
   email: f.email ?? '',
+  direccion: f.direccion ?? '',
   codigo: f.codigo,
   especialidadId: f.especialidadId,
   anioIngreso: f.anioIngreso,
@@ -178,6 +180,12 @@ export function FormDatosFile({ inicial, especialidades, soloLectura, onGuardar 
           value={d.email ?? ''}
           onChange={(e) => set({ email: e.target.value })}
           error={errores.email}
+        />
+        <Input
+          label="Dirección"
+          value={d.direccion ?? ''}
+          onChange={(e) => set({ direccion: e.target.value })}
+          error={errores.direccion}
         />
         <Select
           label="Especialidad"

@@ -14,7 +14,7 @@ export const RECURSOS = [
   'reportes',
   'auditoria',
 ] as const;
-export const ACCIONES = ['crear', 'leer', 'leer_propio', 'editar'] as const;
+export const ACCIONES = ['crear', 'leer', 'leer_propio', 'editar', 'editar_propio'] as const;
 
 export type CodigoRol = (typeof ROLES)[number];
 export type Recurso = (typeof RECURSOS)[number];
@@ -28,6 +28,8 @@ export const POLITICA: readonly Permiso[] = [
   ['ADMIN', 'usuarios', 'editar'],
   // File académico. SEC_DIR no ve files (DEC-054): elige al titular con /hojas-ruta/titulares.
   ['ESTUDIANTE', 'files', 'leer_propio'],
+  // Su correo, celular, dirección y foto; el resto, solo Kardex (ADR-0013, DEC-064 #2).
+  ['ESTUDIANTE', 'files', 'editar_propio'],
   ['SEC_COORD', 'files', 'leer'],
   ['COORDINADOR', 'files', 'leer'],
   ['KARDEX', 'files', 'crear'],

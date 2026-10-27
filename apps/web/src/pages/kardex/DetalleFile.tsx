@@ -20,6 +20,7 @@ import { RequisitosFile } from '@/components/file/RequisitosFile';
 import { ImprimirFolder } from '@/components/file/HojaFolderPersonal';
 import { useEntregas, useRequisitos } from '@/hooks/useRequisitos';
 import { EntregasRequisitos } from '@/components/file/EntregasRequisitos';
+import { EditorFoto } from '@/components/file/FotoFile';
 
 type Tab = 'datos' | 'requisitos' | 'entregas' | 'tramites-api' | 'historial-api' | TabDemo;
 
@@ -147,6 +148,7 @@ export function DetalleFile() {
     <>
       <CabeceraFile
         file={f}
+        foto={{ id: f.id, version: f.foto }}
         acciones={
           <>
             {leeRequisitos && <ImprimirFolder file={f} requisitos={requisitos.data} />}
@@ -162,6 +164,11 @@ export function DetalleFile() {
       )}
       <Card>
         <Tabs activa={tab} onChange={(t) => setTab(t as Tab)} className="mb-4" tabs={tabs} />
+        {tab === 'datos' && editable && (
+          <div className="mb-5 border-b border-regla pb-5">
+            <EditorFoto id={f.id} version={f.foto} nombre={f.nombre} />
+          </div>
+        )}
         {tab === 'datos' && (
           <FormDatosFile
             key={JSON.stringify(f)}

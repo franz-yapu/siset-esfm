@@ -1,14 +1,16 @@
 import express, { Router, type RequestHandler } from 'express';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { ZodOpenApiResponseObject } from 'zod-openapi';
 import { esquemaError, validar, type ZodOpenApiPathsObject } from '@/compartido/http';
 import type { crearControladorFiles } from './files.controlador';
 import { recibirPdfResolucion } from './pdf-resolucion';
+import { recibirFoto } from './foto';
 import {
   esquemaBloqueo,
   esquemaFormularioBloqueo,
   esquemaCrearFile,
   esquemaEditarFile,
+  esquemaEditarMio,
   esquemaFileCreado,
   esquemaFileDetalle,
   esquemaFiltrosFiles,
@@ -21,6 +23,7 @@ import {
   esquemasCrearFile,
   esquemasDesbloquearFile,
   esquemasEditarFile,
+  esquemasEditarMio,
   esquemasListarFiles,
   esquemasUnFile,
 } from './files.esquemas';
@@ -30,6 +33,8 @@ export interface AutorizarFiles {
   leer: RequestHandler;
   /** `files`/`leer_propio`: el estudiante, solo su file (S2.7). */
   leerPropio: RequestHandler;
+  /** `files`/`editar_propio`: el estudiante, su contacto y su foto (ADR-0013). */
+  editarPropio: RequestHandler;
   crear: RequestHandler;
   editar: RequestHandler;
 }
@@ -47,6 +52,14 @@ export const crearRutasFiles = (
   Router()
     .get('/files', autenticar, autorizar.leer, validar(esquemasListarFiles), controlador.listar)
     .get('/files/mio', autenticar, autorizar.leerPropio, controlador.mio)
+    // ADR-0013: "mío" antes de ":id"; el file sale de la sesión.
+    .patch('/files/mio', autenticar, autorizar.editarPropio, validar(esquemasEditarMio), controlador.editarMio)
+    .get('/files/mio/foto', autenticar, autorizar.leerPropio, controlador.miFoto)
+    .put('/files/mio/foto', autenticar, autorizar.editarPropio, recibirFoto, controlador.guardarMiFoto)
+    .delete('/files/mio/foto', autenticar, autorizar.editarPropio, controlador.quitarMiFoto)
+    .get('/files/:id/foto', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.foto)
+    .put('/files/:id/foto', autenticar, autorizar.editar, validar(esquemasUnFile), recibirFoto, controlador.guardarFoto)
+    .delete('/files/:id/foto', autenticar, autorizar.editar, validar(esquemasUnFile), controlador.quitarFoto)
     .get('/files/:id', autenticar, autorizar.leer, validar(esquemasUnFile), controlador.obtener)
     .post('/files', autenticar, autorizar.crear, validar(esquemasCrearFile), controlador.crear)
     // Crea y actualiza: la usa Kardex, que tiene los dos permisos. El cuerpo se lee solo después de autorizar.
@@ -88,7 +101,87 @@ const comunes = {
   '403': error('Sin permiso o con cambio de contraseña pendiente.'),
 };
 
+const foto = {
+  description: 'La foto (image/jpeg, image/png o image/webp).',
+  content: { 'image/jpeg': { schema: z.string().meta({ format: 'binary' }) } },
+};
+const formularioFoto = {
+  content: {
+    'multipart/form-data': {
+      schema: z.object({ foto: z.string().meta({ format: 'binary', description: 'JPG, PNG o WebP, hasta 1 MB.' }) }),
+    },
+  },
+};
+
+/** ADR-0013: el estudiante cambia su contacto y su foto; Kardex, la foto de cualquier file. */
+const openapiFotos: ZodOpenApiPathsObject = {
+  '/api/v1/files/mio/foto': {
+    get: {
+      tags: ['Files'],
+      summary: 'Mi foto (estudiante)',
+      security: [{ bearerAuth: [] }],
+      responses: { '200': foto, ...comunes, '404': error('No tiene foto o no tiene file (NO_ENCONTRADO).') },
+    },
+    put: {
+      tags: ['Files'],
+      summary: 'Cambiar mi foto (estudiante)',
+      security: [{ bearerAuth: [] }],
+      requestBody: formularioFoto,
+      responses: {
+        '200': json('Mi file, con la fecha de la foto.', esquemaFileDetalle),
+        '400': error('Falta la foto, pesa más de 1 MB o no es JPG, PNG ni WebP (VALIDACION).'),
+        ...comunes,
+      },
+    },
+    delete: {
+      tags: ['Files'],
+      summary: 'Quitar mi foto (estudiante)',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': json('Mi file, sin foto.', esquemaFileDetalle),
+        ...comunes,
+        '422': error('No tenía foto (ESTADO_SIN_CAMBIO).'),
+      },
+    },
+  },
+  '/api/v1/files/{id}/foto': {
+    get: {
+      tags: ['Files'],
+      summary: 'Foto del file',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      responses: { '200': foto, ...comunes, '404': error('El file no existe o no tiene foto (NO_ENCONTRADO).') },
+    },
+    put: {
+      tags: ['Files'],
+      summary: 'Cambiar la foto del file (solo Kardex)',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      requestBody: formularioFoto,
+      responses: {
+        '200': json('El file, con la fecha de la foto.', esquemaFileDetalle),
+        '400': error('Falta la foto, pesa más de 1 MB o no es JPG, PNG ni WebP (VALIDACION).'),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
+      },
+    },
+    delete: {
+      tags: ['Files'],
+      summary: 'Quitar la foto del file (solo Kardex)',
+      security: [{ bearerAuth: [] }],
+      requestParams: { path: esquemaIdFile },
+      responses: {
+        '200': json('El file, sin foto.', esquemaFileDetalle),
+        ...comunes,
+        '404': error('El file no existe (NO_ENCONTRADO).'),
+        '422': error('No tenía foto (ESTADO_SIN_CAMBIO).'),
+      },
+    },
+  },
+};
+
 export const openapiFiles: ZodOpenApiPathsObject = {
+  ...openapiFotos,
   '/api/v1/files': {
     get: {
       tags: ['Files'],
@@ -143,6 +236,19 @@ export const openapiFiles: ZodOpenApiPathsObject = {
       security: [{ bearerAuth: [] }],
       responses: {
         '200': json('Mi file.', esquemaFileDetalle),
+        ...comunes,
+        '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
+      },
+    },
+    patch: {
+      tags: ['Files'],
+      summary: 'Cambiar mi correo, celular o dirección (estudiante)',
+      description: 'Solo esos tres campos (ADR-0013); cualquier otro da 400. El resto lo cambia Kardex.',
+      security: [{ bearerAuth: [] }],
+      requestBody: { content: { 'application/json': { schema: esquemaEditarMio } } },
+      responses: {
+        '200': json('Mi file actualizado.', esquemaFileDetalle),
+        '400': error('Datos inválidos o un campo que no se puede cambiar (VALIDACION).'),
         ...comunes,
         '404': error('La persona de la sesión no tiene file (NO_ENCONTRADO).'),
       },

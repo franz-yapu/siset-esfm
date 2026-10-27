@@ -37,12 +37,16 @@ import {
 import { crearModuloHojasRuta } from '@/modulos/hojas-ruta';
 import {
   actualizarPersona,
+  borrarFoto,
   buscarIdsPorCi,
   buscarIdsPorNombre,
   buscarNombreCompleto,
   buscarNombresCompletos,
   buscarPersonaPorCi,
   crearPersona,
+  fechasDeFotos,
+  guardarFoto,
+  leerFoto,
   obtenerPersonas,
 } from '@/modulos/personas';
 import { crearModuloAuditoria } from '@/modulos/auditoria';
@@ -134,6 +138,7 @@ export function crearApp({
       autorizar: {
         leer: autorizar('files', 'leer'),
         leerPropio: autorizar('files', 'leer_propio'),
+        editarPropio: autorizar('files', 'editar_propio'),
         crear: autorizar('files', 'crear'),
         editar: autorizar('files', 'editar'),
       },
@@ -144,6 +149,10 @@ export function crearApp({
         buscarIdsPorNombre,
         buscarIdsPorCi,
         obtenerPersonas,
+        fechasDeFotos,
+        leerFoto,
+        guardarFoto,
+        borrarFoto,
       },
       especialidades: { nombreEspecialidadActiva, nombresEspecialidades, modalidadActiva },
       // Requisitos del file (SDD S2.4): el catálogo es de catalogos; quién registró, de seguridad + personas.
