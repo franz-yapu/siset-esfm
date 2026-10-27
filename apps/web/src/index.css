@@ -66,3 +66,26 @@ table {
     display: none;
   }
 }
+
+/* Checkmark animado (observación #14 del tutor): el círculo y luego el visto se dibujan. */
+.check-animado__circulo,
+.check-animado__visto {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: check-trazo 0.35s ease-out forwards;
+}
+.check-animado__visto {
+  animation-delay: 0.25s;
+}
+@keyframes check-trazo {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .check-animado__circulo,
+  .check-animado__visto {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

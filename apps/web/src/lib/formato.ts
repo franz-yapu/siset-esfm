@@ -45,3 +45,14 @@ export const iniciales = (nombre: string): string =>
     .toUpperCase();
 
 export const primerNombre = (nombre: string): string => nombre.replace(/^(Lic|Ing|Dr|Prof)\.\s*/i, '').split(' ')[0];
+
+/**
+ * "Buenos días" de 5:00 a 11:59, "Buenas tardes" de 12:00 a 18:59 y "Buenas noches" el resto, en la hora de Bolivia
+ * (UTC−4, sin horario de verano), aunque el equipo tenga otra zona (observación #13 del tutor, SDD OBS-T1).
+ */
+export function saludoDeLaHora(ahora: Date = new Date()): string {
+  const hora = (ahora.getUTCHours() + 24 - 4) % 24;
+  if (hora >= 5 && hora < 12) return 'Buenos días';
+  if (hora >= 12 && hora < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}

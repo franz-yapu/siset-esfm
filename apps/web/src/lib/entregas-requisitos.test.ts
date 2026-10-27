@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { documentoDe, lineasDeCambios, nroComprobante, resumenEntrega } from './entregas-requisitos';
+import {
+  documentoDe,
+  lineasDeCambios,
+  mensajeUltimoCambio,
+  nroComprobante,
+  resumenEntrega,
+} from './entregas-requisitos';
 
 describe('entregas de requisitos (SDD OBS-T1, #3)', () => {
   it('numera el comprobante con el id del evento', () => {
@@ -37,5 +43,25 @@ describe('entregas de requisitos (SDD OBS-T1, #3)', () => {
   it('nombra el documento con su gestión si la tiene', () => {
     expect(documentoDe({ nombre: 'Matrícula', gestion: '2026' })).toBe('Matrícula (gestión 2026)');
     expect(documentoDe({ nombre: 'Certificado de nacimiento', gestion: null })).toBe('Certificado de nacimiento');
+  });
+
+  it('arma el aviso del último cambio para el inicio del estudiante (observación #13)', () => {
+    const base = {
+      nro: 1,
+      fecha: '2026-10-26T15:00:00.000Z',
+      codigo: 'TACFI_1',
+      nombre: 'Certificado TACFI 1',
+      gestion: null,
+      registradoPor: null,
+    };
+    expect(
+      mensajeUltimoCambio({ ...base, cambios: [{ campo: 'estado', antes: 'PENDIENTE', despues: 'COMPLETO' }] }),
+    ).toEqual({
+      texto: 'Tu Certificado TACFI 1 fue recibido y verificado correctamente el 26/10/2026.',
+      bien: true,
+    });
+    expect(
+      mensajeUltimoCambio({ ...base, cambios: [{ campo: 'estado', antes: 'COMPLETO', despues: 'OBSERVADO' }] }).bien,
+    ).toBe(false);
   });
 });

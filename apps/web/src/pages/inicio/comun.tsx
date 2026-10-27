@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { primerNombre } from '@/lib/formato';
+import { primerNombre, saludoDeLaHora } from '@/lib/formato';
 
 /**
  * Cabecera de los inicios por rol: el saludo como título y, debajo, lo que hay que hacer hoy (calculado de los datos);
@@ -9,7 +9,9 @@ export function Saludo({ nombre, children, acciones }: { nombre: string; childre
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-[22px] leading-7 font-semibold text-tinta">Hola, {primerNombre(nombre)}</h1>
+        <h1 className="text-[22px] leading-7 font-semibold text-tinta">
+          {saludoDeLaHora()}, {primerNombre(nombre)}
+        </h1>
         {children && <p className="mt-1 text-[15px] text-suave">{children}</p>}
       </div>
       {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}

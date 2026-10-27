@@ -44,3 +44,25 @@ export function resumenEntrega(e: Pick<EntregaRequisito, 'cambios'>): string {
 /** "Matrícula (gestión 2026)". */
 export const documentoDe = (e: Pick<EntregaRequisito, 'nombre' | 'gestion'>) =>
   e.gestion ? `${e.nombre} (gestión ${e.gestion})` : e.nombre;
+
+/** Días que el inicio del estudiante muestra su último cambio (observación #13 del tutor). */
+export const DIAS_ULTIMO_CAMBIO = 14;
+
+/**
+ * "Tu Certificado TACFI 1 fue recibido y verificado el 26/10/2026": el último cambio de sus requisitos, para el
+ * saludo del inicio. `bien` dice si es una buena noticia (con check) o un aviso (observado).
+ */
+export function mensajeUltimoCambio(e: EntregaRequisito): { texto: string; bien: boolean } {
+  const doc = documentoDe(e);
+  const cuando = fecha(e.fecha);
+  switch (resumenEntrega(e)) {
+    case 'Recibido':
+      return { texto: `Tu ${doc} fue recibido y verificado correctamente el ${cuando}.`, bien: true };
+    case 'Observado':
+      return { texto: `Kardex observó tu ${doc} el ${cuando}. Revisa el detalle en tu file.`, bien: false };
+    case 'Vuelto a pendiente':
+      return { texto: `Tu ${doc} volvió a pendiente el ${cuando}. Acércate a Kardex.`, bien: false };
+    default:
+      return { texto: `Kardex actualizó tu ${doc} el ${cuando}.`, bien: true };
+  }
+}

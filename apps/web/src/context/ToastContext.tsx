@@ -1,5 +1,6 @@
 import { createContext, useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
-import { CheckCircle2, X, XCircle } from 'lucide-react';
+import { X, XCircle } from 'lucide-react';
+import { CheckAnimado } from '@/components/ui/CheckAnimado';
 import clsx from 'clsx';
 
 interface Toast {
@@ -51,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             )}
           >
             {t.tipo === 'ok' ? (
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+              <CheckAnimado className="mt-0.5 size-4" />
             ) : (
               <XCircle className="mt-0.5 size-4 shrink-0" />
             )}

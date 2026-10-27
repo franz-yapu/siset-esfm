@@ -2,9 +2,11 @@ import { Link } from 'react-router';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useUsuario } from '@/hooks';
 import { useMiFile } from '@/hooks/useFiles';
-import { useMisRequisitos } from '@/hooks/useRequisitos';
+import { useMisEntregas, useMisRequisitos } from '@/hooks/useRequisitos';
+import { DIAS_ULTIMO_CAMBIO, mensajeUltimoCambio } from '@/lib/entregas-requisitos';
+import { diasDesde } from '@/lib/formato';
 import { alertasDelEstudiante, ETIQUETA_ESTADO } from '@/lib/requisitos';
-import { Alerta, Card, Cargando, Semaforo } from '@/components/ui';
+import { Alerta, Card, Cargando, CheckAnimado, Semaforo } from '@/components/ui';
 import { Saludo } from './comun';
 
 const MENSAJE = {
@@ -19,6 +21,7 @@ export function InicioEstudiante() {
   const u = useUsuario();
   const file = useMiFile(u);
   const requisitos = useMisRequisitos(u, Boolean(file.data));
+  const entregas = useMisEntregas(u, Boolean(file.data));
   if (file.isLoading || (file.data && requisitos.isLoading)) return <Cargando />;
   const f = file.data;
   if (file.error || !f) return <Alerta tipo="error">{file.error?.message ?? 'No se pudo leer tu file.'}</Alerta>;
@@ -29,12 +32,28 @@ export function InicioEstudiante() {
   // Un egresado no tiene semáforo (DEC-060); con cuenta de estudiante no debería llegar aquí (D-08).
   const color = f.semaforo;
   const completos = obligatorios.filter((r) => r.estado === 'COMPLETO').length;
+  // El último cambio de sus documentos, si es reciente (observación #13 del tutor).
+  const ultima = entregas.data?.[0];
+  const aviso = ultima && diasDesde(ultima.fecha) <= DIAS_ULTIMO_CAMBIO ? mensajeUltimoCambio(ultima) : null;
 
   return (
     <>
       <Saludo nombre={f.nombres}>
         {f.especialidad} · ingreso {f.anioIngreso}
       </Saludo>
+      {aviso && (
+        <div
+          role="status"
+          className={
+            aviso.bien
+              ? 'mb-4 flex items-center gap-3 rounded-[10px] border border-[#bfe3cc] bg-[#effaf3] p-4 text-[15px] text-[#1d5e3a]'
+              : 'mb-4 flex items-center gap-3 rounded-[10px] border border-[#f3d9a4] bg-[#fff8e8] p-4 text-[15px] text-[#7a4b00]'
+          }
+        >
+          {aviso.bien ? <CheckAnimado className="size-7" /> : <AlertTriangle className="size-6 shrink-0" />}
+          {aviso.texto}
+        </div>
+      )}
       {/* Cada bloque con su propia altura: la lista larga no estira a los demás. */}
       <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
         <div className="space-y-4">
