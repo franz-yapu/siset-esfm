@@ -74,7 +74,13 @@ export const CUENTAS_PRUEBA = [CI_KARDEX_PRUEBA, ...PERSONAL.map((p) => p.ci), .
  */
 export async function asegurarEstudiantesPrueba(bd: ClienteBd): Promise<number> {
   const personas = await bd.persona.findMany({
-    where: { ci: { in: CIS_ESTUDIANTES_PRUEBA }, complemento: '', usuarios: { none: {} } },
+    // Solo los estudiantes: los egresados no tienen cuenta (D-08, DEC-064 #5).
+    where: {
+      ci: { in: CIS_ESTUDIANTES_PRUEBA },
+      complemento: '',
+      usuarios: { none: {} },
+      fileAcademico: { is: { condicion: 'ESTUDIANTE' } },
+    },
     select: { id: true, ci: true },
   });
   if (!personas.length) return 0;
@@ -138,7 +144,26 @@ export async function repararCuentasPrueba(bd: ClienteBd, password: string): Pro
   if (!politica.success) throw new Error(`DATOS_PRUEBA_PASSWORD no cumple la regla (DEC-011).`);
   const hash = await hashPassword(password);
   return bd.$transaction(async (tx) => {
-    const usuarios = await tx.usuario.findMany({ where: { username: { in: CUENTAS_PRUEBA } }, select: { id: true } });
+    // Los egresados de prueba no tienen cuenta activa (D-08, DEC-064 #5): las que se crearon antes se desactivan.
+    const deEgresados = (
+      await tx.usuario.findMany({
+        where: {
+          username: { in: CUENTAS_PRUEBA },
+          rol: { codigo: 'ESTUDIANTE' },
+          persona: { fileAcademico: { is: { condicion: 'EGRESADO' } } },
+        },
+        select: { id: true },
+      })
+    ).map((u) => u.id);
+    await tx.usuario.updateMany({ where: { id: { in: deEgresados } }, data: { activo: false } });
+    await tx.refreshToken.updateMany({
+      where: { usuarioId: { in: deEgresados }, revocadoEn: null },
+      data: { revocadoEn: new Date() },
+    });
+    const usuarios = await tx.usuario.findMany({
+      where: { username: { in: CUENTAS_PRUEBA }, id: { notIn: deEgresados } },
+      select: { id: true },
+    });
     const ids = usuarios.map((u) => u.id);
     await tx.usuario.updateMany({
       where: { id: { in: ids } },

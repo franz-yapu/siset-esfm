@@ -100,15 +100,35 @@ describe('datos de prueba del despliegue (SDD S0.12 §2.3)', () => {
     expect((await bd.refreshToken.findUniqueOrThrow({ where: { id: sesion.id } })).revocadoEn).not.toBeNull();
   });
 
-  it('cada file de prueba tiene su cuenta de estudiante con el CI como usuario; una segunda corrida no duplica', async () => {
-    expect(await asegurarEstudiantesPrueba(bd)).toBe(30);
+  it('cada estudiante de prueba tiene su cuenta con el CI como usuario; los egresados, no (D-08); no duplica', async () => {
+    // 30 files: los 22 primeros son egresados, los 8 últimos estudiantes.
+    expect(await asegurarEstudiantesPrueba(bd)).toBe(8);
     expect(await asegurarEstudiantesPrueba(bd)).toBe(0);
     await repararCuentasPrueba(bd, 'Prueba.2026');
-    for (const usuario of ['8100001', '8100007', '8100030']) {
+    for (const usuario of ['8100023', '8100024', '8100030']) {
       const login = await request(app).post('/api/v1/auth/login').send({ usuario, password: 'Prueba.2026' });
       expect(login.status).toBe(200);
       expect(login.body.usuario.rol).toBe('ESTUDIANTE');
     }
+    expect(await bd.usuario.findUnique({ where: { username: '8100001' } })).toBeNull();
+  });
+
+  it('desactiva la cuenta que tenía un egresado de prueba de antes de DEC-064', async () => {
+    const persona = await bd.persona.findFirstOrThrow({ where: { ci: '8100002' } });
+    const rol = await bd.rol.findUniqueOrThrow({ where: { codigo: 'ESTUDIANTE' } });
+    await bd.usuario.create({
+      data: {
+        personaId: persona.id,
+        rolId: rol.id,
+        username: '8100002',
+        passwordHash: 'x',
+        debeCambiarPassword: false,
+      },
+    });
+    await repararCuentasPrueba(bd, 'Prueba.2026');
+    expect((await bd.usuario.findUniqueOrThrow({ where: { username: '8100002' } })).activo).toBe(false);
+    const login = await request(app).post('/api/v1/auth/login').send({ usuario: '8100002', password: 'Prueba.2026' });
+    expect(login.status).toBe(401);
   });
 
   it('crea el Administrador de prueba en una base que ya tenía los datos (DEC-054)', async () => {
