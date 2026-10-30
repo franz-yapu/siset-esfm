@@ -33,8 +33,8 @@ export function ManualPersonal() {
             cambiarla al entrar. La nueva debe tener al menos 8 caracteres, con letras, números y símbolos.
           </li>
           <li>
-            Después de <strong>5 intentos fallidos</strong> la cuenta se bloquea 15 minutos. Si olvidó la contraseña, el
-            Administrador se la restablece (no hay recuperación por correo).
+            Después de <strong>10 intentos fallidos seguidos</strong> la cuenta se bloquea 15 minutos. Si olvidó la
+            contraseña, el Administrador se la restablece (no hay recuperación por correo).
           </li>
           <li>
             Tras <strong>3 intentos fallidos</strong> desde la misma conexión, el siguiente pide confirmar que no es un

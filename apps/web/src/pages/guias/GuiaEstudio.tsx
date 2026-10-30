@@ -112,8 +112,9 @@ export function GuiaEstudio() {
               'Login y bloqueo por intentos',
               <Archivo key="a">apps/api/src/modulos/seguridad/auth.servicio.ts</Archivo>,
               <>
-                5 intentos fallidos bloquean 15 minutos. Los valores están en la tabla <Codigo>parametro</Codigo> (
-                <Codigo>MAX_INTENTOS_LOGIN</Codigo>, <Codigo>MIN_BLOQUEO_LOGIN</Codigo>), no en el código.
+                10 intentos fallidos seguidos bloquean 15 minutos (DEC-065). Los valores están en la tabla{' '}
+                <Codigo>parametro</Codigo> (<Codigo>MAX_INTENTOS_LOGIN</Codigo>, <Codigo>MIN_BLOQUEO_LOGIN</Codigo>), no
+                en el código.
               </>,
             ],
             [

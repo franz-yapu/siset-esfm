@@ -29,9 +29,9 @@ const cambiar = (token: string, passwordActual: string, passwordNueva: string) =
 
 beforeAll(async () => {
   await sembrar(bd, { ...KARDEX_DE_PRUEBA, ci: '9000142' }, ADMIN_INICIAL);
-  // Otros archivos cambian estos parámetros: el recorrido usa los valores de la regla (5 intentos, 15 min).
+  // Otros archivos cambian estos parámetros: el recorrido usa los valores de la regla (10 intentos, 15 min; DEC-065).
   for (const [clave, valor] of [
-    ['MAX_INTENTOS_LOGIN', '5'],
+    ['MAX_INTENTOS_LOGIN', '10'],
     ['MIN_BLOQUEO_LOGIN', '15'],
   ])
     await bd.parametro.upsert({ where: { clave }, create: { clave, valor }, update: { valor } });
@@ -83,8 +83,8 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
       expect(r.body.error.code).toBe('PROHIBIDO');
     }
 
-    // 5. Cinco errores lo bloquean; con la correcta, el mismo 401 genérico.
-    for (let i = 0; i < 5; i++) {
+    // 5. Diez errores seguidos lo bloquean (DEC-065); con la correcta, el mismo 401 genérico.
+    for (let i = 0; i < 10; i++) {
       const r = await login(CI_SEC_DIR, 'equivocada.1');
       expect(r.status).toBe(401);
       expect(r.body.error.code).toBe('CREDENCIALES_INVALIDAS');
@@ -125,7 +125,7 @@ describe('recorrido de aceptación del acceso (SDD S1.14 §2.2)', () => {
     ]);
     expect(
       delSecDir.filter((e) => e.accion === 'LOGIN_FALLIDO').map((e) => (e.despues as { motivo: string }).motivo),
-    ).toEqual([...Array<string>(5).fill('PASSWORD_INCORRECTA'), 'CUENTA_BLOQUEADA']);
+    ).toEqual([...Array<string>(10).fill('PASSWORD_INCORRECTA'), 'CUENTA_BLOQUEADA']);
 
     const deKardex = await bitacora(`usuarioId=${kardexId}`);
     expect(deKardex.map((e) => e.accion)).toEqual(['LOGIN', 'CAMBIAR_PASSWORD', 'CREAR', 'DESBLOQUEAR_CUENTA']);

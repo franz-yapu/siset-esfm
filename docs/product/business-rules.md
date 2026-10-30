@@ -100,7 +100,7 @@ Tres flujos según el tipo de trámite (D-05) y dónde se recibió (D-32b, ADR-0
 
 ## Seguridad y acceso
 
-- Login con CI + contraseña (D-14). 5 intentos fallidos → bloqueo 15 min. Rate limit 10/min por IP.
+- Login con CI + contraseña (D-14). 10 intentos fallidos seguidos → bloqueo 15 min (DEC-065; antes 5). Rate limit 10/min por IP.
 - Access JWT 15 min + refresh rotado en cookie httpOnly/Secure/SameSite=Strict; 15 min de inactividad = cierre.
 - Contraseña: bcrypt costo ≥ 12, mín. 8 caracteres con letras, números y símbolos (DEC-011). Reseteo por Kardex obliga a cambiarla.
 - "Propio" se valida en backend (ESTUDIANTE/EGRESADO no leen otro file cambiando el id).

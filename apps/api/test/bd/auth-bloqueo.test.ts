@@ -137,7 +137,7 @@ describe('leerParametroEntero (SDD S1.4 §2.2)', () => {
       await bd.parametro.create({
         data: {
           clave: 'MAX_INTENTOS_LOGIN',
-          valor: '5',
+          valor: '10',
           descripcion: 'Intentos fallidos seguidos antes de bloquear la cuenta',
         },
       });

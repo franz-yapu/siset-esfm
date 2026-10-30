@@ -31,7 +31,7 @@ export function PaginaGuia({
             <BookOpen className="size-5" aria-hidden />
             SISET · Guías
           </Link>
-          <Link to="/login" className="inline-flex items-center gap-1 text-sm text-sky-100 hover:text-white">
+          <Link to="/login" className="inline-flex items-center gap-1 text-sm text-emerald-100 hover:text-white">
             <ArrowLeft className="size-4" aria-hidden />
             Iniciar sesión
           </Link>
@@ -89,7 +89,7 @@ export const Codigo = ({ children }: { children: ReactNode }) => (
 );
 
 export const Nota = ({ children }: { children: ReactNode }) => (
-  <p className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-sky-900">{children}</p>
+  <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-900">{children}</p>
 );
 
 /** Pregunta desplegable (defensa, preguntas frecuentes). */

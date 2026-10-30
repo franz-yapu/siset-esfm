@@ -156,8 +156,9 @@ export function PreguntasDefensa() {
         </Pregunta>
         <Pregunta p="¿Qué pasa si alguien intenta adivinar una contraseña?">
           <p>
-            Después de 5 intentos fallidos la cuenta se bloquea 15 minutos, y además hay un límite de 10 intentos por
-            minuto por IP. Cada intento queda en la bitácora, también los hechos con un carnet que no existe (D-26).
+            Después de 10 intentos fallidos seguidos la cuenta se bloquea 15 minutos, y además hay un límite de 10
+            intentos por minuto por IP. Cada intento queda en la bitácora, también los hechos con un carnet que no
+            existe (D-26).
           </p>
         </Pregunta>
         <Pregunta p="¿Cómo maneja la sesión? ¿Por qué no guarda el token en localStorage?">
