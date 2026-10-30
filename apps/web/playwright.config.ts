@@ -46,6 +46,18 @@ const apiE2E = {
 
 const NO_MOCK = [/modo-api/, /api-real\//];
 
+/**
+ * El aviso flotante del primer ingreso (DEC-067) tapa parte del login: las pruebas empiezan con "No volver a mostrar"
+ * marcado; la suya (aviso-primer-ingreso.spec.ts) lo borra.
+ */
+const SIN_AVISO = {
+  cookies: [],
+  origins: [
+    ...[4180, 4181, PUERTO_WEB_API_REAL].map((p) => `http://localhost:${p}`),
+    ...(BASE_EXTERNA ? [new URL(BASE_EXTERNA).origin] : []),
+  ].map((origin) => ({ origin, localStorage: [{ name: 'siset.avisoPrimerIngreso.oculto', value: '1' }] })),
+};
+
 const proyectosApiReal: NonNullable<PlaywrightTestConfig['projects']> = API_REAL
   ? [
       {
@@ -76,6 +88,7 @@ export default defineConfig({
     channel: 'chrome',
     headless: true,
     trace: 'retain-on-failure',
+    storageState: SIN_AVISO,
     // Solo para probar localmente un proxy con certificado autofirmado (SDD S0.9).
     ignoreHTTPSErrors: Boolean(process.env.E2E_IGNORAR_TLS),
   },

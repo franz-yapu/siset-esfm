@@ -1129,3 +1129,15 @@ usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-05
 2. **Primer ingreso del estudiante:** el login explica que el usuario es el CI (con complemento `1234567-1A`) y la
    contraseña la fecha de nacimiento `dd-mm-aaaa` (DEC-064 #4), con un ejemplo, y que luego se cambia.
 3. **Versión 0.1.1** en los tres `package.json` (se ve al pie del menú y del login).
+
+## DEC-067 — El aviso del primer ingreso es una ventana flotante
+
+**Fecha:** 2026-10-30 · **Fuente:** el responsable · **Estado:** activa (cambia DEC-066 #2)
+
+1. El aviso del primer ingreso del estudiante (usuario = CI, contraseña = fecha de nacimiento `dd-mm-aaaa`) deja de
+   ser un recuadro fijo del login y pasa a una **ventana flotante** que no bloquea: se puede escribir con ella abierta.
+2. **Se abre al entrar a la página.** Cerrarla (×, "Entendido" o Escape) la esconde hasta volver a entrar al login o
+   tocar el **ícono de ajustes** junto a "Iniciar sesión".
+3. **"No volver a mostrar"** la deja cerrada en ese navegador (`localStorage`, preferencia de cada persona; si el
+   navegador no deja guardar, vuelve a salir). El ícono de ajustes la sigue abriendo, y desmarcar la casilla lo deshace.
+4. Las E2E empiezan con la casilla marcada (`playwright.config.ts`); la del aviso usa un navegador limpio.
