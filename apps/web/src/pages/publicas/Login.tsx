@@ -106,9 +106,9 @@ export function Login() {
 
   return (
     <div className="grid min-h-screen bg-fondo lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      {/* La escuela, el sistema y el camino que sigue cada hoja de ruta entre las dos sedes, sobre el azul. */}
+      {/* La escuela, el sistema y el camino que sigue cada hoja de ruta entre las dos sedes, sobre el verde. */}
       <div className="flex flex-col gap-8 bg-primario px-6 py-6 text-white sm:px-10 lg:justify-between lg:p-12">
-        <div className="flex items-start gap-2 text-sm text-sky-100">
+        <div className="flex items-start gap-2 text-sm text-emerald-100">
           <Route className="mt-0.5 size-5 shrink-0" aria-hidden />
           <p>
             {INSTITUCION}
@@ -117,7 +117,7 @@ export function Login() {
         </div>
         <div className="max-w-md">
           <h1 className="text-4xl font-semibold">SISET</h1>
-          <p className="mt-2 text-lg text-sky-100">Sistema de Gestión y Seguimiento de Trámites</p>
+          <p className="mt-2 text-lg text-emerald-100">Sistema de Gestión y Seguimiento de Trámites</p>
           <ol className="mt-10 hidden lg:block" aria-label="El camino de un trámite">
             {CAMINO.map((p, i) => (
               <li key={p.paso} className="flex gap-3">
@@ -125,22 +125,22 @@ export function Login() {
                   <span
                     className={clsx(
                       'mt-1.5 size-2.5 shrink-0 rounded-full',
-                      i === 0 || i === CAMINO.length - 1 ? 'bg-white' : 'border-[1.5px] border-sky-200 bg-primario',
+                      i === 0 || i === CAMINO.length - 1 ? 'bg-white' : 'border-[1.5px] border-emerald-200 bg-primario',
                     )}
                   />
                   {i < CAMINO.length - 1 && <span className="w-px flex-1 bg-white/25" />}
                 </span>
                 <span className="pb-4">
                   <span className="block text-sm font-medium text-white">{p.paso}</span>
-                  <span className="block text-[13px] text-sky-100">{p.donde}</span>
+                  <span className="block text-[13px] text-emerald-100">{p.donde}</span>
                 </span>
               </li>
             ))}
           </ol>
         </div>
-        <p className="hidden text-xs text-sky-100 lg:block">
+        <p className="hidden text-xs text-emerald-100 lg:block">
           Unidad Académica Ancocagua · Pucarani
-          <span className="ml-2 font-mono text-[11px] text-sky-200/80" title={`Compilación ${COMPILACION}`}>
+          <span className="ml-2 font-mono text-[11px] text-emerald-200/80" title={`Compilación ${COMPILACION}`}>
             {VERSION}
           </span>
         </p>

@@ -1,14 +1,14 @@
 ---
 version: alpha
 name: SISET-sistema-visual
-description: 'Sistema administrativo institucional, claro y sobrio, para el seguimiento de trámites académicos entre La Paz y Ancocagua. Fondo gris azulado muy claro (#F5F7FA), tarjetas blancas con borde fino (#E2E8F0) y sombra mínima, sidebar en azul institucional (#1F4E79) y un único acento azul (#2E75B6) para foco, enlaces y pestañas activas. Tipografía Inter en tamaños compactos (14 px de base) pensada para pantallas de trabajo: tablas, bandejas, formularios y fichas. El color con significado vive en los badges de estado del trámite y en el semáforo de requisitos, nunca como decoración.'
+description: 'Sistema administrativo institucional, claro y sobrio, para el seguimiento de trámites académicos entre La Paz y Ancocagua. Fondo gris azulado muy claro (#F5F7FA), tarjetas blancas con borde fino (#E2E8F0) y sombra mínima, sidebar en verde institucional (#0A5C40) y un único acento esmeralda (#047857) para foco, enlaces y pestañas activas. Tipografía Inter en tamaños compactos (14 px de base) pensada para pantallas de trabajo: tablas, bandejas, formularios y fichas. El color con significado vive en los badges de estado del trámite y en el semáforo de requisitos, nunca como decoración.'
 
 colors:
-  primario: '#1F4E79'
+  primario: '#0A5C40'
   primario-oscuro: '#173B5C'
   sobre-primario: '#FFFFFF'
   sobre-primario-suave: '#E0F2FE'
-  acento: '#2E75B6'
+  acento: '#047857'
   fondo: '#F5F7FA'
   superficie: '#FFFFFF'
   superficie-suave: '#F8FAFC'
@@ -183,9 +183,9 @@ Coordinación, Dirección y egresados para mover y consultar trámites. El dise�
 **densidad legible, estado visible y cero ambigüedad** sobre cualquier efecto.
 
 La base es clara: `{colors.fondo}` (#F5F7FA) de fondo de aplicación, tarjetas `{colors.superficie}`
-con borde `{colors.borde}` y `shadow-sm`. El **azul institucional** `{colors.primario}` (#1F4E79) es
+con borde `{colors.borde}` y `shadow-sm`. El **verde institucional** `{colors.primario}` (#0A5C40) es
 el ancla de identidad: sidebar, botón principal, avatar y el nombre "SISET" en el header. Un segundo
-azul, `{colors.acento}` (#2E75B6), marca foco, enlaces y pestañas activas.
+verde, `{colors.acento}` (#047857), marca foco, enlaces y pestañas activas.
 
 El color con significado tiene dos sistemas cerrados:
 
@@ -198,7 +198,7 @@ Fuera de esos dos sistemas no se introduce color.
 **Rasgos clave:**
 
 - Tema claro únicamente; no hay modo oscuro.
-- Un primario (azul institucional) + un acento (azul medio). Sin segundo color de marca.
+- Un primario (verde institucional) + un acento (esmeralda; DEC-065). Sin segundo color de marca.
 - Inter en escala compacta: 14 px de cuerpo, 12 px para metadatos y cabeceras de tabla.
 - Esquinas `rounded-lg` (8 px) en todo; `rounded-xl` (12 px) solo en modales.
 - Sombras mínimas (`shadow-sm` en tarjetas, `shadow-lg` en menús desplegables, `shadow-xl` en modales).
@@ -209,9 +209,9 @@ Fuera de esos dos sistemas no se introduce color.
 
 ### Identidad
 
-- **Primario** (`{colors.primario}` #1F4E79, `bg-primario`): sidebar, botón principal, avatar, marca.
+- **Primario** (`{colors.primario}` #0A5C40, `bg-primario`): sidebar, botón principal, avatar, marca.
 - **Primario oscuro** (`{colors.primario-oscuro}` #173B5C, `bg-primario-oscuro`): hover del botón principal.
-- **Acento** (`{colors.acento}` #2E75B6, `text-acento`, `outline-acento`): anillo de foco, enlaces, pestaña activa.
+- **Acento** (`{colors.acento}` #047857, `text-acento`, `outline-acento`): anillo de foco, enlaces, pestaña activa.
 
 ### Superficies
 
@@ -399,7 +399,7 @@ reimplementa un componente que ya existe.
 
 - No usar degradados, glassmorphism, sombras de color ni imágenes de fondo.
 - No introducir colores nuevos fuera de la paleta, el semáforo y la tabla de estados.
-- No usar el azul primario como fondo de tarjetas o secciones de contenido (solo sidebar, botón, avatar).
+- No usar el verde primario como fondo de tarjetas o secciones de contenido (solo sidebar, botón, avatar).
 - No usar tipografías distintas de Inter ni pesos 700+.
 - No mezclar `rounded-md`, `rounded-2xl` o píldoras en controles.
 - No poner texto en inglés en la UI.
@@ -436,6 +436,6 @@ reimplementa un componente que ya existe.
 ## Known Gaps
 
 - No hay modo oscuro ni se planea por ahora.
-- La pantalla de login (P-01) usa un panel azul a la izquierda; su detalle visual vive en `prototipo-pantallas.md`.
+- La pantalla de login (P-01) usa un panel verde a la izquierda; su detalle visual vive en `prototipo-pantallas.md`.
 - No hay logotipo institucional definido; el header usa el texto "SISET".
 - Las páginas 403/404 piden "ilustración simple" sin especificar; no se debe resolver con imágenes decorativas.

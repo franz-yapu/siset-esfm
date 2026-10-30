@@ -3,7 +3,7 @@ import { Download, Printer } from 'lucide-react';
 import { Link } from 'react-router';
 import { Bar, Line } from 'react-chartjs-2';
 import '@/lib/graficos';
-import { AZUL, AZUL_OSCURO } from '@/lib/graficos';
+import { SECUNDARIO, PRIMARIO } from '@/lib/graficos';
 import type { FiltrosReporte } from '@/types/hojas-ruta';
 import { useReporteHojasRuta, useTiposTramite } from '@/hooks/useHojasRuta';
 import { useUsuario } from '@/hooks';
@@ -129,7 +129,7 @@ export function Reportes() {
                       {
                         label: 'Trámites',
                         data: k.porEstado.map((e) => e.total),
-                        backgroundColor: AZUL,
+                        backgroundColor: SECUNDARIO,
                         borderRadius: 4,
                       },
                     ],
@@ -152,7 +152,7 @@ export function Reportes() {
                       {
                         label: 'Ingresados',
                         data: k.porMes.map((m) => m.total),
-                        borderColor: AZUL_OSCURO,
+                        borderColor: PRIMARIO,
                         backgroundColor: 'rgba(46,117,182,0.12)',
                         fill: true,
                         tension: 0.3,
@@ -176,7 +176,7 @@ export function Reportes() {
                       {
                         label: 'Días',
                         data: k.porEtapa.map((e) => e.dias),
-                        backgroundColor: AZUL_OSCURO,
+                        backgroundColor: PRIMARIO,
                         borderRadius: 4,
                       },
                     ],
@@ -198,7 +198,7 @@ export function Reportes() {
                       {
                         label: 'Trámites',
                         data: k.porTipo.map((t) => t.total),
-                        backgroundColor: AZUL,
+                        backgroundColor: SECUNDARIO,
                         borderRadius: 4,
                       },
                     ],

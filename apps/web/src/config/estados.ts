@@ -33,8 +33,8 @@ export const ESTADOS: Record<EstadoTramite, InfoEstado> = {
   EN_IMPRESION: { etiqueta: 'En impresión', ...EN_CURSO },
   EN_TRANSITO_LP: { etiqueta: 'En tránsito a La Paz', ...EN_CURSO },
   EN_FIRMA: { etiqueta: 'En firma', ...EN_CURSO },
-  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-[#d6e4f2] text-primario-oscuro', punto: 'bg-primario' },
-  ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-[#dcfae5] text-[#04250e]', punto: 'bg-[#247b50]' },
+  LISTO: { etiqueta: 'Listo para entrega', badge: 'bg-[#cfe7da] text-primario-oscuro', punto: 'bg-primario' },
+  ENTREGADO: { etiqueta: 'Entregado', badge: 'bg-[#1d6b45] text-white [&>span]:bg-white', punto: 'bg-[#1d6b45]' },
 };
 
 /** Pasos de la barra de progreso (Observado no es un paso, es un desvío). */

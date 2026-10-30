@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * Menú lateral azul (el primario); el ítem activo es una pastilla blanca: los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
+ * Menú lateral verde (el primario); el ítem activo es una pastilla blanca: los ítems salen de mis-permisos (SDD S1.11 §2.4). Mientras cargan o si fallan, solo
  * Inicio y Mi perfil. En celular es un panel deslizable.
  */
 export function Sidebar({ usuario, abierto, onCerrar }: Props) {
@@ -52,7 +52,7 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
           <button
             type="button"
             onClick={onCerrar}
-            className="rounded-md p-1.5 text-sky-100 hover:bg-white/10 lg:hidden"
+            className="rounded-md p-1.5 text-emerald-100 hover:bg-white/10 lg:hidden"
             aria-label="Cerrar menú"
           >
             <X className="size-5" />
@@ -61,7 +61,7 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
         {/* El alcance: el puesto y la sede de quien trabaja. */}
         <div className="mx-4 mt-3 mb-3">
           <p className="text-sm font-medium text-white">{ROLES[usuario.rol].nombre}</p>
-          <p className="text-[13px] text-sky-100">
+          <p className="text-[13px] text-emerald-100">
             {usuario.sedeId ? nombreSede(usuario.sedeId) : 'ESFM · UA Ancocagua'}
           </p>
         </div>
@@ -80,7 +80,7 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
                         'flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-white',
                         isActive
                           ? 'bg-white font-medium text-primario'
-                          : 'text-sky-100 hover:bg-white/10 hover:text-white',
+                          : 'text-emerald-100 hover:bg-white/10 hover:text-white',
                       )
                     }
                   >
@@ -92,9 +92,9 @@ export function Sidebar({ usuario, abierto, onCerrar }: Props) {
             })}
           </ul>
         </nav>
-        <p className="border-t border-white/10 px-4 py-3 text-xs text-sky-100">
+        <p className="border-t border-white/10 px-4 py-3 text-xs text-emerald-100">
           {NOMBRE_INSTITUCION}
-          <span className="mt-1 block font-mono text-[11px] text-sky-200/80" title={`Compilación ${COMPILACION}`}>
+          <span className="mt-1 block font-mono text-[11px] text-emerald-200/80" title={`Compilación ${COMPILACION}`}>
             {VERSION}
           </span>
         </p>

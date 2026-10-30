@@ -59,7 +59,7 @@ export function Modal({ open, title, onClose, footer, size = 'md', children, cer
   if (!open) return null;
   return createPortal(
     <div
-      className="no-print fixed inset-0 z-50 flex items-end justify-center bg-[#14181f]/45 p-0 sm:items-center sm:p-4"
+      className="entrada-fondo no-print fixed inset-0 z-50 flex items-end justify-center bg-[#14181f]/45 p-0 sm:items-center sm:p-4"
       onMouseDown={(e) => cerrable && e.target === e.currentTarget && onClose()}
     >
       <div
@@ -67,7 +67,10 @@ export function Modal({ open, title, onClose, footer, size = 'md', children, cer
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-titulo"
-        className={clsx('flex max-h-[92vh] w-full flex-col rounded-t-xl bg-white shadow-xl sm:rounded-xl', ANCHO[size])}
+        className={clsx(
+          'entrada-modal flex max-h-[92vh] w-full flex-col rounded-t-xl bg-white shadow-xl sm:rounded-xl',
+          ANCHO[size],
+        )}
       >
         <header className="flex items-center justify-between gap-4 border-b border-regla px-5 py-3">
           <h2 id="modal-titulo" className="text-base font-semibold text-tinta">

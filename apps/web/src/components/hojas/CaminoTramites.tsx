@@ -9,7 +9,7 @@ export interface PasoCamino {
 
 /**
  * El camino de los trámites del puesto: cada paso del flujo con cuántos hay, en orden y unidos por una línea, como la
- * marca de SISET. El punto se llena en azul donde hay trabajo; queda hueco donde no hay nada. En celular el camino
+ * marca de SISET. El punto se llena en verde donde hay trabajo; queda hueco donde no hay nada. En celular el camino
  * baja en vertical.
  */
 export function CaminoTramites({ titulo, pasos }: { titulo: string; pasos: PasoCamino[] }) {

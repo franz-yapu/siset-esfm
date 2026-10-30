@@ -46,9 +46,9 @@ export function Seguimiento() {
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
           <div>
             <p className="font-semibold tracking-wide">SISET</p>
-            <p className="text-xs text-sky-100">Consulta pública de trámites</p>
+            <p className="text-xs text-emerald-100">Consulta pública de trámites</p>
           </div>
-          <Link to="/login" className="flex items-center gap-1 text-sm text-sky-100 hover:text-white">
+          <Link to="/login" className="flex items-center gap-1 text-sm text-emerald-100 hover:text-white">
             <ArrowLeft className="size-4" />
             Iniciar sesión
           </Link>

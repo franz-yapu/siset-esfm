@@ -16,6 +16,6 @@ Chart.defaults.font.family = "'IBM Plex Sans', ui-sans-serif, system-ui, sans-se
 Chart.defaults.color = '#525c69';
 Chart.defaults.borderColor = '#e5e8ec';
 
-/** El dato principal de cada gráfico va en el secundario (celeste); el que lo acompaña, en el primario. */
-export const AZUL = '#2E75B6';
-export const AZUL_OSCURO = '#1F4E79';
+/** El dato principal de cada gráfico va en el secundario (esmeralda); el que lo acompaña, en el primario. */
+export const SECUNDARIO = '#047857';
+export const PRIMARIO = '#0A5C40';

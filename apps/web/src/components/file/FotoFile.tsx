@@ -46,7 +46,7 @@ export function FotoFile({
   ) : (
     <span
       className={clsx(
-        'flex shrink-0 items-center justify-center rounded-full bg-[#e4edf6] font-medium text-[#173b5c]',
+        'flex shrink-0 items-center justify-center rounded-full bg-[#dcede3] font-medium text-primario-oscuro',
         tamano,
       )}
     >

@@ -16,7 +16,9 @@ export function TablaMatriculas({ file }: { file: FileAcademico }) {
           key: 'estado',
           header: 'Estado',
           render: (m) => (
-            <Badge className={m.estado === 'Vigente' ? 'bg-[#e4edf6] text-[#173b5c]' : undefined}>{m.estado}</Badge>
+            <Badge className={m.estado === 'Vigente' ? 'bg-[#dcede3] text-primario-oscuro' : undefined}>
+              {m.estado}
+            </Badge>
           ),
         },
       ]}

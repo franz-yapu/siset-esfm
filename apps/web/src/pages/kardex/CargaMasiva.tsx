@@ -18,7 +18,7 @@ import { Alerta, Badge, Button, Card, DataTable, PageHeader } from '@/components
 type Accion = ResultadoImportacion['filas'][number]['accion'];
 
 const ACCION: Record<Accion, { texto: string; clase: string }> = {
-  CREAR: { texto: 'Nuevo', clase: 'bg-[#e8f1fa] text-[#1f4e79]' },
+  CREAR: { texto: 'Nuevo', clase: 'bg-acento-palido text-primario' },
   ACTUALIZAR: { texto: 'Se actualiza', clase: 'bg-[#fff6e0] text-[#8a5a00]' },
   SIN_CAMBIOS: { texto: 'Sin cambios', clase: 'bg-[#eef1f4] text-[#2b3440]' },
   ERROR: { texto: 'Con errores', clase: 'bg-[#fdecec] text-[#b4232a]' },

@@ -95,7 +95,7 @@ export function ModalResultado({
             {(['APROBADO', 'REPROBADO'] as const).map((r) => (
               <label
                 key={r}
-                className="flex flex-1 items-center gap-2 rounded-lg border border-control px-3 py-2 text-sm has-checked:border-acento has-checked:bg-sky-50"
+                className="flex flex-1 items-center gap-2 rounded-lg border border-control px-3 py-2 text-sm has-checked:border-acento has-checked:bg-emerald-50"
               >
                 <input
                   type="radio"

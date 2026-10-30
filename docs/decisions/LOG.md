@@ -1096,3 +1096,19 @@ usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-05
    cuenta; los egresados siguen su trámite con el QR de la hoja de ruta. Al pasar a egresado, la cuenta se desactiva.
 6. Las observaciones #6, #9, #11 y #12 (lentitud, error de conexión, cuentas que no entraban) quedan solo como
    diagnóstico, sin cambios.
+
+## DEC-065 — Colores verde y blanco, animaciones y bloqueo tras 10 intentos
+
+**Fecha:** 2026-10-30 · **Fuente:** el responsable (observación #14 del tutor, SDD OBS-T1) · **Estado:** activa
+
+1. **Colores institucionales verde y blanco** (confirmados por el responsable): la paleta sigue siendo de dos colores
+   (DEC-061 #8), ahora en verde. Primario verde esmeralda oscuro `#0A5C40` (menú, acción principal, marca) y
+   secundario esmeralda `#047857` (pestaña activa, enlaces, realces, dato principal de los gráficos), con blanco en
+   las hojas. Los dos pasan AA sobre blanco. Cierra el #14 del tutor.
+2. **Entregado** pasa a una insignia llena (`#1D6B45`, texto blanco) para no confundirse con el verde pálido de "en
+   curso". El semáforo de requisitos sigue en verde, ámbar y rojo (DEC-051).
+3. **Animaciones** (pedido del responsable): los botones se elevan al pasar y se hunden al presionar; cada pantalla
+   entra con un fundido corto y sus bloques llegan en cascada; los modales y los avisos entran con escala o desde el
+   costado; el aviso de "Cargando…" aparece solo si la espera pasa de 150 ms. Todo dura menos de 0,3 s, se apaga
+   con "reducir movimiento" y no deja transformaciones activas (no rompe los elementos fijos).
+4. **Bloqueo tras 10 intentos fallidos seguidos**, no 5 (ADR-0014). Cambia business-rules §Seguridad y RF-01 CA2.

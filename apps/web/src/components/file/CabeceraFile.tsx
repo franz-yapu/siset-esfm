@@ -58,7 +58,7 @@ export function CabeceraFile({
         {foto ? (
           <FotoFile id={foto.id} version={foto.version} nombre={nombre} />
         ) : (
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e4edf6] text-base font-medium text-[#173b5c]">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#dcede3] text-base font-medium text-primario-oscuro">
             {iniciales(nombre)}
           </span>
         )}

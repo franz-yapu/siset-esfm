@@ -101,8 +101,8 @@ export function DetalleHojaRuta() {
       />
 
       {h.acciones.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
-          <span className="mr-2 text-sm text-sky-900">Acción disponible:</span>
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <span className="mr-2 text-sm text-emerald-900">Acción disponible:</span>
           {h.acciones.map((a) => (
             <Button
               key={a.accion}

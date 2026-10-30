@@ -6,7 +6,7 @@ import { rutaInicio } from '@/config/permisos';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
-/** Layout común de las pantallas internas (SPEC §4.3): menú azul, barra blanca con la ruta y el contenido. */
+/** Layout común de las pantallas internas (SPEC §4.3): menú verde, barra blanca con la ruta y el contenido. */
 export function AppLayout() {
   const usuario = useUsuario();
   const { version } = useAuth();
@@ -30,7 +30,9 @@ export function AppLayout() {
         <Header usuario={usuario} onMenu={() => setMenu(true)} />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 pb-10 sm:px-6 lg:pt-6">
           {/* Cambiar de usuario o reiniciar la demo remonta la pantalla para recargar sus datos. */}
-          <Outlet key={`${usuario.id}-${version}-${pathname}`} />
+          <div key={`${usuario.id}-${version}-${pathname}`} className="entrada-pantalla">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

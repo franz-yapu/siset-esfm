@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import { Bar } from 'react-chartjs-2';
 import { PenLine } from 'lucide-react';
 import '@/lib/graficos';
-import { AZUL } from '@/lib/graficos';
+import { SECUNDARIO } from '@/lib/graficos';
 import { useUsuario } from '@/hooks';
 import { useResumenCoordinador } from '@/hooks/useHojasRuta';
 import { ESTADOS_HR } from '@/config/estados-hoja-ruta';
@@ -68,7 +68,12 @@ export function InicioCoordinador() {
               data={{
                 labels: r.porEstado.map((e) => ESTADOS_HR[e.estado].etiqueta),
                 datasets: [
-                  { label: 'Trámites', data: r.porEstado.map((e) => e.total), backgroundColor: AZUL, borderRadius: 2 },
+                  {
+                    label: 'Trámites',
+                    data: r.porEstado.map((e) => e.total),
+                    backgroundColor: SECUNDARIO,
+                    borderRadius: 2,
+                  },
                 ],
               }}
               options={{

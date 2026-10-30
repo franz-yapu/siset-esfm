@@ -1,21 +1,21 @@
 @import 'tailwindcss';
 
 /*
- * Paleta de dos colores (DEC-061, corregida a pedido del usuario): el azul institucional de la ESFM como primario (menú,
- * acción principal) y el celeste como secundario (pestaña activa, enlaces, realces y el dato principal de los
- * gráficos). Verde, ámbar y rojo quedan solo para estados.
+ * Paleta de dos colores (DEC-061; colores institucionales verde y blanco, DEC-065 y observación #14 del tutor): el verde
+ * esmeralda oscuro como primario (menú, acción principal) y el esmeralda como secundario (pestaña activa, enlaces,
+ * realces y el dato principal de los gráficos). Ámbar y rojo quedan solo para estados.
  */
 @theme {
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --color-primario: #1f4e79;
-  --color-primario-oscuro: #173b5c;
+  --color-primario: #0a5c40;
+  --color-primario-oscuro: #07432f;
   /* Secundario. */
-  --color-acento: #2e75b6;
-  --color-acento-palido: #e8f1fa;
-  --color-fondo: #f5f7fa;
+  --color-acento: #047857;
+  --color-acento-palido: #e6f4ec;
+  --color-fondo: #f4f7f5;
   /* Ítem activo en listas y menús claros. */
-  --color-activo: #e8eef5;
+  --color-activo: #e3efe8;
   /* Líneas en tres pasos: borde de tarjetas, reglas de filas, bordes de controles. */
   --color-borde: #e2e8f0;
   --color-regla: #eef2f6;
@@ -87,5 +87,98 @@ table {
   .check-animado__visto {
     animation: none;
     stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Movimiento de la interfaz (pedido del usuario, DEC-065): botones que responden al pasar y al presionar, y pantallas,
+ * modales y avisos que entran con un fundido corto. Todo dura menos de un cuarto de segundo y se apaga con "reducir
+ * movimiento".
+ */
+.boton-animado {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 120ms ease;
+}
+.boton-animado:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgb(10 92 64 / 0.18);
+}
+.boton-animado:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+/* La pantalla entra y sus bloques llegan en cascada (hasta el sexto; los demás, con el último). */
+.entrada-pantalla > *,
+.entrada-pantalla > * > * {
+  animation: entrada-subir 260ms ease-out backwards;
+}
+.entrada-pantalla > * > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.entrada-pantalla > * > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.entrada-pantalla > * > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.entrada-pantalla > * > :nth-child(5) {
+  animation-delay: 160ms;
+}
+.entrada-pantalla > * > :nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+/* El aviso de carga aparece solo si la espera pasa de 150 ms: así no parpadea cuando responde rápido. */
+.entrada-carga {
+  animation: entrada-fundido 200ms ease-out 150ms backwards;
+}
+.entrada-fondo {
+  animation: entrada-fundido 150ms ease-out backwards;
+}
+.entrada-modal {
+  animation: entrada-escala 180ms ease-out backwards;
+}
+.entrada-toast {
+  animation: entrada-lateral 220ms ease-out backwards;
+}
+@keyframes entrada-subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes entrada-fundido {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes entrada-escala {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes entrada-lateral {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boton-animado,
+  .boton-animado:not(:disabled):hover,
+  .boton-animado:not(:disabled):active {
+    transform: none;
+  }
+  .entrada-pantalla > *,
+  .entrada-pantalla > * > *,
+  .entrada-carga,
+  .entrada-fondo,
+  .entrada-modal,
+  .entrada-toast {
+    animation: none;
   }
 }

@@ -10,7 +10,7 @@ import { Alerta, Button, Input } from '@/components/ui';
 import { erroresPorCampo, validarFormClave, type ErroresClave } from './form-clave';
 
 const NIVELES = ['Muy débil', 'Débil', 'Aceptable', 'Fuerte'];
-const COLORES = ['bg-red-500', 'bg-amber-500', 'bg-sky-500', 'bg-green-600'];
+const COLORES = ['bg-red-500', 'bg-amber-500', 'bg-emerald-500', 'bg-green-600'];
 
 /**
  * Formulario de cambio de contraseña con reglas e indicador de fuerza (P-03 y bloque de P-05).

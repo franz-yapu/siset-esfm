@@ -6,7 +6,7 @@ import { Spinner } from './Spinner';
 type Variante = 'primary' | 'secondary' | 'danger' | 'danger-outline' | 'ghost' | 'success';
 
 const ESTILOS: Record<Variante, string> = {
-  // Una sola acción llena por pantalla, en el azul institucional; lo demás, blanco con borde o solo texto.
+  // Una sola acción llena por pantalla, en el verde institucional; lo demás, blanco con borde o solo texto.
   primary: 'bg-primario text-white hover:bg-primario-oscuro active:bg-primario-oscuro disabled:bg-[#9aa8b6]',
   secondary:
     'bg-white text-tinta ring-1 ring-inset ring-control hover:bg-[#f5f7fa] active:bg-activo disabled:text-suave disabled:hover:bg-white',
@@ -42,7 +42,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento disabled:cursor-not-allowed',
+        'boton-animado inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento disabled:cursor-not-allowed',
         size === 'sm' ? 'h-8 px-2.5 text-[13px]' : 'h-9 px-3.5 text-sm',
         ESTILOS[variant],
         className,

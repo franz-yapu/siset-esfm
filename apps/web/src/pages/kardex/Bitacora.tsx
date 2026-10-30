@@ -135,11 +135,11 @@ export function Bitacora() {
       {hayFiltros && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {f.entidad && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sm text-sky-800 ring-1 ring-sky-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-800 ring-1 ring-emerald-200">
               Historial de: {etiquetaHistorial ?? describirEntidad(f.entidad, f.entidadId)}
               <button
                 type="button"
-                className="rounded p-0.5 hover:bg-sky-100"
+                className="rounded p-0.5 hover:bg-emerald-100"
                 aria-label="Quitar filtro de registro"
                 onClick={() => filtrar({ entidad: undefined, entidadId: undefined })}
               >
