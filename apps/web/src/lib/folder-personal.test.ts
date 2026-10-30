@@ -41,7 +41,7 @@ const gestion = (g: string, estado: RequisitoDelFile['estado'] = 'COMPLETO') => 
 });
 
 describe('hoja del folder personal (DEC-062)', () => {
-  it('marca SÍ lo completo, NO lo obligatorio que falta y nada lo que no corresponde, en el orden de la hoja', () => {
+  it('marca SÍ lo completo y NO lo obligatorio que falta; lo que no se le pide no sale (DEC-066), en el orden de la hoja', () => {
     const filas = filasDelFolder([
       req({ orden: 3, nombre: 'Libreta militar', aplica: false, soloGenero: 'MASCULINO' }),
       req({ orden: 1, nombre: 'Cédula', estado: 'COMPLETO' }),
@@ -53,10 +53,7 @@ describe('hoja del folder personal (DEC-062)', () => {
     expect(filas).toEqual([
       { nro: 1, texto: 'Cédula', marca: 'SI', pedido: true },
       { nro: 2, texto: 'REJAP', marca: 'NO', pedido: true },
-      { nro: 3, texto: 'Libreta militar (varones)', marca: null, pedido: false },
-      { nro: 4, texto: 'Pueblo indígena (solo mod. B1)', marca: null, pedido: false },
-      { nro: 5, texto: 'Licencia temporal (si corresponde)', marca: null, pedido: false },
-      { nro: 6, texto: 'Reincorporación (si corresponde)', marca: 'SI', pedido: false },
+      { nro: 3, texto: 'Reincorporación (si corresponde)', marca: 'SI', pedido: false },
     ]);
   });
 

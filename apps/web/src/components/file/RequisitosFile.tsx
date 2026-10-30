@@ -3,14 +3,12 @@ import { Plus } from 'lucide-react';
 import type { RegistroDeGestion, RequisitoDelFile } from '@/types/requisitos';
 import { useUsuario } from '@/hooks';
 import { useMisRequisitos, useRegistrarRequisito, useRequisitos } from '@/hooks/useRequisitos';
-import { ETIQUETA_ESTADO } from '@/lib/requisitos';
+import { ETIQUETA_ESTADO, requisitosVisibles, yaRegistrado } from '@/lib/requisitos';
 import { fecha, fechaHora, ordinal } from '@/lib/formato';
 import { Alerta, Button, Cargando, Semaforo } from '@/components/ui';
 import { ModalRequisitoFile } from './ModalRequisitoFile';
 
 const COLOR = { COMPLETO: 'VERDE', OBSERVADO: 'ROJO', PENDIENTE: 'AMARILLO' } as const;
-
-const yaRegistrado = (r: RequisitoDelFile) => Boolean(r.registradoPor) || r.estado !== 'PENDIENTE';
 
 /** Por qué un requisito no se le pide a este file (ADR-0007). */
 const noCorresponde = (r: RequisitoDelFile) =>
@@ -39,8 +37,8 @@ function Detalle({ r }: { r: RequisitoDelFile }) {
 }
 
 /**
- * Pestaña Requisitos de P-41 (SDD S2.4 §2.4, DEC-051): los 24 de la hoja "Documentación existente en folder personal",
- * en su orden, con el estado de cada uno en el file. Los por gestión (matrícula, certificado de notas) muestran cada
+ * Pestaña Requisitos de P-41 (SDD S2.4 §2.4, DEC-051): los de la hoja "Documentación existente en folder personal"
+ * que se le piden a este file (DEC-066), en su orden, con el estado de cada uno en el file. Los por gestión (matrícula, certificado de notas) muestran cada
  * gestión; los TACFI, el curso y la entidad emisora. Solo KARDEX registra; SEC_COORD y COORDINADOR leen (DEC-015).
  * `propio`: el estudiante, desde "mi file" (S2.7).
  */
@@ -66,7 +64,8 @@ export function RequisitosFile({
   if (isLoading) return <Cargando />;
   if (error || !data) return <Alerta tipo="error">{error?.message ?? 'No se pudieron leer los requisitos.'}</Alerta>;
 
-  const atrasados = data.filter((r) => r.atrasado);
+  const visibles = requisitosVisibles(data, propio);
+  const atrasados = visibles.filter((r) => r.atrasado);
 
   return (
     <div className="space-y-3">
@@ -76,13 +75,13 @@ export function RequisitosFile({
         </Alerta>
       )}
       <ol className="divide-y divide-regla rounded-[10px] border border-borde">
-        {data.map((r) => (
+        {visibles.map((r, i) => (
           <li
             key={r.codigo}
             aria-label={r.nombre}
             className={`flex flex-col gap-2 p-3 sm:flex-row sm:items-start ${r.aplica ? '' : 'bg-[#f5f7fa] text-suave'}`}
           >
-            <span className="w-7 shrink-0 text-sm font-semibold text-suave">{r.orden}</span>
+            <span className="w-7 shrink-0 text-sm font-semibold text-suave">{i + 1}</span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h4 className={`font-medium ${r.aplica ? 'text-tinta' : 'text-suave'}`}>{r.nombre}</h4>

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { DatosRequisito } from '@/types/requisitos';
-import { alertasDelEstudiante, hoyEnLaPaz, normalizarRequisito, validarRequisito } from './requisitos';
+import type { DatosRequisito, RequisitoDelFile } from '@/types/requisitos';
+import {
+  alertasDelEstudiante,
+  hoyEnLaPaz,
+  normalizarRequisito,
+  requisitosVisibles,
+  validarRequisito,
+} from './requisitos';
 
 const base: DatosRequisito = {
   estado: 'COMPLETO',
@@ -93,5 +99,27 @@ describe('reglas de un requisito (SDD S2.4 §2.1, DEC-051)', () => {
       'TACFI Artístico I: te falta de un año anterior.',
       'Te faltan 1 requisito obligatorio.',
     ]);
+  });
+
+  it('solo se muestran los requisitos que se le piden al file (DEC-066)', () => {
+    const r = (nombre: string, o: Partial<RequisitoDelFile> = {}) => ({
+      nombre,
+      obligatorio: true,
+      aplica: true,
+      estado: 'PENDIENTE' as RequisitoDelFile['estado'],
+      registradoPor: null,
+      ...o,
+    });
+    const lista = [
+      r('REJAP'),
+      r('Libreta militar', { aplica: false }),
+      r('Pueblo indígena', { aplica: false, estado: 'COMPLETO' }),
+      r('Licencia temporal', { obligatorio: false }),
+      r('Reincorporación', { obligatorio: false, estado: 'COMPLETO' }),
+    ];
+    const nombres = (estudiante: boolean) => requisitosVisibles(lista, estudiante).map((x) => x.nombre);
+    expect(nombres(true)).toEqual(['REJAP', 'Reincorporación']);
+    // Kardex ve los "si corresponde" para registrarlos y lo ya registrado que dejó de corresponder.
+    expect(nombres(false)).toEqual(['REJAP', 'Pueblo indígena', 'Licencia temporal', 'Reincorporación']);
   });
 });

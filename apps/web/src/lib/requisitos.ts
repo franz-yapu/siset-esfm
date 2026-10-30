@@ -86,3 +86,22 @@ export function alertasDelEstudiante(bloqueado: boolean, requisitos: RequisitoDe
       : []),
   ];
 }
+
+/** Kardex ya anotó algo en este requisito (aunque hoy no se le pida al file). */
+export const yaRegistrado = (r: Pick<RequisitoDelFile, 'registradoPor' | 'estado'>): boolean =>
+  Boolean(r.registradoPor) || r.estado !== 'PENDIENTE';
+
+/**
+ * Los requisitos que se muestran de un file (DEC-066): solo los que se le piden por su modalidad y su género. Al
+ * estudiante, además, los "si corresponde" solo cuando ya se registró alguno; Kardex los ve todos para poder
+ * registrarlos. Un requisito ya registrado que dejó de corresponder (cambió la modalidad) sigue a la vista de Kardex.
+ */
+export const requisitosVisibles = <
+  R extends Pick<RequisitoDelFile, 'aplica' | 'obligatorio' | 'registradoPor' | 'estado'>,
+>(
+  requisitos: readonly R[],
+  paraEstudiante: boolean,
+): R[] =>
+  requisitos.filter((r) =>
+    paraEstudiante ? r.aplica && (r.obligatorio || yaRegistrado(r)) : r.aplica || yaRegistrado(r),
+  );

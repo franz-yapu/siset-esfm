@@ -36,7 +36,7 @@ export function TablaFolder({ requisitos }: { requisitos: readonly RequisitoDelF
     <div>
       <p className="mb-3 text-sm text-suave">
         Tienes <strong className="text-tinta tabular-nums">{tiene}</strong> de {pedidos.length} documentos obligatorios.
-        Los que no te corresponden (por género o modalidad) y los «si corresponde» que no presentaste quedan sin marca.
+        Solo salen los que te corresponden por tu modalidad y tu género.
       </p>
       <div className="overflow-x-auto rounded-[10px] border border-borde">
         <table className="w-full text-left text-sm">

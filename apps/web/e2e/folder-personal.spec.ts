@@ -10,10 +10,8 @@ test('el estudiante ve su hoja del folder con Sí y No, y la imprime en el forma
   await page.getByRole('link', { name: 'Mi file académico' }).click();
   await expect(page.getByRole('tab', { name: 'Hoja del folder' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByText(/Tienes \d+ de \d+ documentos obligatorios/)).toBeVisible();
-  // Lo que no le corresponde lleva la aclaración de la hoja y queda sin marca.
-  const libreta = page.getByRole('row', { name: /libreta militar \(varones\)/i });
-  await expect(libreta.getByLabel('Sí')).toHaveCount(0);
-  await expect(libreta.getByLabel('No')).toHaveCount(0);
+  // Lo que no le corresponde (otro género u otra modalidad) no sale en su hoja (DEC-066).
+  await expect(page.getByRole('row', { name: /libreta militar/i })).toHaveCount(0);
 
   // Al imprimir solo queda la hoja de papel, con su título y las firmas.
   await page.emulateMedia({ media: 'print' });

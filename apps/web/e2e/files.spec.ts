@@ -116,10 +116,9 @@ test.describe('files conectados en la demo (S2.9, S2.10)', () => {
     await page.getByLabel('Fecha de nacimiento').fill('2004-05-10');
     await page.getByRole('button', { name: 'Guardar' }).click();
     await page.getByRole('tab', { name: 'Requisitos' }).click();
-    // Sin género, la libreta militar no se le pide.
-    await expect(page.getByRole('listitem', { name: 'Fotocopia simple de la libreta militar' })).toContainText(
-      'Solo varones',
-    );
+    // Sin género, la libreta militar no se le pide: no sale (DEC-066).
+    await expect(page.getByRole('listitem', { name: 'Certificado legalizado TCLOA' })).toBeVisible();
+    await expect(page.getByRole('listitem', { name: 'Fotocopia simple de la libreta militar' })).toHaveCount(0);
 
     const tcloa = 'Certificado legalizado TCLOA';
     const fila = page.getByRole('listitem', { name: tcloa });

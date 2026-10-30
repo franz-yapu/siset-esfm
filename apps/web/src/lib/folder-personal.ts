@@ -1,7 +1,8 @@
 import type { RequisitoDelFile } from '@/types/requisitos';
 
-// La hoja "Documentación existente en folder personal" (DEC-051, DEC-062): una fila por requisito del catálogo, en su
-// orden, con la marca en SÍ o en NO según lo que Kardex registró.
+// La hoja "Documentación existente en folder personal" (DEC-051, DEC-062): una fila por requisito que se le pide a este
+// file (DEC-066), en el orden del catálogo, con la marca en SÍ o en NO según lo que Kardex registró. Los de otra
+// modalidad o género y los "si corresponde" que no presentó no salen.
 
 export interface FilaFolder {
   nro: number;
@@ -37,17 +38,22 @@ const conGestiones = (r: RequisitoDelFile): string => {
 };
 
 export function filasDelFolder(requisitos: readonly RequisitoDelFile[]): FilaFolder[] {
-  return [...requisitos]
-    .sort((a, b) => a.orden - b.orden)
-    .map((r) => {
-      const pedido = r.aplica && r.obligatorio;
-      return {
-        nro: r.orden,
-        texto: (r.porGestion ? conGestiones(r) : r.nombre) + aclaracion(r),
-        marca: r.aplica && r.estado === 'COMPLETO' ? 'SI' : pedido ? 'NO' : null,
-        pedido,
-      };
-    });
+  return (
+    [...requisitos]
+      .sort((a, b) => a.orden - b.orden)
+      .map((r): FilaFolder => {
+        const pedido = r.aplica && r.obligatorio;
+        return {
+          nro: r.orden,
+          texto: (r.porGestion ? conGestiones(r) : r.nombre) + aclaracion(r),
+          marca: r.aplica && r.estado === 'COMPLETO' ? 'SI' : pedido ? 'NO' : null,
+          pedido,
+        };
+      })
+      .filter((f) => f.pedido || f.marca === 'SI')
+      // Numeradas de nuevo: sin huecos por los que no salen.
+      .map((f, i) => ({ ...f, nro: i + 1 }))
+  );
 }
 
 const ANIOS = ['', 'Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto'];

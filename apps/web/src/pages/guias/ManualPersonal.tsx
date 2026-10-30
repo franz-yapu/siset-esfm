@@ -329,12 +329,13 @@ export function ManualPersonal() {
           <li>
             <em>Mi file académico</em> abre en la <strong>hoja del folder</strong>: los requisitos de la hoja
             «Documentación existente en folder personal», con la marca en <em>Sí</em> o en <em>No</em> según lo que
-            Kardex registró. Los que no le corresponden (por género o modalidad) y los «si corresponde» que no presentó
-            quedan sin marca. <em>Imprimir requisitos</em> la imprime en el formato de Archivo Kardex (también se puede
-            guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y <em>Mis datos</em> muestran el resto. En{' '}
-            <em>Mis entregas</em> está cada documento que Kardex le registró, con fecha y hora, y su comprobante (REC-…)
-            para volver a imprimirlo. En <em>Mis datos</em> puede cambiar su <strong>foto</strong>, su correo, su
-            celular y su dirección; el resto lo cambia Kardex: si algo está mal, acérquese a Kardex.
+            Kardex registró. Solo salen los que le corresponden por su modalidad y su género; los «si corresponde»
+            (licencia, reincorporación…), solo si los presentó. <em>Imprimir requisitos</em> la imprime en el formato de
+            Archivo Kardex (también se puede guardar como PDF). Las pestañas <em>Detalle de requisitos</em> y{' '}
+            <em>Mis datos</em> muestran el resto. En <em>Mis entregas</em> está cada documento que Kardex le registró,
+            con fecha y hora, y su comprobante (REC-…) para volver a imprimirlo. En <em>Mis datos</em> puede cambiar su{' '}
+            <strong>foto</strong>, su correo, su celular y su dirección; el resto lo cambia Kardex: si algo está mal,
+            acérquese a Kardex.
           </li>
           <li>
             Funciona en el celular. El estudiante entra con su CI y su fecha de nacimiento (dd-mm-aaaa) y, la primera

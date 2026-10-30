@@ -1112,3 +1112,20 @@ usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-05
    costado; el aviso de "Cargando…" aparece solo si la espera pasa de 150 ms. Todo dura menos de 0,3 s, se apaga
    con "reducir movimiento" y no deja transformaciones activas (no rompe los elementos fijos).
 4. **Bloqueo tras 10 intentos fallidos seguidos**, no 5 (ADR-0014). Cambia business-rules §Seguridad y RF-01 CA2.
+
+## DEC-066 — Solo los requisitos que se le piden al file; aviso del primer ingreso; versión 0.1.1
+
+**Fecha:** 2026-10-30 · **Fuente:** el responsable · **Estado:** activa
+
+1. **Requisitos a la vista:** solo los que se le piden al file por su modalidad y su género (`aplica` de la API). Los de
+   otra modalidad o género ya no salen como "No corresponde":
+   - **Estudiante** (Mi file: Hoja del folder y Detalle de requisitos; inicio): además, los "si corresponde"
+     (licencia, reincorporación…) solo salen cuando Kardex ya registró uno.
+   - **Kardex, SEC_COORD y COORDINADOR** (pestaña Requisitos del file): ven los "si corresponde" para registrarlos, y un
+     requisito ya registrado que dejó de corresponder (cambió la modalidad) sigue a la vista.
+   - **Hoja del folder personal** (pantalla e impresión, DEC-062): solo los pedidos y los "si corresponde" presentados,
+     numerados de nuevo del 1 en adelante.
+     La API y el semáforo no cambian: ya contaban solo los obligatorios que aplican.
+2. **Primer ingreso del estudiante:** el login explica que el usuario es el CI (con complemento `1234567-1A`) y la
+   contraseña la fecha de nacimiento `dd-mm-aaaa` (DEC-064 #4), con un ejemplo, y que luego se cambia.
+3. **Versión 0.1.1** en los tres `package.json` (se ve al pie del menú y del login).

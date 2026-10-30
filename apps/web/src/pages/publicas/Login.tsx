@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import clsx from 'clsx';
-import { BookOpen, ChevronDown, Eye, EyeOff, LogIn, QrCode, Route } from 'lucide-react';
+import { BookOpen, ChevronDown, Eye, EyeOff, KeyRound, LogIn, QrCode, Route } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { Alerta, Button, Input, RolBadge } from '@/components/ui';
 import { rutaInicio } from '@/config/permisos';
@@ -192,6 +192,27 @@ export function Login() {
               </Button>
             </div>
           </form>
+
+          {/* Las cuentas de estudiante nacen con su CI y su fecha de nacimiento (DEC-064 #4); se avisa aquí (DEC-066). */}
+          <section
+            aria-label="Primer ingreso del estudiante"
+            className="mt-4 flex gap-3 rounded-[10px] border border-borde bg-acento-palido p-4 text-sm text-tinta"
+          >
+            <KeyRound className="mt-0.5 size-5 shrink-0 text-acento" strokeWidth={1.75} aria-hidden />
+            <div>
+              <p className="font-medium text-primario">¿Eres estudiante y entras por primera vez?</p>
+              <p className="mt-1">
+                <strong>Usuario:</strong> tu número de CI (con complemento, así:{' '}
+                <span className="font-mono">1234567-1A</span>).
+              </p>
+              <p>
+                <strong>Contraseña:</strong> tu fecha de nacimiento en el formato{' '}
+                <span className="font-mono">dd-mm-aaaa</span>, con guiones. Ejemplo: si naciste el 15 de marzo de 2004,
+                escribe <span className="font-mono">15-03-2004</span>.
+              </p>
+              <p className="mt-1 text-suave">Al entrar, el sistema te pedirá cambiarla por una tuya.</p>
+            </div>
+          </section>
 
           <Link
             to="/seguimiento"
