@@ -1,5 +1,6 @@
 import type { SeccionReporte } from '@/lib/reporte-hojas-ruta';
 import { ESTADO_MINISTERIO, INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
+import { Escudo } from '@/components/marca/Escudo';
 
 /**
  * El reporte de trámites en papel carta (observación #5 del tutor, SDD OBS-T1): encabezado institucional, filtros,
@@ -16,7 +17,8 @@ export function ReporteImpreso({
 }) {
   return (
     <article className="mx-auto max-w-[8in] bg-white text-[11px] leading-snug text-black">
-      <header className="border-b-2 border-black pb-2 text-center text-[11px] uppercase">
+      <header className="relative border-b-2 border-black pb-2 text-center text-[11px] uppercase">
+        <Escudo uso="impresion" className="absolute top-0 left-0 size-[0.7in]" />
         <p className="font-bold">{ESTADO_MINISTERIO}</p>
         <p>{INSTITUCION}</p>
         <p className="font-semibold">{NOMBRE_ESCUELA}</p>

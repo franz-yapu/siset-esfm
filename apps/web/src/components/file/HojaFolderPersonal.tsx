@@ -6,6 +6,7 @@ import { anioEnPalabras, filasDelFolder, type FilaFolder } from '@/lib/folder-pe
 import { Button } from '@/components/ui';
 import { ZonaImpresion } from '@/pages/documentos/Plantillas';
 import { INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
+import { Escudo } from '@/components/marca/Escudo';
 
 type DatosHoja = Pick<
   FileDetalle,
@@ -80,7 +81,8 @@ const Dato = ({ etiqueta, valor }: { etiqueta: string; valor: string }) => (
 function HojaImpresa({ file: f, filas, gestion }: { file: DatosHoja; filas: FilaFolder[]; gestion: number }) {
   return (
     <article className="mx-auto max-w-[8in] bg-white text-[10.5px] leading-tight text-black">
-      <header className="text-center text-[12px] leading-snug font-semibold uppercase">
+      <header className="relative text-center text-[12px] leading-snug font-semibold uppercase">
+        <Escudo uso="impresion" className="absolute top-0 left-0 size-[0.7in]" />
         <p>{INSTITUCION}</p>
         <p>{NOMBRE_ESCUELA}</p>
         <p className="font-bold">{UNIDAD_ACADEMICA}</p>

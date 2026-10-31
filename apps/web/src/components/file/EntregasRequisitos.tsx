@@ -6,6 +6,7 @@ import { documentoDe, lineasDeCambios, nroComprobante, resumenEntrega } from '@/
 import { Alerta, Button, Cargando, DataTable, Modal } from '@/components/ui';
 import { ZonaImpresion } from '@/pages/documentos/Plantillas';
 import { INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
+import { Escudo } from '@/components/marca/Escudo';
 
 interface Titular {
   nombre: string;
@@ -93,10 +94,13 @@ function Comprobante({ titular, e }: { titular: Titular; e: EntregaRequisito }) 
   return (
     <article className="mx-auto flex h-[5.5in] w-[8.5in] shrink-0 flex-col border-b border-dashed border-slate-500 bg-white px-[0.5in] pt-[0.4in] pb-[0.3in] text-[10px] leading-snug text-black">
       <header className="flex items-start justify-between gap-4 border-b-2 border-black pb-1.5">
-        <div className="text-[8px] uppercase">
-          <p>{INSTITUCION}</p>
-          <p className="font-semibold">{NOMBRE_ESCUELA}</p>
-          <p>{UNIDAD_ACADEMICA} · Archivo Kardex</p>
+        <div className="flex items-start gap-2">
+          <Escudo uso="impresion" className="size-[0.5in]" />
+          <div className="text-[8px] uppercase">
+            <p>{INSTITUCION}</p>
+            <p className="font-semibold">{NOMBRE_ESCUELA}</p>
+            <p>{UNIDAD_ACADEMICA} · Archivo Kardex</p>
+          </div>
         </div>
         <div className="text-right">
           <p className="text-[11px] font-bold uppercase">Comprobante de recepción</p>

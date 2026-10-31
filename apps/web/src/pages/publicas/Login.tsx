@@ -21,6 +21,7 @@ import { CAMINO } from '@/config/camino-tramite';
 import { INSTITUCION, NOMBRE_ESCUELA } from '@/config/institucion';
 import { avisoOcultoParaSiempre } from '@/lib/aviso-primer-ingreso';
 import { AvisoPrimerIngreso } from './AvisoPrimerIngreso';
+import { Escudo } from '@/components/marca/Escudo';
 
 /** La demo (usuarios de prueba, "Ver como", reinicio) solo existe con todos los servicios en mock (SDD S0.8 §2.5). */
 const DEMO = import.meta.env.VITE_DEMO === 'true' && todoMock();
@@ -121,8 +122,13 @@ export function Login() {
           </p>
         </div>
         <div className="max-w-md">
-          <h1 className="text-4xl font-semibold">SISET</h1>
-          <p className="mt-2 text-lg text-emerald-100">Sistema de Gestión y Seguimiento de Trámites</p>
+          <div className="flex items-center gap-4 lg:block">
+            <Escudo uso="pantalla" className="size-16 drop-shadow-md sm:size-20 lg:mb-6 lg:size-32" />
+            <div>
+              <h1 className="text-4xl font-semibold">SISET</h1>
+              <p className="mt-2 text-lg text-emerald-100">Sistema de Gestión y Seguimiento de Trámites</p>
+            </div>
+          </div>
           <ol className="mt-10 hidden lg:block" aria-label="El camino de un trámite">
             {CAMINO.map((p, i) => (
               <li key={p.paso} className="flex gap-3">

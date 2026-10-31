@@ -1141,3 +1141,15 @@ usuario (es el Responsable de Kardex y se refiere al rol Administrador de DEC-05
 3. **"No volver a mostrar"** la deja cerrada en ese navegador (`localStorage`, preferencia de cada persona; si el
    navegador no deja guardar, vuelve a salir). El ícono de ajustes la sigue abriendo, y desmarcar la casilla lo deshace.
 4. Las E2E empiezan con la casilla marcada (`playwright.config.ts`); la del aviso usa un navegador limpio.
+
+## DEC-068 — Escudo de la Unidad Académica Ancocagua en el login y en los imprimibles
+
+**Fecha:** 2026-10-30 · **Fuente:** el responsable (archivos del escudo de la escuela) · **Estado:** activa
+
+1. El escudo va en `apps/web/src/assets/` en dos versiones WebP sacadas del original de 2192 px: **pantalla** (320 px,
+   38 KB) para el login, junto a "SISET" (más grande en escritorio, al lado del título en el celular), e
+   **impresión** (360 px, 51 KB) para el papel. El original de 4 MB no se sube al repositorio.
+2. **Imprimibles**, más pequeño y a la izquierda del encabezado: media pulgada en los de media carta (carátula de la
+   hoja de ruta con su constancia de entrega, comprobante de recepción) y unos tres cuartos de pulgada en los de
+   hoja completa (hoja del folder personal, reporte de trámites, plantillas); el texto del encabezado no se mueve.
+3. Un solo componente (`components/marca/Escudo.tsx`) con su texto alternativo. La CSP no cambia (`img-src 'self'`).

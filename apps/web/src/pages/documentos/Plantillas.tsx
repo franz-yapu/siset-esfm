@@ -4,6 +4,7 @@ import type { FileAcademico, TipoDocumento } from '@/types';
 import { fechaLarga, hoy, ordinal } from '@/lib/formato';
 import { nombreCompleto } from '@/lib/reglas';
 import { ESTADO_MINISTERIO, INSTITUCION, NOMBRE_ESCUELA, UNIDAD_ACADEMICA } from '@/config/institucion';
+import { Escudo } from '@/components/marca/Escudo';
 
 /** Hoja tamaño carta con encabezado institucional y marca de agua opcional (P-45). */
 export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vistaPrevia?: boolean }) {
@@ -16,7 +17,8 @@ export function HojaCarta({ children, vistaPrevia }: { children: ReactNode; vist
           </span>
         </div>
       )}
-      <header className="border-b-2 border-slate-900 pb-3 text-center text-[11px] leading-snug uppercase">
+      <header className="relative border-b-2 border-slate-900 pb-3 text-center text-[11px] leading-snug uppercase">
+        <Escudo uso="impresion" className="absolute top-0 left-0 size-[0.75in]" />
         <p className="font-bold">{ESTADO_MINISTERIO}</p>
         <p>{INSTITUCION}</p>
         <p className="font-semibold">{NOMBRE_ESCUELA}</p>
